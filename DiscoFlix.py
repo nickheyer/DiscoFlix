@@ -161,7 +161,7 @@ async def on_message(message):
     if str(type(add_movie)) == "<class 'list'>":
         await message.channel.send(f"Looks like this movie is already available on {SERVER_NAME}, if not, please contact {ADMIN_NAME}.")
     else:
-        await message.channel.send(f"{str_req_movie} is being downloaded to {SERVER_NAME}.") ; sleep(1)
+        await message.channel.send(f"Movie is being downloaded to {SERVER_NAME}.") ; sleep(1)
         await message.channel.send(f"Please wait: {avg_time_download} seconds...") ; sleep(avg_time_download)
         await message.channel.send(f"If movie is not currently on {SERVER_NAME}, please contact {ADMIN_NAME}.")
   elif message.content.startswith("!df set keyword") and full_user in auth_users.values():
