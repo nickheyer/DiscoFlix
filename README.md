@@ -15,7 +15,7 @@ Installation instructions:
 ~~2. Make sure you have the following libraries installed by running these two commands in command prompt:
     1. "pip install discord"
     2. "pip install pyarr"
-    3. If command prompt does not recognize the pip command, you must add your python library folder to your PATH in Env variables. Google "how to add python to PATH".~~
+    3. If command prompt does not recognize the pip command, you must add your python library folder to your PATH in Env variables. Google "how to add python to PATH".
 4. ~~Download and Unzip the file "DiscoFlix_Portable.zip".~~ Download and install "DiscoFlix_Setup.exe"
 5. Click the DiscoFlix icon, a command prompt will ask you for all the above required information.
 6. If your command prompt displays "Bot is ready to party, logged in as 'BOT####'", you should be good to go, assuming all the above steps were completed. 
