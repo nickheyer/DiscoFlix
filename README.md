@@ -12,7 +12,6 @@ Installation instructions:
     4. The Movie Database API Key (https://www.themoviedb.org/settings/api)
     5. Name of media server that requests will be populated on (ex: NickFlix)
     6. Full Discord username of Admin for first time use (ex: NastyNick#4212)
-
 2. Download and Unzip the file "DiscoFlix_Portable.zip".
 3. Click the DiscoFlix icon, a command prompt will ask you for all the above required information.
 4. If your command prompt displays "Bot is ready to party, logged in as 'BOT####'", you should be good to go, assuming all the above steps were completed. 
