@@ -174,6 +174,8 @@ async def on_message(message):
     await message.channel.send(f"{added_user.strip()} has been added to authorized users!")
     with open(AUTH_USER_PATH, "w") as auth_user_json:
       json.dump(auth_users, auth_user_json)
+  elif message.content.lower().startswith("!df help") and full_user in auth_users.values():
+        await message.channel.send(f"'{keyword}'\n'!df set keyword <new keyword>'\n'!df add user <user>'\n\n'For more help, visit https://github.com/nickheyer/DiscoFlix'")
   else:
     return
 
