@@ -69,6 +69,8 @@ embed = discord.Embed()
 
 @client.event
 async def on_ready():
+  disc_act = "!df help"
+  await client.change_presence(activity=discord.Activity(type = discord.ActivityType.listening, name = disc_act))
   print("Bot is ready to party, logged in as {0.user}.".format(client))
 
 @client.event
