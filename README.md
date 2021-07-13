@@ -20,7 +20,7 @@ Installation instructions:
 Operation instructions:
 
 1. To request a movie, type the default prefix "!df request" and then your movie name. For example: "!df Dark Phoenix".
-2. The bot will then respond with all relevant titles matched with your query to TMDB. In 90% of cases, the first listing is the correct one, but if it isn't, go ahead and type "no", it will give you the next most relevant title. If the movie is correct, type "yes". 
+2. The bot will then respond with all relevant titles matched with your query to TMDB. In 90% of cases, the first listing is the correct one, but if it isn't, go ahead and type "no", it will give you the next most relevant title. If the movie is correct, type "yes". If you'd like to cancel, type "stop". If you'd like to start-over, type "startover".
 3. If the selected movie is already present in radarr's root directory, the bot will respond letting you know that the file already exists.
 4. If the movie does not already exist, it will add it to radarr's queue using the quality preset "ANY". 
 5. Based on the average download time you provided during setup, it will send a message to discord letting requester know to check the server. 
