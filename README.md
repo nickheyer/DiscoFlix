@@ -1,7 +1,7 @@
 # DiscoFlix
 A media-requesting, Radarr-interfacing, movie-listing Discord Bot for your media server. 
 
-As this bot is intended for requests to be fulfilled via Radarr, you must have Radarr installed to use this bot. (https://github.com/Radarr/Radarr). Along with radarr, you must have discord, as well as a discord developer account (https://discord.com/developers/applications), and a bot created/invited to your chosen discord server. ~~It has also come to my attention that you will likely need the Discord and PyArr libraries installed on your computer as well - added to installation instructions.~~
+As this bot is intended for requests to be fulfilled via Radarr, you must have Radarr installed to use this bot. (https://github.com/Radarr/Radarr). Along with radarr, you must have discord, as well as a discord developer account (https://discord.com/developers/applications), and a bot created/invited (via your developer acount) to your chosen discord server.
 
 Installation instructions:
 
