@@ -126,25 +126,37 @@ async def on_message(message):
     selected_movie_id = ""
     number_of_results = len(list_of_movies.keys())
     count_1 = 0
-    for x,y in list_of_movies.items():
-        await message.channel.send("Is this the correct movie?") ; sleep(1)
-        embed.set_image(url=f"https://image.tmdb.org/t/p/original{y[1]}")
-        await message.channel.send(embed=embed)
-        await message.channel.send(f"`{y[2]} ({y[3]})`\n```{y[4]}```")
-        player_choice = await client.wait_for('message', check=lambda message: message.author == current_requester and message.channel.id == current_channel)
-        if player_choice.content.lower().strip() == "yes":
-          await message.channel.send(f"Selected: `{y[2]} ({y[3]})`") ; sleep(2)
-          selected_movie_id = y[0]
-          break
-        else:
-          count_1 += 1
-          if count_1 == number_of_results:
-            await message.channel.send(f"Unfortunately, we have run out of results.") ; sleep(1)
-            await message.channel.send(f"It's possible that this movie does not exist, let's check if it does and try again...") ; sleep(1)
-            await message.channel.send(f"https://letmegooglethat.com/?q={google_search_req}%3F")
+    await message.channel.send(f"Displaying results... \nType 'stop' to cancel search, or 'startover' to restart your search.") ; sleep(1)
+    while True:
+      for x,y in list_of_movies.items():
+          await message.channel.send("Is this the correct movie? ('yes' or 'no')") ; sleep(1)
+          embed.set_image(url=f"https://image.tmdb.org/t/p/original{y[1]}")
+          await message.channel.send(embed=embed)
+          await message.channel.send(f"`{y[2]} ({y[3]})`\n```{y[4]}```")
+          player_choice = await client.wait_for('message', check=lambda message: message.author == current_requester and message.channel.id == current_channel and message.content.lower().strip() in ["yes", "y", "startover", "stop", "no", "n", ])
+          if player_choice.content.lower().strip() == "yes" or player_choice.content.lower().strip() == "y":
+            await message.channel.send(f"Selected: `{y[2]} ({y[3]})`") ; sleep(2)
+            selected_movie_id = y[0]
+            break
+          elif player_choice.content.lower().strip() == "startover":
+            await message.channel.send(f"Starting search over...") ; sleep(1)
+            break
+          elif player_choice.content.lower().strip() == "stop":
+            await message.channel.send(f"Cancelling search... Have a good day!") ; sleep(1)
             return
-          else:
-            pass
+          elif player_choice.content.lower().strip() == "no" or player_choice.content.lower().strip() == "n":
+            count_1 += 1
+            if count_1 == number_of_results:
+              await message.channel.send(f"Unfortunately, we have run out of results.") ; sleep(1)
+              await message.channel.send(f"It's possible that this movie does not exist, let's check if it does and try again...") ; sleep(1)
+              await message.channel.send(f"https://letmegooglethat.com/?q={google_search_req}%3F")
+              return
+            else:
+              pass
+      if player_choice.content.lower().strip() == "yes" or player_choice.content.lower().strip() == "y":
+        break
+      elif player_choice.content.lower().strip() == "startover":
+        pass
     og_stdout = sys.stdout
     try:  
       with io.open(LOGS_PATH, "a", encoding = "UTF-8") as logs_file:
