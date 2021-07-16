@@ -186,7 +186,7 @@ async def on_message(message):
         await message.channel.send(f"Looks like this movie is already available on {SERVER_NAME}, if not, please contact {ADMIN_NAME}.")
     else:
         await message.channel.send(f"Movie is being downloaded to {SERVER_NAME}.") ; sleep(1)
-        await message.channel.send(f"Please wait: {avg_time_download} seconds...") ; sleep(avg_time_download)
+        await message.channel.send(f"Please wait: {avg_time_download} minute(s)...") ; sleep(avg_time_download)
         await message.channel.send(f"If movie is not currently on {SERVER_NAME}, please contact {ADMIN_NAME}.")
   elif message.content.lower().startswith(f"{keyword.lower()} tvshow") and full_user in auth_users.values() and startup_val["enable_son"].lower().strip() == "yes":
     req_show = message.content.lower()[(len(keyword) + 7):].strip()
