@@ -1,5 +1,5 @@
 # DiscoFlix
-A simple media-requesting, Radarr/Sonarr-interfacing, movie and tvshow-listing Discord Bot for your media server. 
+A simple media-requesting, Radarr/Sonarr-interfacing, movie and tv show-listing Discord Bot for your media server. 
 
 As this bot is intended for requests to be fulfilled via Radarr AND Sonarr, you must have Radarr (AND optionally Sonarr) installed to use this bot. (https://github.com/Radarr/Radarr & https://sonarr.tv/#download). Along with radarr and sonarr (again, optional), you must have discord, as well as a discord developer account (https://discord.com/developers/applications), and a bot created/invited (via your developer acount) to your chosen discord server.
 
