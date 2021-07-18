@@ -10,7 +10,7 @@ Installation instructions:
     2. Radarr API Key (Radarr GUI>Settings>General>API Key)
     3. Radarr Host URL (The url you use to access your radarr interface, ex: http://localhost:6585)
     2. (optional) Sonarr API Key (Sonarr GUI>Settings>General>API Key)
-    3. (optional) Sonarr Host URL (The url you use to access your radarr interface, ex: http://localhost:8989)
+    3. (optional) Sonarr Host URL (The url you use to access your sonarr interface, ex: http://localhost:8989)
     5. The Movie Database API Key (https://www.themoviedb.org/settings/api)
     6. Name of media server that requests will be populated on (ex: NickFlix)
     7. Full Discord username of Admin for first time use (ex: NastyNick#4212)
