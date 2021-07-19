@@ -90,6 +90,7 @@ async def on_message(message):
   full_user = (f"{message.author.name}#{message.author.discriminator}")
   current_requester = message.author
   current_channel = message.channel.id
+  player_choice = None
   if message.author == client.user:
     return
   elif message.content.lower().startswith(f"{keyword.lower()} movie") and full_user in auth_users.values():
@@ -118,28 +119,26 @@ async def on_message(message):
     req = Request(url=f"https://api.themoviedb.org/3/search/movie?api_key={TMDB_TOKEN}&query={req_movie}", headers=headers) 
     html = urlopen(req)
     html = json.load(html)
-    while True:
-      if html == {"page":1,"results":[],"total_pages":0,"total_results":0}:
-        if "%" in req_movie:
-          req_movie_rep = ""
-          for x in req_movie:
-            if x == "%":
-              req_movie_rep += "-"
-            else:
-              req_movie_rep += x
-            req_movie = req_movie_rep
-            headers = {"User-Agent": "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.3"}
-            req = Request(url=f"https://api.themoviedb.org/3/search/movie?api_key={TMDB_TOKEN}&query={req_movie}", headers=headers) 
-            html = urlopen(req)
-            html = json.load(html)
-        else:
+    if html == {"page":1,"results":[],"total_pages":0,"total_results":0}:
+      if "%" in req_movie:
+        req_movie_rep = ""
+        for x in req_movie:
+          if x == "%":
+            req_movie_rep += "-"
+          else:
+            req_movie_rep += x
+        req_movie = req_movie_rep
+        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.3"}
+        req = Request(url=f"https://api.themoviedb.org/3/search/movie?api_key={TMDB_TOKEN}&query={req_movie}", headers=headers) 
+        html = urlopen(req)
+        html = json.load(html)
+        if html == {"page":1,"results":[],"total_pages":0,"total_results":0}:
           await message.channel.send(f"No results found for '{str_req_movie}'")
           await asyncio.sleep(1)
           await message.channel.send(f"Let's try searching the internet for it...")
           await asyncio.sleep(1)
           await message.channel.send(f"https://letmegooglethat.com/?q={google_search_req}%3F")
-          return
-      break  
+          return 
     print_list = {}
     for x in html["results"]:
         x["release_date"] = x.get("release_date", "Release date unavailable")
