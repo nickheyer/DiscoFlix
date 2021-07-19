@@ -8,6 +8,7 @@ from radarr_api_v3 import RadarrAPIv3
 from sonarr_api import SonarrAPI
 from datetime import date
 import sys
+import asyncio
 
 #First time setup procedure
 print("Welcome to DiscoFlix")
@@ -58,6 +59,7 @@ SERVER_NAME = startup_val["s_name"]
 ADMIN_NAME = startup_val["s_host"]
 #Set your avg download time per movie - in seconds
 avg_time_download = int(startup_val["avg_d_time"])
+avg_time_seconds = avg_time_download * 60
 
 #Attempting to read auth. user list
 AUTH_USER_PATH = os.path.join(os.path.dirname(__file__), f'auth_users.json')
@@ -92,13 +94,17 @@ async def on_message(message):
     return
   elif message.content.lower().startswith(f"{keyword.lower()} movie") and full_user in auth_users.values():
     req_movie = message.content.lower()[(len(keyword) + 6):].strip()
-    str_req_movie = req_movie
-    await message.channel.send(f"Searching for {req_movie.title()}") ; sleep(1)
-    await message.channel.send(f"One moment...") ; sleep(1)
+    str_req_movie = req_movie.title()
+    await message.channel.send(f"Searching for {req_movie.title()}")
+    await asyncio.sleep(1)
+    await message.channel.send(f"One moment...")
+    await asyncio.sleep(1)
     req_movie_rep = ""
     for x in req_movie:
         if x == " ":
           req_movie_rep += "%"
+        elif x.isalpha() == False and x.isdigit() == False:
+          pass
         else:
           req_movie_rep += x
     google_search_req = ""
@@ -112,11 +118,28 @@ async def on_message(message):
     req = Request(url=f"https://api.themoviedb.org/3/search/movie?api_key={TMDB_TOKEN}&query={req_movie}", headers=headers) 
     html = urlopen(req)
     html = json.load(html)
-    if html == {"page":1,"results":[],"total_pages":0,"total_results":0}:
-      await message.channel.send(f"No results found for '{str_req_movie}'") ; sleep(1)
-      await message.channel.send(f"Let's try searching the internet for it...") ; sleep(1)
-      await message.channel.send(f"https://letmegooglethat.com/?q={google_search_req}%3F")
-      return  
+    while True:
+      if html == {"page":1,"results":[],"total_pages":0,"total_results":0}:
+        if "%" in req_movie:
+          req_movie_rep = ""
+          for x in req_movie:
+            if x == "%":
+              req_movie_rep += "-"
+            else:
+              req_movie_rep += x
+            req_movie = req_movie_rep
+            headers = {"User-Agent": "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.3"}
+            req = Request(url=f"https://api.themoviedb.org/3/search/movie?api_key={TMDB_TOKEN}&query={req_movie}", headers=headers) 
+            html = urlopen(req)
+            html = json.load(html)
+        else:
+          await message.channel.send(f"No results found for '{str_req_movie}'")
+          await asyncio.sleep(1)
+          await message.channel.send(f"Let's try searching the internet for it...")
+          await asyncio.sleep(1)
+          await message.channel.send(f"https://letmegooglethat.com/?q={google_search_req}%3F")
+          return
+      break  
     print_list = {}
     for x in html["results"]:
         x["release_date"] = x.get("release_date", "Release date unavailable")
@@ -124,6 +147,7 @@ async def on_message(message):
         poster_suffix = x.get("poster_path", "/dykOcAqI01Fci5cKQW3bEUrPWwU.jpg")
         x["poster_path"] = (f"https://image.tmdb.org/t/p/original{poster_suffix}")
         x["overview"] = x.get("overview", "Description unavailable.")
+        # x["id"] = x.get("id", )
         if x["overview"] == "":
           x["overview"] = "Description unavailable."
         if "jpg" not in x["poster_path"]:
@@ -134,31 +158,40 @@ async def on_message(message):
     with io.open(last_search, "r", encoding = "UTF-8") as last_search_r:
         list_of_movies = json.load(last_search_r)
     selected_movie_id = ""
+    selected_movie = ""
     number_of_results = len(list_of_movies.keys())
     count_1 = 0
-    await message.channel.send(f"Displaying results... \nType 'stop' to cancel search, or 'startover' to restart your search.") ; sleep(1)
+    await message.channel.send(f"Displaying results... \nType 'stop' to cancel search, or 'startover' to restart your search.")
+    await asyncio.sleep(1)
     while True:
       for x,y in list_of_movies.items():
-          await message.channel.send("Is this the correct movie? ('yes' or 'no')") ; sleep(1)
+          await message.channel.send("Is this the correct movie? ('yes' or 'no')")
+          await asyncio.sleep(1)
           embed.set_image(url= y[1])
           await message.channel.send(embed=embed)
           await message.channel.send(f"`{y[2]} ({y[3]})`\n```{y[4]}```")
           player_choice = await client.wait_for('message', check=lambda message: message.author == current_requester and message.channel.id == current_channel and message.content.lower().strip() in ["yes", "y", "startover", "stop", "no", "n", ])
           if player_choice.content.lower().strip() == "yes" or player_choice.content.lower().strip() == "y":
-            await message.channel.send(f"Selected: `{y[2]} ({y[3]})`") ; sleep(2)
+            selected_movie = (f"{y[2]} ({y[3]})")
+            await message.channel.send(f"Selected: `{selected_movie}`")
+            await asyncio.sleep(2)
             selected_movie_id = y[0]
             break
           elif player_choice.content.lower().strip() == "startover":
-            await message.channel.send(f"Starting search over...") ; sleep(1)
+            await message.channel.send(f"Starting search over...")
+            await asyncio.sleep(1)
             break
           elif player_choice.content.lower().strip() == "stop":
-            await message.channel.send(f"Cancelling search... Have a good day!") ; sleep(1)
+            await message.channel.send(f"Cancelling search... Have a good day!")
+            await asyncio.sleep(1)
             return
           elif player_choice.content.lower().strip() == "no" or player_choice.content.lower().strip() == "n":
             count_1 += 1
             if count_1 == number_of_results:
-              await message.channel.send(f"Unfortunately, we have run out of results.") ; sleep(1)
-              await message.channel.send(f"It's possible that this movie does not exist, let's check if it does and try again...") ; sleep(1)
+              await message.channel.send(f"Unfortunately, we have run out of results.")
+              await asyncio.sleep(1)
+              await message.channel.send(f"It's possible that this movie does not exist, let's check if it does and try again...")
+              await asyncio.sleep(1)
               await message.channel.send(f"https://letmegooglethat.com/?q={google_search_req}%3F")
               return
             else:
@@ -185,9 +218,19 @@ async def on_message(message):
     if str(type(add_movie)) == "<class 'list'>":
         await message.channel.send(f"Looks like this movie is already available on {SERVER_NAME}, if not, please contact {ADMIN_NAME}.")
     else:
-        await message.channel.send(f"Movie is being downloaded to {SERVER_NAME}.") ; sleep(1)
-        await message.channel.send(f"Please wait: {avg_time_download} minute(s)...") ; sleep(avg_time_download)
-        await message.channel.send(f"If movie is not currently on {SERVER_NAME}, please contact {ADMIN_NAME}.")
+        await message.channel.send(f"Movie is being downloaded to {SERVER_NAME}.")
+        await asyncio.sleep(1)
+        await message.channel.send(f"Please wait: {avg_time_download} minute(s)...")
+    await asyncio.sleep(avg_time_seconds)
+    movie_check = radarr.get_movie(selected_movie_id)
+    try:
+      radarr_id = movie_check[0]["movieFile"]['id']
+      if radarr.get_movie_file(radarr_id) == {'message': 'NotFound'}:
+        await message.channel.send(f"{SERVER_NAME} is having trouble finding `{selected_movie}`, please check server frequently for updates as this may be added at a later time.")
+      else:
+        await message.channel.send(f"`{selected_movie}` is now available on {SERVER_NAME}. Enjoy!")
+    except:
+      await message.channel.send(f"{SERVER_NAME} is having trouble finding `{selected_movie}`, please check server frequently for updates as this may be added at a later time.")
   elif message.content.lower().startswith(f"{keyword.lower()} tvshow") and full_user in auth_users.values() and startup_val["enable_son"].lower().strip() == "yes":
     req_show = message.content.lower()[(len(keyword) + 7):].strip()
     str_req_show = req_show.title()
@@ -197,13 +240,16 @@ async def on_message(message):
         google_search_req += "+"
       else:
         google_search_req += x      
-    await message.channel.send(f"Searching for {req_show.title()}") ; sleep(1)
-    await message.channel.send(f"One moment...") ; sleep(1)
+    await message.channel.send(f"Searching for {req_show.title()}")
+    await asyncio.sleep(1)
+    await message.channel.send(f"One moment...")
+    await asyncio.sleep(1)
     show_search = (sonarr.lookup_series(f"'{req_show}'"))[:10]
     count_1 = 0
     while True:
       for x in show_search: 
-          await message.channel.send("Is this the correct show? ('yes' or 'no')") ; sleep(1)
+          await message.channel.send("Is this the correct show? ('yes' or 'no')")
+          await asyncio.sleep(1)
           try:
             embed.set_image(url= x["images"][1]["url"])
           except:
@@ -212,21 +258,26 @@ async def on_message(message):
           await message.channel.send(f"`{x['title']} ({x['year']})`\n```{x['overview']}```")
           player_choice = await client.wait_for('message', check=lambda message: message.author == current_requester and message.channel.id == current_channel and message.content.lower().strip() in ["yes", "y", "startover", "stop", "no", "n", ])
           if player_choice.content.lower().strip() == "yes" or player_choice.content.lower().strip() == "y":
-            await message.channel.send(f"Selected: `{x['title']} ({x['year']})`") ; sleep(2)
+            await message.channel.send(f"Selected: `{x['title']} ({x['year']})`")
+            await asyncio.sleep(2)
             selected_show_title = x['title']
             selected_show_id = x['tvdbId']
             break
           elif player_choice.content.lower().strip() == "startover":
-            await message.channel.send(f"Starting search over...") ; sleep(1)
+            await message.channel.send(f"Starting search over...")
+            await asyncio.sleep(1)
             break
           elif player_choice.content.lower().strip() == "stop":
-            await message.channel.send(f"Cancelling search... Have a good day!") ; sleep(1)
+            await message.channel.send(f"Cancelling search... Have a good day!")
+            await asyncio.sleep(1)
             return
           elif player_choice.content.lower().strip() == "no" or player_choice.content.lower().strip() == "n":
             count_1 += 1
             if count_1 == len(show_search):
-              await message.channel.send(f"Unfortunately, we have run out of results.") ; sleep(1)
-              await message.channel.send(f"It's possible that this show does not exist, let's check if it does and try again...") ; sleep(1)
+              await message.channel.send(f"Unfortunately, we have run out of results.")
+              await asyncio.sleep(1)
+              await message.channel.send(f"It's possible that this show does not exist, let's check if it does and try again...")
+              await asyncio.sleep(1)
               await message.channel.send(f"https://letmegooglethat.com/?q={google_search_req}%3F")
               return
             else:
@@ -257,7 +308,8 @@ async def on_message(message):
     if str(type(add_show)) == "<class 'list'>":
         await message.channel.send(f"Looks like this show is already available on {SERVER_NAME}, if not, please contact {ADMIN_NAME}.")
     else:
-        await message.channel.send(f"Show is being downloaded to {SERVER_NAME}.") ; sleep(1)
+        await message.channel.send(f"Show is being downloaded to {SERVER_NAME}.")
+        await asyncio.sleep(1)
         await message.channel.send(f"Please wait while the show is being downloaded, check server frequently.")
         s_id = 0
         for x in sonarr.get_series():
@@ -272,7 +324,8 @@ async def on_message(message):
     count = 1
     for x in auth_users.keys():
       count += 1
-    auth_users[str(count)] = added_user.strip() ; sleep(1)
+    auth_users[str(count)] = added_user.strip()
+    await asyncio.sleep(1)
     await message.channel.send(f"{added_user.strip()} has been added to authorized users!")
     with open(AUTH_USER_PATH, "w") as auth_user_json:
       json.dump(auth_users, auth_user_json)
