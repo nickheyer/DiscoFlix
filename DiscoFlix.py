@@ -29,7 +29,7 @@ except:
   startup_val["tmdb_token"] = input("Please enter your TMDB API token here: ") ; sleep(1)
   startup_val["s_name"] = input("Please enter the name of your media server here: ") ; sleep(1)
   startup_val["s_host"] = input("Please enter your discord username here (with discord id number at the end, ex: NastyNick#4212): ") ; sleep(1)
-  startup_val["avg_d_time"] = input("Please enter the average time it takes (in minutes) for a movie to download (using quality preset 'any') here: ") ; sleep(1)
+  startup_val["avg_d_time"] = input("Please enter the average time it takes (in minutes) for your server to find, download, and unpack a movie here (using quality profile 'any'): ") ; sleep(1)
   with open(INI_PATH, "w") as ini_values:
     json.dump(startup_val, ini_values)
 
@@ -216,20 +216,21 @@ async def on_message(message):
         sys.stdout = og_stdout
     if str(type(add_movie)) == "<class 'list'>":
         await message.channel.send(f"Looks like this movie is already available on {SERVER_NAME}, if not, please contact {ADMIN_NAME}.")
+        return
     else:
         await message.channel.send(f"Movie is being downloaded to {SERVER_NAME}.")
         await asyncio.sleep(1)
         await message.channel.send(f"Please wait: {avg_time_download} minute(s)...")
-    await asyncio.sleep(avg_time_seconds)
-    movie_check = radarr.get_movie(selected_movie_id)
-    try:
-      radarr_id = movie_check[0]["movieFile"]['id']
-      if radarr.get_movie_file(radarr_id) == {'message': 'NotFound'}:
-        await message.channel.send(f"{SERVER_NAME} is having trouble finding `{selected_movie}`, please check server frequently for updates as this may be added at a later time.")
-      else:
-        await message.channel.send(f"`{selected_movie}` is now available on {SERVER_NAME}. Enjoy!")
-    except:
-      await message.channel.send(f"{SERVER_NAME} is having trouble finding `{selected_movie}`, please check server frequently for updates as this may be added at a later time.")
+        await asyncio.sleep(avg_time_seconds)
+        movie_check = radarr.get_movie(selected_movie_id)
+        try:
+          radarr_id = movie_check[0]["movieFile"]['id']
+          if radarr.get_movie_file(radarr_id) == {'message': 'NotFound'}:
+            await message.channel.send(f"{SERVER_NAME} is having trouble finding `{selected_movie}`, please check server frequently for updates as this may be added at a later time.")
+          else:
+            await message.channel.send(f"`{selected_movie}` is now available on {SERVER_NAME}. Enjoy!")
+        except:
+          await message.channel.send(f"{SERVER_NAME} is having trouble finding `{selected_movie}`, please check server frequently for updates as this may be added at a later time.")
   elif message.content.lower().startswith(f"{keyword.lower()} tvshow") and full_user in auth_users.values() and startup_val["enable_son"].lower().strip() == "yes":
     req_show = message.content.lower()[(len(keyword) + 7):].strip()
     str_req_show = req_show.title()
