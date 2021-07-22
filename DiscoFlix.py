@@ -139,6 +139,13 @@ async def on_message(message):
           await asyncio.sleep(1)
           await message.channel.send(f"https://letmegooglethat.com/?q={google_search_req}%3F")
           return 
+      else:
+        await message.channel.send(f"No results found for '{str_req_movie}'")
+        await asyncio.sleep(1)
+        await message.channel.send(f"Let's try searching the internet for it...")
+        await asyncio.sleep(1)
+        await message.channel.send(f"https://letmegooglethat.com/?q={google_search_req}%3F")
+        return 
     print_list = {}
     for x in html["results"]:
         x["release_date"] = x.get("release_date", "Release date unavailable")
@@ -246,6 +253,13 @@ async def on_message(message):
     await asyncio.sleep(1)
     show_search = (sonarr.lookup_series(f"'{req_show}'"))[:10]
     count_1 = 0
+    if show_search == []:
+      await message.channel.send(f"Unfortunately, we can't find a show with a title matching the one you specified..")
+      await asyncio.sleep(1)
+      await message.channel.send(f"It's possible that this show does not exist, let's check if it does and try again...")
+      await asyncio.sleep(1)
+      await message.channel.send(f"https://letmegooglethat.com/?q={google_search_req}%3F")
+      return    
     while True:
       for x in show_search: 
           await message.channel.send("Is this the correct show? ('yes' or 'no')")
