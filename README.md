@@ -37,8 +37,8 @@ Run The Program (or double-click the 'run.cmd' file)
 ```
 run.cmd
 ```
-This will start a local web-server [HERE](http://127.0.0.1:5000)
-Closing the CMD closes the webserver. To host the server on a different port, edit the run.cmd file.
+This will start a local web-server [HERE](http://127.0.0.1:5000).
+Closing the CMD closes the webserver. To host the server on a different port, edit the run.cmd file (shown in the below code-block).
 ```
 //Contents of run.cmd
 start "" http://127.0.0.1:5000
