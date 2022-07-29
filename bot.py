@@ -67,7 +67,7 @@ async def cycle_content(message : Any, request : str, content_list : list[Any], 
           except:
             embeded.set_image(url="https://i.imgur.com/1glpRCZ.png?1")
             await message.channel.send(embed=embeded)
-          await add_msg(message, f"`{x['title']} | ({x['year']})`{' | ' + str(x['seasonCount']) + ' Seasons' if operator == 't' else ''}\n<{x['website'] if ('website' in x.keys() and x['website'] != '') else return_google_link(x['title'])}>\n```{x['overview']}```")
+          await add_msg(message, f"`{x['title']} | ({x['year']}){(' | ' + str(x['seasonCount']) + ' Seasons`') if operator == 't' else '`'}\n<{x['website'] if ('website' in x.keys() and x['website'] != '') else return_google_link(x['title'])}>\n```{x['overview']}```")
           await add_msg(message, "Is this correct? (`yes` or `no`)")
           try:
             await_choice = await client.wait_for('message', check=lambda message: (message.author == current_requester
