@@ -57,20 +57,21 @@ def create_debug_txt(txt : str) -> None:
     fp.write(txt)
 
 async def cycle_content(message : Any, request : str, content_list : list[Any], operator : str) -> str: #Returns TMDB-ID
+    global max_results
     current_requester = message.author
     current_channel = message.channel.id
-    number_of_results = len(content_list[:max_results])
+    mr = max_results if max_results >= 0 else len(content_list)
+    number_of_results = mr
     await add_msg(message, "Displaying results... \nType `stop` to cancel search, or `restart` to restart your search.") ; await asyncio.sleep(.5)
     while (True):
-      for x in content_list[:max_results]: 
+      for x in content_list[:mr]: 
           try:
             embeded.set_image(url= x['remotePoster'])
             await message.channel.send(embed=embeded)
           except:
             embeded.set_image(url="https://i.imgur.com/1glpRCZ.png?1")
             await message.channel.send(embed=embeded)
-          await add_msg(message, f"`{x['title']} | ({x['year']}){(' | ' + str(x['seasonCount']) + ' Seasons`') if operator == 't' else '`'}\n<{x['website'] if ('website' in x.keys() and x['website'] != '') else return_google_link(x['title'])}>\n```{x['overview']}```")
-          await add_msg(message, "Is this correct? (`yes` or `no`)")
+          await add_msg(message, f"`{x['title']} | ({x['year']}){(' | ' + str(x['seasonCount']) + ' Seasons`') if operator == 't' else '`'}\n<{x['website'] if ('website' in x.keys() and x['website'] != '') else return_google_link(x['title'])}>\n```{x['overview']}```" + "\nIs this correct? (`yes` or `no`)")
           try:
             await_choice = await client.wait_for('message', check=lambda message: (message.author == current_requester
             and message.channel.id == current_channel 
@@ -85,23 +86,26 @@ async def cycle_content(message : Any, request : str, content_list : list[Any], 
 
           if choice in ["y", "yes"]:
             await add_msg(message, f"Selected: `{x['title']} ({x['year']})`") ; await asyncio.sleep(delay)
-            if (operator == "m" and x["isAvailable"]):
+            if (operator == "m"):
               if x["hasFile"]:
                 await add_msg(message, f"{request.title()} already accessible on {SERVER_NAME}, contact your server admin.")
                 return ""
+              elif x["isAvailable"] == False:
+                await add_msg(message, f"{request.title()} is likely not available to download yet, we will try now and monitor for a later release.")
+                return x["tmdbId"]
               return x["tmdbId"]
             elif (operator == "t"):
               if "path" in x.keys():
                 await add_msg(message, f"{request.title()} already accessible on {SERVER_NAME}, contact your server admin.")
                 return ""
-              return x["tvdbId"]      
+              return x["tvdbId"]
             else:
               await add_msg(message, f"{request.title()} not currently available to request, contact your server admin.")
             return ""
 
           elif choice in ["startover", "restart"]:
             await add_msg(message, f"Starting search over...") ; await asyncio.sleep(delay)
-            number_of_results = len(content_list)
+            number_of_results = mr
             break
 
           elif choice in ["stop"]:
@@ -123,14 +127,14 @@ async def add_msg(incoming_msg : Any, outgoing_msg_str : str) -> None: #Adding a
   await incoming_msg.channel.send(outgoing_msg_str)
   return
 
-async def download_content(message: Any, id : str, operator : str) -> bool:
+async def download_content(id : str, operator : str) -> Any:
   try:
     if operator == "m":
-      radarr.add_movie(id, 1, radarr.get_root()[0]['path'])
+      return radarr.add_movie(id, 1, radarr.get_root()[0]['path'])
     else:
-      sonarr.add_series(id, 1, sonarr.get_root()[0]['path'], monitored=True, searchForMissingEpisodes=True)
+      return sonarr.add_series(id, 1, sonarr.get_root()[0]['path'], monitored=True, searchForMissingEpisodes=True)
   except:
-    return False
+    return None
 
 async def find_content(message : Any, title : str, operator : str) -> None:
   content_type = {"m" : "movie", "t" : "show"}[operator]
@@ -145,14 +149,15 @@ async def find_content(message : Any, title : str, operator : str) -> None:
       await add_msg(message, f"It's possible that this {content_type} does not exist, let's check if it does and try again...")
       await add_msg(message, return_google_link(title)) ; await asyncio.sleep(delay)
       return
-  title_id = await cycle_content(message, title, results, operator)
+  results = await cycle_content(message, title, results, operator)
+  title_id = results
   if title_id == "":
     return
-  is_title_found = await download_content(message, title_id, operator)
-  if (is_title_found != True):
-    await add_msg(message, f"{content_type.title()} is being downloaded to {SERVER_NAME}.")
+  title_found = await download_content(title_id, operator)
+  if (title_found != None):
+    await add_msg(message, f"{content_type.title()} is being downloaded to {SERVER_NAME}, please wait.")
     if (operator == "m"):
-      await monitor_download(message, title, title_id)
+      await monitor_download(message, title, title_found["id"])
   else:
     await add_msg(message, f"Encountered an error, please contact server admin.")
 
@@ -187,14 +192,15 @@ async def monitor_download(message: Any, title: str, id: int) -> None:
   seconds = 0
   interval_seconds = 10
   while (seconds < max_check_time):
-    asyncio.sleep(interval_seconds)
-    history = radarr.get_history_movie(id)
-    if (history[0]["eventType"] == "downloadFolderImported"):
-      msg = f"`{title.title()}` has been added to `{SERVER_NAME}` >> {date.today().strftime('%Y-%m-%d %H:%M:%S')}"
-      await add_msg(message, msg)
-      return
+    await asyncio.sleep(interval_seconds)
+    history = radarr.get_history()['records']
+    for x in history:
+      if (x['movieId'] == id and x["eventType"] == "downloadFolderImported"):
+        msg = f"`{title.title()}` has been added to `{SERVER_NAME}`."
+        await add_msg(message, msg)
+        return
     seconds += interval_seconds
-  msg = f"`{SERVER_NAME}` was unable to find `{title.title()}`, continue checking {SERVER_NAME} for updates or contact your server admin >> {date.today().strftime('%Y-%m-%d %H:%M:%S')}"
+  msg = f"`{SERVER_NAME}` was unable to find `{title.title()}`, continue checking {SERVER_NAME} for updates or contact your server admin."
   await add_msg(message, msg)
   return
 
