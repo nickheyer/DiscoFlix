@@ -27,7 +27,10 @@ Download DiscoFlix by running the below command, or download the zip directly [H
 git clone https://github.com/nickheyer/DiscoFlix
 ```
 Unzip DiscoFlix.zip...
-Change Directory to DiscoFlix Folder...
+Change Directory to DiscoFlix Folder
+```
+cd path/of/where/you/unzipped-discoflix
+```
 Install Requirements
 ```
 pip install -r requirements.txt 
