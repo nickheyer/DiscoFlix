@@ -87,10 +87,12 @@ async def cycle_content(message : Any, request : str, content_list : list[Any], 
               if x["hasFile"]:
                 await add_msg(message, f"{request.title()} already accessible on {SERVER_NAME}, contact your server admin.")
                 return ""
-              return x["tmdbId"] if operator == "m" else x["tvdbId"]
+              return x["tmdbId"]
             elif (operator == "t"):
               if "path" in x.keys():
                 await add_msg(message, f"{request.title()} already accessible on {SERVER_NAME}, contact your server admin.")
+                return ""
+              return x["tvdbId"]      
             else:
               await add_msg(message, f"{request.title()} not currently available to request, contact your server admin.")
             return ""
@@ -122,9 +124,9 @@ async def add_msg(incoming_msg : Any, outgoing_msg_str : str) -> None: #Adding a
 async def download_content(message: Any, id : str, operator : str) -> bool:
   try:
     if operator == "m":
-      radarr.add_movie(id, 1)
+      radarr.add_movie(id, 1, radarr.get_root()[0]['path'])
     else:
-      sonarr.add_series(id, 1)
+      sonarr.add_series(id, 1, sonarr.get_root()[0]['path'], monitored=True, searchForMissingEpisodes=True)
   except:
     return False
 
