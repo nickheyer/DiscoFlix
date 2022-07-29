@@ -1,4 +1,3 @@
-#!/usr/bin/env python3.x
 from flask import Flask, render_template, request, jsonify
 from flask_session import Session
 from datetime import date
@@ -39,7 +38,7 @@ def get_log():
 
 def start_bot():
     global err_log
-    args = ['venv/Scripts/python.exe', 'bot.py']
+    args = ['python.exe', 'bot.py']
     err_log = open(os.path.join(os.path.dirname(__file__), "logs", "bot", f'BOT_{date.today().strftime("%d_%m_%Y")}.log'), 'a')   
     return Popen(args,
                  stderr=err_log,

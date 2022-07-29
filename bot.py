@@ -1,4 +1,3 @@
-#!/usr/bin/env python3.x
 import discord
 from typing import Any
 import sys
@@ -59,7 +58,7 @@ async def cycle_content(message : Any, request : str, content_list : list[Any], 
     current_requester = message.author
     current_channel = message.channel.id
     number_of_results = len(content_list[:max_results])
-    await add_msg(message, "Displaying results... \nType `stop` to cancel search, or `restart` to restart your search.") ; await asyncio.sleep(delay)
+    await add_msg(message, "Displaying results... \nType `stop` to cancel search, or `restart` to restart your search.") ; await asyncio.sleep(.5)
     while (True):
       for x in content_list[:max_results]: 
           try:
@@ -102,14 +101,14 @@ async def cycle_content(message : Any, request : str, content_list : list[Any], 
             break
 
           elif choice in ["stop"]:
-            await add_msg(message, f"Cancelling search... Have a good day!") ; await asyncio.sleep(delay)
+            await add_msg(message, f"Cancelling search... Have a good day!") 
             return ""
 
           elif choice in ["n", "no"]:
             number_of_results -= 1
             if number_of_results == 0:
               await add_msg(message, f"Unfortunately, we have run out of results.") ; await asyncio.sleep(delay)
-              await add_msg(message, f"It's possible that this title does not exist, let's check if it does and try again...") ; await asyncio.sleep(delay)
+              await add_msg(message, f"It's possible that this title does not exist, let's check if it does and try again...")
               await add_msg(message, return_google_link(request))
               return ""
             else:
@@ -135,11 +134,11 @@ async def find_content(message : Any, title : str, operator : str) -> None:
   if title in ["", None]:
       return
   await add_msg(message, f"Searching for `{title.title()}`") ; await asyncio.sleep(delay)
-  await add_msg(message, f"One moment...") ; await asyncio.sleep(delay)
+  await add_msg(message, f"One moment...")
   results = radarr.lookup_movie(title) if operator == "m" else sonarr.lookup_series(title)
   if results in ["", [], None]:
       await add_msg(message, f"Unfortunately, we can't find a {content_type} with a title matching the one you specified...") ; await asyncio.sleep(delay)
-      await add_msg(message, f"It's possible that this {content_type} does not exist, let's check if it does and try again...") ; await asyncio.sleep(delay)
+      await add_msg(message, f"It's possible that this {content_type} does not exist, let's check if it does and try again...")
       await add_msg(message, return_google_link(title)) ; await asyncio.sleep(delay)
       return
   title_id = await cycle_content(message, title, results, operator)
