@@ -45,7 +45,7 @@ start "" http://127.0.0.1:5000
 waitress-serve --host 127.0.0.1 --port 5000 app:app
 ```
 
-Fill in the required information by pressing the "edit" tab or within the json itself ("values" tab), start the bot by moving the switch labeled Bot I/O, profit. If you run into any errors, make sure all fields are completed in the edit tab.
+Fill in the required information by pressing the "edit" tab or within the json itself ("values" tab), start the bot by moving the switch labeled Bot I/O, profit. If you run into any errors, make sure all fields are completed in the edit tab. Make sure that you add your own "discordusername#1234" to users and admins otherwise the bot will not respond to you. 
 
 ![edit_tab_info](https://user-images.githubusercontent.com/60236014/181657291-75e4192f-f5b6-41e1-b296-dcd6abcffe69.png)
 
