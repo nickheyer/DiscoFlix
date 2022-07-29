@@ -205,11 +205,6 @@ async def on_message(message) -> None: #On every incoming message, run the below
       await add_user(message, parse_request(message.content, mode), "a")
     elif mode in ["help", "commands"]:
       await help_menu(message)
-
-  elif message.content.startswith("test"):
-    msg = f"Hello, world!"
-    await add_msg(message, msg)
- 
   else:
     return
 
