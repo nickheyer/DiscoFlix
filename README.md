@@ -2,7 +2,7 @@
 
 ![DF_Logo_64](https://user-images.githubusercontent.com/60236014/181656541-07810357-318a-4357-aa4f-642e306b14e9.png)
 
-A media-requesting, Radarr/Sonarr-interfacing, movie and tv show-listing Discord Bot web-app for your media server. 
+A ~~simple~~ media-requesting, Radarr/Sonarr-interfacing, movie and tv show-listing Discord Bot web-app for your media server. 
 
 As this bot is intended for requests to be fulfilled via Radarr or Sonarr, you must have Radarr or Sonarr installed to use this bot. (https://github.com/Radarr/Radarr & https://sonarr.tv/#download). Along with radarr and sonarr, you must have discord, as well as a discord developer account (https://discord.com/developers/applications), and a bot created/invited (via your developer acount) to your chosen discord server.
 
