@@ -7,6 +7,7 @@ from radarr_api_v3 import RadarrAPIv3 as RadarrAPI
 from sonarr_api import SonarrAPI
 from app import add_log, get_data, set_file
 import asyncio
+from datetime import date
 
 VALUES : dict[str : Any] = get_data("values")
 DISCORD_TOKEN : str = VALUES["discordToken"]
@@ -20,6 +21,7 @@ auth_users : list[str] = VALUES["authUsers"]
 admin_users : list[str] = VALUES["adminUsers"]
 delay : int = int(VALUES["delay"])
 max_results : int = int(VALUES["maxResults"])
+max_check_time : int = int(VALUES["maxCheckTime"])
 radarr_enabled : bool = bool(VALUES["radarrEnabled"])
 sonarr_enabled : bool = bool(VALUES["sonarrEnabled"])
 
@@ -149,6 +151,8 @@ async def find_content(message : Any, title : str, operator : str) -> None:
   is_title_found = await download_content(message, title_id, operator)
   if (is_title_found != True):
     await add_msg(message, f"{content_type.title()} is being downloaded to {SERVER_NAME}.")
+    if (operator == "m"):
+      await monitor_download(message, title, title_id)
   else:
     await add_msg(message, f"Encountered an error, please contact server admin.")
 
@@ -177,6 +181,21 @@ async def help_menu(message: Any) -> None:
 
   msg = "\n".join([f"```Command : {x['command']}\nAlternatives : {', '.join(x['alternatives'])}\nUsage: \"{x['usage']}\"```" for x in commands])
   await message.channel.send(msg)
+  return
+
+async def monitor_download(message: Any, title: str, id: int) -> None:
+  seconds = 0
+  interval_seconds = 10
+  while (seconds < max_check_time):
+    asyncio.sleep(interval_seconds)
+    history = radarr.get_history_movie(id)
+    if (history[0]["eventType"] == "downloadFolderImported"):
+      msg = f"`{title.title()}` has been added to `{SERVER_NAME}` >> {date.today().strftime('%Y-%m-%d %H:%M:%S')}"
+      await add_msg(message, msg)
+      return
+    seconds += interval_seconds
+  msg = f"`{SERVER_NAME}` was unable to find `{title.title()}`, continue checking {SERVER_NAME} for updates or contact your server admin >> {date.today().strftime('%Y-%m-%d %H:%M:%S')}"
+  await add_msg(message, msg)
   return
 
 #Client events -------
