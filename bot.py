@@ -22,11 +22,17 @@ admin_users : list[str] = VALUES["adminUsers"]
 delay : int = int(VALUES["delay"])
 max_results : int = int(VALUES["maxResults"])
 max_check_time : int = int(VALUES["maxCheckTime"])
+session_timeout : int = int(VALUES["sessionTimeout"])
+max_seasons_nonadmin : int = int(VALUES["maxSeasonsNonadmin"])
 radarr_enabled : bool = bool(VALUES["radarrEnabled"])
 sonarr_enabled : bool = bool(VALUES["sonarrEnabled"])
 
+#Declaring intents, must also be configured from Discord portal, see readme
+intents = discord.Intents.default()
+intents.members = True
+
 #Discord, Discord-Embed, Radarr, & Sonarr API Objects
-client = discord.Client()
+client = discord.Client(intents = intents)
 embeded = discord.Embed()
 radarr = RadarrAPI(RADARR_URL, RADARR_TOKEN)
 sonarr = SonarrAPI(SONARR_URL, SONARR_TOKEN)
@@ -44,6 +50,19 @@ def parse_request(msg : str, mode : str) -> str:
       return " ".join(split_msg[x+1:])
       
   return ""
+
+def get_admins(message: Any) -> list[Any]:
+  admin_list = list()
+
+  for x in admin_users:
+    try:
+      admin = message.guild.get_member_named(x)
+      if admin != None:
+        admin_list.append(admin)
+    except:
+      pass
+  
+  return admin_list
 
 def return_google_link(title : str) -> str:
   return f"https://google.com/search?q={'+'.join(title.lower().split())}"
@@ -77,16 +96,17 @@ async def cycle_content(message : Any, request : str, content_list : list[Any], 
             and message.channel.id == current_channel 
             and message.content.lower().strip() in ["yes", "y", "startover", "restart", "stop", "no", "n"])
             or (message.channel.id == current_channel 
-            and str(message.author) in auth_users and message.content.lower().strip() in ["stop"]), timeout = 60)
+            and str(message.author) in auth_users and message.content.lower().strip() in ["stop"]), timeout = session_timeout)
           except asyncio.TimeoutError:
-            await add_msg(message, f"{message.author.mention} has not responded within a 60-second period, session has ended.")
+            await add_msg(message, f"{message.author.mention} has not responded within a {session_timeout}-second period, session has ended.")
             return ""
           
           choice = await_choice.content.lower().strip()
 
           if choice in ["y", "yes"]:
             await add_msg(message, f"Selected: `{x['title']} ({x['year']})`") ; await asyncio.sleep(delay)
-            if (operator == "m"):
+            
+            if (operator == "m"): #User is searching for Movie
               if x["hasFile"]:
                 await add_msg(message, f"{request.title()} already accessible on {SERVER_NAME}, contact your server admin.")
                 return ""
@@ -101,11 +121,17 @@ async def cycle_content(message : Any, request : str, content_list : list[Any], 
                 return x["tmdbId"]
               else:
                 return x["tmdbId"]
-            elif (operator == "t"):
-              if "path" in x.keys():
+            
+            elif (operator == "t"): #User is searching for TV Show       
+              if "path" in x.keys(): #If file path already exists on server, return nothing
                 await add_msg(message, f"{request.title()} already accessible on {SERVER_NAME}, contact your server admin.")
                 return ""
-              return x["tvdbId"]
+              if (max_seasons_nonadmin == -1 #If the max seasons count is set to -1, meaning unlimited seasons OR
+              or x['seasonCount'] < max_seasons_nonadmin #The shows season count is less than the max seasons count OR
+              or await admin_approval(message, f"Season count of {x['seasonCount']} is higher than limit of {max_seasons_nonadmin}")): #Requestor is admin or has admin approval
+                return x["tvdbId"]
+              else:
+                return ""
             else:
               await add_msg(message, f"{request.title()} not currently available to request, contact your server admin.")
             return ""
@@ -211,6 +237,29 @@ async def monitor_download(message: Any, title: str, id: int) -> None:
   await add_msg(message, msg)
   return
 
+async def admin_approval(message: Any, reason: str) -> bool:
+  if (str(message.author) in admin_users):
+    return True
+  
+  msg = f"Admin approval required for this action.\nReason: `{reason}`"
+  await add_msg(message, msg) ; await asyncio.sleep(delay)
+  admins = '\n'.join(map(lambda x: x.mention, get_admins(message)))
+  msg = f"Contacting server admins:\n{admins}\nApproved? (`yes` or `no`)"
+  await add_msg(message, msg)
+  channel = message.channel.id
+  try:
+    await_choice = await client.wait_for('message', check=lambda m: (
+    m.channel.id == channel
+    and m.content.lower().strip() in ["yes", "y", "no", "n"]
+    and str(m.author) in auth_users), timeout = session_timeout)
+  except asyncio.TimeoutError:
+    await add_msg(message, f"Admin has not responded within a {session_timeout}-second period, session has ended.")
+    return False
+  if await_choice.content.lower().strip() in ["y", "yes"]:
+    return True
+  else:
+    return False
+  
 #Client events -------
 
 @client.event

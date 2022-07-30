@@ -1,0 +1,272 @@
+
+.btn{
+    color: #966fd6;
+}
+
+
+body {
+    font-family: 'Source Code Pro' !important;
+    background-color: #23292f;
+    min-height: 100vh;
+ }
+
+.center {
+    display: flex;
+    justify-content: center;
+}
+
+.right {
+    display: flex;
+    justify-content: right;
+}
+
+.left {
+    display: flex;
+    justify-content: left;
+}
+
+#active {
+    background-color: #966fd6;
+}
+
+.nav-link{
+    margin: 15px;
+    color: white;
+}
+
+.nav-link:hover {
+    color: white;
+}
+
+.nav-link:active {
+    color: white;
+}
+
+.nav-link:visited {
+    color: #966fd6;
+}
+
+.name {
+    margin: 15px 0 15px 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    color: #966fd6;
+
+}
+
+.purple-buttons {
+  color:#966fd6; 
+  background-color:#23292f;
+  border-color: grey;
+}
+
+.btn-outline-primary:after,
+.btn-outline-primary:checked,
+.btn-outline-primary:focus,
+.btn-outline-primary:active,
+.btn-outline-primary:active:hover,
+.btn-outline-primary:hover{
+  background-color:#966fd6 !important;
+
+}
+
+.btn-check:active {
+  background-color:#966fd6 !important;
+} 
+.btn-outline-primary:checked
+{
+  background-color:#966fd6 !important;
+}
+.purple-buttons:not(:disabled):not(:disabled):active {
+  background-color: #966fd6 !important;
+}
+ 
+
+.btn-outline-primary:after {
+  background-color: #966fd6 !important;
+
+}
+
+.btn-outline-primary:checked:after {
+
+  background-color: #966fd6 !important;
+
+}
+
+.input-format-1:checked,
+.input-format-1:after,
+.input-format-1:active,
+.input-format-1:focus,
+.input-format-1:hover {
+  background-color: #16191d;
+  color:#966fd6;
+}
+
+
+
+.scenter {
+  margin: auto;
+  width: 50%;
+  display: flex;
+  justify-content: center;
+}
+
+
+
+
+
+
+.titles {
+    margin: 0 0 0 0;
+    width: 100%;
+    font-size: 15px;
+    display: flex;
+    justify-content: center;
+    color: white;
+}
+
+.description {
+    margin:45px 0 0 15px;
+    width: 100%;
+    display: flex;
+    justify-content: left;
+    color: white;
+}
+
+hr.dashed {
+    margin:0 15px 0 15px;
+    border-top: 3px dashed gray;
+}
+
+hr.dotted {
+    margin:45px 50% 0 15px;
+    border-top: 3px dotted gray;
+}
+
+.bio {
+    color: #966fd6;
+}
+
+.list-group-item {
+    background-color: #23292f;
+    color: #966fd6;
+}
+
+.accord-style {
+    color: #23292f;
+
+}
+
+.accordian-body {
+    background-color:#966fd6;
+}
+
+ .thumbnails {
+     width: 5%;
+     height: auto;
+ }
+
+ .with-border {
+    margin:15px;
+    border-color:#966fd6;
+    border-width:2px;
+    width:100%;
+ }
+
+ .with-border-fluid {
+    margin:15px;
+    border-color:#966fd6;
+    border-width:2px;
+ }
+
+ .with-border-lite {
+    border-color:#966fd6;
+    width:100%;
+    border-width:2px;
+ }
+
+ .input-format-1 {
+  background-color:#16191d; 
+  border-color: #966fd6;
+ }
+
+ /* body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    perspective: 1000px;
+  } */
+
+
+
+ * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+
+  .container {
+    width: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .container2 {
+    width: 80%;
+    margin: auto;
+
+    justify-content: center;
+    align-items: center;
+    
+  }
+  .card {
+    transform-style: preserve-3d;
+    border-radius: 30px;
+    padding: 0rem 1rem;
+    box-shadow: 0 20px 20px rgba(0, 0, 0, 0.2);
+    display: flex;
+    max-width:450px;
+  }
+  
+  .card2 {
+    transform-style: preserve-3d;
+    border-radius: 30px;
+    border-width:4px;
+    box-shadow: 0 20px 20px rgba(0, 0, 0, 0.2);
+    
+  }
+
+  .card3 {
+    transform-style: preserve-3d;
+
+    border-width:2px;
+    box-shadow: 0 20px 20px rgba(0, 0, 0, 0.2);
+    
+  }
+
+  .card4 {
+    max-width:450px;
+    transform-style: preserve-3d;
+    display: flex;
+    border-width:2px;
+    box-shadow: 0 20px 20px rgba(0, 0, 0, 0.2);
+  }
+
+  .info h1 {
+    font-size: 3rem;
+    transition: all 0.75s ease-out;
+  }
+  .info h3 {
+    font-size: 1.3rem;
+    padding: 2rem 0rem;
+    color: #585858;
+    font-weight: lighter;
+    transition: all 0.75s ease-out;
+  }
+
+
+  

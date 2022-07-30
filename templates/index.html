@@ -1,0 +1,120 @@
+{% extends "layout.html" %}
+        {% block body %}
+        
+        <ul class="nav nav-tabs scenter" id="myTab" role="tablist" style="border-bottom-color: transparent;" >
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active"  name = "console-tabs" id="log-tab" value = "log" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab" aria-controls="log" aria-selected="true" style="background-color:#16191d;color:#966fd6">Log</button>
+          </li>
+
+          {% for dict in data_list %}
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" name = "console-tabs" id="{{dict.internalReference.tabName}}-tab" value = "{{dict.internalReference.docName}}" data-bs-toggle="tab" data-bs-target="#{{dict.internalReference.tabName}}" type="button" role="tab" aria-controls="{{dict.internalReference.tabName}}" aria-selected="false" style="background-color:#16191d;color:#966fd6">{{dict.internalReference.tabName}}</button>
+          </li>
+          {% endfor %}
+
+          <li class="nav-item" role="presentation">
+            <button class="nav-link"  name = "set-values-tab" id="set-values-tab" value = "set-values" data-bs-toggle="offcanvas" data-bs-target="#offcanvasExample, #set-values" type="button" role="tab" aria-controls="set-values" aria-selected="true" style="background-color:#16191d;color:#966fd6; border-color: transparent;">Edit</button>
+          </li>
+
+
+        </ul>
+        
+        <div><textarea class = "scenter card3" id='console' rows="30" cols="auto" autofocus spellcheck="false" style = "background-color: #16191d; color:#966fd6; padding:10px; font-size: small;"></textarea>
+          
+          
+          <div class="form-check form-switch form-switch-lg scenter">
+            
+            <button class="btn btn-outline-secondary scenter" type="button" value="save" id="saveButton" style="max-width: 40%;background-color:#16191d;color:#966fd6">Save</button>
+            
+            
+            <input class="form-check-input" type="checkbox" id="discord-io-switch" style="background-color:#16191d;color:#966fd6" {% if state.botState %} checked {% endif %}>
+
+            <label class="form-check-label" for="discord-io-switch" style="margin-left: 8px;color:#966fd6">Bot I/O</label>
+          </div>
+          
+
+
+
+
+
+
+          <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasExample" aria-labelledby="offcanvasExampleLabel">
+            <div class="offcanvas-header" style = "background-color: #23292f; color:#966fd6">
+              <h5 class="offcanvas-title" id="offcanvasExampleLabel">Values</h5>
+              <button type="button" id="close-form" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            
+            <div class="offcanvas-body" style = "background-color: #16191d; color:#966fd6; padding:10px; font-size: small;">
+              
+              <!-- Adding User to Values.Json -->
+              <div class="form-floating mb-3 input-group" style="margin-top: 20px;">
+                <input type="text" class="form-control" name="cred-form-add-user" id="added-user" style="background-color:#16191d; color:#966fd6;" spellcheck="false" value="" autocomplete="off">
+                <label for="added-user">Add User (ie: "NicholasHeyer#4212")</label>
+                <button class="btn btn-outline-secondary" type="button" value="add" id="cred-form-add" style="background-color:#16191d;color:#966fd6;border-color: white;">+</button>
+              </div>
+              
+              <!-- Adding Admin to Values.Json -->
+              <div class="form-floating mb-3 input-group" style="margin-top: 20px;">
+                <input type="text" class="form-control" name="cred-form-add-admin" id="added-admin" style="background-color:#16191d; color:#966fd6;" spellcheck="false" value="" autocomplete="off">
+                <label for="added-admin">Add Admin (ie: "NicholasHeyer#4212")</label>
+                <button class="btn btn-outline-secondary" type="button" value="add" id="cred-form-admin" style="background-color:#16191d;color:#966fd6;border-color: white;">+</button>
+              </div>
+
+              <!-- Enable Radarr/Sonarr -->
+              <div class="form-check form-switch form-switch-lg scenter">
+                <input class="form-check-input" type="checkbox" id="radarr-io-switch" name="radson-io-switch" style="background-color:#16191d;color:#966fd6" value="radarrEnabled" {% if values.radarrEnabled %} checked {% endif %}>
+                <label class="form-check-label" for="radarr-io-switch" style="margin-left: 8px;color:#966fd6">Radarr I/O</label>
+              </div>
+              <div class="form-check form-switch form-switch-lg scenter">
+                <input class="form-check-input" type="checkbox" id="sonarr-io-switch" name="radson-io-switch" style="background-color:#16191d;color:#966fd6" value="sonarrEnabled" {% if values.sonarrEnabled %} checked {% endif %}>
+                <label class="form-check-label" for="sonarr-io-switch" style="margin-left: 8px;color:#966fd6">Sonarr I/O</label>
+              </div>
+
+
+              <div class = "card3" style="padding:15px;">
+                The below form data is populated via the "{{values.internalReference.docName}}.json" file in ./data. To use the bot, the fields must be filled out here or by clicking the {{values.internalReference.tabName}} tab, filling out the JSON manually and pressing save.
+                <br><br>
+                Usage & Descriptions:<br><br> 
+                Delay : 0 - ∞ seconds, 1 is default, must be a positive whole number. Represents the delay between messages.<br><br>
+                Max Results : -1 is default and iterates through every result. Bringing the limit to 5 would only show 5 results per search.<br><br>
+                Max Check Time : 600 seconds is default, must be a postive whole number. Follows up with every movie download to confirm movie was downloaded succesfully. maxCheckTime represents the amount of seconds before the download is marked as failed by DiscoFlix.<br><br>
+                Max Seasons for Non Admin : -1 is default and allows for all users to request any show regardless of season count. Setting value to 3 would allow non-admins to request shows with 3 seasons or less.<br><br>
+                Session Timeout: 60 seconds is default, must be postive whole number. Represents the amount of time waited for user to make choice, for example when deciding yes or no on movie.
+              </div>
+              
+
+              {% for field in values if field not in ["internalReference", "authUsers", "adminUsers", "radarrEnabled", "sonarrEnabled"] %}
+              <div class="form-floating mb-3" style="margin-top: 20px;">
+                <input type="text" class="form-control" name="cred-form-field" id="{{field}}" style="background-color:#16191d; color:#966fd6;" spellcheck="false" value="{{values[field]}}">
+                <label for="cred-form-input">{{field}}</label>
+              </div>
+              {% endfor %}
+              <button class="btn btn-outline-secondary scenter" type="button" value="save" id="cred-form-save" style="max-width: 40%;margin-top:20px;background-color:#16191d;color:#966fd6">Save</button>
+
+
+              
+            </div>
+          </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+      </div>
+        <div><br><br></div>
+
+        <div class="form-check form-switch form-switch-lg scenter"> 
+          <input class="form-check-input" type="checkbox" id="server-io-switch" style="background-color:#16191d;color:#966fd6" checked>
+          <label class="form-check-label" for="server-io-switch" style="margin-left: 8px;color:#966fd6">Webserver I/O</label>
+        </div>
+        <div><p class="titles"><a href="mailto: nick@heyer.app">Something wrong?</a></p></div>
+        
+        {% endblock %}

@@ -2,7 +2,7 @@
 
 ![DF_Logo_64](https://user-images.githubusercontent.com/60236014/181656541-07810357-318a-4357-aa4f-642e306b14e9.png)
 
-A ~~simple~~ media-requesting, Radarr/Sonarr-interfacing, movie and tv show-listing Discord Bot web-app for your media server. 
+A media-requesting, Radarr/Sonarr-interfacing, movie and tv show-listing Discord Bot web-app for your media server. 
 
 As this bot is intended for requests to be fulfilled via Radarr or Sonarr, you must have Radarr or Sonarr installed to use this bot. (https://github.com/Radarr/Radarr & https://sonarr.tv/#download). Along with radarr and sonarr, you must have discord, as well as a discord developer account (https://discord.com/developers/applications), and a bot created/invited (via your developer acount) to your chosen discord server.
 
@@ -22,14 +22,12 @@ Prerequisites:
 - Full Discord username of Admin for first time use (ex: NicholasHeyer#4212)
 
 
-Download DiscoFlix by running the below command, or download the zip directly [HERE](https://github.com/nickheyer/DiscoFlix/raw/main/DiscoFlix.zip) and unzip.
+Download DiscoFlix by running the below command, or download the zip directly [HERE](https://github.com/nickheyer/DiscoFlix/raw/main/DiscoFlix.zip) (preferred).
 ```bash
 git clone https://github.com/nickheyer/DiscoFlix
 ```
-Change Directory to DiscoFlix Folder (Where you unzipped or cloned DiscoFlix)
-```
-cd path/of/where/you/unzipped-or-cloned-discoflix
-```
+Unzip DiscoFlix.zip...
+Change Directory to DiscoFlix Folder...
 Install Requirements
 ```
 pip install -r requirements.txt 
@@ -39,15 +37,15 @@ Run The Program (or double-click the 'run.cmd' file)
 ```
 run.cmd
 ```
-This will start a local web-server [HERE](http://127.0.0.1:5000).
-Closing the CMD closes the webserver. To host the server on a different port, edit the run.cmd file (shown in the below code-block).
+This will start a local web-server [HERE](http://127.0.0.1:5000)
+Closing the CMD closes the webserver. To host the server on a different port, edit the run.cmd file.
 ```
 //Contents of run.cmd
 start "" http://127.0.0.1:5000
 waitress-serve --host 127.0.0.1 --port 5000 app:app
 ```
 
-Fill in the required information by pressing the "edit" tab or within the json itself ("values" tab), start the bot by moving the switch labeled Bot I/O, profit. If you run into any errors, make sure all fields are completed in the edit tab. Make sure that you add your own "discordusername#1234" to users and admins otherwise the bot will not respond to you. 
+Fill in the required information by pressing the "edit" tab or within the json itself ("values" tab), start the bot by moving the switch labeled Bot I/O, profit. If you run into any errors, make sure all fields are completed in the edit tab.
 
 ![edit_tab_info](https://user-images.githubusercontent.com/60236014/181657291-75e4192f-f5b6-41e1-b296-dcd6abcffe69.png)
 
@@ -69,14 +67,6 @@ Fill in the required information by pressing the "edit" tab or within the json i
 - To change request keyword:
 
     Type "!df set keyword" then the keyword. For example: "!df set keyword !add". Your movie requests will then look like this:         "!add movie Dark Phoenix".
-
-## Further Notes
-
-- When inviting bot to channel, make sure you allow permissions as such (see below image). For the most part, the bot only requires text channel permissions, but for admin actions it must grab all the member objects from channel to scan for available admins, therefore it's better to just allow for Administrator priveledges overall.
-
-![image](https://user-images.githubusercontent.com/60236014/181997169-4b7f3c1d-dc72-4ca2-83db-bcea56814bea.png)
-
-![image](https://user-images.githubusercontent.com/60236014/181997296-0aa40040-34f0-4f56-ab87-34a396493417.png)
 
 - For any other comments or questions, feel free to reach me on discord via NicholasHeyer#4212
 

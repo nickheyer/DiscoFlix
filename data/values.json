@@ -1,0 +1,22 @@
+{
+  "adminUsers": [],
+  "authUsers": [],
+  "delay": 1,
+  "discordToken": "",
+  "internalReference": {
+    "docName": "values",
+    "tabName": "Values"
+  },
+  "maxResults": -1,
+  "maxSeasonsNonadmin": -1,
+  "sessionTimeout": 60,
+  "maxCheckTime": 600,
+  "mediaServerName": "",
+  "prefixKeyWord": "!df",
+  "radarrEnabled": "True",
+  "radarrHostUrl": "",
+  "radarrToken": "",
+  "sonarrEnabled": "True",
+  "sonarrHostUrl": "",
+  "sonarrToken": ""
+}
