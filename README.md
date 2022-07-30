@@ -27,9 +27,9 @@ Download DiscoFlix by running the below command, or download the zip directly [H
 git clone https://github.com/nickheyer/DiscoFlix
 ```
 Unzip DiscoFlix.zip...
-Change Directory to DiscoFlix Folder
+Change Directory to DiscoFlix Folder (Where you unzipped or cloned DiscoFlix)
 ```
-cd path/of/where/you/unzipped-discoflix
+cd path/of/where/you/unzipped-or-cloned-discoflix
 ```
 Install Requirements
 ```
