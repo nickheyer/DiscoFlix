@@ -71,6 +71,13 @@ Fill in the required information by pressing the "edit" tab or within the json i
 
     Type "!df set keyword" then the keyword. For example: "!df set keyword !add". Your movie requests will then look like this:         "!add movie Dark Phoenix".
 
+## Further Notes
+
+- When inviting bot to channel, make sure you allow permissions as such (see below image). For the most part, the bot only requires text channel permissions, but for admin actions it must grab all the member objects from channel to scan for available admins, therefore it's better to just allow for Administrator priveledges overall.
+
+![image](https://user-images.githubusercontent.com/60236014/181997169-4b7f3c1d-dc72-4ca2-83db-bcea56814bea.png)
+
+
 - For any other comments or questions, feel free to reach me on discord via NicholasHeyer#4212
 
 
