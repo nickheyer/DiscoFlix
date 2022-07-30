@@ -7,7 +7,7 @@ from radarr_api_v3 import RadarrAPIv3 as RadarrAPI
 from sonarr_api import SonarrAPI
 from app import add_log, get_data, set_file
 import asyncio
-from datetime import date
+from datetime import datetime
 
 VALUES : dict[str : Any] = get_data("values")
 DISCORD_TOKEN : str = VALUES["discordToken"]
@@ -90,10 +90,17 @@ async def cycle_content(message : Any, request : str, content_list : list[Any], 
               if x["hasFile"]:
                 await add_msg(message, f"{request.title()} already accessible on {SERVER_NAME}, contact your server admin.")
                 return ""
-              elif x["isAvailable"] == False:
-                await add_msg(message, f"{request.title()} is likely not available to download yet, we will try now and monitor for a later release.")
+              elif x["isAvailable"] == False or x["status"] in ["announced", "inCinemas"]:
+                if x["monitored"]:
+                    await add_msg(message, f"{SERVER_NAME} is already monitoring `{request.title()}`") ; await asyncio.sleep(delay)
+                await add_msg(message, f"`{request.title()}` is likely not available to download yet, we will try now and monitor for a later release.") ; await asyncio.sleep(delay)
+                if 'inCinemas' in x.keys():
+                  release_date = datetime.strptime(x['inCinemas'].split('T')[0], '%Y-%m-%d')
+                  await add_msg(message, f"`{request.title()}` {'came to' if x['status'] == 'inCinemas' else 'will be in'} theaters on:\n{release_date.strftime('`%m-%d-%Y`')}")
+                await asyncio.sleep(delay)
                 return x["tmdbId"]
-              return x["tmdbId"]
+              else:
+                return x["tmdbId"]
             elif (operator == "t"):
               if "path" in x.keys():
                 await add_msg(message, f"{request.title()} already accessible on {SERVER_NAME}, contact your server admin.")
@@ -155,7 +162,7 @@ async def find_content(message : Any, title : str, operator : str) -> None:
     return
   title_found = await download_content(title_id, operator)
   if (title_found != None):
-    await add_msg(message, f"{content_type.title()} is being downloaded to {SERVER_NAME}, please wait.")
+    await add_msg(message, f"{content_type.title()} is being added to {SERVER_NAME}, please wait.")
     if (operator == "m"):
       await monitor_download(message, title, title_found["id"])
   else:
