@@ -22,11 +22,10 @@ Prerequisites:
 - Full Discord username of Admin for first time use (ex: NicholasHeyer#4212)
 
 
-Download DiscoFlix by running the below command, or download the zip directly [HERE](https://github.com/nickheyer/DiscoFlix/raw/main/DiscoFlix.zip)
+Download DiscoFlix by running the below command, or download the zip directly [HERE](https://github.com/nickheyer/DiscoFlix/raw/main/DiscoFlix.zip) and unzip.
 ```bash
 git clone https://github.com/nickheyer/DiscoFlix
 ```
-Unzip DiscoFlix.zip...
 Change Directory to DiscoFlix Folder (Where you unzipped or cloned DiscoFlix)
 ```
 cd path/of/where/you/unzipped-or-cloned-discoflix
