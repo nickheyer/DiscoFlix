@@ -77,6 +77,7 @@ Fill in the required information by pressing the "edit" tab or within the json i
 
 ![image](https://user-images.githubusercontent.com/60236014/181997169-4b7f3c1d-dc72-4ca2-83db-bcea56814bea.png)
 
+![image](https://user-images.githubusercontent.com/60236014/181997296-0aa40040-34f0-4f56-ab87-34a396493417.png)
 
 - For any other comments or questions, feel free to reach me on discord via NicholasHeyer#4212
 
