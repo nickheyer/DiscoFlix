@@ -22,7 +22,7 @@ Prerequisites:
 - Full Discord username of Admin for first time use (ex: NicholasHeyer#4212)
 
 
-Download DiscoFlix by running the below command, or download the zip directly [HERE](https://github.com/nickheyer/DiscoFlix/raw/main/DiscoFlix.zip) (preferred).
+Download DiscoFlix by running the below command, or download the zip directly [HERE](https://github.com/nickheyer/DiscoFlix/raw/main/DiscoFlix.zip)
 ```bash
 git clone https://github.com/nickheyer/DiscoFlix
 ```
