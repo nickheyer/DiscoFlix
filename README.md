@@ -15,9 +15,9 @@ Prerequisites:
 - Python must be installed on your machine. [Click Here](https://www.python.org/ftp/python/3.10.4/python-3.10.4-amd64.exe) for 64-bit installer - During installation, make sure you select the option "Add Python to environmental variables"
 - Discord API Key (https://discord.com/developers/applications) - READ [THIS](#further-notes)
 - Radarr API Key (Radarr GUI>Settings>General>API Key)
-- Radarr Host URL (The url you use to access your radarr interface, ex: http://localhost:6585)
+- Radarr Host URL (The url you use to access your radarr interface, ex: http://localhost:6585 or http://192.168.1.76:6585)
 - Sonarr API Key (Sonarr GUI>Settings>General>API Key)
-- Sonarr Host URL (The url you use to access your sonarr interface, ex: http://localhost:8989)
+- Sonarr Host URL (The url you use to access your sonarr interface, ex: http://localhost:8989 or http://192.168.1.76:8989)
 - Name of media server that requests will be populated on (ex: NickFlix)
 - Full Discord username of Admin for first time use (ex: NicholasHeyer#4212)
 
@@ -50,7 +50,7 @@ start "" http://127.0.0.1:5000
 waitress-serve --host 127.0.0.1 --port 5000 app:app
 ```
 
-If you would like to access the interface from another machine, for example if you were running this on a headless server - change the contents of `run.cmd` to the below code block. You would then access the interface via your Network IP (ie: http://192.168.1.76:5000)
+If you would like to access the interface from another machine, for example if you were running this on a headless server - change the contents of `run.cmd` to the below code block. You would then access the interface via your Network IP (ex: http://192.168.1.76:5000)
 ```
 for /f "delims=[] tokens=2" %%a in ('ping -4 -n 1 %ComputerName% ^| findstr [') do set NetworkIP=%%a
 start "" http:%NetworkIP%:5000
