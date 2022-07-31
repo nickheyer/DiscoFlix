@@ -26,10 +26,12 @@ Download DiscoFlix by running the below command, or download the zip directly [H
 ```bash
 git clone https://github.com/nickheyer/DiscoFlix
 ```
+
 Change Directory to DiscoFlix Folder (Where you unzipped or cloned DiscoFlix)
 ```
 cd path/of/where/you/unzipped-or-cloned-discoflix
 ```
+
 Install Requirements
 ```
 pip install -r requirements.txt 
@@ -39,6 +41,7 @@ Run The Program (or double-click the 'run.cmd' file)
 ```
 run.cmd
 ```
+
 This will start a local web-server [HERE](http://127.0.0.1:5000).
 Closing the CMD closes the webserver. To host the server on a different port, edit the run.cmd file (shown in the below code-block).
 ```
@@ -46,6 +49,14 @@ Closing the CMD closes the webserver. To host the server on a different port, ed
 start "" http://127.0.0.1:5000
 waitress-serve --host 127.0.0.1 --port 5000 app:app
 ```
+
+If you would like to access the interface from another machine, for example if you were running this on a headless server - change the contents of `run.cmd` to the below code block. You would then access the interface via your Network IP (ie: http://192.168.1.76:5000)
+```
+for /f "delims=[] tokens=2" %%a in ('ping -4 -n 1 %ComputerName% ^| findstr [') do set NetworkIP=%%a
+start "" http:%NetworkIP%:5000
+waitress-serve --host %NetworkIP% --port 5000 app:app
+```
+
 
 Fill in the required information by pressing the "edit" tab or within the json itself ("values" tab), start the bot by moving the switch labeled Bot I/O, profit. If you run into any errors, make sure all fields are completed in the edit tab. Make sure that you add your own "discordusername#1234" to users and admins otherwise the bot will not respond to you. 
 
