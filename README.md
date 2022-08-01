@@ -5,10 +5,31 @@
 A ~~simple~~ media-requesting, Radarr/Sonarr-interfacing, movie and tv show-listing Discord Bot web-app for your media server. 
 
 As this bot is intended for requests to be fulfilled via Radarr or Sonarr, you must have Radarr or Sonarr installed to use this bot. (https://github.com/Radarr/Radarr & https://sonarr.tv/#download). Along with radarr and sonarr, you must have discord, as well as a discord developer account (https://discord.com/developers/applications), and a bot created/invited (via your developer acount) to your chosen discord server.
+<hr />
+## Installation via Docker (Recommended)
+- Docker must be installed on your machine. Click [here](https://docs.docker.com/engine/install/) to install Docker.
+- Discord API Key (https://discord.com/developers/applications) - READ [THIS](#further-notes)
+- Radarr API Key (Radarr GUI>Settings>General>API Key)
+- Radarr Host URL (The url you use to access your radarr interface, ex: http://localhost:6585 or http://192.168.1.76:6585)
+- Sonarr API Key (Sonarr GUI>Settings>General>API Key)
+- Sonarr Host URL (The url you use to access your sonarr interface, ex: http://localhost:8989 or http://192.168.1.76:8989)
+- Name of media server that requests will be populated on (ex: NickFlix)
+- Full Discord username of Admin for first time use (ex: NicholasHeyer#4212)
+
+Download Docker Image
+```
+docker image pull nickheyer/discoflix
+```
+Run Docker Container
+```
+docker run -d -p 5000:5000 nickheyer/discoflix
+```
+
+- The server within the docker container automatically maps to it's network IP (ex:192.168.76.128), and can therefore be accessed elsewhere on the network (ex: http://192.168.76.128:5000)
+<hr />
 
 
-
-## Installation
+## Manual Installation
 
 Prerequisites:
 
@@ -37,11 +58,12 @@ Install Requirements
 pip install -r requirements.txt 
 ```
 
+### On Windows:
+
 Run The Program (or double-click the `run.cmd` file)
 ```
-run.cmd
+.\run.cmd
 ```
-
 This will start a local web-server [HERE](http://127.0.0.1:5000).
 Closing the CMD closes the webserver. To host the server on a different port, edit the `run.cmd` file (shown in the below code-block).
 ```
@@ -49,13 +71,32 @@ Closing the CMD closes the webserver. To host the server on a different port, ed
 start "" http://127.0.0.1:5000
 waitress-serve --host 127.0.0.1 --port 5000 app:app
 ```
-
 If you would like to access the interface from another machine on your local network (or elsewhere with port forwarding), for example if you were running this on a headless server - change the contents of `run.cmd` to the below code block. You would then access the interface via your Network IP (ex: http://192.168.1.76:5000)
 ```
 for /f "delims=[] tokens=2" %%a in ('ping -4 -n 1 %ComputerName% ^| findstr [') do set NetworkIP=%%a
 start "" http:%NetworkIP%:5000
 waitress-serve --host %NetworkIP% --port 5000 app:app
 ```
+### On Linux: 
+
+Run The Program (or double-click the `run.cmd` file)
+```
+./run.sh
+```
+
+By default, the linux webserver is accessible via LAN. You can change the port by changing the value PORT in the run.sh script, see below.
+```
+#!/bin/sh
+
+IP='ip route get 8.8.8.8 | sed -n '/src/{s/.*src *\([^ ]*\).*/\1/p;q}''
+PORT=5000
+
+gunicorn --bind $IP:$PORT app:app
+echo "Shutting down Gunicorn Server"
+```
+
+<hr />
+
 
 
 Fill in the required information by pressing the "edit" tab or within the json itself ("values" tab), start the bot by moving the switch labeled Bot I/O, profit. If you run into any errors, make sure all fields are completed in the edit tab. Make sure that you add your own "discordusername#1234" to users and admins otherwise the bot will not respond to you. 
