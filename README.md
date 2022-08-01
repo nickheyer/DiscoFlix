@@ -6,7 +6,9 @@ A ~~simple~~ media-requesting, Radarr/Sonarr-interfacing, movie and tv show-list
 
 As this bot is intended for requests to be fulfilled via Radarr or Sonarr, you must have Radarr or Sonarr installed to use this bot. (https://github.com/Radarr/Radarr & https://sonarr.tv/#download). Along with radarr and sonarr, you must have discord, as well as a discord developer account (https://discord.com/developers/applications), and a bot created/invited (via your developer acount) to your chosen discord server.
 <hr />
+
 ## Installation via Docker (Recommended)
+
 - Docker must be installed on your machine. Click [here](https://docs.docker.com/engine/install/) to install Docker.
 - Discord API Key (https://discord.com/developers/applications) - READ [THIS](#further-notes)
 - Radarr API Key (Radarr GUI>Settings>General>API Key)
