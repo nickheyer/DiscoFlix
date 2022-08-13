@@ -1,4 +1,5 @@
 from audioop import add
+from re import sub
 from flask import Flask, render_template, request, jsonify
 from flask_session import Session
 from datetime import date
@@ -44,6 +45,9 @@ def get_log():
 
 def start_bot(bot_type):
     op_call = None
+    if os.path.exists(os.path.join(os.path.dirname(__file__), "venv")):
+        print("venv used, in dev mode")
+        op_call = fr".\\venv\Scripts\\python.exe"
     if platform in ["linux", "linux2"]:
         op_call = "python"
     elif platform == "darwin":
@@ -56,20 +60,24 @@ def start_bot(bot_type):
     set_values("statemachine", f"{bot_type}_botState", True)
 
 def kill_bot(bot_type):
+    global sub_proc
     if len(sub_proc) == 0:
         set_values("statemachine", f"{bot_type}_botState", False)
         return
+    tmp_proc = list()
     for x in sub_proc:
         if x["bot_type"] == bot_type:
             try:       
                 x["process"].kill()
                 x["process"].wait()
                 x["error_log"].close()
-                sub_proc.remove(x)
                 set_values("statemachine", f"{bot_type}_botState", False)
             except Exception as e:
                 add_log(f"Error while shutting down {bot_type} : {e}.", "IO")
                 pass
+        else:
+            tmp_proc.append(x)
+    sub_proc = tmp_proc
 
 def kill_all_bots():
     global sub_proc
@@ -134,14 +142,18 @@ def add_admin_to_file(admin):
     set_file("values", values)
 
 def restart_all_bots():
-    for x in sub_proc:
-        restart_bot(x["bot_type"])
-        add_log(f"Restarting {x['bot_type']}_bot", "IO")
+    if len(sub_proc) != 0:
+        for x in sub_proc:
+            restart_bot(x["bot_type"])
+        add_log(f"Restarting all currently running bots.", "IO")
+    else:
+        return
 
 def restart_bot(bot_type):
-    kill_bot(bot_type)
-    start_bot(bot_type)
-    add_log(f"Restarting {bot_type}_bot", "IO")
+    bot = bot_type
+    kill_bot(bot)
+    start_bot(bot)
+    
 
 #Function called on exit, similar to shutdown
 @atexit.register
@@ -179,10 +191,11 @@ def save_credentials():
     set_file(file_name, json_data)
     if len(dif) == 0:
         msg = f"No values have been changed in {file_name}.json"
+        add_log(msg, "IO")  
     else:
-        msg = f"The following key/values have been adjusted in {file_name}.json: {', '.join(dif)}\n\nRestarting all bots."
         restart_all_bots()
-    add_log(msg, "IO")   
+        msg = f"The following values have been modified: {', '.join(dif)}"
+        add_log(msg, "IO")
     return msg
     
 @app.route("/data", methods = ["POST"])
@@ -260,7 +273,7 @@ def enable_radson():
     for x,y in req.items():
         set_values("values", x, y)
         msg = f"{x} has been updated"
-    add_log(msg, "IO")
+        add_log(msg, "IO")
     restart_all_bots()
     return msg
 
