@@ -2,21 +2,23 @@
 
 ![DF_Logo_64](https://user-images.githubusercontent.com/60236014/181656541-07810357-318a-4357-aa4f-642e306b14e9.png)
 
-A ~~simple~~ media-requesting, Radarr/Sonarr-interfacing, movie and tv show-listing Discord Bot web-app for your media server. 
+A ~~simple~~ media-requesting, Radarr/Sonarr-interfacing, movie and tv show-listing Chat Bot web-app for your media server. 
 
-As this bot is intended for requests to be fulfilled via Radarr or Sonarr, you must have Radarr or Sonarr installed to use this bot. (https://github.com/Radarr/Radarr & https://sonarr.tv/#download). Along with radarr and sonarr, you must have discord, as well as a discord developer account (https://discord.com/developers/applications), and a bot created/invited (via your developer acount) to your chosen discord server.
+As this bot is intended for requests to be fulfilled via Radarr or Sonarr, you must have Radarr or Sonarr installed to use this bot. (https://github.com/Radarr/Radarr & https://sonarr.tv/#download). Along with radarr and sonarr, you must have either discord or telegram. Running the discord bot requires a discord developer account (https://discord.com/developers/applications), and a bot created/invited (via your developer acount) to your chosen discord server. Running the Telegram bot requires a Bot Token which you can acquire (https://telegram.me/BotFather) on Telegram via the "BotFather".
 <hr />
 
 ## Installation via Docker (Recommended)
 
 - Docker must be installed on your machine. Click [here](https://docs.docker.com/engine/install/) to install Docker.
-- Discord API Key (https://discord.com/developers/applications) - READ [THIS](#further-notes)
+- Discord and/or Telegram API Token
+    - Discord API Token (https://discord.com/developers/applications) - READ [THIS](#further-notes)
+    - Telegram API Token  - (https://telegram.me/BotFather)
 - Radarr API Key (Radarr GUI>Settings>General>API Key)
 - Radarr Host URL (The url you use to access your radarr interface, ex: http://localhost:6585 or http://192.168.1.76:6585)
 - Sonarr API Key (Sonarr GUI>Settings>General>API Key)
 - Sonarr Host URL (The url you use to access your sonarr interface, ex: http://localhost:8989 or http://192.168.1.76:8989)
 - Name of media server that requests will be populated on (ex: NickFlix)
-- Full Discord username of Admin for first time use (ex: NicholasHeyer#4212)
+- Full Discord or Telegram username of Admin for first time use (ex: NicholasHeyer#4212)
 
 Download Docker Image
 ```
@@ -36,23 +38,25 @@ docker run -d -p 5000:5000 nickheyer/discoflix
 Prerequisites:
 
 - Python must be installed on your machine. [Click Here](https://www.python.org/ftp/python/3.10.4/python-3.10.4-amd64.exe) for 64-bit installer - During installation, make sure you select the option "Add Python to environmental variables"
-- Discord API Key (https://discord.com/developers/applications) - READ [THIS](#further-notes)
+- Discord and/or Telegram API Token
+    - Discord API Token (https://discord.com/developers/applications) - READ [THIS](#further-notes)
+    - Telegram API Token  - (https://telegram.me/BotFather)
 - Radarr API Key (Radarr GUI>Settings>General>API Key)
 - Radarr Host URL (The url you use to access your radarr interface, ex: http://localhost:6585 or http://192.168.1.76:6585)
 - Sonarr API Key (Sonarr GUI>Settings>General>API Key)
 - Sonarr Host URL (The url you use to access your sonarr interface, ex: http://localhost:8989 or http://192.168.1.76:8989)
 - Name of media server that requests will be populated on (ex: NickFlix)
-- Full Discord username of Admin for first time use (ex: NicholasHeyer#4212)
+- Full Discord or Telegram username of Admin for first time use (ex: NicholasHeyer#4212)
 
+
+Change Directory to where you would like to install DiscoFlix
+```
+cd path/of/where/you/would-like-to-install-discoflix
+```
 
 Download DiscoFlix by running the below command, or download the zip directly [HERE](https://github.com/nickheyer/DiscoFlix/raw/main/DiscoFlix.zip) and unzip.
 ```bash
 git clone https://github.com/nickheyer/DiscoFlix
-```
-
-Change Directory to DiscoFlix Folder (Where you unzipped or cloned DiscoFlix)
-```
-cd path/of/where/you/unzipped-or-cloned-discoflix
 ```
 
 Install Requirements
@@ -101,7 +105,7 @@ echo "Shutting down Gunicorn Server"
 
 
 
-Fill in the required information by pressing the "edit" tab or within the json itself ("values" tab), start the bot by moving the switch labeled Bot I/O, profit. If you run into any errors, make sure all fields are completed in the edit tab. Make sure that you add your own "discordusername#1234" to users and admins otherwise the bot will not respond to you. 
+Fill in the required information by pressing the "edit" tab or within the json itself ("values" tab), start the bot by moving the switch labeled Bot I/O, profit. If you run into any errors, make sure all fields are completed in the edit tab. Make sure that you add your own "discordusername#1234" or "telegramusername" to admins otherwise the bot will not respond to you. 
 
 ![edit_tab_info](https://user-images.githubusercontent.com/60236014/181657291-75e4192f-f5b6-41e1-b296-dcd6abcffe69.png)
 
@@ -117,12 +121,12 @@ Fill in the required information by pressing the "edit" tab or within the json i
 (For movies only) Based on the average download time you provided during setup, it will send a message to discord letting requester know to check the server.
 - To add more users from within the Discord bot and not web-app:
 
-    To allow other people to request movies, it's very simple. Just type the default prefic "!df" then "add-user" then their full       discord username. For example: "!df add-user NicholasHeyer#4212" )
-    
-    i. Reminder: You can also add users via the web-app interface [HERE](http://127.0.0.1:5000)
+    - To allow other people to request movies, it's very simple. Just type the default prefix "!df" then "add-user" then their full discord or telegram username. For example: "!df add-user NicholasHeyer#4212" (Discord) or "!df add-user NicholasHeyer" (Telegram)
+
+        i. Reminder: You can also add users via the web-app interface [HERE](http://127.0.0.1:5000)
 - To change request keyword:
 
-    Type "!df set keyword" then the keyword. For example: "!df set keyword !add". Your movie requests will then look like this:         "!add movie Dark Phoenix".
+    i. Type "!df set keyword" then the keyword. For example: "!df set keyword !add". Your movie requests will then look like this:         "!add movie Dark Phoenix".
 
 ## Further Notes
 
