@@ -4,7 +4,7 @@
 
 A ~~simple~~ media-requesting, Radarr/Sonarr-interfacing, movie and tv show-listing Chat Bot web-app for your media server. 
 
-As this bot is intended for requests to be fulfilled via Radarr or Sonarr, you must have Radarr or Sonarr installed to use this bot. (https://github.com/Radarr/Radarr & https://sonarr.tv/#download). Along with radarr and sonarr, you must have discord and/or telegram. Running the discord bot requires a discord developer account (https://discord.com/developers/applications), and a bot created/invited (via your developer acount) to your chosen discord server. Running the Telegram bot requires a Bot Token which you can acquire (https://telegram.me/BotFather) on Telegram via the "BotFather".
+As this bot is intended for requests to be fulfilled via Radarr or Sonarr, you must have Radarr or Sonarr installed to use this bot. (https://github.com/Radarr/Radarr & https://sonarr.tv/#download). Along with radarr and sonarr, you must have either discord or telegram. Running the discord bot requires a discord developer account (https://discord.com/developers/applications), and a bot created/invited (via your developer acount) to your chosen discord server. Running the Telegram bot requires a Bot Token which you can acquire (https://telegram.me/BotFather) on Telegram via the "BotFather".
 <hr />
 
 ## Installation via Docker (Recommended)
@@ -151,4 +151,3 @@ Fill in the required information by pressing the "edit" tab or within the json i
 Contributions are always welcome!
 
 Email `nick@heyer.app` for ways to get started.
-

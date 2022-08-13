@@ -1,2 +1,3 @@
-start "" http://127.0.0.1:5000
-waitress-serve --host 127.0.0.1 --port 5000 app:app
+for /f "delims=[] tokens=2" %%a in ('ping -4 -n 1 %ComputerName% ^| findstr [') do set NetworkIP=%%a
+start "" http:%NetworkIP%:5000
+waitress-serve --host %NetworkIP% --port 5000 app:app

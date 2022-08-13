@@ -1,7 +1,10 @@
+from audioop import add
 from flask import Flask, render_template, request, jsonify
 from flask_session import Session
 from datetime import date
 import os
+from sys import platform
+import sys
 from cs50 import SQL
 from subprocess import Popen
 import atexit
@@ -25,6 +28,9 @@ app.config['SOCK_SERVER_OPTIONS'] = {'ping_interval': 45}
 #Creating Session
 Session(app)
 
+#Subprocesses List
+sub_proc = list()
+
 #Generic Non-Route Functions
 def add_log(msg, type):
     db.execute("INSERT INTO logs (description, type) VALUES (?, ?)", msg, type)
@@ -36,22 +42,59 @@ def get_log():
         formattedStr += f'{x["date_created"].split()[1]} | {x["type"]} | {x["description"]}\n'
     return formattedStr
 
-def start_bot():
-    global err_log
-    args = ['python.exe', 'bot.py']
-    err_log = open(os.path.join(os.path.dirname(__file__), "logs", "bot", f'BOT_{date.today().strftime("%d_%m_%Y")}.log'), 'a')   
-    return Popen(args,
-                 stderr=err_log,
-                 start_new_session=True)
+def start_bot(bot_type):
+    op_call = None
+    if platform in ["linux", "linux2"]:
+        op_call = "python"
+    elif platform == "darwin":
+        op_call = "python3"
+    elif platform == "win32":
+        op_call = "python.exe"
+    args = [op_call, f'{bot_type}_bot.py']
+    err_log = open(os.path.join(os.path.dirname(__file__), "logs", "bot", f'{bot_type.upper()}BOT_{date.today().strftime("%d_%m_%Y")}.log'), 'a')   
+    sub_proc.append({"bot_type": bot_type, "process": Popen(args, stderr=err_log, start_new_session=True), "error_log": err_log})
+    set_values("statemachine", f"{bot_type}_botState", True)
 
-def kill_bot():
-    try:       
-        bot_pointer.kill()
-        bot_pointer.wait()
-        err_log.close()
-    except:
+def kill_bot(bot_type):
+    if len(sub_proc) == 0:
+        set_values("statemachine", f"{bot_type}_botState", False)
+        return
+    for x in sub_proc:
+        if x["bot_type"] == bot_type:
+            try:       
+                x["process"].kill()
+                x["process"].wait()
+                x["error_log"].close()
+                sub_proc.remove(x)
+                set_values("statemachine", f"{bot_type}_botState", False)
+            except Exception as e:
+                add_log(f"Error while shutting down {bot_type} : {e}.", "IO")
+                pass
+
+def kill_all_bots():
+    global sub_proc
+    j = get_data("statemachine")
+    try:
+        for x in sub_proc:               
+            x["process"].kill()
+            x["process"].wait()
+            x["error_log"].close()
+            j[f'{x["bot_type"]}_botState'] = False
+        sub_proc = list()
+        set_file("statemachine", j)
+    except Exception as e:
+        add_log(f"Error while shutting down all bots : {e}.", "IO")
         pass
-        
+
+def get_misc_text(file_name):
+    dir = os.path.join(os.path.dirname(__file__), "static", "misc")
+    if not os.path.exists(dir):
+        os.mkdir(dir)
+    with open(os.path.join(dir, f"{file_name}.txt"), "r") as fp:
+        txt = fp.read()
+        print(txt)
+        return txt
+
 def get_data(file_name):
     with open(os.path.join(os.path.dirname(__file__), "data", f"{file_name}.json"), "r") as fp:
         return json.load(fp)
@@ -61,12 +104,10 @@ def set_values(file_name, key, newval):
     values[key] = newval
     with open(os.path.join(os.path.dirname(__file__), "data", f"{file_name}.json"), "w") as fpw:
         json.dump(values, fpw)
-    return
 
 def set_file(file_name, json_data):
     with open(os.path.join(os.path.dirname(__file__), "data", f"{file_name}.json"), "w") as fpw:
         json.dump(json_data, fpw)
-    return
 
 def add_user_to_file(username):
     values = get_data("values")
@@ -75,27 +116,26 @@ def add_user_to_file(username):
 
 def add_admin_to_file(admin):
     values = get_data("values")
+    if admin not in values["authUsers"]:
+        values["authUsers"].append(admin)
     values["adminUsers"].append(admin)
     set_file("values", values)
 
-def restart_bot():
-    global bot_pointer
-    j = get_data("statemachine")
-    if j["botState"] == False:
-        return
-    kill_bot()
-    bot_pointer = start_bot()
-    set_values("statemachine", "botState", True)
-    msg = "Restarting bot"
-    add_log(msg, "IO")
-    return msg
+def restart_all_bots():
+    for x in sub_proc:
+        restart_bot(x["bot_type"])
+        add_log(f"Restarting {x['bot_type']}_bot", "IO")
+
+def restart_bot(bot_type):
+    kill_bot(bot_type)
+    start_bot(bot_type)
+    add_log(f"Restarting {bot_type}_bot", "IO")
 
 #Function called on exit, similar to shutdown
 @atexit.register
 def exit_shutdown():
     add_log("Shutting down webserver", "ATEXIT")
-    kill_bot()
-    set_values("statemachine", "botState", False)
+    kill_all_bots()
     
 #Beginning Routes with default index temp func
 @app.route("/")
@@ -128,8 +168,8 @@ def save_credentials():
     if len(dif) == 0:
         msg = f"No values have been changed in {file_name}.json"
     else:
-        msg = f"The following key/values have been adjusted in {file_name}.json: {', '.join(dif)}"
-        restart_bot()
+        msg = f"The following key/values have been adjusted in {file_name}.json: {', '.join(dif)}\n\nRestarting all bots."
+        restart_all_bots()
     add_log(msg, "IO")   
     return msg
     
@@ -138,49 +178,51 @@ def return_data():
     return get_data(request.get_json()["document"])
 
 @app.route("/on", methods = ["POST"])
-def turn_bot_on():   
-    global bot_pointer
+def turn_bot_on():
     current_state = get_data("statemachine")
     current_values = get_data("values")
-    if current_state["botState"]:
-        msg = "Bot Is Already On"
+    req_op = request.get_json()["type"]
+    if current_state[f"{req_op}_botState"]:
+        msg = f"{req_op.title()} Bot Is Already On"
         add_log(msg, "IO")
         return msg
     for x,y in current_values.items():
-        if x == "internalReference": #Keys in values.json that the bot can start without
+        if x == "internalReference" or ("Token" in x and req_op not in x): #Keys in values.json that the bot can start without
             pass
-        if y == None or y == "":
+        elif y == None or y == "":
             msg = "Missing Values"
             add_log(msg, "IO")
             return msg
     try:
-        bot_pointer = start_bot()
+        start_bot(req_op)
     except:
-        kill_bot()
-    set_values("statemachine", "botState", True)
-    msg = "Turning Bot On"
+        kill_bot(req_op)
+    msg = f"Turning {req_op.title()} Bot On"
     add_log(msg, "IO")
     return msg
 
 @app.route("/off", methods = ["POST"])
 def turn_bot_off():
-    if get_data("statemachine")["botState"] == False:
+    req_op = request.get_json()["type"]
+    if get_data("statemachine")[f"{req_op}_botState"] == False:
         msg = "Bot is already off"
         add_log(msg, "IO")
         return msg
-    kill_bot()
-    msg = "Turning Bot Off"
-    set_values("statemachine", "botState", False)
+    kill_bot(req_op)
+    msg = f"Turning {req_op.title()} Bot Off"
     add_log(msg, "IO")
     return msg
 
 @app.route("/shutdown", methods = ["POST"])
 def shutdown():
     add_log("Shutting down webserver", "IO")
-    kill_bot()
-    set_values("statemachine", "botState", False)
-    sig = getattr(signal, "SIGKILL", signal.SIGTERM)
-    os.kill(os.getpid(), sig)
+    kill_all_bots()
+    if sys.platform in ["linux", "linux2"]:
+        os.system("pkill -f gunicorn")
+    elif sys.platform == "win32":
+        sig = getattr(signal, "SIGKILL", signal.SIGTERM)
+        os.kill(os.getpid(), sig)
+    return "Shutting Down"
 
 @app.route("/adduser", methods = ["POST"])
 def add_user():
