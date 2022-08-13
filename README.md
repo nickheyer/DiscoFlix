@@ -128,14 +128,15 @@ Fill in the required information by pressing the "edit" tab or within the json i
 
     - To allow other people to request movies, it's very simple. Just type the default prefix "!df" then "add-user" then their full discord or telegram username. For example: "!df add-user NicholasHeyer#4212" (Discord) or "!df add-user NicholasHeyer" (Telegram)
 
-        i. Reminder: You can also add users via the web-app interface [HERE](http://127.0.0.1:5000)
+        - Reminder: You can also add users via the web-app interface [HERE](http://127.0.0.1:5000).
+        -  The web interface accepts comma seperated values (ie: "Username#0000, UsernameNumberTwo#0001, lowercaseusername#0002, telegramusername")
 - To change request keyword:
 
     i. Type "!df set keyword" then the keyword. For example: "!df set keyword !add". Your movie requests will then look like this:         "!add movie Dark Phoenix".
 
 ## Further Notes
 
-- When inviting bot to channel, make sure you allow permissions as such (see below image). For the most part, the bot only requires text channel permissions, but for admin actions it must grab all the member objects from channel to scan for available admins, therefore it's better to just allow for Administrator priveledges overall.
+- When inviting your Discord Bot to channel, make sure you allow permissions as such (see below image). For the most part, the bot only requires text channel permissions, but for admin actions it must grab all the member objects from channel to scan for available admins, therefore it's better to just allow for Administrator priveledges overall.
 
 ![image](https://user-images.githubusercontent.com/60236014/181997169-4b7f3c1d-dc72-4ca2-83db-bcea56814bea.png)
 
