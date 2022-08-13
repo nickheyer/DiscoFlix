@@ -111,14 +111,26 @@ def set_file(file_name, json_data):
 
 def add_user_to_file(username):
     values = get_data("values")
-    values["authUsers"].append(username)
+    if "," in username:
+        list_of_users = username.split(",")
+        for user in list_of_users:
+            values["authUsers"].append(user.strip())
+    else:
+        values["authUsers"].append(username.strip())   
     set_file("values", values)
 
 def add_admin_to_file(admin):
     values = get_data("values")
-    if admin not in values["authUsers"]:
-        values["authUsers"].append(admin)
-    values["adminUsers"].append(admin)
+    if "," in admin:
+        list_of_admins = admin.splits(",")
+        for a in list_of_admins:
+            if a.strip() not in values["authUsers"]:
+                values["authUsers"].append(a.strip())
+            values["adminUsers"].append(a.strip())
+    else:
+        if admin not in values["authUsers"]:
+            values["authUsers"].append(admin.strip())
+        values["adminUsers"].append(admin.strip())
     set_file("values", values)
 
 def restart_all_bots():
@@ -238,7 +250,7 @@ def add_user():
     else:
         msg = "No users/admins added"
     add_log(msg, "IO")
-    restart_bot()
+    restart_all_bots()
     return msg
 
 @app.route("/enable", methods = ["POST"])
@@ -249,7 +261,7 @@ def enable_radson():
         set_values("values", x, y)
         msg = f"{x} has been updated"
     add_log(msg, "IO")
-    restart_bot()
+    restart_all_bots()
     return msg
 
 #Previously websocket route, changed to http for server framework
