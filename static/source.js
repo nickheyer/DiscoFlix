@@ -89,19 +89,17 @@ document.addEventListener('DOMContentLoaded', (event) => {
     };
 
     function getLog() {
+        if (getActiveTab() == "log-tab") {
         const Http = new XMLHttpRequest();
         var url = "/log";
         Http.open("POST", url);
         Http.send();
         Http.onreadystatechange = function () {
             if (this.readyState == this.DONE) {
-                if (getActiveTab() == "log-tab") { //If current tab is log tab, post data
+                 //If current tab is log tab, post data
                     postAndScrollDown(this.responseText);
-                }
-                else { //If active tab is not log, save data
-                    localStorage.setItem("log", this.responseText);
-                }
                 
+                }
             }
         }
     };getLog();setInterval(getLog, 1000);
@@ -120,7 +118,8 @@ document.addEventListener('DOMContentLoaded', (event) => {
     var serverSwitch = document.getElementById("server-io-switch");
     $(serverSwitch).change(async function() {
         if (this.checked == false) {
-            ioSwitch.checked = false;
+            dIOSwitch.checked = false;
+            tIOSwitch.checked = false;
             sendNullRequest("/shutdown");
             postAndScrollDown("Goodbye!");
             await sleep(2000);
@@ -129,17 +128,19 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
     });
 
-    //New on-off slider for bot
-    var ioSwitch = document.getElementById("discord-io-switch");
-    $(ioSwitch).change(async function() {
+    //New on-off slider for discord bot
+    var dIOSwitch = document.getElementById("discord-io-switch");
+    $(dIOSwitch).change(async function() {
         if (this.checked) {
             const Http = new XMLHttpRequest();
             Http.open("POST", "/on");
-            Http.send();
+            Http.setRequestHeader("Content-Type", "application/json");
+            let data = JSON.stringify({"type":"discord"})
+            Http.send(data);
             Http.onreadystatechange = function () {
                 if (this.readyState == this.DONE) {
                     if (this.responseText == "Missing Values") {
-                        ioSwitch.checked = false;
+                        dIOSwitch.checked = false;
                         alert("Error: Missing Values.\nCheck to see that all fields are filled.")
                         switchTab("Values-tab");
                     } 
@@ -148,12 +149,36 @@ document.addEventListener('DOMContentLoaded', (event) => {
             
         }
         else {
-            sendNullRequest("/off");
+            sendRequestWithData("/off", {"type":"discord"});
         }
     });
     
+    //New on-off slider for telegram bot
+    var tIOSwitch = document.getElementById("telegram-io-switch");
+    $(tIOSwitch).change(async function() {
+        if (this.checked) {
+            const Http = new XMLHttpRequest();
+            Http.open("POST", "/on");
+            Http.setRequestHeader("Content-Type", "application/json");
+            let data = JSON.stringify({"type":"telegram"})
+            Http.send(data);
+            Http.onreadystatechange = function () {
+                if (this.readyState == this.DONE) {
+                    if (this.responseText == "Missing Values") {
+                        tIOSwitch.checked = false;
+                        alert("Error: Missing Values.\nCheck to see that all fields are filled.")
+                        switchTab("Values-tab");
+                    } 
+                }
+            }
+            
+        }
+        else {
+            sendRequestWithData("/off", {"type":"telegram"});
+        }
+    });
 
-    //On-Off Sliders for radarr and sonarr within form area
+    //On-Off Sliders for radarr and sonarr
     var radsonSwitches =  document.getElementsByName("radson-io-switch");
     for (let x = 0; x < radsonSwitches.length; x++) {
         var s = radsonSwitches[x];
