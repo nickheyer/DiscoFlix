@@ -7,16 +7,17 @@
     "docName": "values",
     "tabName": "Values"
   },
+  "maxCheckTime": 600,
   "maxResults": -1,
   "maxSeasonsNonadmin": -1,
-  "sessionTimeout": 60,
-  "maxCheckTime": 600,
   "mediaServerName": "",
   "prefixKeyWord": "!df",
   "radarrEnabled": "True",
   "radarrHostUrl": "",
   "radarrToken": "",
+  "sessionTimeout": 60,
   "sonarrEnabled": "True",
   "sonarrHostUrl": "",
-  "sonarrToken": ""
+  "sonarrToken": "",
+  "telegramToken": ""
 }
