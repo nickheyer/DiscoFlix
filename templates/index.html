@@ -1,7 +1,29 @@
 {% extends "layout.html" %}
         {% block body %}
         
-        <ul class="nav nav-tabs scenter" id="myTab" role="tablist" style="border-bottom-color: transparent;" >
+        <!-- IO Panel -->
+        <div class="btn-group center card3 border" style="max-width: fit-content; margin:auto; padding: 10px;">
+          <div class="form-check-inline form-switch">
+            <input class="form-check-input" type="checkbox" id="telegram-io-switch" style="background-color:#16191d;color:#966fd6" {% if state.telegram_botState %} checked {% endif %}>
+
+            <label class="form-check-label" for="telegram-io-switch" style="margin-left: 8px;color:#966fd6">Telegram Bot I/O</label>
+          </div>
+          <div class="form-check-inline form-switch">
+            <input class="form-check-input" type="checkbox" id="discord-io-switch" style="background-color:#16191d;color:#966fd6" {% if state.discord_botState %} checked {% endif %}>
+
+            <label class="form-check-label" for="discord-io-switch" style="margin-left: 8px;color:#966fd6">Discord Bot I/O</label>
+          </div>
+
+          <div class="form-check-inline form-switch"> 
+            <input class="form-check-input" type="checkbox" id="server-io-switch" style="background-color:#16191d;color:#966fd6" checked>
+            <label class="form-check-label" for="server-io-switch" style="margin-left: 8px;color:#966fd6">Webserver I/O</label>
+          </div>
+
+        </div>        
+        
+
+        <!-- Console Tabs -->
+        <ul class="nav nav-tabs" id="myTab" role="tablist" style=" margin:auto; border-bottom-color: transparent; margin-top: 30px; max-width: fit-content;" >
           <li class="nav-item" role="presentation">
             <button class="nav-link active"  name = "console-tabs" id="log-tab" value = "log" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab" aria-controls="log" aria-selected="true" style="background-color:#16191d;color:#966fd6">Log</button>
           </li>
@@ -19,25 +41,24 @@
 
         </ul>
         
-        <div><textarea class = "scenter card3" id='console' rows="30" cols="auto" autofocus spellcheck="false" style = "background-color: #16191d; color:#966fd6; padding:10px; font-size: small;"></textarea>
+        <!-- CONSOLE -->
+        <div>
           
-          
-          <div class="form-check form-switch form-switch-lg scenter">
+          <textarea class="card3 scenter" id='console' rows="30" cols="auto" autofocus spellcheck="false" style = "background-color: #16191d; color:#966fd6; padding:10px; font-size: small; width: 80%;"></textarea>
+
+        </div>
+        <div><br></div>
+        <!-- Save Button -->
+        <div>
             
-            <button class="btn btn-outline-secondary scenter" type="button" value="save" id="saveButton" style="max-width: 40%;background-color:#16191d;color:#966fd6">Save</button>
-            
-            
-            <input class="form-check-input" type="checkbox" id="discord-io-switch" style="background-color:#16191d;color:#966fd6" {% if state.botState %} checked {% endif %}>
+          <button class="btn btn-outline-secondary scenter" type="button" value="save" id="saveButton" style="max-width: 20%; margin:auto; background-color:#16191d;color:#966fd6">Save</button>
+               
+        </div>
 
-            <label class="form-check-label" for="discord-io-switch" style="margin-left: 8px;color:#966fd6">Bot I/O</label>
-          </div>
-          
+        
+        
 
-
-
-
-
-
+        <!-- Off Canvas Form -->
           <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasExample" aria-labelledby="offcanvasExampleLabel">
             <div class="offcanvas-header" style = "background-color: #23292f; color:#966fd6">
               <h5 class="offcanvas-title" id="offcanvasExampleLabel">Values</h5>
@@ -49,14 +70,14 @@
               <!-- Adding User to Values.Json -->
               <div class="form-floating mb-3 input-group" style="margin-top: 20px;">
                 <input type="text" class="form-control" name="cred-form-add-user" id="added-user" style="background-color:#16191d; color:#966fd6;" spellcheck="false" value="" autocomplete="off">
-                <label for="added-user">Add User (ie: "NicholasHeyer#4212")</label>
+                <label for="added-user">Add User</label>
                 <button class="btn btn-outline-secondary" type="button" value="add" id="cred-form-add" style="background-color:#16191d;color:#966fd6;border-color: white;">+</button>
               </div>
               
               <!-- Adding Admin to Values.Json -->
               <div class="form-floating mb-3 input-group" style="margin-top: 20px;">
                 <input type="text" class="form-control" name="cred-form-add-admin" id="added-admin" style="background-color:#16191d; color:#966fd6;" spellcheck="false" value="" autocomplete="off">
-                <label for="added-admin">Add Admin (ie: "NicholasHeyer#4212")</label>
+                <label for="added-admin">Add Admin</label>
                 <button class="btn btn-outline-secondary" type="button" value="add" id="cred-form-admin" style="background-color:#16191d;color:#966fd6;border-color: white;">+</button>
               </div>
 
@@ -70,18 +91,37 @@
                 <label class="form-check-label" for="sonarr-io-switch" style="margin-left: 8px;color:#966fd6">Sonarr I/O</label>
               </div>
 
+              <div>
+                <textarea class="card3" spellcheck="false" rows="15" cols="auto" style = "background-color: #16191d; color:#966fd6; padding:10px; font-size: small; width:100%; margin-top: 15px;" disabled>
+README
 
-              <div class = "card3" style="padding:15px;">
-                The below form data is populated via the "{{values.internalReference.docName}}.json" file in ./data. To use the bot, the fields must be filled out here or by clicking the {{values.internalReference.tabName}} tab, filling out the JSON manually and pressing save.
-                <br><br>
-                Usage & Descriptions:<br><br> 
-                Delay : 0 - ∞ seconds, 1 is default, must be a positive whole number. Represents the delay between messages.<br><br>
-                Max Results : -1 is default and iterates through every result. Bringing the limit to 5 would only show 5 results per search.<br><br>
-                Max Check Time : 600 seconds is default, must be a postive whole number. Follows up with every movie download to confirm movie was downloaded succesfully. maxCheckTime represents the amount of seconds before the download is marked as failed by DiscoFlix.<br><br>
-                Max Seasons for Non Admin : -1 is default and allows for all users to request any show regardless of season count. Setting value to 3 would allow non-admins to request shows with 3 seasons or less.<br><br>
-                Session Timeout: 60 seconds is default, must be postive whole number. Represents the amount of time waited for user to make choice, for example when deciding yes or no on movie.
+The below form data is populated via the "{{values.internalReference.docName}}.json" file in ./data. To use the bot, the fields must be filled out here or by clicking the {{values.internalReference.tabName}} tab, filling out the JSON manually and pressing save.
+
+Usage & Descriptions:
+
+Add User / Add Admin:
+Both Discord and Telegram users/admins can be added with this method, they are stored alongside eachother. To add a user or admin, use the following formats:
+"Username#0000" for Discord
+"Username" for Telegram
+
+Delay [DISCORD ONLY]:
+0 - ∞ seconds, 1 is default, must be a positive whole number. Represents the delay between messages.
+
+Max Results :
+-1 is default and iterates through every result. Bringing the limit to 5 would only show 5 results per search.
+
+Max Check Time [DISCORD ONLY]:
+600 seconds is default, must be a postive whole number. Follows up with every movie download to confirm movie was downloaded succesfully. maxCheckTime represents the amount of seconds before the download is marked as failed by DiscoFlix.
+
+Max Seasons for Non Admin :
+-1 is default and allows for all users to request any show regardless of season count. Setting value to 3 would allow non-admins to request shows with 3 seasons or less.
+
+Session Timeout [DISCORD ONLY]:
+60 seconds is default, must be postive whole number. Represents the amount of time waited for user to make choice, for example when deciding yes or no on movie.
+
+
+                </textarea>
               </div>
-              
 
               {% for field in values if field not in ["internalReference", "authUsers", "adminUsers", "radarrEnabled", "sonarrEnabled"] %}
               <div class="form-floating mb-3" style="margin-top: 20px;">
@@ -95,26 +135,9 @@
               
             </div>
           </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
       </div>
-        <div><br><br></div>
 
-        <div class="form-check form-switch form-switch-lg scenter"> 
-          <input class="form-check-input" type="checkbox" id="server-io-switch" style="background-color:#16191d;color:#966fd6" checked>
-          <label class="form-check-label" for="server-io-switch" style="margin-left: 8px;color:#966fd6">Webserver I/O</label>
-        </div>
-        <div><p class="titles"><a href="mailto: nick@heyer.app">Something wrong?</a></p></div>
+
+
         
         {% endblock %}
