@@ -53,12 +53,12 @@ document.addEventListener('DOMContentLoaded', (event) => {
         var con = document.getElementById('console');
         if (tab == "Values-tab") { //If tab is Values, allows for saving and editing of data
             saveButton.disabled = false;
-            con.disabled = false;
+            con.readOnly = false;
 
         }
         else {
             saveButton.disabled = true;
-            con.disabled  = true;
+            con.readOnly  = true;
         }
         if (tab == "log-tab") { //If tab is log tab, posts log to screen
             getLog();
