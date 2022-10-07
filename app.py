@@ -155,6 +155,19 @@ def restart_bot(bot_type):
     start_bot(bot)
     
 
+
+@app.before_first_request #auto-starting based on current state stored in statemachine.json
+def startup():
+    current_status = get_data("statemachine")
+    for key, val in current_status.items():
+        if key.endswith("_botState"):
+            if val == False:
+                continue
+            else:
+                bot_type = key[:-len("_botState")]
+                start_bot(bot_type=bot_type)
+
+
 #Function called on exit, similar to shutdown
 @atexit.register
 def exit_shutdown():

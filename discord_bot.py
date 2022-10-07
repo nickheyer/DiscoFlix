@@ -266,7 +266,7 @@ async def admin_approval(message: Any, reason: str) -> bool:
     await_choice = await client.wait_for('message', check=lambda m: (
     m.channel.id == channel
     and m.content.lower().strip() in ["yes", "y", "no", "n"]
-    and str(m.author) in auth_users), timeout = session_timeout)
+    and str(m.author) in admin_users), timeout = session_timeout)
   except asyncio.TimeoutError:
     await add_msg(message, f"Admin has not responded within a {session_timeout}-second period, session has ended.")
     return False
