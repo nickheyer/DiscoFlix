@@ -187,8 +187,9 @@ async def find_content(message : Any, title : str, operator : str) -> None:
       await add_msg(message, return_google_link(title)) ; await asyncio.sleep(delay)
       return
   results = await cycle_content(message, title, results, operator)
+
   title_id = results
-  if title_id == "":
+  if title_id in ["", None]:
     return
   title_found = await download_content(title_id, operator)
   if (title_found != None):
