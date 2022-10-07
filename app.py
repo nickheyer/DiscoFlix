@@ -1,5 +1,3 @@
-from audioop import add
-from re import sub
 from flask import Flask, render_template, request, jsonify
 from flask_session import Session
 from datetime import date
@@ -45,12 +43,7 @@ def get_log():
 
 def start_bot(bot_type):
     op_call = None
-    if os.path.exists(os.path.join(os.path.dirname(__file__), "venv")):
-        print("venv used, in dev mode")
-        op_call = fr".\\venv\Scripts\\python.exe"
-    if platform in ["linux", "linux2"]:
-        op_call = "python"
-    elif platform == "darwin":
+    if platform in ["linux", "linux2", "darwin"]:
         op_call = "python3"
     elif platform == "win32":
         op_call = "python.exe"

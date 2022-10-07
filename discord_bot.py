@@ -28,8 +28,7 @@ radarr_enabled : bool = bool(VALUES["radarrEnabled"])
 sonarr_enabled : bool = bool(VALUES["sonarrEnabled"])
 
 #Declaring intents, must also be configured from Discord portal, see readme
-intents = discord.Intents.default()
-intents.members = True
+intents = discord.Intents.all()
 
 #Discord, Discord-Embed, Radarr, & Sonarr API Objects
 client = discord.Client(intents = intents)
