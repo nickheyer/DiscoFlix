@@ -20,16 +20,23 @@ As this bot is intended for requests to be fulfilled via Radarr or Sonarr, you m
 - Name of media server that requests will be populated on (ex: NickFlix)
 - Full Discord or Telegram username of Admin for first time use (ex: NicholasHeyer#4212)
 
-Download Docker Image
+Download Docker Image (x86_64 Architecture) 
 ```
-docker image pull nickheyer/discoflix
+docker image pull nickheyer/discoflix:latest
+```
+
+-or-
+
+Download Docker Image (aarch64 Architecture, ie: Raspberry-Pi) 
+```
+docker image pull nickheyer/discoflix_rpi:latest
 ```
 Run Docker Container
 ```
 docker run -d -p 5000:5000 nickheyer/discoflix
 ```
 
-- The server within the docker container automatically maps to it's network IP (ex:192.168.76.128), and can therefore be accessed elsewhere on the network (ex: http://192.168.76.128:5000)
+- The server within the docker container automatically maps to it's network IP (ex:192.168.76.128), and can therefore be accessed elsewhere on the network (ex: [127.0.0.1:5000](127.0.0.1:5000) if run locally, ex: [192.168.1.163:5000](192.168.1.163:5000) if run on another network device)
 <hr />
 
 
@@ -54,7 +61,7 @@ Change Directory to where you would like to install DiscoFlix
 cd path/of/where/you/would-like-to-install-discoflix
 ```
 
-Download DiscoFlix by running the below command, or download the zip directly [HERE](https://github.com/nickheyer/DiscoFlix/raw/main/DiscoFlix.zip) and unzip.
+Download DiscoFlix by running the below command
 ```bash
 git clone https://github.com/nickheyer/DiscoFlix
 ```
@@ -79,15 +86,10 @@ This will start a local web-server [HERE](http://127.0.0.1:5000).
 Closing the CMD closes the webserver. To host the server on a different port, edit the `run.cmd` file (shown in the below code-block).
 ```
 //Contents of run.cmd
-start "" http://127.0.0.1:5000
-waitress-serve --host 127.0.0.1 --port 5000 app:app
+waitress-serve --host 0.0.0.0 --port 5000 app:app
 ```
 If you would like to access the interface from another machine on your local network (or elsewhere with port forwarding), for example if you were running this on a headless server - change the contents of `run.cmd` to the below code block. You would then access the interface via your Network IP (ex: http://192.168.1.76:5000)
-```
-for /f "delims=[] tokens=2" %%a in ('ping -4 -n 1 %ComputerName% ^| findstr [') do set NetworkIP=%%a
-start "" http:%NetworkIP%:5000
-waitress-serve --host %NetworkIP% --port 5000 app:app
-```
+
 ### On Linux: 
 
 Run The Program (or double-click the `run.cmd` file)
@@ -99,7 +101,7 @@ By default, the linux webserver is accessible via LAN. You can change the port b
 ```
 #!/bin/sh
 
-IP='ip route get 8.8.8.8 | sed -n '/src/{s/.*src *\([^ ]*\).*/\1/p;q}''
+IP=0.0.0.0
 PORT=5000
 
 gunicorn --bind $IP:$PORT app:app
