@@ -126,7 +126,7 @@ async def cycle_content(message : Any, request : str, content_list : list[Any], 
                 await add_msg(message, f"{request.title()} already accessible on {SERVER_NAME}, contact your server admin.")
                 return ""
               if (max_seasons_nonadmin == -1 #If the max seasons count is set to -1, meaning unlimited seasons OR
-              or x['seasonCount'] < max_seasons_nonadmin #The shows season count is less than the max seasons count OR
+              or x['seasonCount'] <= max_seasons_nonadmin #The shows season count is less than the max seasons count OR
               or await admin_approval(message, f"Season count of {x['seasonCount']} is higher than limit of {max_seasons_nonadmin}")): #Requestor is admin or has admin approval
                 return x["tvdbId"]
               else:
@@ -270,8 +270,10 @@ async def admin_approval(message: Any, reason: str) -> bool:
     await add_msg(message, f"Admin has not responded within a {session_timeout}-second period, session has ended.")
     return False
   if await_choice.content.lower().strip() in ["y", "yes"]:
+    await add_msg(message, f"Approved by admin.")
     return True
   else:
+    await add_msg(message, f"Denied by admin.")
     return False
   
 #Client events -------
