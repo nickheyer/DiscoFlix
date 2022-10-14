@@ -50,6 +50,21 @@ class RadarrAPIv3(RequestAPI):
         res = self.request_get(path)
         return res
 
+    def lookup_movie_by_tmdb_id(self, term):
+        """Searches for movie
+
+        Args:
+            Requried - term (uses tmdb for search results)
+        Returns:
+            json response
+
+        """
+
+        path = f"/api/v3/movie/lookup/tmdb?tmdbId={term}"
+        res = self.request_get(path)
+        return res
+
+
     def get_root(self):
         """Returns the Root Folder"""
         path = "/api/v3/rootfolder"

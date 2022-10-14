@@ -94,4 +94,7 @@ class RequestAPI:
         res = self.session.delete(
             request_url, headers=headers, json=data, auth=self.auth
         )
-        return res.json()
+        try:
+            return res.json()
+        except:
+            return

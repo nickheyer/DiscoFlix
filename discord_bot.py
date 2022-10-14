@@ -166,7 +166,12 @@ async def download_content(id : str, operator : str) -> Any:
       response = radarr.add_movie(id, 1, radarr.get_root()[0]['path'])
     else:
       response = sonarr.add_series(id, 1, sonarr.get_root()[0]['path'], monitored=True, searchForMissingEpisodes=True)
-    if response.get('message', 'NO KEY') == "The given path's format is not supported.":
+    if type(response) == list and response[0].get('errorMessage', 'NO KEY') == 'This movie has already been added':
+      add_log("Movie entry already exists in DB without file, deleting and re-adding", "Debug")
+      movie_lookup = radarr.get_movie(id)[0]
+      radarr.del_movie(movie_lookup['id'])
+      return radarr.add_movie(id, 1, radarr.get_root()[0]['path'])
+    elif response.get('message', 'NO KEY') == "The given path's format is not supported.":
       return None
     else:
       return response
