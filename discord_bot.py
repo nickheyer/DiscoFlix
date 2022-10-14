@@ -166,11 +166,12 @@ async def download_content(id : str, operator : str) -> Any:
       response = radarr.add_movie(id, 1, radarr.get_root()[0]['path'])
     else:
       response = sonarr.add_series(id, 1, sonarr.get_root()[0]['path'], monitored=True, searchForMissingEpisodes=True)
-    if 'message' in response.keys() and response['message'] == "The given path's format is not supported.":
+    if response.get('message', 'NO KEY') == "The given path's format is not supported.":
       return None
     else:
       return response
-  except:
+  except Exception as e:
+    add_log(str(e), "Debug")
     return None
 
 async def find_content(message : Any, title : str, operator : str) -> None:
@@ -212,7 +213,8 @@ async def add_user(message: Any, usr : str, operator : str) -> None:
     if usr not in j["authUsers"]:
       j["authUsers"].append(usr)
     j["adminUsers"].append(usr)
-    auth_users = j
+    admin_users = j["adminUsers"]
+    auth_users = j["authUsers"]
     msg = f"{usr} has been added to list of admin users!"
   else:
     if usr in j["authUsers"]:
@@ -220,7 +222,7 @@ async def add_user(message: Any, usr : str, operator : str) -> None:
       await add_msg(message, msg)
       return
     j["authUsers"].append(usr)
-    admin_users = j
+    auth_users = j["authUsers"]
     msg = f"{usr} has been added to list of authenticated users!"
   set_file("values", j)
   await add_msg(message, msg)
@@ -245,10 +247,12 @@ async def monitor_download(message: Any, title: str, id: int) -> None:
     for x in history:
       if (x['movieId'] == id and x["eventType"] == "downloadFolderImported"):
         msg = f"`{title.title()}` has been added to `{SERVER_NAME}`."
+        msg += f"\n{message.author.mention}"
         await add_msg(message, msg)
         return
     seconds += interval_seconds
   msg = f"`{SERVER_NAME}` was unable to find `{title.title()}`, continue checking {SERVER_NAME} for updates or contact your server admin."
+  msg += f"\n{message.author.mention}"
   await add_msg(message, msg)
   return
 
