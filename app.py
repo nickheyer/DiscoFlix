@@ -87,6 +87,18 @@ def kill_all_bots():
         add_log(f"Error while shutting down all bots : {e}.", "IO")
         pass
 
+def kill_all_bots_no_state():
+    global sub_proc
+    try:
+        for x in sub_proc:               
+            x["process"].kill()
+            x["process"].wait()
+            x["error_log"].close()
+        sub_proc = list()
+    except Exception as e:
+        add_log(f"Error while shutting down all bots : {e}.", "IO")
+        pass
+
 def get_misc_text(file_name):
     dir = os.path.join(os.path.dirname(__file__), "static", "misc")
     if not os.path.exists(dir):
@@ -165,7 +177,7 @@ def startup():
 @atexit.register
 def exit_shutdown():
     add_log("Shutting down webserver", "ATEXIT")
-    kill_all_bots()
+    kill_all_bots_no_state()
     
 #Beginning Routes with default index temp func
 @app.route("/")
