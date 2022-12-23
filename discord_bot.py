@@ -36,6 +36,9 @@ embeded = discord.Embed()
 radarr = RadarrAPI(RADARR_URL, RADARR_TOKEN)
 sonarr = SonarrAPI(SONARR_URL, SONARR_TOKEN)
 
+#Global variables
+active_sessions = set()
+
 #Generic Functions -------
 
 def parse_mode(msg : str) -> str:
@@ -104,7 +107,6 @@ async def cycle_content(message : Any, request : str, content_list : list[Any], 
 
           if choice in ["y", "yes"]:
             await add_msg(message, f"Selected: `{x['title']} ({x['year']})`") ; await asyncio.sleep(delay)
-            
             if (operator == "m"): #User is searching for Movie
               if x["hasFile"]:
                 await add_msg(message, f"{request.title()} already accessible on {SERVER_NAME}, contact your server admin.")
@@ -180,6 +182,7 @@ async def download_content(id : str, operator : str) -> Any:
     return None
 
 async def find_content(message : Any, title : str, operator : str) -> None:
+  active_sessions.add(str(message.author))
   content_type = {"m" : "movie", "t" : "show"}[operator]
   title = title.strip().lower()
   if title in ["", None]:
@@ -244,6 +247,9 @@ async def help_menu(message: Any) -> None:
   return
 
 async def monitor_download(message: Any, title: str, id: int) -> None:
+  author = str(message.author)
+  if author in active_sessions:
+    active_sessions.remove(author)
   seconds = 0
   interval_seconds = 10
   while (seconds < max_check_time):
@@ -262,7 +268,11 @@ async def monitor_download(message: Any, title: str, id: int) -> None:
   return
 
 async def admin_approval(message: Any, reason: str) -> bool:
-  if (str(message.author) in admin_users):
+  author = str(message.author)
+  if author in active_sessions:
+    active_sessions.remove(author)
+  
+  if (author in admin_users):
     return True
   
   msg = f"Admin approval required for this action.\nReason: `{reason}`"
@@ -285,7 +295,7 @@ async def admin_approval(message: Any, reason: str) -> bool:
   else:
     await add_msg(message, f"Denied by admin.")
     return False
-  
+
 #Client events -------
 
 @client.event
@@ -300,7 +310,7 @@ async def on_message(message) -> None: #On every incoming message, run the below
   author = str(message.author)
   if message.author == client.user or author not in auth_users: #If message sender is another bot, or itself, or a non-user
     return 
-  elif message.content.lower().startswith(prefix_keyword.lower()): #Message is sent with designated prefix, !df by default
+  elif message.content.lower().startswith(prefix_keyword.lower()) and author not in active_sessions: #Message is sent with designated prefix, !df by default
     mode = parse_mode(message.content).lower()
     request = parse_request(message.content, mode).lower()
     if (radarr_enabled or author in admin_users) and mode in ["movie", "m"]:  
@@ -313,6 +323,12 @@ async def on_message(message) -> None: #On every incoming message, run the below
       await add_user(message, parse_request(message.content, mode), "a")
     elif mode in ["help", "commands"]:
       await help_menu(message)
+    
+    if author in active_sessions:
+      active_sessions.remove(author)
+
+  elif message.content.lower().startswith(prefix_keyword.lower()) and author in active_sessions:
+    await add_msg(message, f"User: {author} still in an active session, please complete your selection or type \"stop\" to end active session.")
   else:
     return
 
