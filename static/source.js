@@ -209,6 +209,56 @@ document.addEventListener('DOMContentLoaded', (event) => {
         switchTab("log-tab");
     }
 
+    //Configuration file downloader
+    var exportButton = document.getElementById("exportButton");
+    exportButton.onclick = function() {
+
+        const tabData = "values";
+        const Http = new XMLHttpRequest();
+        var url = "/data";
+        Http.open("POST", url);
+        Http.setRequestHeader("Content-Type", "application/json");
+        Http.send(JSON.stringify({"document":tabData})); //Sending POST request to backend to grab current config file
+        Http.onreadystatechange = function () {
+            if (this.readyState == this.DONE) { //Once request is recieved, package into json and download to client
+                var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(JSON.parse(this.response), null, "\n\t"));
+                var downloadAnchorNode = document.createElement('a');
+                downloadAnchorNode.setAttribute("href",     dataStr);
+                downloadAnchorNode.setAttribute("download", "config" + ".json");
+                document.body.appendChild(downloadAnchorNode); // required for firefox
+                downloadAnchorNode.click();
+                downloadAnchorNode.remove();
+            }
+        }
+    }    
+
+    //Configuration file uploader
+    var importButton = document.getElementById("importButton");
+    var fileUpload = document.getElementById("configupload");
+    fileUpload.addEventListener("change", function() {
+        var GetFile = new FileReader();
+        GetFile .onload=function(){
+
+            try {
+                var txtData = JSON.parse(JSON.stringify(GetFile.result, null, "\n\t"));
+                var j = {"data":JSON.parse(txtData), "file":"values"}
+                sendRequestWithData("/save", j);
+                switchTab("log-tab");
+            }
+            catch(err) {
+                alert("File is not a valid JSON file -> " + err);
+            }   
+        }
+    GetFile.readAsText(this.files[0]);
+    })
+    importButton.onclick = function() {
+        $(fileUpload).trigger('click');
+    }
+
+
+
+
+
     //Form Save button listener
     document.getElementById("cred-form-save").onclick = function() {
         const values = document.getElementsByName("cred-form-field");
