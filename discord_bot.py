@@ -341,7 +341,7 @@ async def on_message(message) -> None: #On every incoming message, run the below
       await add_user(message, parse_request(message.content, mode), "u")
     elif author in admin_users and mode in ["add-admin", "admin", "op"]: #Adds user to admin list
       await add_user(message, parse_request(message.content, mode), "a")
-    elif mode in ["approve", "approve-last", "last"]:
+    elif author in admin_users and mode in ["approve", "approve-last", "last"]:
       await admin_approve_last(message)
     elif mode in ["help", "commands"]:
       await help_menu(message)
