@@ -38,6 +38,7 @@ sonarr = SonarrAPI(SONARR_URL, SONARR_TOKEN)
 
 #Global variables
 active_sessions = set()
+last_requests = dict()
 
 #Generic Functions -------
 
@@ -132,6 +133,7 @@ async def cycle_content(message : Any, request : str, content_list : list[Any], 
               or await admin_approval(message, f"Season count of {x['seasonCount']} is higher than limit of {max_seasons_nonadmin}")): #Requestor is admin or has admin approval
                 return x["tvdbId"]
               else:
+                last_requests[message.channel.id] = {"request": x["tvdbId"], "message": message, "selection": x}
                 return ""
             else:
               await add_msg(message, f"{request.title()} not currently available to request, contact your server admin.")
@@ -240,6 +242,7 @@ async def help_menu(message: Any) -> None:
               {"command" : "tv-show", "alternatives": ["tv", "show"], "usage" : f"{prefix_keyword} tv-show <requested show>"},
               {"command" : "add-user", "alternatives": ["user", "add"], "usage" : f"{prefix_keyword} add-user <discord username>"},
               {"command" : "add-admin", "alternatives": ["admin", "op"], "usage" : f"{prefix_keyword} add-admin <discord username>"},
+              {"command" : "approve-last", "alternatives": ["approve", "last"], "usage" : f"{prefix_keyword} approve-last"},
               {"command" : "help", "alternatives": ["commands"], "usage" : f"{prefix_keyword} help"}]
 
   msg = "\n".join([f"```Command : {x['command']}\nAlternatives : {', '.join(x['alternatives'])}\nUsage: \"{x['usage']}\"```" for x in commands])
@@ -296,6 +299,23 @@ async def admin_approval(message: Any, reason: str) -> bool:
     await add_msg(message, f"Denied by admin.")
     return False
 
+async def admin_approve_last(message: Any) -> None:
+
+  last_request = last_requests.pop(message.channel.id, None)
+
+  if last_request == None:
+    await add_msg(message, "No unnaproved requests found in this channel.")
+  else:
+    await add_msg(message, f"Admin approval granted for {str(last_request['message'].author)}.\nStarting download for:\n")
+    try:
+      embeded.set_image(url= last_request['selection']['remotePoster'])
+      await message.channel.send(embed=embeded)
+    except:
+      embeded.set_image(url="https://i.imgur.com/1glpRCZ.png?1")
+      await message.channel.send(embed=embeded)
+    await add_msg(message, f"`{last_request['selection']['title']} | ({last_request['selection']['year']}){(' | ' + str(last_request['selection']['seasonCount']) + ' Seasons`') if 'seasonCount' in last_request['selection'].keys() else '`'}\n<{last_request['selection']['website'] if ('website' in last_request['selection'].keys() and last_request['selection']['website'] != '') else return_google_link(last_request['selection']['title'])}>\n```{last_request['selection']['overview'] if 'overview' in last_request['selection'].keys() else 'No Description'}```")
+    await download_content(last_request['request'], 't')
+
 #Client events -------
 
 @client.event
@@ -321,6 +341,8 @@ async def on_message(message) -> None: #On every incoming message, run the below
       await add_user(message, parse_request(message.content, mode), "u")
     elif author in admin_users and mode in ["add-admin", "admin", "op"]: #Adds user to admin list
       await add_user(message, parse_request(message.content, mode), "a")
+    elif mode in ["approve", "approve-last", "last"]:
+      await admin_approve_last(message)
     elif mode in ["help", "commands"]:
       await help_menu(message)
     
