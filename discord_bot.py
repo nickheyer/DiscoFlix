@@ -93,7 +93,8 @@ async def cycle_content(message : Any, request : str, content_list : list[Any], 
           except:
             embeded.set_image(url="https://i.imgur.com/1glpRCZ.png?1")
             await message.channel.send(embed=embeded)
-          await add_msg(message, f"`{x['title']} | ({x['year']}){(' | ' + str(x['seasonCount']) + ' Seasons`') if 'seasonCount' in x.keys() else '`'}\n<{x['website'] if ('website' in x.keys() and x['website'] != '') else return_google_link(x['title'])}>\n```{x['overview'] if 'overview' in x.keys() else 'No Description'}```"  + "\nIs this correct? (`yes` or `no`)")
+          msg = f"`{x['title']} | ({x['year']}){(' | ' + str(x['seasonCount']) + (' Seasons`' if x['seasonCount'] > 1 else ' Season`')) if 'seasonCount' in x.keys() else '`'}\n<{x['website'] if ('website' in x.keys() and x['website'] != '') else return_google_link(x['title'])}>\n```{x['overview'] if 'overview' in x.keys() else 'No Description'}```"  + "\nIs this correct? (`yes` or `no`)"
+          await add_msg(message, msg)
           try:
             await_choice = await client.wait_for('message', check=lambda message: (message.author == current_requester
             and message.channel.id == current_channel 
@@ -107,34 +108,39 @@ async def cycle_content(message : Any, request : str, content_list : list[Any], 
           choice = await_choice.content.lower().strip()
 
           if choice in ["y", "yes"]:
-            await add_msg(message, f"Selected: `{x['title']} ({x['year']})`") ; await asyncio.sleep(delay)
+            title_release_name = f"`{x['title']} ({x['year']})`"
+            
+            await add_msg(message, f"Selected: {title_release_name}") ; await asyncio.sleep(delay)
+            
             if (operator == "m"): #User is searching for Movie
+              title_info = {"name":title_release_name, "id":x["tmdbId"]}
               if x["hasFile"]:
-                await add_msg(message, f"{request.title()} already accessible on {SERVER_NAME}, contact your server admin.")
+                await add_msg(message, f"{title_release_name} already accessible on {SERVER_NAME}, contact your server admin.")
                 return ""
               elif x["isAvailable"] == False or x["status"] in ["announced", "inCinemas"]:
                 if x["monitored"]:
-                    await add_msg(message, f"{SERVER_NAME} is already monitoring `{request.title()}`") ; await asyncio.sleep(delay)
-                await add_msg(message, f"`{request.title()}` is likely not available to download yet, we will try now and monitor for a later release.") ; await asyncio.sleep(delay)
+                    await add_msg(message, f"{SERVER_NAME} is already monitoring {title_release_name}") ; await asyncio.sleep(delay)
+                await add_msg(message, f"{title_release_name} is likely not available to download yet, we will try now and monitor for a later release.") ; await asyncio.sleep(delay)
                 if 'inCinemas' in x.keys():
                   release_date = datetime.strptime(x['inCinemas'].split('T')[0], '%Y-%m-%d')
-                  await add_msg(message, f"`{request.title()}` {'came to' if x['status'] == 'inCinemas' else 'will be in'} theaters on:\n{release_date.strftime('`%m-%d-%Y`')}")
+                  await add_msg(message, f"{title_release_name} {'came to' if x['status'] == 'inCinemas' else 'will be in'} theaters on:\n{release_date.strftime('`%m-%d-%Y`')}")
                 await asyncio.sleep(delay)
-                return x["tmdbId"]
+                return title_info
               else:
-                return x["tmdbId"]
+                return title_info
             
             elif (operator == "t"): #User is searching for TV Show       
               if "path" in x.keys(): #If file path already exists on server, return nothing
-                await add_msg(message, f"{request.title()} already accessible on {SERVER_NAME}, contact your server admin.")
+                await add_msg(message, f"{title_release_name} already accessible on {SERVER_NAME}, contact your server admin.")
                 return ""
               if (max_seasons_nonadmin == -1 #If the max seasons count is set to -1, meaning unlimited seasons OR
               or x['seasonCount'] <= max_seasons_nonadmin #The shows season count is less than the max seasons count OR
               or await admin_approval(message, f"Season count of {x['seasonCount']} is higher than limit of {max_seasons_nonadmin}")): #Requestor is admin or has admin approval
-                return x["tvdbId"]
+                return {"name":title_release_name, "id":x["tvdbId"]}
               else:
                 last_requests[message.channel.id] = {"request": x["tvdbId"], "message": message, "selection": x}
                 return ""
+            
             else:
               await add_msg(message, f"{request.title()} not currently available to request, contact your server admin.")
             return ""
@@ -183,10 +189,10 @@ async def download_content(id : str, operator : str) -> Any:
     add_log(str(e), "Debug")
     return None
 
-async def find_content(message : Any, title : str, operator : str) -> None:
+async def find_content(message : Any, title_raw : str, operator : str) -> None:
   active_sessions.add(str(message.author))
   content_type = {"m" : "movie", "t" : "show"}[operator]
-  title = title.strip().lower()
+  title = title_raw.strip().lower()
   if title in ["", None]:
       return
   await add_msg(message, f"Searching for `{title.title()}`") ; await asyncio.sleep(delay)
@@ -198,17 +204,18 @@ async def find_content(message : Any, title : str, operator : str) -> None:
       await add_msg(message, return_google_link(title)) ; await asyncio.sleep(delay)
       return
   results = await cycle_content(message, title, results, operator)
-
-  title_id = results
-  if title_id in ["", None]:
+  if results in ["", None]:
     return
+
+  title_id = results['id']
+
   title_found = await download_content(title_id, operator)
   if (title_found != None):
-    await add_msg(message, f"{content_type.title()} is being added to {SERVER_NAME}, please wait.")
+    await add_msg(message, f"{results['name']} is being added to {SERVER_NAME}, please wait.")
     if (operator == "m"):
-      await monitor_download(message, title, title_found["id"])
+      await monitor_download(message, results['name'], title_found["id"])
   else:
-    await add_msg(message, f"Encountered an error while requesting {title.title()}, please contact server admin.")
+    await add_msg(message, f"Encountered an error while requesting \"{title_raw}\", please contact server admin.")
 
 async def add_user(message: Any, usr : str, operator : str) -> None:
   global auth_users, admin_users
@@ -260,12 +267,12 @@ async def monitor_download(message: Any, title: str, id: int) -> None:
     history = radarr.get_history()['records']
     for x in history:
       if (x['movieId'] == id and x["eventType"] == "downloadFolderImported"):
-        msg = f"`{title.title()}` has been added to `{SERVER_NAME}`."
+        msg = f"`{title}` has been added to `{SERVER_NAME}`."
         msg += f"\n{message.author.mention}"
         await add_msg(message, msg)
         return
     seconds += interval_seconds
-  msg = f"`{SERVER_NAME}` was unable to find `{title.title()}`, continue checking {SERVER_NAME} for updates or contact your server admin."
+  msg = f"`{SERVER_NAME}` was unable to find `{title}`, continue checking {SERVER_NAME} for updates or contact your server admin."
   msg += f"\n{message.author.mention}"
   await add_msg(message, msg)
   return
