@@ -39,9 +39,9 @@ echo "Initializing ${app_name} Install & Update Script..."
 
 echo "Checking for Docker installation on current machine..."
 
-docker_loc=$(command -v docker)
+docker_loc="$(command -v docker)"
 
-if [ ! -z "${docker_loc}"]
+if [ ! -z "${docker_loc}" ]
 then
     
     echo "Docker is installed, install location saved for future reference..."
@@ -74,7 +74,7 @@ fi
 
 echo "Handling service file creation and control. Please wait..."
 
-app_service_file="etc/systemd/system/docker-${docker_app}.service"
+app_service_file="/etc/systemd/system/docker-${docker_app}.service"
 
 echo "Checking if .service file exists at ${app_service_file}. Please wait..."
 if [ -f "${app_service_file}" ]
@@ -85,7 +85,7 @@ then
 
 else
 
-    docker_loc=$(command -v docker)
+    docker_loc="$(command -v docker)"
 
     echo "No services exist for this application. Creating service file. Please wait..."
     echo "[Unit]
@@ -99,14 +99,14 @@ else
     ExecStop=${docker_loc} stop -t 2 ${docker_app}
 
     [Install]
-    WantedBy=default.target" > $app_service_file
+    WantedBy=default.target" > "${app_service_file}"
 fi
 
 #Checking for running app containers. Stopping them.
 
 echo "Checking for pre-existing ${app_name} containers..."
-container_state=docker container ls -a --filter name="${docker_app}" --format "{{.State}}"
-container_id=docker container ls -a --filter name="${docker_app}" --format "{{.ID}}"
+container_state=$(docker container ls -a --filter name="${docker_app}" --format "{{.State}}")
+container_id=$(docker container ls -a --filter name="${docker_app}" --format "{{.ID}}")
 
 [ -z "${container_id}" ] || echo "Container discovered: $container_id is $container_state." 
 
@@ -116,7 +116,7 @@ container_id=docker container ls -a --filter name="${docker_app}" --format "{{.I
 #If app image exists, search for app in running containers.
 
 echo "Checking for ${app_name} images on current machine..."
-app_installation=docker images "${docker_repo}:latest"
+app_installation=$(docker images "${docker_repo}:latest")
 
 if [ -z "${app_installation}" ] #If app image does not exist
 then
@@ -145,7 +145,7 @@ else
     done
 fi
 
-updated_installation=docker images "${docker_repo}:latest" 
+updated_installation=$(docker images "${docker_repo}:latest") 
 
 
 
@@ -186,7 +186,7 @@ fi
 
 echo "Creating/running container from updated image. Please wait..."
 docker run -d "${ports}"--name $docker_app $docker_repo
-new_id=docker container ls -a --filter name="${docker_app}" --format "{{.ID}}"
+new_id=$(docker container ls -a --filter name="${docker_app}" --format "{{.ID}}")
 
 #Injecting backed-up files into new container
 
@@ -228,6 +228,6 @@ rm -rf $tmp_dir
 #Confirming container is running now as it should
 
 echo "Verifying that container is running properly. Please wait..."
-new_state=docker container ls -a --filter name="${docker_app}" --format "{{.State}}"
+new_state=$(docker container ls -a --filter name="${docker_app}" --format "{{.State}}")
 [ $new_state == "running" ] && echo "${app_name} install/update succesful. Container is running!" || echo "${app_name} install/update unsuccesful. Container isn't running! Consider installing manually."
 
