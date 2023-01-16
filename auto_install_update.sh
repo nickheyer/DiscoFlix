@@ -198,8 +198,9 @@ else
 
     echo "Injecting backed up files into container. Please wait..."
     for file_path in "${FilesToBackup[@]}"; do
-        echo "Injecting ${tmp_dir}/$(basename ${file_path}) -> ${new_id}:${file_path}"
-        docker cp "${tmp_dir}/$(basename ${file_path})" "${new_id}:${file_path}"
+        base_file=$(basename ${file_path})
+        echo "Injecting ${tmp_dir}/${base_file} -> ${new_id}:/app${file_path:1}"
+        docker cp "${tmp_dir}/${base_file}" "${new_id}:/app${file_path:1}"
     done
 fi
 
@@ -241,4 +242,8 @@ echo "${app_name} install/update successful. Container is running!"
 ip=$(hostname  -I | cut -f1 -d' ')
 port=$(echo $ports | cut -f1 -d':')
 
-echo "${app_name} is remotely accessible via http://${ip}:${port}"
+echo " "
+echo "-----------------------------------------------------------------------------------------------"
+echo " "
+
+echo "${app_name} should be remotely accessible via http://${ip}:${port}"
