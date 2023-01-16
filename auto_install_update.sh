@@ -230,8 +230,8 @@ echo "Verifying that container is running properly. Please wait..."
 new_state=$(docker container ls -a --filter name="${docker_app}" --format "{{.State}}")
 while [ ! "${new_state}" = "running" ]
 do
-    echo "Service Status: ${new_state}"
     sleep 1
+    echo "Service Status: ${new_state}"
     new_state=$(docker container ls -a --filter name="${docker_app}" --format "{{.State}}")
     [ "${new_state}" = "stopped" ] && echo "Container is unable to start. Try running this install script again or try installing manually." && exit
 done
