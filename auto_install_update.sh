@@ -122,7 +122,7 @@ if [ -z "${app_installation}" ] #If app image does not exist
 then
     
     echo "No installations of ${app_name} detected. Pulling new image from ${docker_repo}. Please wait..."
-    docker pull $docker_repo
+    docker pull "${docker_repo}"
 
 else
 
@@ -132,6 +132,7 @@ else
 
             [Yy]* )
                 echo "Pulling most recent image for ${docker_repo}. Please wait..."
+                docker pull "${docker_repo}"
                 break
             ;;
 
@@ -185,7 +186,7 @@ fi
 #Create container using new image
 
 echo "Creating/running container from updated image. Please wait..."
-docker run -d "${ports}"--name $docker_app $docker_repo
+docker run "-d ${ports}--name ${docker_app} ${docker_repo}"
 new_id=$(docker container ls -a --filter name="${docker_app}" --format "{{.ID}}")
 
 #Injecting backed-up files into new container
