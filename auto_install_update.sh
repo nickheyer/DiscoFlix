@@ -8,7 +8,7 @@ app_name="DiscoFlix" # <-- Required!
 declare -a FilesToBackup=("./data/values.json") # <-- Required!
 docker_user="nickheyer" # <-- Required!
 docker_app="discoflix" # <-- Required!
-ports="5000" # <-- Optional
+ports="5000:5000" # <-- Optional
 
 
 #Checking if script was run as root (with sudo)
@@ -27,9 +27,6 @@ system_arch=$(uname -i)
 [[ $system_arch =~ ^arm ]] && docker_app="${docker_app}_rpi"
 
 docker_repo="${docker_user}/${docker_app}"
-
-#Formatting ports into cmd arg
-[ -z $ports ] || ports="-p ${ports}:${ports} "
 
 #Greet user
 
@@ -186,7 +183,7 @@ fi
 #Create container using new image
 
 echo "Creating/running container from updated image. Please wait..."
-docker run "-d ${ports}--name ${docker_app} ${docker_repo}"
+[ -z $ports ] && docker run -d --name $docker_app $docker_repo || docker run -d -p $ports --name $docker_app $docker_repo
 new_id=$(docker container ls -a --filter name="${docker_app}" --format "{{.ID}}")
 
 #Injecting backed-up files into new container
