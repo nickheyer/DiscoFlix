@@ -5,7 +5,7 @@
 # .... SCRIPT CONFIGURATION ....
 
 app_name="DiscoFlix" # <-- Required!
-declare -a FilesToBackup=("./data/values.json") # <-- Required!
+declare -a FilesToBackup=("./data/values.json" "./discodb.dbdocker") # <-- Required!
 docker_user="nickheyer" # <-- Required!
 docker_app="discoflix" # <-- Required!
 ports="5000:5000" # <-- Optional
