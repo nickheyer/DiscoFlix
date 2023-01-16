@@ -163,10 +163,13 @@ else
 
     echo "Running temporary container from temp image..."
     docker run -d --name $tmp_img $tmp_img
+    tmp_id=$(docker container ls -a --filter name="${tmp_img}" --format "{{.ID}}")
 
     echo "Pulling files from temp container..."
     for file_path in "${FilesToBackup[@]}"; do
-        docker exec -it $tmp_img cat $file_path > "${tmp_dir}/$(basename ${file_path})"
+        base_file=$(basename ${file_path})
+        echo "Pulling ${tmp_dir}/${base_file} <- ${tmp_id}:/app${file_path:1}"
+        docker cp "${tmp_id}:/app${file_path:1}" "${tmp_dir}/${base_file}"
     done
 
     echo "Cleaning up temporary image and containers..."
