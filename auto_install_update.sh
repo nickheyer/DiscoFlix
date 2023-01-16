@@ -218,6 +218,7 @@ systemctl daemon-reload
 
 echo "Starting docker-${docker_app}.service. Please wait..."
 systemctl start "docker-${docker_app}.service"
+wait
 
 #Cleaning tmp files
 echo "Cleaning up temporary files and removing tmp_dir. Please wait..."
@@ -227,5 +228,5 @@ rm -rf $tmp_dir
 
 echo "Verifying that container is running properly. Please wait..."
 new_state=$(docker container ls -a --filter name="${docker_app}" --format "{{.State}}")
-[ "${new_state}" = "running" ] && echo "${app_name} install/update succesful. Container is running!" || echo "${app_name} install/update unsuccesful. Container isn't running! Consider installing manually."
+[ "${new_state}" = "running" ] && echo "${app_name} install/update successful. Container is running!" || echo "${app_name} install/update unsuccessful. Container isn't running! Consider installing manually."
 
