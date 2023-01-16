@@ -237,3 +237,8 @@ do
 done
 
 echo "${app_name} install/update successful. Container is running!"
+
+ip=$(hostname  -I | cut -f1 -d' ')
+port=$(echo $ports | cut -f1 -d':')
+
+echo "${app_name} is remotely accessible via ${ip}:${port}"
