@@ -110,7 +110,7 @@ container_id=$(docker container ls -a --filter name="${docker_app}" --format "{{
 
 [ -z "${container_id}" ] || echo "Container discovered: $container_id is $container_state." 
 
-[ $container_state == "running" ] && echo "Shutting down container. Please wait..." && docker container stop $docker_app #If container is running, stop container
+[ "${container_state}" = "running" ] && echo "Shutting down container. Please wait..." && docker container stop $docker_app #If container is running, stop container
 
 
 #If app image exists, search for app in running containers.
@@ -229,5 +229,5 @@ rm -rf $tmp_dir
 
 echo "Verifying that container is running properly. Please wait..."
 new_state=$(docker container ls -a --filter name="${docker_app}" --format "{{.State}}")
-[ $new_state == "running" ] && echo "${app_name} install/update succesful. Container is running!" || echo "${app_name} install/update unsuccesful. Container isn't running! Consider installing manually."
+[ "${new_state}" = "running" ] && echo "${app_name} install/update succesful. Container is running!" || echo "${app_name} install/update unsuccesful. Container isn't running! Consider installing manually."
 
