@@ -228,5 +228,11 @@ rm -rf $tmp_dir
 
 echo "Verifying that container is running properly. Please wait..."
 new_state=$(docker container ls -a --filter name="${docker_app}" --format "{{.State}}")
-[ "${new_state}" = "running" ] && echo "${app_name} install/update successful. Container is running!" || echo "${app_name} install/update unsuccessful. Container isn't running! Consider installing manually."
+while [ ! "${new_state}" = "running" ]
+do
+    echo "Service Status: ${new_state}"
+    sleep 1
+    [ "${new_state}" = "stopped" ] && echo "Container is unable to start. Try running this install script again or try installing manually." && exit
+done
 
+echo "${app_name} install/update successful. Container is running!"
