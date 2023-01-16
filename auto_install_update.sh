@@ -233,7 +233,7 @@ do
     sleep 1
     echo "Service Status: ${new_state}"
     new_state=$(docker container ls -a --filter name="${docker_app}" --format "{{.State}}")
-    [ "${new_state}" = "stopped" ] && echo "Container is unable to start. Try running this install script again or try installing manually." && exit
+    [ "${new_state}" = "dead" ] && echo "Container is unable to start. Try running this install script again or try installing manually." && exit
 done
 
 echo "${app_name} install/update successful. Container is running!"
