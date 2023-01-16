@@ -9,7 +9,6 @@ As this bot is intended for requests to be fulfilled via Radarr or Sonarr, you m
 
 ## Installation via Docker (Recommended)
 
-- Docker must be installed on your machine. Click [here](https://docs.docker.com/engine/install/) to install Docker.
 - Discord and/or Telegram API Token
     - Discord API Token (https://discord.com/developers/applications) - READ [THIS](#further-notes)
     - Telegram API Token  - (https://telegram.me/BotFather)
@@ -25,22 +24,22 @@ Fully Automated Installer & Updater (LINUX ONLY)
 curl https://raw.githubusercontent.com/nickheyer/DiscoFlix/main/auto_install_update.sh -o auto_install_update.sh && sudo bash auto_install_update.sh
 ```
 
--or-
+-or- (Docker required for the following installation methods)
 
 
 Download Docker Image (x86_64 Architecture) 
-```
+```bash
 docker image pull nickheyer/discoflix:latest
 ```
 
 -or-
 
 Download Docker Image (aarch64 Architecture, ie: Raspberry-Pi) 
-```
+```bash
 docker image pull nickheyer/discoflix_rpi:latest
 ```
 Run Docker Container
-```
+```bash
 docker run -d -p 5000:5000 nickheyer/discoflix
 ```
 

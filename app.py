@@ -177,6 +177,7 @@ def startup():
 @atexit.register
 def exit_shutdown():
     add_log("Shutting down webserver", "ATEXIT")
+    add_log("If server continuously restarts, try running \"sudo systemctl stop docker-discoflix.service\" in a terminal", "INFO")
     kill_all_bots_no_state()
     
 #Beginning Routes with default index temp func
