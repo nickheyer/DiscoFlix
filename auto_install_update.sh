@@ -116,7 +116,7 @@ container_id=$(docker container ls -a --filter name="${docker_app}" --format "{{
 #If app image exists, search for app in running containers.
 
 echo "Checking for ${app_name} images on current machine..."
-app_installation=$(docker images "${docker_repo}:latest")
+app_installation=$(docker images "${docker_repo}:latest" --format "{{.Repository}}")
 
 if [ -z "${app_installation}" ] #If app image does not exist
 then
