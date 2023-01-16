@@ -20,6 +20,14 @@ As this bot is intended for requests to be fulfilled via Radarr or Sonarr, you m
 - Name of media server that requests will be populated on (ex: NickFlix)
 - Full Discord or Telegram username of Admin for first time use (ex: NicholasHeyer#4212)
 
+Fully Automated Installer & Updater (LINUX ONLY)
+```bash 
+curl https://raw.githubusercontent.com/nickheyer/DiscoFlix/main/auto_install_update.sh -o auto_install_update.sh && sudo bash auto_install_update.sh
+```
+
+-or-
+
+
 Download Docker Image (x86_64 Architecture) 
 ```
 docker image pull nickheyer/discoflix:latest
