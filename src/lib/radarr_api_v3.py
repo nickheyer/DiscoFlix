@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
-from request_api import RequestAPI
+from lib.request_api import RequestAPI
 from os import path
 
 
@@ -19,7 +19,7 @@ class RadarrAPIv3(RequestAPI):
         super().__init__(host_url, api_key)
 
     # Movies
-    def get_movie(self, tmdbid=None):
+    def get_movie(self, dbId=None, tmdbid=None):
         """get_movie returns all movies in collection.
 
         Args:
@@ -28,7 +28,9 @@ class RadarrAPIv3(RequestAPI):
             json response
 
         """
-        if tmdbid:
+        if dbId:
+            path = f'/api/v3/movie/{dbId}'
+        elif tmdbid:
             path = f"/api/v3/movie?tmdbId={int(tmdbid)}"
         else:
             path = "/api/v3/movie"
@@ -95,7 +97,6 @@ class RadarrAPIv3(RequestAPI):
 
         """
         s_dict = self.lookup_movie(dbId)
-        print(s_dict)
 
         if not s_dict:
             raise Exception("Movie Doesn't Exist")
