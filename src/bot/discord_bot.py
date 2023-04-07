@@ -15,7 +15,13 @@ from lib.utils import (
 from bot.request_handler import RequestHandler
 from bot.message_handler import Message_Handler
 from bot.config_manager import config
-
+from bot.user_manager import (
+    get_users_in_server,
+    get_user_requests_last_24_hours
+)
+from bot.ui_manager import (
+    ApproveNewUser
+)
 
 # SUBPROC CMD ARGS
 parser = argparse.ArgumentParser()
@@ -42,7 +48,7 @@ async def change_bot_presence(presence):
     await client.change_presence(
         activity=discord.Activity(
         type = discord.ActivityType.watching,
-        name = f'& {presence}'
+        name = f'& {presence.lower()}'
         ))
     await SIO.emit('change_client_status', {
         'status': presence,
@@ -51,9 +57,9 @@ async def change_bot_presence(presence):
 
 async def on_startup():
     await socket_start()
-    stat = 'On and in dev mode'
-    print(f"Bot is ready to party, logged in as {client.user}. Currently {stat}")
-    await change_bot_presence(stat)
+    stat = 'listening'
+    print(f"Bot is ready to party, logged in as {client.user}. Currently {stat}.")
+    await change_bot_presence(stat.title())
     await update_all_servers()
     await SIO.emit('bot_started', {
         'success': True,
@@ -107,6 +113,35 @@ async def send_message(message_object, message_to_send, log = False):
         await add_log(f'{client.user}: {message_to_send}')
     return await message_object.channel.send(message_to_send)
 
+def get_users_in_server_with(message_object, permissions):
+    # Gets all the users (with permissions/roles) usernames in this server from the DB
+    users = get_users_in_server(message_object.guild.id, permissions)
+    # Converts those usernames into discord user objects
+    discord_users = []
+    for user in users:
+        user = message_object.guild.get_member_named(user)
+        if user:
+            discord_users.append(user)
+    # Returns list of discord member objects
+    return discord_users
+
+def generate_mention_users_with(message_object, permissions = []):
+    users = get_users_in_server_with(message_object, permissions)
+    message_template = ''
+    for user in users:
+        message_template += f'{user.mention}\n'
+    return message_template
+
+async def add_user(message_object, admin=False, restrict_servers=True):
+    user_dict = {
+        'username': str(message_object.author),
+        'is_server_restricted': restrict_servers,
+        'is_admin': admin,
+        'servers': [
+            { 'server_name': str(message_object.guild), 'server_id': message_object.guild.id }
+        ]
+    }
+    await SIO.emit('add_edit_user', { 'user_info': user_dict })
 
 # MESSAGE FUNCTIONS ------
 async def _test(m, options):
@@ -131,7 +166,26 @@ async def _log(m, options):
         await send_message(m, f"Log added!\n```\n{options['primary']}\n```")
     await add_log(options['primary'])
 
+async def _apply(m, options):
+    await change_bot_presence(f'Adding Users')
+    admins = get_users_in_server_with(m, ['admin'])
+    admin_mention = generate_mention_users_with(m, ['admin'])
+    response_message = f'User requires registration before requests can be made.\nAdmin approval needed.\n{admin_mention}'
+    view = ApproveNewUser(options, m, admins, response_message)
+    timeout = await view.send_response()
+    if not timeout:
+        if view.result in ['DENIED', False, None]:
+            return
+        await add_user(m, view.result == 'REGISTER_ADMIN')
+        await add_log(f'Added User: {m.author} ({view.result})')
+    else:
+        print('Timed-Out')
+    return
+
 async def _find_content(m, options):
+    if not get_user_requests_last_24_hours(str(m.author)):
+        return
+    await change_bot_presence(f'Downloading')
     handler = RequestHandler(options, m, add_log)
     if not await handler.validate_request():
         return False
@@ -155,7 +209,7 @@ MESSAGE_MAP = {
     },
     'echo': {
             'ref': 'echo',
-            'permissions': ['admin', 'user'],
+            'permissions': ['admin'],
             'aliases': ['echo'],
             'requirements': [],
             'args': {
@@ -173,7 +227,7 @@ MESSAGE_MAP = {
     },
     'error': {
             'ref': 'error',
-            'permissions': ['admin'],
+            'permissions': ['developer'],
             'aliases': ['error', 'err', 'raise'],
             'requirements': [],
             'args': {
@@ -206,43 +260,38 @@ MESSAGE_MAP = {
     },
     'movie': {
             'ref': 'movie',
-            'permissions': ['user', 'admin'],
+            'permissions': ['user'],
             'aliases': ['movie', 'add-movie'],
-            'requirements': ['is_radarr_enabled'],
+            'requirements': ['is_radarr_enabled', 'radarr_token', 'radarr_url'],
             'args': {
                 'primary': {
                     'required': True,
                     'used': True
                 },
                 'additional': [
-                    { 'ref': 'quality', 'aliases': ('-q', '--quality'), 'required': False, 'expect_content': True },
-                    { 'ref': 'directory', 'aliases': ('-d', '--directory'), 'required': False, 'expect_content': True },
-                    { 'ref': 'continue', 'aliases': ('-c', '--continue'), 'required': False, 'expect_content': False },
-                    { 'ref': 'debug', 'aliases': ('-d', '--debug'), 'required': False, 'expect_content': False },
+                    { 'ref': 'debug', 'aliases': ('-d', '--debug'), 'required': False, 'expect_content': False }
                 ]
         },
-        'fn': _find_content
+        'fn': _find_content,
+        'on_reject': _apply
     },
     'show': {
             'ref': 'show',
-            'permissions': ['user', 'admin'],
-            'aliases': ['show', 'add-show', 'tv-show', 'add-tv-show', 'tv'],
-            'requirements': ['is_sonarr_enabled'],
+            'permissions': ['user'],
+            'aliases': ['show', 'add-show', 'tv-show', 'add-tv-show', 'tv', 'tvshow'],
+            'requirements': ['is_sonarr_enabled', 'sonarr_token', 'sonarr_url'],
             'args': {
                 'primary': {
                     'required': True,
                     'used': True
                 },
                 'additional': [
-                    { 'ref': 'quality', 'aliases': ('-q', '--quality'), 'required': False, 'expect_content': True },
-                    { 'ref': 'directory', 'aliases': ('-d', '--directory'), 'required': False, 'expect_content': True },
-                    { 'ref': 'continue', 'aliases': ('-c', '--continue'), 'required': False, 'expect_content': False },
-                    { 'ref': 'debug', 'aliases': ('-d', '--debug'), 'required': False, 'expect_content': False },
+                    { 'ref': 'debug', 'aliases': ('-d', '--debug'), 'required': False, 'expect_content': False }
                 ]
         },
-        'fn': _find_content
+        'fn': _find_content,
+        'on_reject': _apply
     },
-
 }
 
 # BEGIN CLIENT EVENTS -----
@@ -255,9 +304,8 @@ async def on_ready() -> None:
 async def on_message(message) -> None:
     # INSTANTIATE MESSAGE HANDLER
     handler = Message_Handler(message, MESSAGE_MAP, config())
-    if handler.valid:
-        bound_fn = handler.generate_fn()
-        await bound_fn()
+    bound_fn = handler.generate_fn()
+    await bound_fn() # Resolves with fn / rejects with on_reject
 
 @client.event
 async def on_guild_join(guild):

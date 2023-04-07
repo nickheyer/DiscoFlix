@@ -1,7 +1,10 @@
 from lib.radarr_api_v3 import RadarrAPIv3 as RadarrAPI
 from lib.sonarr_api import SonarrAPI
-from bot.ui_manager import ContentSelectionView
+from bot.ui_manager import ContentSelectionView, ApproveRequest
+from bot.user_manager import get_user, get_users_in_server
+from bot.media_handler import create_media, create_media_request
 from lib.utils import generate_debug_file
+from models.utils import get_discord_server_from_id
 from discord import Embed, File as convert_file
 from asyncio import sleep
 from datetime import datetime
@@ -21,13 +24,14 @@ class RequestHandler:
         self.config = context['config']
         self.message = request_message
         self.author = request_message.author
+        self.user = get_user(str(self.author))
         self.logger = logger
         self.quality_profile = 1
    
     async def validate_request(self):  
         if not self._define_request_methods():
             return False
-        await self._log_request(self.author, self.request)
+        await self._log_request(self.author, self.request, 'requested')
         return True
 
     def _define_request_methods(self):
@@ -63,6 +67,17 @@ class RequestHandler:
             self.request_method = None
         return self.request_method
 
+    def _record_request(self):
+        self.media = create_media(self.selected_content)
+        self.request_object = create_media_request(
+            self.user,
+            self.media,
+            get_discord_server_from_id(self.message.guild.id),
+            self.message.content,
+            self.request,
+            self.request_type,
+        )
+
     async def generate_debug_message(self, debug_content, title = '_DEBUG_:'):
         file_path = generate_debug_file(debug_content)
         file = convert_file(file_path, filename='debug.json')
@@ -74,18 +89,20 @@ class RequestHandler:
     async def _edit_response(self, *args, **kwargs):
         return await self.response.edit(*args, **kwargs)
     
-    async def _log_request(self, author, request):
-        await self.logger(f'{author} requested: "{request}"')
+    async def _log_request(self, author, request, action='requested'):
+        await self.logger(f'{author} {action}: "{request}"')
 
     async def _cycle_content(self):
         self.max_results = self.config.max_results
-        if not self.max_results or self.max_results < 1:
+        if (not self.max_results or
+            self.max_results < 1 or 
+            self.max_results > len(self.results)):
             self.max_results = len(self.results)
         self.results = self.results[:self.max_results]
         self.view = ContentSelectionView(self.options, self.results, self.author, self.response)
         self.embed = await self.view.update_embed()
         await self._edit_response(content=None, embed=self.embed, view=self.view)
-        await self.view.wait()
+        self.view.timed_out = await self.view.wait()
         return self.view.result
 
     async def _generate_success_message(self):
@@ -147,6 +164,10 @@ class RequestHandler:
                 if content_info.get('hasFile', False):
                     await self.view.update_status(*STATUS_MAP['SUCCESS'])
                     await self._generate_success_message()
+                    self.request_object.status = True
+                    self.request_object.save()
+                    self.media.path = content_info.get('path', None)
+                    self.media.save()
                     return True
                 elif content_info.get('sizeOnDisk', 0) != 0:
                     new_content_status = (
@@ -166,11 +187,15 @@ class RequestHandler:
                 episodes = content_info.get('episodeCount', 0)
                 episode_files = content_info.get('episodeFileCount', 0)
                 if episodes != episode_files:
-                    new_content_status = (f'{episode_files} / {episodes} episodes downloaded{(" (" + str(seasons) + " Season" + ("s" if seasons > 1 else "") + ")") if seasons else ""}',
-                                    'https://img.icons8.com/ios/50/null/progress-indicator.png')
+                    new_content_status = (
+                        f'{episode_files} / {episodes} episodes downloaded{(" (" + str(seasons) + " Season" + ("s" if seasons > 1 else "") + ")") if seasons else ""}',
+                        'https://img.icons8.com/ios/50/null/progress-indicator.png'
+                    )
                 elif 0 not in [episode_files, episodes]:
-                    new_content_status = (f'All episodes downloaded and available ({episode_files} / {episodes})',
-                                    'https://img.icons8.com/ios-filled/50/null/winner.png')
+                    new_content_status = (
+                        f'All episodes downloaded and available ({episode_files} / {episodes})',
+                        'https://img.icons8.com/ios-filled/50/null/winner.png'
+                    )
                     await self.view.update_status(*new_content_status)
                     await self._generate_success_message()
                     return True
@@ -183,15 +208,14 @@ class RequestHandler:
         if (self.request_type == 'movie'):
             await self.view.update_status(*STATUS_MAP['TIMED_OUT'])
         elif (self.request_type == 'show'):
-            content_status[0] += f'Timed out with {content_status[0]}'
-            content_status[1] = STATUS_MAP['TIMED_OUT'][1]
-            await self.view.update_status(*content_status)
+            custom_status = (f'Timed out with {content_status[0]}', STATUS_MAP['TIMED_OUT'][1])
+            await self.view.update_status(*custom_status)
         return False
 
-
-
     async def process_request(self):
-        self.response = await self._respond(content=f"Searching for `{self.request}`...\nOne moment please.")
+        self.response = await self._respond(
+            content=f"Searching for `{self.request}`...\nOne moment please."
+        )
         self.results = self.get_content_list(self.request)
         if not self.results:
             await self._edit_response(
@@ -199,22 +223,45 @@ class RequestHandler:
             )
             return False
         self.selected_content = await self._cycle_content()
+        if self.selected_content and self.view.approval_required:
+            # REQUIRES ADMIN APPROVAL, CREATE APPROVAL VIEW
+            approval_view = ApproveRequest(self.options, self.response,
+                f'{self.selected_content.get("title", "Untitled")}\'s season count ' +
+                f'({self.selected_content["seasonCount"]}) exceeds the maximum season ' +
+                f'count for this user ({self.config.max_seasons_for_non_admin}).',
+                self.embed)
+            emb = await approval_view.generate_embed()
+            await self._edit_response(content=approval_view.get_admin_mentions(), embed=emb, view=approval_view)
+            is_timed_out = await approval_view.wait()
+            if is_timed_out or not approval_view.result:
+                self.selected_content = None
         if not self.selected_content:
-            await self.response.delete()
+            await self.logger(f'{self.author} was unable to finish their request.')
+            if not self.view.timed_out and not self.view.approval_required:
+                await self.response.delete()
             return False
+        self._record_request()
         self.remoteId = self.selected_content[self.id_key]
         await self.view.content_selected()
         await self.message.delete()
+        # WHERE THE DOWNLOAD BEGINS
+        self.download_dir = self.get_root_dirs()[0]['path']
         self.download_response = self.select_content(
             self.remoteId,
             self.quality_profile,
-            self.get_root_dirs()[0]['path']
+            self.download_dir
         )
         if not self.download_response:
             return False
+        await self.logger(f'Downloading {self.selected_content["title"]} to {self.download_dir}')
         self.databaseId = self.download_response['id']
         self.monitor_outcome = await self._monitor_download()
         if not self.monitor_outcome:
+            await self.logger(f'Download ({self.selected_content["title"]}) timed-out.')
             return False
+        else:
+            await self.logger(f'Download ({self.selected_content["title"]}) succeeded.')
+            return True
+            
 
         

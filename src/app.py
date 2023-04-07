@@ -7,6 +7,7 @@ from flask import Flask, render_template, request
 from flask_socketio import SocketIO
 import atexit
 import signal
+import json
 
 from models.utils import (
     update_config,
@@ -18,13 +19,19 @@ from models.utils import (
     get_users_dict,
     get_users_list,
     add_user,
+    add_edit_user,
+    delete_user,
     get_user_from_id,
     edit_user_from_dict,
     get_all_user_servers,
-    update_servers
+    update_servers,
+    get_required_fields,
+    import_data,
+    export_data,
+    reset_entire_db
 )
 
-from lib.utils import initialize_dirs
+from lib.utils import initialize_dirs, get_data_path
 
 from bot.bot_controller import (
     start_bot,
@@ -54,8 +61,9 @@ def add_refresh_log(log):
 
 def check_for_null(data):
     nulls = []
+    required = get_required_fields()
     for k, v in data.items():
-        if v in [None, '']:
+        if not v and k in required:
             nulls.append(k)
     return nulls
 
@@ -63,11 +71,6 @@ def validate_disc_token(token):
     response = requests.get(
         'https://discord.com/api/v9/users/@me',
         headers={'Authorization': f'Bot {token}'})
-    return response.status_code == 200
-
-def validate_tg_token(token):
-    response = requests.get(
-        f'https://api.telegram.org/bot{token}/getMe')
     return response.status_code == 200
 
 def turn_bot_on(bot_name):
@@ -88,13 +91,6 @@ def turn_bot_on(bot_name):
                 return {
                     'success': False,
                     'error': 'Invalid Discord Token',
-                    'bot_name': bot_name
-                }
-        if bot_name == 'telegram':
-            if not validate_tg_token(config['telegram_token']):
-                return {
-                    'success': False,
-                    'error': 'Invalid Telegram Token',
                     'bot_name': bot_name
                 }
         start_bot(bot_name, request.host, config[f'{bot_name}_token'])
@@ -138,7 +134,6 @@ def exit_shutdown():
     add_refresh_log('Server killed!')
     update_state({
         'discord_state': False,
-        'telegram_state': False,
         'app_state': False
     })
     kill_all_bots()
@@ -243,6 +238,21 @@ def socket_bot_add_user_from_client(data):
             'error': 'User already exists!'
         }
     socketio.emit('users_updated', { 'users': get_users_dict() })
+    add_refresh_log(f'User Added: {data["user_info"].get("username", "Invalid User")}')
+    return {
+        'username': data['user_info'],
+        'success': 'User added.'
+    }
+
+@socketio.on('add_edit_user')
+def socket_bot_add_edit_user_from_client(data):
+    added = add_edit_user(data['user_info'])
+    if not added:
+        return {
+            'username': data['user_info'],
+            'error': 'User already exists!'
+        }
+    socketio.emit('users_updated', { 'users': get_users_dict() })
     return {
         'username': data['user_info'],
         'success': 'User added.'
@@ -254,9 +264,10 @@ def socket_bot_edit_user_from_client(data):
     if not edited:
         return {
             'username': data['user_info'],
-            'error': 'User does not exist!'
+            'error': 'Nothing changed!'
         }
     socketio.emit('users_updated', { 'users': get_users_dict() })
+    add_refresh_log(f'User Updated: {data["user_info"].get("username", "Invalid User")} ({", ".join(edited)})')
     return {
         'username': data['user_info'],
         'success': 'User edited.'
@@ -274,6 +285,57 @@ def socket_all_servers_from_bot(data):
 @socketio.on('get_user_info_from_id')
 def socket_get_user_info_from_id(data):
     return get_user_from_id(data.get('id', None))
+
+@socketio.on('delete_user')
+def socket_get_user_info_from_id(data):
+    deleted = delete_user(data['user_id'])
+    if not deleted:
+        return {
+            'username': data['user_id'],
+            'error': 'Unable to delete user'
+        }
+    socketio.emit('users_updated', { 'users': get_users_dict() })
+    add_refresh_log(f'User Deleted: {deleted}')
+    return {
+        'username': data['user_id'],
+        'success': 'User deleted.'
+    }
+
+@socketio.on('import_export_from_client')
+def socket_import_export_db(data):
+    action = data['action']
+    choices = data['choices']
+    if action == 'import':
+        kill_all_bots()
+        file_path = os.path.join(get_data_path(), 'DiscoDB.json')
+        try:
+            with open(file_path, 'w') as fp:
+                json.dump(json.loads(data['data']), fp)
+        except Exception as e:
+            return { 'err': str(e) } 
+        import_data(choices, file_path)
+        return { 'import_success': True } 
+    elif action == 'export':
+        try:
+            file_path = export_data(choices)
+            if not file_path:
+                return
+            with open(file_path, 'rb') as fp:
+                content = fp.read()
+                socketio.emit('exported_backup_file', content, binary=True)
+        except Exception as e:
+            return { 'err': str(e) }
+        return { 'import_success': True } 
+    return { 'nothing_happened': True } 
+
+@socketio.on('reset_db_from_client')
+def socket_reset_db(data):
+    kill_all_bots()
+    try:
+        reset_entire_db()
+    except Exception as e:
+        return { 'err': str(e) }
+    return { 'reset_success': True }
 
 # --- SOCKET/FLASK APP LOOP ---
 

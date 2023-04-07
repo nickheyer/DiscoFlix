@@ -1,30 +1,15 @@
 
-.btn{
-    color: #966fd6;
+.btn {
+  color: #966fd6;
 }
 
-.custom-check {
-  background-color:#16191d !important;
-  accent-color:#16191d !important;
-  color:#966fd6 !important;
-}
-.custom-check:checked {
-  box-shadow: 0 0 10px #1ad123 !important;
+.btn-group {
+  width: 40% !important;
 }
 
-.custom-check-loading:checked,
-.custom-check-loading:not(:checked){
-  background-color:#16191d !important;
-  accent-color:#16191d !important;
-  color:#966fd6 !important;
-  box-shadow: 0 0 10px #c3e409 !important;
-}
-
-.custom-check-failed {
-  background-color:#16191d !important;
-  accent-color:#16191d !important;
-  color:#966fd6 !important;
-  box-shadow: 0 0 10px #FF0000 !important;
+.custom-check-loading {
+  box-shadow: 0 0 5px #c3e409 !important;
+  background-color: #23292f !important;
 }
 
 .btn-check:active + .btn-outline-secondary,
@@ -33,6 +18,18 @@
 .btn-outline-secondary.dropdown-toggle.show,
 .btn-outline-secondary:active {
   background-color:#966fd6 !important;
+}
+
+.accordion,
+.accordion-body,
+.accordion-item {
+  background-color: #16191d !important;
+}
+
+.accordion-header,
+.accordion-button {
+  color: #966fd6 !important;
+  background-color: #23292f !important;
 }
 
 body {
@@ -66,62 +63,6 @@ body {
     display: flex;
     justify-content: center;
     color: #966fd6;
-
-}
-
-.purple-buttons,
-.purple-buttons:after,
-.purple-buttons:checked,
-.purple-buttons:focus {
-  margin-top: 5px;
-  color:#966fd6; 
-  background-color:#23292f;
-  border-color: #966fd6;
-}
-
-.purple-buttons:hover {
-  color:#23292f;
-  background-color:#966fd6;
-  border-color: #23292f;
-}
-
-.purple-buttons:active,
-.purple-buttons:active:hover {
-  color:#966fd6; 
-  background-color:white;
-  border-color: #966fd6;
-}
-
-.btn-outline-primary:after,
-.btn-outline-primary:checked,
-.btn-outline-primary:focus,
-.btn-outline-primary:active,
-.btn-outline-primary:active:hover,
-.btn-outline-primary:hover{
-  background-color:#966fd6 !important;
-
-}
-
-.btn-check:active {
-  background-color:#966fd6 !important;
-} 
-.btn-outline-primary:checked
-{
-  background-color:#966fd6 !important;
-}
-.purple-buttons:not(:disabled):not(:disabled):active {
-  background-color: #966fd6 !important;
-}
- 
-
-.btn-outline-primary:after {
-  background-color: #966fd6 !important;
-
-}
-
-.btn-outline-primary:checked:after {
-
-  background-color: #966fd6 !important;
 
 }
 
@@ -192,10 +133,6 @@ hr.dotted {
 .accord-style {
     color: #23292f;
 
-}
-
-.accordian-body {
-    background-color:#966fd6;
 }
 
 .thumbnails {

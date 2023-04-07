@@ -44,7 +44,6 @@ def kill_bot(name):
     except Exception as e:
         print('EXCEPTION: ', e)
         pass
-    
 
 def kill_all_bots():
     for k, v in bot_procs.items():

@@ -1,4 +1,5 @@
-from bot.user_manager import get_users_for_auth
+from asyncio import coroutine
+from bot.user_manager import get_users_for_auth, get_user_settings
 
 class Message_Handler:
     def __init__(self, message, message_map, config) -> None:
@@ -7,9 +8,14 @@ class Message_Handler:
         self.server_id = message.guild.id
         self.message_map = message_map
         self.config = config
+        self.args = {
+            'requestor': self.message.author,
+            'config': self.config
+        }
         self.valid = self.__parse_message()
 
     def __parse_message(self):
+        self.quiet_err = True
         if (not self.__parse_sender()
         or not self.__parse_prefix()
         or not self.__parse_command()
@@ -23,6 +29,7 @@ class Message_Handler:
         self.sender = self.message.author
         self.username = str(self.message.author)
         self.is_bot = self.sender.bot
+        self.merge_user_specific_configuration(self.username)
         return not self.is_bot
 
     def __parse_prefix(self):
@@ -39,18 +46,19 @@ class Message_Handler:
                 commands = self.message_map[command]['aliases']
                 if self.split_message[1].lower() in commands:
                     self.command = self.message_map[command]
+                    self.args['command'] = self.command
                     return True
         return False
 
     def __parse_permissions(self):
+        self.quiet_err = False
         permissions = self.command.get('permissions', [])
         if not permissions:
             return True
-        server = self.server_id
-        approved_users = get_users_for_auth(server, permissions)
-        return self.username in approved_users
-    
+        return get_users_for_auth(self.server_id, permissions, self.username)
+
     def __parse_requirements(self):
+        self.quiet_err = True
         requirements = self.command.get('requirements', [])
         for requirement in requirements:
             if type(requirement) == tuple:
@@ -131,18 +139,33 @@ class Message_Handler:
                 return False
         # Parse additional args
         args = self.__parse_options()
+        for arg in args:
+            self.args[arg] = args[arg]
+        self.args['primary'] = self.primary
         for i, option in enumerate(args):
-            if args[option] is False and self.command['args']['additional'][i]['required']:
+            if not args[option] and self.command['args']['additional'][i]['required']:
                 # An additional argument was not provided, even though it's required
                 return False
-        args['command'] = self.command
-        args['requestor'] = self.sender
-        args['primary'] = self.primary
-        args['config'] = self.config
-        self.args = args
         return True
 
+    def merge_user_specific_configuration(self, user):
+        user_settings = get_user_settings(user)
+        if not user_settings:
+            return
+        for k, v in user_settings.items():
+            setattr(self.config, k, v)
+            setattr(self.args['config'], k, v)
+
     def generate_fn(self):
-        fn = self.command['fn']
+        if not self.valid:
+            # Reject
+            default_lambda = coroutine(lambda *args: None)
+            if hasattr(self, 'command') and not self.quiet_err:
+                fn = self.command.get('on_reject', default_lambda)
+            else:
+                fn = default_lambda
+        else:
+            # Resolve
+            fn = self.command['fn']
         self.fn = lambda: fn(self.message, self.args)
         return self.fn
