@@ -669,69 +669,71 @@ document.addEventListener("DOMContentLoaded", (event) => {
   // ------------------ IMPORT/EXPORT -----------------------------
   const importButton = document.getElementById("importDatabaseButton");
   const exportButton = document.getElementById("exportDatabaseButton");
-  const resetButton = document.getElementById('config-reset-button');
-  
+  const resetButton = document.getElementById("config-reset-button");
+
   const getImportExportChoices = (action) => {
     const options = document.getElementsByName(
-        `${action.toLowerCase()}-settings-config`
-      );
-      let preparedData = {};
-      options.forEach((option) => {
-        let model = $(option).data("value");
-        preparedData[model] = option.checked;
-      });
+      `${action.toLowerCase()}-settings-config`
+    );
+    let preparedData = {};
+    options.forEach((option) => {
+      let model = $(option).data("value");
+      preparedData[model] = option.checked;
+    });
 
-      if (Object.keys(preparedData).length === 0) {
-          return null;
-      }
-      return preparedData;
-  }
+    if (Object.keys(preparedData).length === 0) {
+      return null;
+    }
+    return preparedData;
+  };
 
   const getImportExportSettings = (action, data = null) => {
     const preparedData = getImportExportChoices(action);
     if (!preparedData) {
-        return null;
+      return null;
     }
-    socket.emit("import_export_from_client", {
-      action: action,
-      choices: preparedData,
-      data: data,
-    }, (data) => {
-        if (data['err']) {
-            alert(data['err'])
-        } else if (data['import_success']) {
-            location.reload();
+    socket.emit(
+      "import_export_from_client",
+      {
+        action: action,
+        choices: preparedData,
+        data: data,
+      },
+      (data) => {
+        if (data["err"]) {
+          alert(data["err"]);
+        } else if (data["import_success"]) {
+          location.reload();
         }
-    });
+      }
+    );
     return true;
   };
-  
-  
 
   importButton.onclick = (e) => {
-    if (!getImportExportChoices('import')) {
-        alert('Selection invalid or missing entirely.');
-        return null;
+    if (!getImportExportChoices("import")) {
+      alert("Selection invalid or missing entirely.");
+      return null;
     }
     const fileUpload = document.getElementById("configupload");
     fileUpload.addEventListener("change", function () {
-        const GetFile = new FileReader();
-        GetFile.onload = function () {
-            try {
-                getImportExportSettings("import", GetFile.result);
-            } catch (err) {
-                alert("File is not a valid file -> " + err);
-            }
-        };
-        GetFile.readAsText(this.files[0]);
+      const GetFile = new FileReader();
+      GetFile.onload = function () {
+        try {
+          getImportExportSettings("import", GetFile.result);
+        } catch (err) {
+          alert("File is not a valid file -> " + err);
+        }
+      };
+      GetFile.readAsText(this.files[0]);
     });
-    $(fileUpload).trigger('click');
+    $(fileUpload).trigger("click");
   };
 
   exportButton.onclick = (e) => {
     const res = getImportExportSettings("export");
     if (!res) {
-        alert('Selection invalid or missing entirely.');
+      alert("Selection invalid or missing entirely.");
     }
   };
 
@@ -749,13 +751,13 @@ document.addEventListener("DOMContentLoaded", (event) => {
 
   resetButton.onclick = (e) => {
     socket.emit("reset_db_from_client", {}, (data) => {
-          if (data['err']) {
-              alert(data['err'])
-          } else if (data['reset_success']) {
-              location.reload();
-          }
-      });
-  }
+      if (data["err"]) {
+        alert(data["err"]);
+      } else if (data["reset_success"]) {
+        location.reload();
+      }
+    });
+  };
 
   // ------------------ STATE EVENTS -----------------------------
 
