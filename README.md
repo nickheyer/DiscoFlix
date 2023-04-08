@@ -1,160 +1,166 @@
 # DiscoFlix
+![image](https://user-images.githubusercontent.com/60236014/230698969-6d09c60e-b265-4ef2-8e79-08140e04d3bc.png)
 
-![DF_Logo_64](https://user-images.githubusercontent.com/60236014/181656541-07810357-318a-4357-aa4f-642e306b14e9.png)
 
-A ~~simple~~ media-requesting, Radarr/Sonarr-interfacing, movie and tv show-listing Chat Bot web-app for your media server. 
+### The ideal way for you and your users to request media via Discord.
+Compatible with Radarr & Sonarr.
 
-As this bot is intended for requests to be fulfilled via Radarr or Sonarr, you must have Radarr or Sonarr installed to use this bot. (https://github.com/Radarr/Radarr & https://sonarr.tv/#download). Along with radarr and sonarr, you must have either discord or telegram. Running the discord bot requires a discord developer account (https://discord.com/developers/applications), and a bot created/invited (via your developer acount) to your chosen discord server. Running the Telegram bot requires a Bot Token which you can acquire (https://telegram.me/BotFather) on Telegram via the "BotFather".
 <hr />
 
-## Installation via Docker (Recommended)
+![Peek 2023-04-07 20-39](https://user-images.githubusercontent.com/60236014/230701633-986cf0d0-0534-498e-8f4b-26e413c2b241.gif)
 
-- Discord and/or Telegram API Token
-    - Discord API Token (https://discord.com/developers/applications) - READ [THIS](#further-notes)
-    - Telegram API Token  - (https://telegram.me/BotFather)
-- Radarr API Key (Radarr GUI>Settings>General>API Key)
-- Radarr Host URL (The url you use to access your radarr interface, ex: http://localhost:6585 or http://192.168.1.76:6585)
-- Sonarr API Key (Sonarr GUI>Settings>General>API Key)
-- Sonarr Host URL (The url you use to access your sonarr interface, ex: http://localhost:8989 or http://192.168.1.76:8989)
-- Name of media server that requests will be populated on (ex: NickFlix)
-- Full Discord or Telegram username of Admin for first time use (ex: NicholasHeyer#4212)
+<hr />
+<br />
 
-Fully Automated Installer & Updater (LINUX ONLY)
+
+## General Requirements
+Running the discord bot requires a [discord developer account](https://discord.com/developers/applications), and a bot created/invited (via your developer account) to your chosen discord server.
+
+As this application is intended to interface with [Sonarr](https://sonarr.tv) and [Radarr](https://radarr.video), you will need one or both installed. If you are installing to a machine that is not also hosting your Radarr/Sonarr, you must be able to access Radarr/Sonarr from the host (locally or remotely).
+
+<br />
+
+
+## Installation (Recommended Method)
+
+### Linux -- Fully Automated Install & Updates
+
 ```bash 
-curl https://raw.githubusercontent.com/nickheyer/DiscoFlix/main/auto_install_update.sh -o auto_install_update.sh && sudo bash auto_install_update.sh
+curl https://raw.githubusercontent.com/nickheyer/DiscoFlix/main/installer/auto_install_update.sh -o auto_install_update.sh && sudo bash auto_install_update.sh
 ```
 
--or- (Docker required for the following installation methods)
+### Other Operating Systems (Windows/Mac) or (Manual Docker Installation)
 
 
-Download Docker Image (x86_64 Architecture) 
+##### Download Docker Image (x86_64 Architecture) 
 ```bash
 docker image pull nickheyer/discoflix:latest
 ```
-
--or-
-
-Download Docker Image (aarch64 Architecture, ie: Raspberry-Pi) 
+##### Download Docker Image (aarch64 Architecture, ie: Raspberry-Pi) 
 ```bash
 docker image pull nickheyer/discoflix_rpi:latest
 ```
-Run Docker Container
+##### Run Docker Container
 ```bash
-docker run -d -p 5000:5000 nickheyer/discoflix
+docker run -d -p 5454:5454 nickheyer/discoflix
 ```
+##### The server within the docker container can be accessed locally at [http://127.0.0.1:5454](http://127.0.0.1:5454)
 
-- The server within the docker container automatically maps to it's network IP (ex:192.168.76.128), and can therefore be accessed elsewhere on the network (ex: [127.0.0.1:5000](127.0.0.1:5000) if run locally, ex: [192.168.1.163:5000](192.168.1.163:5000) if run on another network device)
 <hr />
+<br />
 
 
-## Manual Installation
+## Installation From Source (Not Recommended)
 
-Prerequisites:
+### Prerequisites, Dependencies, and Requirements
+**_NOTE:_**  Installation from source using Windows has been deprecated with the introduction of web-socket functionality, gevent, and other integral parts of this application that are not currently supported by Microsoft.
 
-- Python must be installed on your machine. [Click Here](https://www.python.org/ftp/python/3.10.4/python-3.10.4-amd64.exe) for 64-bit installer - During installation, make sure you select the option "Add Python to environmental variables"
-- Discord and/or Telegram API Token
-    - Discord API Token (https://discord.com/developers/applications) - READ [THIS](#further-notes)
-    - Telegram API Token  - (https://telegram.me/BotFather)
-- Radarr API Key (Radarr GUI>Settings>General>API Key)
-- Radarr Host URL (The url you use to access your radarr interface, ex: http://localhost:6585 or http://192.168.1.76:6585)
-- Sonarr API Key (Sonarr GUI>Settings>General>API Key)
-- Sonarr Host URL (The url you use to access your sonarr interface, ex: http://localhost:8989 or http://192.168.1.76:8989)
-- Name of media server that requests will be populated on (ex: NickFlix)
-- Full Discord or Telegram username of Admin for first time use (ex: NicholasHeyer#4212)
+1. Python - Download and install Python [here](https://www.python.org/downloads/). Make sure that you choose "Add Python to environmental variables" during installation.
+2. Git - Download and install Git [here](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
+3. "requirements.txt" - Once you've git-cloned DiscoFlix (see next steps), you will be instructed to install the remaining dependencies found in this file, via `pip install -r requirements.txt`.
 
+### Next Steps
 
-Change Directory to where you would like to install DiscoFlix
-```
-cd path/of/where/you/would-like-to-install-discoflix
+1. Change directory to preferred install location
+```bash 
+cd /where/you/want/this/installed
 ```
 
-Download DiscoFlix by running the below command
-```bash
+2. Clone DiscoFlix
+
+```bash 
 git clone https://github.com/nickheyer/DiscoFlix
 ```
-
-Change to DiscoFlix Directory
-```
+ 
+3. Change directory to DiscoFlix
+```bash 
 cd ./DiscoFlix
 ```
 
-Install Requirements
-```
-pip install -r requirements.txt 
-```
-
-### On Windows:
-
-Run The Program (or double-click the `run.cmd` file)
-```
-.\run.cmd
-```
-This will start a local web-server [HERE](http://127.0.0.1:5000).
-Closing the CMD closes the webserver. To host the server on a different port, edit the `run.cmd` file (shown in the below code-block).
-```
-//Contents of run.cmd
-waitress-serve --host 0.0.0.0 --port 5000 app:app
-```
-If you would like to access the interface from another machine on your local network (or elsewhere with port forwarding), for example if you were running this on a headless server - change the contents of `run.cmd` to the below code block. You would then access the interface via your Network IP (ex: http://192.168.1.76:5000)
-
-### On Linux: 
-
-Run The Program (or double-click the `run.cmd` file)
-```
-./run.sh
+4. Install "requirements.txt"
+```bash 
+pip install -r requirements.txt
 ```
 
-By default, the linux webserver is accessible via LAN. You can change the port by changing the value PORT in the run.sh script, see below.
-```
-#!/bin/sh
-
-IP=0.0.0.0
-PORT=5000
-
-gunicorn --bind $IP:$PORT app:app
-echo "Shutting down Gunicorn Server"
+5. Run DiscoFlix
+```bash
+sh ./run.sh
 ```
 
 <hr />
+<br />
+
+## General Instructions
+
+#### Accessing The Web-UI
+
+![Peek 2023-04-07 20-49](https://user-images.githubusercontent.com/60236014/230701931-2bf15aaa-93e5-4060-89a8-60233f0ac211.gif)
+
+#### *You will need to get the IP address of the computer hosting DiscoFlix. On Windows, you would typically type `ipconfig` on the host machine and look for your `ipv4`.*
+
+> If you are hosting DiscoFlix (using Docker) on the same machine that you are hosting Radarr & Sonarr, you won't be able to access your Radarr & Sonarr using `http://localhost:<port>`, as that would be referencing the localhost of the docker container itself. Instead, use `http://host.docker.internal:<port>` - consider this the `localhost` of the machine hosting the docker container.
+
+#### *If you would like to access DiscoFlix remotely, as in not on the same network as the host machine, you will need to do some port forwarding to expose port 5454 to the internet. If you run into any trouble here, feel free to join the [Discord](https://discord.com/invite/6Z9yKTbsrP)!*
+
+<hr />
+
+### Configuration
+
+![Peek 2023-04-07 19-50](https://user-images.githubusercontent.com/60236014/230700291-5b3149af-2eb6-4d41-99d9-50c93a5049b7.gif)
+#### *DiscoFlix requires a small amount of configuration before you can begin making requests. Discord Token + Radarr and/or Sonarr URL and Token, depending on your use case. If you plan to only use Radarr, disable the Sonarr switch in your configuration menu. Same goes for only using Sonarr.*
+
+<hr />
+
+![Peek 2023-04-07 20-01](https://user-images.githubusercontent.com/60236014/230700480-36a89984-59ea-4c65-a269-1d4e34230872.gif)
+#### *If you haven't already, now is also a good time to invite the bot to the server or servers you would like to monitor, you can do that via the Discord Developer Portal. Admin access is the only level we have tested. Anything less may result in errors.*
+
+<hr />
+<br />
+
+## Usage
+
+
+### Add Yourself As An Admin
+![Peek 2023-04-07 20-10](https://user-images.githubusercontent.com/60236014/230700808-3e6c6663-4d42-467f-9130-542f054b73ce.gif)
 
 
 
-Fill in the required information by pressing the "edit" tab or within the json itself ("values" tab), start the bot by moving the switch labeled Bot I/O, profit. If you run into any errors, make sure all fields are completed in the edit tab. Make sure that you add your own "discordusername#1234" or "telegramusername" to admins otherwise the bot will not respond to you. 
 
-![edit_tab_info](https://user-images.githubusercontent.com/60236014/181657291-75e4192f-f5b6-41e1-b296-dcd6abcffe69.png)
+### Test That The Bot Is Running
+Type the following into a discord chat message that the bot can see:
 
-![bot_io](https://user-images.githubusercontent.com/60236014/181657296-dac2f704-49db-4cdc-afb5-62c92e142cf3.png)
+```
+!df test
+```
 
-## Operation Instructions
+![Peek 2023-04-07 20-15](https://user-images.githubusercontent.com/60236014/230700917-a54846b6-804c-461f-83df-fa2c6b003e64.gif)
 
-- To request a movie, type the default prefix "!df" then "movie" and then your movie name. For example: "!df movie Dark Phoenix".
-- To request a tv-show, type the default prefix "!df" then "tv-show" and then your show name. For example: "!df tv-show The Walking Dead".
-- The bot will then respond with all relevant titles matched with your query to TMDB/TVDB/IMDB. In 90% of cases, the first listing is the correct one, but if it isn't, go ahead and type "no", it will give you the next most relevant title. If the movie is correct, type "yes". If you'd like to cancel, type "stop". If you'd like to start-over, type "startover".
-- If the selected movie/tv-show is already present in radarr/sonarr's root directory, the bot will respond letting you know that the file(s) already exist(s).
-- If the movie/tv-show does not already exist, it will add it to radarr/sonarr's queue using the quality preset "ANY".
-(For movies only) Based on the average download time you provided during setup, it will send a message to discord letting requester know to check the server.
-- To add more users from within the Discord bot and not web-app:
+### Your First Request
+Test that the bot is able to access Radarr/Sonarr by making your first test request. Let's use "Dark Phoenix" as an example.
 
-    - To allow other people to request movies, it's very simple. Just type the default prefix "!df" then "add-user" then their full discord or telegram username. For example: "!df add-user NicholasHeyer#4212" (Discord) or "!df add-user NicholasHeyer" (Telegram)
+```
+!df movie Dark Phoenix
+```
+![Peek 2023-04-07 20-21](https://user-images.githubusercontent.com/60236014/230701093-3d2afff4-605a-4f04-97af-446fba9e79c7.gif)
 
-        - Reminder: You can also add users via the web-app interface [HERE](http://127.0.0.1:5000).
-        -  The web interface accepts comma seperated values (ie: "Username#0000, UsernameNumberTwo#0001, lowercaseusername#0002, telegramusername")
-- To change request keyword:
+We can also test our Sonarr requests. Let's try "Cyberpunk Edgerunners".
 
-    i. Type "!df set keyword" then the keyword. For example: "!df set keyword !add". Your movie requests will then look like this:         "!add movie Dark Phoenix".
+```
+!df show Cyberpunk Edgerunners
+```
+![Peek 2023-04-07 20-23](https://user-images.githubusercontent.com/60236014/230701137-9c13eb0d-88b1-4fce-9479-e3288742f615.gif)
+
+*Looks like we already have that on our server, or it's already being monitored!*
+
 
 ## Further Notes
 
-- When inviting your Discord Bot to channel, make sure you allow permissions as such (see below image). For the most part, the bot only requires text channel permissions, but for admin actions it must grab all the member objects from channel to scan for available admins, therefore it's better to just allow for Administrator priveledges overall.
-
-![image](https://user-images.githubusercontent.com/60236014/181997169-4b7f3c1d-dc72-4ca2-83db-bcea56814bea.png)
-
-![image](https://user-images.githubusercontent.com/60236014/181997296-0aa40040-34f0-4f56-ab87-34a396493417.png)
 
 - For any other comments or questions, feel free to reach me on discord via NicholasHeyer#4212
+- Feel free to join the [Discord](https://discord.com/invite/6Z9yKTbsrP)!
 
 
-
+<br />
 
 ## Authors
 

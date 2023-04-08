@@ -5,10 +5,10 @@
 # .... SCRIPT CONFIGURATION ....
 
 app_name="DiscoFlix" # <-- Required!
-declare -a FilesToBackup=("./data/values.json" "./discodb.db") # <-- Required!
+declare -a FilesToBackup=("./discodb.db") # <-- Required!
 docker_user="nickheyer" # <-- Required!
 docker_app="discoflix" # <-- Required!
-ports="5000:5000" # <-- Optional
+ports="5454:5454" # <-- Optional
 
 
 #Checking if script was run as root (with sudo)
