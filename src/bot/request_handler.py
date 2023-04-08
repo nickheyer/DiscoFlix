@@ -107,8 +107,8 @@ class RequestHandler:
 
     async def _generate_success_message(self):
         emb = Embed(color=0x966FD6, title='New Content Available', timestamp=datetime.now())
-        emb.description = f"{self.author.mention} :arrow_heading_down:\n\n`{self.selected_content['title']}` is now available on `{self.config.media_server_name}`"
-        await self.response.reply(embed=emb)
+        emb.description = f"`\n{self.selected_content['title']}` is now available on `{self.config.media_server_name}`"
+        await self.response.reply(content="{self.author.mention} :arrow_heading_down:", embed=emb)
 
     async def _monitor_download(self):
         STATUS_MAP = {
@@ -235,6 +235,8 @@ class RequestHandler:
             is_timed_out = await approval_view.wait()
             if is_timed_out or not approval_view.result:
                 self.selected_content = None
+                await self.response.delete()
+                return False
         if not self.selected_content:
             await self.logger(f'{self.author} was unable to finish their request.')
             if not self.view.timed_out and not self.view.approval_required:
