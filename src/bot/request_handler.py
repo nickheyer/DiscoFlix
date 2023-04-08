@@ -123,9 +123,9 @@ class RequestHandler:
         emb = Embed(
             color=0x966FD6, title="New Content Available", timestamp=datetime.now()
         )
-        emb.description = f"`\n{self.selected_content['title']}` is now available on `{self.config.media_server_name}`"
+        emb.description = f"`{self.selected_content['title']}` is now available on `{self.config.media_server_name}`"
         await self.response.reply(
-            content="{self.author.mention} :arrow_heading_down:", embed=emb
+            content=f"{self.author.mention} :arrow_heading_down:", embed=emb
         )
 
     async def _monitor_download(self):

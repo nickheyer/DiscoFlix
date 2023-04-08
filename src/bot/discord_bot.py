@@ -70,12 +70,12 @@ async def update_all_servers():
 # SOCKET EVENTS -----
 @SIO.on("get_unadded_users_from_bot")
 async def get_all_users(data):
-    unadded = [
+    unadded = list({
         str(m)
         for g in client.guilds
         for m in g.members
         if not m.bot and str(m) not in data["users"]
-    ]
+    })
     await SIO.emit("unadded_users_from_bot", {"unadded": unadded})
 
 
@@ -199,7 +199,7 @@ async def _find_content(m, options):
 MESSAGE_MAP = {
     "test": {
         "ref": "test",
-        "permissions": ["admin"],
+        "permissions": ["user"],
         "aliases": ["test"],
         "requirements": [],
         "args": {"primary": {"required": False, "used": False}, "additional": []},
