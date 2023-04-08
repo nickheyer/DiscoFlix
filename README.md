@@ -2,7 +2,8 @@
 ![image](https://user-images.githubusercontent.com/60236014/230698969-6d09c60e-b265-4ef2-8e79-08140e04d3bc.png)
 
 
-### The ideal way for you and your users to request media via Discord. Compatible with Radarr & Sonarr.
+### The ideal way for you and your users to request media via Discord.
+Compatible with Radarr & Sonarr.
 
 <hr />
 
