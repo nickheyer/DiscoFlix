@@ -238,11 +238,11 @@ MESSAGE_MAP = {
         "requirements": [],
         "args": {"primary": {"required": False, "used": False}, "additional": []},
         "fn": _help,
-        "description": "Display all authorized commands for this user"
+        "description": "Display all authorized commands."
     },
     "echo": {
         "ref": "echo",
-        "permissions": ["developer"],
+        "permissions": ["developer", "owner"],
         "aliases": ["echo"],
         "requirements": [],
         "args": {
@@ -257,11 +257,11 @@ MESSAGE_MAP = {
             ],
         },
         "fn": _echo,
-        "description": "Confirm bot is handling input as intended"
+        "description": "Confirm bot is handling input as intended."
     },
     "error": {
         "ref": "error",
-        "permissions": ["developer"],
+        "permissions": ["developer", "owner"],
         "aliases": ["error", "err", "raise"],
         "requirements": [],
         "args": {
@@ -280,7 +280,7 @@ MESSAGE_MAP = {
     },
     "log": {
         "ref": "log",
-        "permissions": ["developer"],
+        "permissions": ["developer", "owner"],
         "aliases": ["log", "add-log"],
         "requirements": [],
         "args": {

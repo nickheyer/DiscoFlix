@@ -448,7 +448,7 @@ class ListCommands():
                 for additional_arg in command_info['args']['additional']:
                     usage += f" [{additional_arg['aliases'][0]}]" if not additional_arg['required'] else f" <{additional_arg['aliases'][0]}>"
                 description = command_info.get('description', None)
-                embed.add_field(name=f"{command.title()} ({aliases})", value=f"Usage: `{usage}`" + (f"\nDescription: `{description}`" if description else ""), inline=False)
+                embed.add_field(name=f"{command.title()} ({aliases})", value=(f"Description: `{description}`\n" if description else "") + f"Usage: `{usage}`", inline=False)
         
         self.embed = embed
         return embed

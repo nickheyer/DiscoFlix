@@ -36,6 +36,8 @@ def eval_user_roles(user):
         roles.append("unrestricted")
     if user.username in DEVELOPER_USER_ACCOUNTS:
         roles.append("developer")
+    if user.is_server_owner:
+        roles.append('owner')
     return roles
 
 

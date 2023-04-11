@@ -50,5 +50,10 @@ export const ADDITIONAL_USER_SETTINGS = {
         VERBOSE: 'Max Requests Per 24H',
         TYPE: 'INT',
         DEFAULT: 0
+    },
+    'is_server_owner': {
+        VERBOSE: 'Server Owner',
+        TYPE: 'BOOL',
+        DEFAULT: false
     }
 };

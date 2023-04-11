@@ -130,6 +130,7 @@ class User(BaseModel):
     is_additional_settings = BooleanField(default=False)
 
     # User-Specific Settings
+    is_server_owner = BooleanField(default=False)
     session_timeout = IntegerField(default=60)
     max_check_time = IntegerField(default=600)
     max_results = IntegerField(default=0)
