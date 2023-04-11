@@ -51,7 +51,6 @@ def update_config(data):
     changed = []
 
     if data:
-        print(data)
         for k, v in data.items():
             if hasattr(config, k):
                 attribute = getattr(config, k)
