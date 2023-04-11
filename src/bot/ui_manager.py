@@ -424,3 +424,31 @@ class ApproveRequest(discord.ui.View):
             embed.description = self.prompt
             self.embed = embed
             return embed
+
+
+class ListCommands():
+    def __init__(self, context, message_object, message_map):
+        self.context = context
+        self.config = context.get("config", {})
+        self.prefix = self.config.prefix_keyword
+        self.response = message_object
+        self.message_map = message_map
+        self.user = message_object.author
+        self.user_str = str(self.user)
+        self.embed = None
+
+    def generate_embed(self):
+        embed = discord.Embed(title="Help", description="List of available commands:", color=self.user.color)
+        user_roles = set(eval_user_roles(self.user_str))
+        for command, command_info in self.message_map.items():
+            required_roles = set(command_info['permissions'])
+            if not required_roles or required_roles.intersection(user_roles):
+                aliases = ', '.join(command_info['aliases'])
+                usage = f"{self.prefix} {command_info['aliases'][0]}" + (' <' + command_info['args']['primary']['ref'] + '>' if command_info['args']['primary']['used'] else '')
+                for additional_arg in command_info['args']['additional']:
+                    usage += f" [{additional_arg['aliases'][0]}]" if not additional_arg['required'] else f" <{additional_arg['aliases'][0]}>"
+                description = command_info.get('description', None)
+                embed.add_field(name=f"{command.title()} ({aliases})", value=f"Usage: `{usage}`" + (f"\nDescription: `{description}`" if description else ""), inline=False)
+        
+        self.embed = embed
+        return embed

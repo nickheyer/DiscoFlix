@@ -13,8 +13,12 @@ from lib.utils import get_bug_report_path
 from bot.request_handler import RequestHandler
 from bot.message_handler import Message_Handler
 from bot.config_manager import config
-from bot.user_manager import get_users_in_server, get_user_requests_last_24_hours
-from bot.ui_manager import ApproveNewUser
+from bot.user_manager import (
+    get_users_in_server,
+    get_user_requests_last_24_hours,
+    get_users_for_auth,
+)
+from bot.ui_manager import ApproveNewUser, ListCommands
 
 # SUBPROC CMD ARGS
 parser = argparse.ArgumentParser()
@@ -70,12 +74,14 @@ async def update_all_servers():
 # SOCKET EVENTS -----
 @SIO.on("get_unadded_users_from_bot")
 async def get_all_users(data):
-    unadded = list({
-        str(m)
-        for g in client.guilds
-        for m in g.members
-        if not m.bot and str(m) not in data["users"]
-    })
+    unadded = list(
+        {
+            str(m)
+            for g in client.guilds
+            for m in g.members
+            if not m.bot and str(m) not in data["users"]
+        }
+    )
     await SIO.emit("unadded_users_from_bot", {"unadded": unadded})
 
 
@@ -143,12 +149,14 @@ async def add_user(message_object, admin=False, restrict_servers=True):
 # MESSAGE FUNCTIONS ------
 async def _test(m, options):
     await send_message(m, "Testing!")
+    if options["debug"]:
+        await send_message(m, f'```python\n{options["command"]}\n```')
 
 
 async def _echo(m, options):
     await send_message(
         m,
-        f"PRIMARY: {options['primary']}\n\n{'EXTRA: ' + options['extra'] if options['extra'] else ''}\n\n{'DEBUG MODE ON' if options['debug'] else ''}",
+        options["primary"],
     )
     if options["debug"]:
         await send_message(m, f'```python\n{options["command"]}\n```')
@@ -195,30 +203,51 @@ async def _find_content(m, options):
     return await handler.process_request()
 
 
+async def _help(m, options):
+    commands = ListCommands(options, m, MESSAGE_MAP)
+    embed = commands.generate_embed()
+    await m.reply(embed=embed)
+    return True
+
+
 # MESSAGE MAP ------
 MESSAGE_MAP = {
     "test": {
         "ref": "test",
-        "permissions": ["user"],
+        "permissions": ["user", "developer"],
         "aliases": ["test"],
         "requirements": [],
-        "args": {"primary": {"required": False, "used": False}, "additional": []},
+        "args": {
+            "primary": {"required": False, "used": False},
+            "additional": [
+                {
+                    "ref": "debug",
+                    "aliases": ("-d", "--debug"),
+                    "required": False,
+                    "expect_content": False,
+                },
+            ],
+        },
         "fn": _test,
+        "description": "Confirm bot is on and listening"
+    },
+    "help": {
+        "ref": "help",
+        "permissions": [],
+        "aliases": ["help"],
+        "requirements": [],
+        "args": {"primary": {"required": False, "used": False}, "additional": []},
+        "fn": _help,
+        "description": "Display all authorized commands for this user"
     },
     "echo": {
         "ref": "echo",
-        "permissions": ["admin"],
+        "permissions": ["developer"],
         "aliases": ["echo"],
         "requirements": [],
         "args": {
-            "primary": {"required": True, "used": True},
+            "primary": {"ref": "text to echo", "required": True, "used": True},
             "additional": [
-                {
-                    "ref": "extra",
-                    "aliases": ("-e", "--extra"),
-                    "required": False,
-                    "expect_content": True,
-                },
                 {
                     "ref": "debug",
                     "aliases": ("-d", "--debug"),
@@ -228,6 +257,7 @@ MESSAGE_MAP = {
             ],
         },
         "fn": _echo,
+        "description": "Confirm bot is handling input as intended"
     },
     "error": {
         "ref": "error",
@@ -246,14 +276,15 @@ MESSAGE_MAP = {
             ],
         },
         "fn": _err,
+        "description": "Confirm bot is handling errors as intended"
     },
     "log": {
         "ref": "log",
-        "permissions": ["admin"],
+        "permissions": ["developer"],
         "aliases": ["log", "add-log"],
         "requirements": [],
         "args": {
-            "primary": {"required": True, "used": True},
+            "primary": {"ref": "text to log", "required": True, "used": True},
             "additional": [
                 {
                     "ref": "message",
@@ -264,44 +295,33 @@ MESSAGE_MAP = {
             ],
         },
         "fn": _log,
+        "description": "Confirm bot is logging information to console as intended"
     },
     "movie": {
         "ref": "movie",
-        "permissions": ["user"],
+        "permissions": ["user", "developer"],
         "aliases": ["movie", "add-movie"],
         "requirements": ["is_radarr_enabled", "radarr_token", "radarr_url"],
         "args": {
-            "primary": {"required": True, "used": True},
-            "additional": [
-                {
-                    "ref": "debug",
-                    "aliases": ("-d", "--debug"),
-                    "required": False,
-                    "expect_content": False,
-                }
-            ],
+            "primary": {"ref": "title", "required": True, "used": True},
+            "additional": [],
         },
         "fn": _find_content,
         "on_reject": _apply,
+        "description": "Request a movie"
     },
     "show": {
         "ref": "show",
-        "permissions": ["user"],
+        "permissions": ["user", "developer"],
         "aliases": ["show", "add-show", "tv-show", "add-tv-show", "tv", "tvshow"],
         "requirements": ["is_sonarr_enabled", "sonarr_token", "sonarr_url"],
         "args": {
-            "primary": {"required": True, "used": True},
-            "additional": [
-                {
-                    "ref": "debug",
-                    "aliases": ("-d", "--debug"),
-                    "required": False,
-                    "expect_content": False,
-                }
-            ],
+            "primary": {"ref": "title", "required": True, "used": True},
+            "additional": [],
         },
         "fn": _find_content,
         "on_reject": _apply,
+        "description": "Request a tv-show"
     },
 }
 

@@ -8,7 +8,7 @@ from models.models import (
 
 from playhouse.shortcuts import model_to_dict
 
-DEVELOPER_USER_ACCOUNTS = ["NicholasHeyer#4212", "NicholasHeyer"]
+DEVELOPER_USER_ACCOUNTS = ["NicholasHeyer#4211"]
 
 
 def get_user(username):
@@ -19,9 +19,13 @@ def get_user(username):
 def eval_user_roles(user):
     roles = []
     if type(user) == str:
-        user = User.get_or_none(username=user)
+        user, username = User.get_or_none(username=user), user
         if not user:
-            return ["unregistered"]
+            return (
+                ["developer", "unregistered"]
+                if username in DEVELOPER_USER_ACCOUNTS
+                else ["unregistered"]
+            )
     if user.is_admin:
         roles.extend(["user", "admin"])
     else:
@@ -59,12 +63,12 @@ def get_users_for_auth(server_id, permissions, username):
     approved_users = []
     for user in result:
         user_roles = eval_user_roles(user)
-        is_approved = True
+        is_approved = False
         for perm in permissions:
-            if perm not in user_roles:
-                is_approved = False
+            if perm in user_roles:
+                is_approved = True
                 break
-        if is_approved:
+        if is_approved or not permissions:
             approved_users.append(user.username)
     return username in approved_users
 
