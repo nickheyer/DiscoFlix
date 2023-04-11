@@ -26,7 +26,7 @@ As this application is intended to interface with [Sonarr](https://sonarr.tv) an
 ### Linux -- Fully Automated Install & Updates
 
 ```bash 
-curl https://raw.githubusercontent.com/nickheyer/DiscoFlix/main/installer/auto_install_update.sh -o auto_install_update.sh && sudo bash auto_install_update.sh
+curl https://raw.githubusercontent.com/nickheyer/DiscoFlix/main/auto_install_update.sh -o auto_install_update.sh && sudo bash auto_install_update.sh
 ```
 
 ### Other Operating Systems (Windows/Mac) or (Manual Docker Installation)
