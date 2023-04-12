@@ -153,6 +153,23 @@ We can also test our Sonarr requests. Let's try "Cyberpunk Edgerunners".
 *Looks like we already have that on our server, or it's already being monitored!*
 
 
+### Available Commands
+To see the commands available to you, type `!df help`. DiscoFlix should respond with a table containing some or all of the below commands.
+
+
+| Command | Aliases                       | Description                               | Usage                     |
+|---------|-------------------------------|-------------------------------------------|---------------------------|
+| Test    | test                          | Confirm bot is on and listening           | `!df test [-d]`           |
+| Help    | help                          | Display all authorized commands.          | `!df help`                |
+| Echo    | echo                          | Confirm bot is handling input as intended.| `!df echo <text to echo> [-d]`|
+| Error   | error, err, raise             | Confirm bot is handling errors as intended| `!df error [-s]`          |
+| Log     | log, add-log                  | Confirm bot is logging information to console as intended | `!df log <text to log> [-m]`|
+| Movie   | movie, add-movie              | Request a movie                           | `!df movie <title>`       |
+| Show    | show, add-show, tv-show, add-tv-show, tv, tvshow | Request a tv-show   | `!df show <title>`         |
+
+> The above commands assume that your command prefix is set to the default `!df`. Adjust accordingly.
+
+> Keep in mind that you will need to mark yourself as "server owner" in the user control panel to use the debug commands.
 ## Further Notes
 
 
