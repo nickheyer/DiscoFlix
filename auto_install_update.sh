@@ -6,7 +6,6 @@
 
 app_name="DiscoFlix" # <-- Required!
 database_file="/data/discodb.db" # <-- Optional
-declare -a FilesToBackup=("") # <-- Optional
 docker_user="nickheyer" # <-- Required!
 docker_app="discoflix" # <-- Required!
 ports="5454:5454" # <-- Optional
@@ -148,7 +147,7 @@ updated_installation=$(docker images "${docker_repo}:latest")
 
 
 
-#If app container already exists, backup all configs, data, etc. ( See FilesToBackup in SCRIPT CONFIGURATION )
+#If app container already exists, backup all configs, data, etc. 
 
 if [ -z "${container_id}" ]
 then
@@ -232,13 +231,6 @@ else
         echo "No DB File Provided"
     fi
 
-    echo "Pulling files from temp container..."
-    for file_path in "${FilesToBackup[@]}"; do
-        base_file=$(basename ${file_path})
-        echo "Pulling ${tmp_dir}/${base_file} <- ${tmp_id}:/app${file_path:1}"
-        docker cp "${tmp_id}:/app${file_path:1}" "${tmp_dir}/${base_file}"
-    done
-
     echo "Cleaning up temporary image and containers..."
     docker container rm -f $tmp_img
     docker image rm -f $tmp_img
@@ -284,13 +276,6 @@ else
             echo "The schemas are not compatible for backup."
         fi
     fi
-
-    echo "Injecting backed up files into container. Please wait..."
-    for file_path in "${FilesToBackup[@]}"; do
-        base_file=$(basename ${file_path})
-        echo "Injecting ${tmp_dir}/${base_file} -> ${new_id}:/app${file_path:1}"
-        docker cp "${tmp_dir}/${base_file}" "${new_id}:/app${file_path:1}"
-    done
 fi
 
 
