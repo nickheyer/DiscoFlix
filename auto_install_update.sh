@@ -5,7 +5,8 @@
 # .... SCRIPT CONFIGURATION ....
 
 app_name="DiscoFlix" # <-- Required!
-declare -a FilesToBackup=("./discodb.db") # <-- Required!
+database_file="/data/discodb.db" # <-- Optional
+declare -a FilesToBackup=("") # <-- Optional
 docker_user="nickheyer" # <-- Required!
 docker_app="discoflix" # <-- Required!
 ports="5454:5454" # <-- Optional
@@ -165,6 +166,15 @@ else
     docker run -d --name $tmp_img $tmp_img
     tmp_id=$(docker container ls -a --filter name="${tmp_img}" --format "{{.ID}}")
 
+    if [ -v database_file ]; then
+        echo "Pulling DB"
+        database_base_file=$(basename ${database_file})
+        docker cp "${tmp_id}:/app${database_file}" "${tmp_dir}/${database_base_file}"
+        db_file_1="${tmp_dir}/${database_base_file}"
+    else
+        echo "No DB File Provided"
+    fi
+
     echo "Pulling files from temp container..."
     for file_path in "${FilesToBackup[@]}"; do
         base_file=$(basename ${file_path})
@@ -198,6 +208,27 @@ then
     echo "No backed up files to inject, skipping container injection. Please wait..."
 
 else
+    if [ -v database_file ]; then
+        echo "Injecting DB"
+        database_base_file=$(basename ${database_file})
+
+        # Grab fresh db to compare
+        docker cp "${new_id}:/app${database_file}" "${tmp_dir}/${base_file}_new"
+        db_file_2="${tmp_dir}/${base_file}_new"
+
+        # Get schema from DB files
+        sqlite3 "$db_file_1" ".schema" | sort > schema_1.txt
+        sqlite3 "$db_file_2" ".schema" | sort > schema_2.txt
+
+        if diff -q schema_1.txt schema_2.txt > /dev/null; then
+            echo "The schemas are compatible for backup."
+            docker cp "${tmp_dir}/${database_base_file}" "${new_id}:/app${database_file}"
+        else
+            echo "The schemas are not compatible for backup."
+        fi
+        # Clean up temporary files
+        rm schema_1.txt schema_2.txt
+    fi
 
     echo "Injecting backed up files into container. Please wait..."
     for file_path in "${FilesToBackup[@]}"; do
