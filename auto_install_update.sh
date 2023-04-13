@@ -5,7 +5,7 @@
 # .... SCRIPT CONFIGURATION ....
 
 app_name="DiscoFlix" # <-- Required!
-database_file="/data/discodb.db" # <-- Optional
+database_file="/data/disco.db" # <-- Optional
 docker_user="nickheyer" # <-- Required!
 docker_app="discoflix" # <-- Required!
 ports="5454:5454" # <-- Optional
