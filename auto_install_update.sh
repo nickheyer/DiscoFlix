@@ -263,6 +263,7 @@ else
 
         # Send a GET request to the Flask server to generate the database and grab fresh db to compare
         curl -s "http://0.0.0.0:5454/"
+        sleep 2
         docker cp "${new_id}:/app${database_file}" "${tmp_dir}/${base_file}_new"
         db_file_2="${tmp_dir}/${base_file}_new"
 
