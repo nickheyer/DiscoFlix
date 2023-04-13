@@ -166,11 +166,68 @@ else
     docker run -d --name $tmp_img $tmp_img
     tmp_id=$(docker container ls -a --filter name="${tmp_img}" --format "{{.ID}}")
 
+    db_backup_successful=false
     if [ -v database_file ]; then
-        echo "Pulling DB"
-        database_base_file=$(basename ${database_file})
-        docker cp "${tmp_id}:/app${database_file}" "${tmp_dir}/${database_base_file}"
-        db_file_1="${tmp_dir}/${database_base_file}"
+        read -p "Would you like to backup the database? (y/N): " answer
+        if [[ $answer =~ ^[Yy] ]]; then
+            echo "Preparing to backup the database..."
+
+            # Check if SQLite is installed
+            if ! command -v sqlite3 &> /dev/null; then
+                echo "SQLite is not installed. Attempting to install SQLite..."
+
+                # Detect the platform and install SQLite
+                case "$(uname -s)" in
+                Linux)
+                    if [ -f "/etc/os-release" ]; then
+                    . /etc/os-release
+                    case "$ID" in
+                        debian|ubuntu)
+                        sudo apt-get update
+                        sudo apt-get install sqlite3 libsqlite3-dev
+                        ;;
+                        fedora)
+                        sudo dnf install sqlite sqlite-devel
+                        ;;
+                        centos|rhel)
+                        sudo yum install sqlite sqlite-devel
+                        ;;
+                        *)
+                        echo "Unsupported Linux distribution. Please install SQLite manually."
+                        exit 1
+                        ;;
+                    esac
+                    else
+                    echo "Unsupported Linux distribution. Please install SQLite manually."
+                    exit 1
+                    fi
+                    ;;
+                Darwin)
+                    if command -v brew &> /dev/null; then
+                    brew install sqlite
+                    else
+                    echo "Homebrew is not installed. Please install Homebrew and then install SQLite."
+                    exit 1
+                    fi
+                    ;;
+                *)
+                    echo "Unsupported platform. Please install SQLite manually."
+                    exit 1
+                    ;;
+                esac
+            fi
+
+            # Continue with the backup process
+            echo "SQLite is installed. Proceeding with the backup..."
+            database_base_file=$(basename ${database_file})
+            docker cp "${tmp_id}:/app${database_file}" "${tmp_dir}/${database_base_file}"
+            db_file_1="${tmp_dir}/${database_base_file}"
+            db_backup_successful=true
+        else
+            echo "Backup process canceled."
+        fi
+
+
     else
         echo "No DB File Provided"
     fi
@@ -208,7 +265,7 @@ then
     echo "No backed up files to inject, skipping container injection. Please wait..."
 
 else
-    if [ -v database_file ]; then
+    if $db_backup_successful; then
         echo "Injecting DB"
         database_base_file=$(basename ${database_file})
 
