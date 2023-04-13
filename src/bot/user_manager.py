@@ -94,7 +94,6 @@ def get_user_settings(username):
     )
     return user_settings
 
-
 def get_users_in_server(server_id, permissions=[]):
     server = DiscordServer.get(server_id=server_id)
     users_in_server = (

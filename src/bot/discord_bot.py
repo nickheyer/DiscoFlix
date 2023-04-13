@@ -16,7 +16,7 @@ from bot.config_manager import config
 from bot.user_manager import (
     get_users_in_server,
     get_user_requests_last_24_hours,
-    get_users_for_auth,
+    get_user
 )
 from bot.ui_manager import ApproveNewUser, ListCommands
 
@@ -109,6 +109,15 @@ async def send_message(message_object, message_to_send, log=False):
         await add_log(f"{client.user}: {message_to_send}")
     return await message_object.channel.send(message_to_send)
 
+def get_user_from_username(username, message_object=None):
+    if message_object:
+        return message_object.guild.get_member_named(username)
+    else:
+        for guild in client.guilds:
+            for guild_member in guild.members:
+                if not guild_member.bot and str(guild_member) == username:
+                    return guild_member
+    return None
 
 def get_users_in_server_with(message_object, permissions):
     # Gets all the users (with permissions/roles) usernames in this server from the DB
@@ -131,9 +140,23 @@ def generate_mention_users_with(message_object, permissions=[]):
     return message_template
 
 
-async def add_user(message_object, admin=False, restrict_servers=True):
+async def add_user_from_message(message_object, admin=False, restrict_servers=True):
     user_dict = {
         "username": str(message_object.author),
+        "is_server_restricted": restrict_servers,
+        "is_admin": admin,
+        "servers": [
+            {
+                "server_name": str(message_object.guild),
+                "server_id": message_object.guild.id,
+            }
+        ],
+    }
+    await SIO.emit("add_edit_user", {"user_info": user_dict})
+
+async def add_user_from_info(username, message_object, admin=False, restrict_servers=True):
+    user_dict = {
+        "username": username,
         "is_server_restricted": restrict_servers,
         "is_admin": admin,
         "servers": [
@@ -186,7 +209,7 @@ async def _apply(m, options):
     if not timeout:
         if view.result in ["DENIED", False, None]:
             return
-        await add_user(m, view.result == "REGISTER_ADMIN")
+        await add_user_from_message(m, view.result == "REGISTER_ADMIN")
         await add_log(f"Added User: {m.author} ({view.result})")
     else:
         print("Timed-Out")
@@ -208,6 +231,34 @@ async def _help(m, options):
     embed = commands.generate_embed()
     await m.reply(embed=embed)
     return True
+
+async def _add_user(m, options):
+    users_to_add = []
+    if len(m.mentions) == 0:
+        if not get_user(options['primary']):       
+            users_to_add.append(options['primary'])
+    else:
+        for user in m.mentions:
+            if not get_user(str(user)):
+                users_to_add.append(str(user))
+    if options['admin'] and not options['user'].is_server_owner:
+        final_color = discord.Color.brand_red()
+        final_title = "Authorization Denied"
+        description = "You do not have the permissions to perform this action!"          
+    elif not users_to_add:
+        final_color = discord.Color.brand_red()
+        final_title = "No Users To Add"
+        description = "Note: Users cannot be added a second time!"
+    else:
+        final_color = discord.Color.brand_green()
+        final_title = "Authorization Granted"
+        for u in users_to_add:
+            await add_user_from_info(u, m, options['admin'])
+            await add_log(f"Added User: {u}")
+        description = f"{m.author.mention} Added: {options['primary']}"
+    embed = discord.Embed(title=final_title, color=final_color)
+    embed.description = description
+    await m.reply(embed=embed)
 
 
 # MESSAGE MAP ------
@@ -322,6 +373,23 @@ MESSAGE_MAP = {
         "fn": _find_content,
         "on_reject": _apply,
         "description": "Request a tv-show"
+    },
+    "user": {
+        "ref": "user",
+        "permissions": ["admin", "owner"],
+        "aliases": ["user", "add-user", "add"],
+        "requirements": [],
+        "args": {
+            "primary": {"ref": "user", "required": True, "used": True},
+            "additional": [{
+                    "ref": "admin",
+                    "aliases": ("-a", "--admin"),
+                    "required": False,
+                    "expect_content": False,
+                },],
+        },
+        "fn": _add_user,
+        "description": "Add a user"
     },
 }
 

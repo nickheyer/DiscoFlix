@@ -1,5 +1,5 @@
 from asyncio import coroutine
-from bot.user_manager import get_users_for_auth, get_user_settings
+from bot.user_manager import get_users_for_auth, get_user_settings, get_user
 
 
 class Message_Handler:
@@ -157,6 +157,7 @@ class Message_Handler:
 
     def merge_user_specific_configuration(self, user):
         user_settings = get_user_settings(user)
+        self.args['user'] = get_user(user)
         if not user_settings:
             return
         for k, v in user_settings.items():
