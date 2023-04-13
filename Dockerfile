@@ -12,6 +12,7 @@ WORKDIR /app
 RUN apk add --no-cache --update \
     build-base \
     libffi-dev \
+    curl \
     && pip install --trusted-host pypi.python.org -r requirements.txt
 
 # copy every content from the local file to the image

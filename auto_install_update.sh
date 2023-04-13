@@ -259,12 +259,8 @@ then
 else
     if $db_backup_successful; then
         echo "Injecting DB"
+        docker exec ${docker_app} ls
         database_base_file=$(basename ${database_file})
-
-        # Send a GET request to the Flask server to generate the database and grab fresh db to compare
-        response=$(curl -s "http://0.0.0.0:5454/dbinit")
-        echo $response
-        sleep 10
         docker cp "${new_id}:/app${database_file}" "${tmp_dir}/${base_file}_new"
         db_file_2="${tmp_dir}/${base_file}_new"
         cat $db_file_2
