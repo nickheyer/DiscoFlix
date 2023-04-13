@@ -57,7 +57,6 @@ docker run -d -p 5454:5454 nickheyer/discoflix
 
 1. Python - Download and install Python [here](https://www.python.org/downloads/). Make sure that you choose "Add Python to environmental variables" during installation.
 2. Git - Download and install Git [here](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
-3. "requirements.txt" - Once you've git-cloned DiscoFlix (see next steps), you will be instructed to install the remaining dependencies found in this file, via `pip install -r requirements.txt`.
 
 ### Next Steps
 
@@ -77,7 +76,7 @@ git clone https://github.com/nickheyer/DiscoFlix
 cd ./DiscoFlix
 ```
 
-4. Install "requirements.txt"
+4. Install Requirements
 ```bash 
 pip install -r requirements.txt
 ```
@@ -166,6 +165,7 @@ To see the commands available to you, type `!df help`. DiscoFlix should respond 
 | Log     | log, add-log                  | Confirm bot is logging information to console as intended | `!df log <text to log> [-m]`|
 | Movie   | movie, add-movie              | Request a movie                           | `!df movie <title>`       |
 | Show    | show, add-show, tv-show, add-tv-show, tv, tvshow | Request a tv-show   | `!df show <title>`         |
+| User    | user, add-user, add | Add a user   | `!df user <user_to_add> [-a]`         |
 
 > The above commands assume that your command prefix is set to the default `!df`. Adjust accordingly.
 
