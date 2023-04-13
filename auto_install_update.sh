@@ -262,10 +262,12 @@ else
         database_base_file=$(basename ${database_file})
 
         # Send a GET request to the Flask server to generate the database and grab fresh db to compare
-        curl -s "http://0.0.0.0:5454/dbinit" | echo
+        response=$(curl -s "http://0.0.0.0:5454/dbinit")
+        echo $response
         sleep 10
         docker cp "${new_id}:/app${database_file}" "${tmp_dir}/${base_file}_new"
         db_file_2="${tmp_dir}/${base_file}_new"
+        cat $db_file_2
 
         # Get schema from DB files
         sqlite3 "$db_file_1" ".schema" | sort > "${tmp_dir}/schema_1.txt"
