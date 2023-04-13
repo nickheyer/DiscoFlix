@@ -142,6 +142,13 @@ def exit_shutdown():
 def index():
     return render_template("/index.html")
 
+@app.route("/dbinit", methods=["GET"])
+def dbinit():
+    initialize_dirs()
+    initialize_db()
+    return "DB INITIALIZED"
+
+
 
 # --- WEBSOCKET ROUTES ---
 
