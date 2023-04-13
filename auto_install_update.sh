@@ -197,8 +197,8 @@ else
                         ;;
                     esac
                     else
-                    echo "Unsupported Linux distribution. Please install SQLite manually."
-                    exit 1
+                        echo "Unsupported Linux distribution. Please install SQLite manually."
+                        exit 1
                     fi
                     ;;
                 Darwin)
@@ -261,7 +261,8 @@ else
         echo "Injecting DB"
         database_base_file=$(basename ${database_file})
 
-        # Grab fresh db to compare
+        # Send a GET request to the Flask server to generate the database and grab fresh db to compare
+        curl -s "http://0.0.0.0:5454"
         docker cp "${new_id}:/app${database_file}" "${tmp_dir}/${base_file}_new"
         db_file_2="${tmp_dir}/${base_file}_new"
 
