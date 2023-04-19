@@ -291,7 +291,7 @@ def socket_get_user_info_from_id(data):
 
 
 @socketio.on("delete_user")
-def socket_get_user_info_from_id(data):
+def socket_delete_user_info_from_id(data):
     deleted = delete_user(data["user_id"])
     if not deleted:
         return {"username": data["user_id"], "error": "Unable to delete user"}

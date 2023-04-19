@@ -16,7 +16,7 @@ from bot.config_manager import config
 from bot.user_manager import (
     get_users_in_server,
     get_user_requests_last_24_hours,
-    get_user
+    get_user,
 )
 from bot.ui_manager import ApproveNewUser, ListCommands
 
@@ -109,6 +109,7 @@ async def send_message(message_object, message_to_send, log=False):
         await add_log(f"{client.user}: {message_to_send}")
     return await message_object.channel.send(message_to_send)
 
+
 def get_user_from_username(username, message_object=None):
     if message_object:
         return message_object.guild.get_member_named(username)
@@ -118,6 +119,7 @@ def get_user_from_username(username, message_object=None):
                 if not guild_member.bot and str(guild_member) == username:
                     return guild_member
     return None
+
 
 def get_users_in_server_with(message_object, permissions):
     # Gets all the users (with permissions/roles) usernames in this server from the DB
@@ -154,7 +156,10 @@ async def add_user_from_message(message_object, admin=False, restrict_servers=Tr
     }
     await SIO.emit("add_edit_user", {"user_info": user_dict})
 
-async def add_user_from_info(username, message_object, admin=False, restrict_servers=True):
+
+async def add_user_from_info(
+    username, message_object, admin=False, restrict_servers=True
+):
     user_dict = {
         "username": username,
         "is_server_restricted": restrict_servers,
@@ -167,6 +172,10 @@ async def add_user_from_info(username, message_object, admin=False, restrict_ser
         ],
     }
     await SIO.emit("add_edit_user", {"user_info": user_dict})
+
+
+async def refresh_users():
+    await SIO.emit("refresh_users", {})
 
 
 # MESSAGE FUNCTIONS ------
@@ -232,28 +241,41 @@ async def _help(m, options):
     await m.reply(embed=embed)
     return True
 
+
 async def _add_user(m, options):
     users_to_add = []
     if len(m.mentions) == 0:
-        if not get_user(options['primary']):       
-            users_to_add.append(options['primary'])
+        existing = get_user(options["primary"])
+        if options["delete"] and existing:
+            users_to_add.append(existing.id)
+        elif not existing:
+            users_to_add.append(options["primary"])
     else:
         for user in m.mentions:
-            if not get_user(str(user)):
+            existing = get_user(str(user))
+            if options["delete"] and existing:
+                users_to_add.append(existing.id)
+            elif not existing:
                 users_to_add.append(str(user))
-    if options['admin'] and not options['user'].is_server_owner:
+    if options["admin"] and not options["user"].is_server_owner:
         final_color = discord.Color.brand_red()
         final_title = "Authorization Denied"
-        description = "You do not have the permissions to perform this action!"          
+        description = "You do not have the permissions to perform this action!"
     elif not users_to_add:
         final_color = discord.Color.brand_red()
         final_title = "No Users To Add"
         description = "Note: Users cannot be added a second time!"
+    elif options["delete"]:
+        final_color = discord.Color.brand_green()
+        final_title = "Authorization Granted"
+        for u in users_to_add:
+            await SIO.emit("delete_user", {"user_id": u})
+        description = f"{m.author.mention} Deleted: {options['primary']}"
     else:
         final_color = discord.Color.brand_green()
         final_title = "Authorization Granted"
         for u in users_to_add:
-            await add_user_from_info(u, m, options['admin'])
+            await add_user_from_info(u, m, options["admin"])
             await add_log(f"Added User: {u}")
         description = f"{m.author.mention} Added: {options['primary']}"
     embed = discord.Embed(title=final_title, color=final_color)
@@ -280,7 +302,7 @@ MESSAGE_MAP = {
             ],
         },
         "fn": _test,
-        "description": "Confirm bot is on and listening"
+        "description": "Confirm bot is on and listening",
     },
     "help": {
         "ref": "help",
@@ -289,7 +311,7 @@ MESSAGE_MAP = {
         "requirements": [],
         "args": {"primary": {"required": False, "used": False}, "additional": []},
         "fn": _help,
-        "description": "Display all authorized commands."
+        "description": "Display all authorized commands.",
     },
     "echo": {
         "ref": "echo",
@@ -308,7 +330,7 @@ MESSAGE_MAP = {
             ],
         },
         "fn": _echo,
-        "description": "Confirm bot is handling input as intended."
+        "description": "Confirm bot is handling input as intended.",
     },
     "error": {
         "ref": "error",
@@ -327,7 +349,7 @@ MESSAGE_MAP = {
             ],
         },
         "fn": _err,
-        "description": "Confirm bot is handling errors as intended"
+        "description": "Confirm bot is handling errors as intended",
     },
     "log": {
         "ref": "log",
@@ -346,7 +368,7 @@ MESSAGE_MAP = {
             ],
         },
         "fn": _log,
-        "description": "Confirm bot is logging information to console as intended"
+        "description": "Confirm bot is logging information to console as intended",
     },
     "movie": {
         "ref": "movie",
@@ -359,7 +381,7 @@ MESSAGE_MAP = {
         },
         "fn": _find_content,
         "on_reject": _apply,
-        "description": "Request a movie"
+        "description": "Request a movie",
     },
     "show": {
         "ref": "show",
@@ -372,24 +394,32 @@ MESSAGE_MAP = {
         },
         "fn": _find_content,
         "on_reject": _apply,
-        "description": "Request a tv-show"
+        "description": "Request a tv-show",
     },
     "user": {
         "ref": "user",
         "permissions": ["admin", "owner"],
-        "aliases": ["user", "add-user", "add"],
+        "aliases": ["user", "add-user", "add", "delete-user", "delete"],
         "requirements": [],
         "args": {
             "primary": {"ref": "user", "required": True, "used": True},
-            "additional": [{
+            "additional": [
+                {
                     "ref": "admin",
                     "aliases": ("-a", "--admin"),
                     "required": False,
                     "expect_content": False,
-                },],
+                },
+                {
+                    "ref": "delete",
+                    "aliases": ("-d", "--delete"),
+                    "required": False,
+                    "expect_content": False,
+                },
+            ],
         },
         "fn": _add_user,
-        "description": "Add a user"
+        "description": "Add/modify users",
     },
 }
 
