@@ -4,12 +4,8 @@ from playhouse.sqlite_ext import SqliteDatabase
 # http://docs.peewee-orm.com/en/latest/peewee/
 
 import datetime
-import json
-import os
 
-from playhouse.shortcuts import model_to_dict, dict_to_model
-
-from lib.utils import get_db_file, get_data_path
+from lib.utils import get_db_file
 
 DB_FILE = get_db_file()
 

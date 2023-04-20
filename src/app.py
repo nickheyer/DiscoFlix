@@ -7,7 +7,6 @@ import requests
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO
 import atexit
-import signal
 import json
 
 from models.utils import (
@@ -38,15 +37,19 @@ from bot.bot_controller import start_bot, kill_bot, kill_all_bots
 
 from models.models import initialize_db
 
+from api.api import rest
+
 # --- FLASK/SOCKET INSTANTIATION
 
 app = Flask(__name__)
 socketio = SocketIO(app)
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
+# --- IMPORTING REST API ROUTES ---
+
+app.register_blueprint(rest)
 
 # --- MISC HELPERS ---
-
 
 def refresh_logs():
     socketio.emit("bot_log_added", {"log": get_logs(100)})
@@ -137,23 +140,13 @@ def exit_shutdown():
 
 # --- HTTP ROUTES ---
 
-
 @app.route("/")
 def index():
     return render_template("/index.html")
 
-@app.route("/dbinit", methods=["GET"])
-def dbinit():
-    initialize_dirs()
-    initialize_db()
-    return "DB INITIALIZED"
-
-
-
 # --- WEBSOCKET ROUTES ---
 
 # - CLIENT SOCKETS
-
 
 @socketio.on("client_connect")
 def socket_on_connect(data):
