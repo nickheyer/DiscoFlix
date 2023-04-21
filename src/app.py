@@ -39,6 +39,11 @@ from models.models import initialize_db
 
 from api.api import rest
 
+from apispec import APISpec
+from apispec.ext.marshmallow import MarshmallowPlugin
+from apispec_webframeworks.flask import FlaskPlugin
+
+
 # --- FLASK/SOCKET INSTANTIATION
 
 app = Flask(__name__)
@@ -48,6 +53,29 @@ app.config["TEMPLATES_AUTO_RELOAD"] = True
 # --- IMPORTING REST API ROUTES ---
 
 app.register_blueprint(rest)
+
+# --- API DOCS (GET) ---
+
+@app.route('/api/docs.json')
+def api_docs():
+    spec = APISpec(
+        title="DiscoFlix REST API",
+        version="1.0.0",
+        openapi_version="3.0.2",
+        plugins=[FlaskPlugin(), MarshmallowPlugin()],
+    )
+    
+    # Add tags for better organization
+    spec.tags = [{"name": "Configurations"}, {"name": "Users"}, {"name": "Media"}]  # Add more tags as needed
+    
+    # Use the 'with app.test_request_context()' context manager to access the Flask app's context
+    with app.test_request_context():
+        # Register your app's routes with the spec
+        for rule in app.url_map.iter_rules():
+            if rule.endpoint != 'static':
+                spec.path(view=app.view_functions[rule.endpoint])
+    
+    return spec.to_dict()
 
 # --- MISC HELPERS ---
 
