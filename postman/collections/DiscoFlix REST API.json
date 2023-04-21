@@ -1,0 +1,2255 @@
+{
+	"info": {
+		"_postman_id": "ce4e9f07-f048-4914-a4b0-a351e7ea5c1c",
+		"name": "DiscoFlix REST API",
+		"description": "DiscoFlix REST API is a comprehensive and powerful API designed to interact with the DiscoDB behind DiscoFlix The API provides endpoints for managing configurations, users, media, media requests, and event logs, making it easy for developers and administrators to integrate and automate media server-related tasks.\n\n## Key Features\n\n- **Configuration Management**: Retrieve and update configuration settings such as the media server name, chat-prefix for requests, session timeout, and various API tokens for services like Discord, Radarr, and Sonarr.\n- **User Management**: Perform CRUD operations on users, filter users by attributes like username and ID, and manage user-specific settings like session timeouts, maximum search results, and maximum requests in a day.\n- **Media Management**: Retrieve information about media items, filter media based on attributes like title and ID, and interact with related media requests.\n- **Media Requests Management**: Create, retrieve, update, and delete media requests, and filter requests by attributes such as User and media ID.\n- **Discord Server Management**: Perform CRUD operations on Discord servers, and manage relationships between users and Discord servers.\n- **Event Log and Error Log Management**: Retrieve event and error logs, create and delete event logs, and update event logs by ID.\n- **Support for Many-to-Many Relationships**: The API supports complex data models with many-to-many relationships, allowing seamless interaction between users, media, and Discord servers.\n    \n\nThe DiscoFlix REST API uses JSON for data exchange and follows standard REST conventions, making it easy to integrate with various clients and platforms. With its extensive functionality and flexibility, the DiscoFlix REST API serves as an essential tool for managing your media server system effectively.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_uid": "23251960-ce4e9f07-f048-4914-a4b0-a351e7ea5c1c"
+	},
+	"item": [
+		{
+			"name": "Test",
+			"item": [
+				{
+					"name": "TEST API",
+					"id": "546a497b-5745-4884-8036-471d2c66cee7",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true,
+						"disabledSystemHeaders": {}
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://0.0.0.0:5454/api/test",
+							"protocol": "http",
+							"host": [
+								"0",
+								"0",
+								"0",
+								"0"
+							],
+							"port": "5454",
+							"path": [
+								"api",
+								"test"
+							]
+						}
+					},
+					"response": [
+						{
+							"id": "7edf47af-01eb-45e7-98d7-30a18ba7dd27",
+							"name": "Success",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://0.0.0.0:5454/api/test",
+									"protocol": "http",
+									"host": [
+										"0",
+										"0",
+										"0",
+										"0"
+									],
+									"port": "5454",
+									"path": [
+										"api",
+										"test"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "html",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "text/html; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "9"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 21 Apr 2023 05:34:41 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "it works!"
+						}
+					]
+				},
+				{
+					"name": "TEST API DOCS",
+					"id": "35bae54b-c320-43f3-bd27-03b3e8a5c1ea",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://0.0.0.0:5454/api/docs.json",
+							"protocol": "http",
+							"host": [
+								"0",
+								"0",
+								"0",
+								"0"
+							],
+							"port": "5454",
+							"path": [
+								"api",
+								"docs.json"
+							]
+						}
+					},
+					"response": [
+						{
+							"id": "c9c1ac93-80fb-4d9f-b670-7c0251015547",
+							"name": "Success",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://0.0.0.0:5454/api/docs.json",
+									"protocol": "http",
+									"host": [
+										"0",
+										"0",
+										"0",
+										"0"
+									],
+									"port": "5454",
+									"path": [
+										"api",
+										"docs.json"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "245"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 21 Apr 2023 06:15:38 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"info\": {\n        \"title\": \"DiscoFlix REST API\",\n        \"version\": \"1.0.0\"\n    },\n    \"openapi\": \"3.0.2\",\n    \"paths\": {\n        \"/\": {},\n        \"/api/configuration\": {},\n        \"/api/docs.json\": {},\n        \"/api/errors\": {},\n        \"/api/logs\": {},\n        \"/api/logs/{event_log_id}\": {},\n        \"/api/test\": {},\n        \"/api/user\": {},\n        \"/api/users\": {}\n    }\n}"
+						}
+					]
+				}
+			],
+			"id": "35128f1c-67f7-4414-8c17-e12e3463312f"
+		},
+		{
+			"name": "Configuration",
+			"item": [
+				{
+					"name": "Get Configuration",
+					"id": "ad5377f5-e7c6-423a-96c5-102c2dc21cbb",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://0.0.0.0:5454/api/configuration",
+							"protocol": "http",
+							"host": [
+								"0",
+								"0",
+								"0",
+								"0"
+							],
+							"port": "5454",
+							"path": [
+								"api",
+								"configuration"
+							]
+						}
+					},
+					"response": [
+						{
+							"id": "b03d2998-bd79-4a3f-908e-376177663d9a",
+							"name": "Success",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://0.0.0.0:5454/api/configuration",
+									"protocol": "http",
+									"host": [
+										"0",
+										"0",
+										"0",
+										"0"
+									],
+									"port": "5454",
+									"path": [
+										"api",
+										"configuration"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "536"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 21 Apr 2023 07:07:38 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"discord_token\": \"adasdasds3w4e1234234 23rf4f12342f234fv 2vgbv4hb2342gf2342343\",\n    \"id\": 1,\n    \"is_debug\": true,\n    \"is_radarr_enabled\": true,\n    \"is_sonarr_enabled\": true,\n    \"is_trailers_enabled\": true,\n    \"is_verbose_logging\": false,\n    \"max_check_time\": 600,\n    \"max_results\": 20,\n    \"max_seasons_for_non_admin\": 2,\n    \"media_server_name\": \"NickFlix\",\n    \"prefix_keyword\": \"!df\",\n    \"radarr_token\": \"asdafasdfsdfgsdfgasdgerwtwerweer\",\n    \"radarr_url\": \"http://192.168.1.128:6585\",\n    \"session_timeout\": 60,\n    \"sonarr_token\": \"fdhsdfy345345345tyrfedyrtyuuiuiuiui\",\n    \"sonarr_url\": \"http://192.168.1.128:8989\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Update Configuration",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "27d0f5c8-1e02-40bc-8607-7a1de1176d14",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"id": "a073492e-1840-4b1f-bcce-9fc171ea1f52",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"media_server_name\": \"Updated Server Name\",\n    \"prefix_keyword\": \"!updated\",\n    \"discord_token\": \"new_discord_token\",\n    \"radarr_url\": \"http://new_radarr_url.com\",\n    \"radarr_token\": \"new_radarr_token\",\n    \"sonarr_url\": \"http://new_sonarr_url.com\",\n    \"sonarr_token\": \"new_sonarr_token\",\n    \"session_timeout\": 120,\n    \"max_check_time\": 900,\n    \"max_results\": 50,\n    \"max_seasons_for_non_admin\": 5,\n    \"is_verbose_logging\": true,\n    \"is_debug\": true,\n    \"is_radarr_enabled\": false,\n    \"is_sonarr_enabled\": false,\n    \"is_trailers_enabled\": false\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://0.0.0.0:5454/api/configuration",
+							"protocol": "http",
+							"host": [
+								"0",
+								"0",
+								"0",
+								"0"
+							],
+							"port": "5454",
+							"path": [
+								"api",
+								"configuration"
+							]
+						}
+					},
+					"response": [
+						{
+							"id": "ddd85ae1-1c27-44f5-9767-3b8edf3d44de",
+							"name": "Success",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"media_server_name\": \"Updated Server Name\",\n    \"prefix_keyword\": \"!updated\",\n    \"discord_token\": \"new_discord_token\",\n    \"radarr_url\": \"http://new_radarr_url.com\",\n    \"radarr_token\": \"new_radarr_token\",\n    \"sonarr_url\": \"http://new_sonarr_url.com\",\n    \"sonarr_token\": \"new_sonarr_token\",\n    \"session_timeout\": 120,\n    \"max_check_time\": 900,\n    \"max_results\": 50,\n    \"max_seasons_for_non_admin\": 5,\n    \"is_verbose_logging\": true,\n    \"is_debug\": true,\n    \"is_radarr_enabled\": false,\n    \"is_sonarr_enabled\": false,\n    \"is_trailers_enabled\": false\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://0.0.0.0:5454/api/configuration",
+									"protocol": "http",
+									"host": [
+										"0",
+										"0",
+										"0",
+										"0"
+									],
+									"port": "5454",
+									"path": [
+										"api",
+										"configuration"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "477"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 21 Apr 2023 07:08:16 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"discord_token\": \"new_discord_token\",\n    \"id\": 1,\n    \"is_debug\": true,\n    \"is_radarr_enabled\": false,\n    \"is_sonarr_enabled\": false,\n    \"is_trailers_enabled\": false,\n    \"is_verbose_logging\": true,\n    \"max_check_time\": 900,\n    \"max_results\": 50,\n    \"max_seasons_for_non_admin\": 5,\n    \"media_server_name\": \"Updated Server Name\",\n    \"prefix_keyword\": \"!updated\",\n    \"radarr_token\": \"new_radarr_token\",\n    \"radarr_url\": \"http://new_radarr_url.com\",\n    \"session_timeout\": 120,\n    \"sonarr_token\": \"new_sonarr_token\",\n    \"sonarr_url\": \"http://new_sonarr_url.com\"\n}"
+						}
+					]
+				}
+			],
+			"id": "6459b11d-7832-4fe9-be6c-96fa9ec44de7"
+		},
+		{
+			"name": "Error Logs",
+			"item": [
+				{
+					"name": "Get Error Logs",
+					"id": "a02089ec-1ffa-4385-b376-c2d70e7992a1",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://0.0.0.0:5454/api/errors",
+							"protocol": "http",
+							"host": [
+								"0",
+								"0",
+								"0",
+								"0"
+							],
+							"port": "5454",
+							"path": [
+								"api",
+								"errors"
+							]
+						}
+					},
+					"response": [
+						{
+							"id": "05a1df62-050c-4983-bd3e-51bf0278fe53",
+							"name": "Success",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://0.0.0.0:5454/api/errors",
+									"protocol": "http",
+									"host": [
+										"0",
+										"0",
+										"0",
+										"0"
+									],
+									"port": "5454",
+									"path": [
+										"api",
+										"errors"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "3"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 21 Apr 2023 07:08:45 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "[]"
+						}
+					]
+				}
+			],
+			"id": "5f12bc90-67d5-4112-8cfd-51a4ca3d881a"
+		},
+		{
+			"name": "Event Logs",
+			"item": [
+				{
+					"name": "Get Event Logs",
+					"id": "a0931f26-d04a-435c-aeb3-6438b506e2f5",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://0.0.0.0:5454/api/logs",
+							"protocol": "http",
+							"host": [
+								"0",
+								"0",
+								"0",
+								"0"
+							],
+							"port": "5454",
+							"path": [
+								"api",
+								"logs"
+							]
+						}
+					},
+					"response": [
+						{
+							"id": "766f015b-aef8-4437-af62-9f01e1e786e9",
+							"name": "Success",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://0.0.0.0:5454/api/logs",
+									"protocol": "http",
+									"host": [
+										"0",
+										"0",
+										"0",
+										"0"
+									],
+									"port": "5454",
+									"path": [
+										"api",
+										"logs"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "177"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 20 Apr 2023 05:50:44 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "[\n    {\n        \"created\": \"Wed, 19 Apr 2023 22:50:10 GMT\",\n        \"entry\": \"Simple entry for your console/log\",\n        \"id\": 1\n    },\n    {\n        \"created\": \"Wed, 19 Apr 2023 22:50:37 GMT\",\n        \"entry\": \"Another entry yay!\",\n        \"id\": 2\n    }\n]"
+						}
+					]
+				},
+				{
+					"name": "Create Event Log",
+					"id": "f74ff49a-bfbc-4ebd-8665-e93815c6ddd4",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"entry\": \"Simple entry for your console/log\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://0.0.0.0:5454/api/logs",
+							"protocol": "http",
+							"host": [
+								"0",
+								"0",
+								"0",
+								"0"
+							],
+							"port": "5454",
+							"path": [
+								"api",
+								"logs"
+							]
+						}
+					},
+					"response": [
+						{
+							"id": "1d6014c6-f4cd-409d-a77c-9eef80140011",
+							"name": "Success",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"entry\": \"Simple entry for your console/log\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://0.0.0.0:5454/api/logs",
+									"protocol": "http",
+									"host": [
+										"0",
+										"0",
+										"0",
+										"0"
+									],
+									"port": "5454",
+									"path": [
+										"api",
+										"logs"
+									]
+								}
+							},
+							"status": "CREATED",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "95"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 20 Apr 2023 05:50:10 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"created\": \"Wed, 19 Apr 2023 22:50:10 GMT\",\n    \"entry\": \"Simple entry for your console/log\",\n    \"id\": 1\n}"
+						}
+					]
+				},
+				{
+					"name": "Update Event Log",
+					"id": "6997d6d5-067d-4801-933d-58047e9f66bc",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"entry\": \"THIS IS AN UPDATED EVENT LOG!\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://0.0.0.0:5454/api/logs/2",
+							"protocol": "http",
+							"host": [
+								"0",
+								"0",
+								"0",
+								"0"
+							],
+							"port": "5454",
+							"path": [
+								"api",
+								"logs",
+								"2"
+							]
+						}
+					},
+					"response": [
+						{
+							"id": "05fd34b5-6a22-498e-afe1-f40759d86af1",
+							"name": "Success",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"entry\": \"THIS IS AN UPDATED EVENT LOG!\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://0.0.0.0:5454/api/logs/2",
+									"protocol": "http",
+									"host": [
+										"0",
+										"0",
+										"0",
+										"0"
+									],
+									"port": "5454",
+									"path": [
+										"api",
+										"logs",
+										"2"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "91"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 20 Apr 2023 05:49:05 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"created\": \"Thu, 13 Apr 2023 06:58:23 GMT\",\n    \"entry\": \"THIS IS AN UPDATED EVENT LOG!\",\n    \"id\": 2\n}"
+						}
+					]
+				},
+				{
+					"name": "Delete Event Log",
+					"id": "6c378093-cac1-4ff8-abe6-464ddafb7f65",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://0.0.0.0:5454/api/logs/1",
+							"protocol": "http",
+							"host": [
+								"0",
+								"0",
+								"0",
+								"0"
+							],
+							"port": "5454",
+							"path": [
+								"api",
+								"logs",
+								"1"
+							]
+						}
+					},
+					"response": [
+						{
+							"id": "4a1d9dc2-5929-4dc4-8507-4d900447a121",
+							"name": "Success",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "http://0.0.0.0:5454/api/logs/1",
+									"protocol": "http",
+									"host": [
+										"0",
+										"0",
+										"0",
+										"0"
+									],
+									"port": "5454",
+									"path": [
+										"api",
+										"logs",
+										"1"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "31"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 20 Apr 2023 05:48:46 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"result\": \"Event log deleted\"\n}"
+						}
+					]
+				}
+			],
+			"id": "f205092a-eb86-4450-8b3f-d8391f0755ad"
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Get Users",
+					"id": "4d00cd2a-382a-4960-ba56-b0d830325e0d",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://0.0.0.0:5454/api/users",
+							"protocol": "http",
+							"host": [
+								"0",
+								"0",
+								"0",
+								"0"
+							],
+							"port": "5454",
+							"path": [
+								"api",
+								"users"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "0",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "is_additional_settings",
+									"value": "false",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "is_admin",
+									"value": "true",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "is_server_owner",
+									"value": "false",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "is_server_restricted",
+									"value": "true",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "max_check_time",
+									"value": "0",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "max_requests_in_day",
+									"value": "0",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "max_results",
+									"value": "0",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "max_seasons_for_non_admin",
+									"value": "0",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "session_timeout",
+									"value": "0",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "username",
+									"value": "username#0000",
+									"type": "text",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"id": "f082d610-4061-4466-acb8-a5b035f6b730",
+							"name": "Get All Admin Users",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://0.0.0.0:5454/api/users?is_admin=true",
+									"protocol": "http",
+									"host": [
+										"0",
+										"0",
+										"0",
+										"0"
+									],
+									"port": "5454",
+									"path": [
+										"api",
+										"users"
+									],
+									"query": [
+										{
+											"key": "id",
+											"value": "0",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "is_additional_settings",
+											"value": "false",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "is_admin",
+											"value": "true",
+											"type": "text"
+										},
+										{
+											"key": "is_server_owner",
+											"value": "false",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "is_server_restricted",
+											"value": "false",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "max_check_time",
+											"value": "0",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "max_requests_in_day",
+											"value": "0",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "max_results",
+											"value": "0",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "max_seasons_for_non_admin",
+											"value": "0",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "session_timeout",
+											"value": "0",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "username",
+											"value": "username#0000",
+											"type": "text",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "1453"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 21 Apr 2023 06:08:56 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "[\n    {\n        \"added\": \"Thu, 13 Apr 2023 06:58:39 GMT\",\n        \"id\": 1,\n        \"is_additional_settings\": true,\n        \"is_admin\": true,\n        \"is_server_owner\": true,\n        \"is_server_restricted\": false,\n        \"max_check_time\": 600,\n        \"max_requests_in_day\": 0,\n        \"max_results\": 0,\n        \"max_seasons_for_non_admin\": 0,\n        \"session_timeout\": 60,\n        \"username\": \"NicholasHeyer#4212\"\n    },\n    {\n        \"added\": \"Thu, 13 Apr 2023 06:59:36 GMT\",\n        \"id\": 2,\n        \"is_additional_settings\": false,\n        \"is_admin\": true,\n        \"is_server_owner\": false,\n        \"is_server_restricted\": true,\n        \"max_check_time\": 600,\n        \"max_requests_in_day\": 0,\n        \"max_results\": 0,\n        \"max_seasons_for_non_admin\": 0,\n        \"session_timeout\": 60,\n        \"username\": \"Sirius_Stark#9455\"\n    },\n    {\n        \"added\": \"Thu, 13 Apr 2023 06:59:36 GMT\",\n        \"id\": 3,\n        \"is_additional_settings\": false,\n        \"is_admin\": true,\n        \"is_server_owner\": false,\n        \"is_server_restricted\": true,\n        \"max_check_time\": 600,\n        \"max_requests_in_day\": 0,\n        \"max_results\": 0,\n        \"max_seasons_for_non_admin\": 0,\n        \"session_timeout\": 60,\n        \"username\": \"offSOON#2729\"\n    },\n    {\n        \"added\": \"Thu, 13 Apr 2023 06:59:36 GMT\",\n        \"id\": 4,\n        \"is_additional_settings\": false,\n        \"is_admin\": true,\n        \"is_server_owner\": false,\n        \"is_server_restricted\": true,\n        \"max_check_time\": 600,\n        \"max_requests_in_day\": 0,\n        \"max_results\": 0,\n        \"max_seasons_for_non_admin\": 0,\n        \"session_timeout\": 60,\n        \"username\": \"Wyleops#1995\"\n    },\n    {\n        \"added\": \"Thu, 20 Apr 2023 22:38:36 GMT\",\n        \"id\": 12,\n        \"is_additional_settings\": false,\n        \"is_admin\": true,\n        \"is_server_owner\": false,\n        \"is_server_restricted\": false,\n        \"max_check_time\": 600,\n        \"max_requests_in_day\": 0,\n        \"max_results\": 0,\n        \"max_seasons_for_non_admin\": 0,\n        \"session_timeout\": 60,\n        \"username\": \"randomtestuser69#1721\"\n    }\n]"
+						},
+						{
+							"id": "e3ff042a-ed2d-4848-b3b0-96248e2c40ac",
+							"name": "Get All Admin/Restricted Users",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://0.0.0.0:5454/api/users?is_admin=true&is_server_restricted=true",
+									"protocol": "http",
+									"host": [
+										"0",
+										"0",
+										"0",
+										"0"
+									],
+									"port": "5454",
+									"path": [
+										"api",
+										"users"
+									],
+									"query": [
+										{
+											"key": "id",
+											"value": "0",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "is_additional_settings",
+											"value": "false",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "is_admin",
+											"value": "true",
+											"type": "text"
+										},
+										{
+											"key": "is_server_owner",
+											"value": "false",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "is_server_restricted",
+											"value": "true",
+											"type": "text"
+										},
+										{
+											"key": "max_check_time",
+											"value": "0",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "max_requests_in_day",
+											"value": "0",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "max_results",
+											"value": "0",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "max_seasons_for_non_admin",
+											"value": "0",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "session_timeout",
+											"value": "0",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "username",
+											"value": "username#0000",
+											"type": "text",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "865"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 21 Apr 2023 06:09:23 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "[\n    {\n        \"added\": \"Thu, 13 Apr 2023 06:59:36 GMT\",\n        \"id\": 2,\n        \"is_additional_settings\": false,\n        \"is_admin\": true,\n        \"is_server_owner\": false,\n        \"is_server_restricted\": true,\n        \"max_check_time\": 600,\n        \"max_requests_in_day\": 0,\n        \"max_results\": 0,\n        \"max_seasons_for_non_admin\": 0,\n        \"session_timeout\": 60,\n        \"username\": \"Sirius_Stark#9455\"\n    },\n    {\n        \"added\": \"Thu, 13 Apr 2023 06:59:36 GMT\",\n        \"id\": 3,\n        \"is_additional_settings\": false,\n        \"is_admin\": true,\n        \"is_server_owner\": false,\n        \"is_server_restricted\": true,\n        \"max_check_time\": 600,\n        \"max_requests_in_day\": 0,\n        \"max_results\": 0,\n        \"max_seasons_for_non_admin\": 0,\n        \"session_timeout\": 60,\n        \"username\": \"offSOON#2729\"\n    },\n    {\n        \"added\": \"Thu, 13 Apr 2023 06:59:36 GMT\",\n        \"id\": 4,\n        \"is_additional_settings\": false,\n        \"is_admin\": true,\n        \"is_server_owner\": false,\n        \"is_server_restricted\": true,\n        \"max_check_time\": 600,\n        \"max_requests_in_day\": 0,\n        \"max_results\": 0,\n        \"max_seasons_for_non_admin\": 0,\n        \"session_timeout\": 60,\n        \"username\": \"Wyleops#1995\"\n    }\n]"
+						},
+						{
+							"id": "d6349c43-06f7-448e-b2fc-96098145d177",
+							"name": "Get No Users",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://0.0.0.0:5454/api/users?id=999&is_admin=true&is_server_restricted=true",
+									"protocol": "http",
+									"host": [
+										"0",
+										"0",
+										"0",
+										"0"
+									],
+									"port": "5454",
+									"path": [
+										"api",
+										"users"
+									],
+									"query": [
+										{
+											"key": "id",
+											"value": "999",
+											"type": "text"
+										},
+										{
+											"key": "is_additional_settings",
+											"value": "false",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "is_admin",
+											"value": "true",
+											"type": "text"
+										},
+										{
+											"key": "is_server_owner",
+											"value": "false",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "is_server_restricted",
+											"value": "true",
+											"type": "text"
+										},
+										{
+											"key": "max_check_time",
+											"value": "0",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "max_requests_in_day",
+											"value": "0",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "max_results",
+											"value": "0",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "max_seasons_for_non_admin",
+											"value": "0",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "session_timeout",
+											"value": "0",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "username",
+											"value": "username#0000",
+											"type": "text",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "3"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 21 Apr 2023 06:09:40 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "[]"
+						}
+					]
+				},
+				{
+					"name": "Get User",
+					"id": "af760e5a-a9c1-434f-8ed3-4a45c86e5ad1",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://0.0.0.0:5454/api/user",
+							"protocol": "http",
+							"host": [
+								"0",
+								"0",
+								"0",
+								"0"
+							],
+							"port": "5454",
+							"path": [
+								"api",
+								"user"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "0",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "is_additional_settings",
+									"value": "false",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "is_admin",
+									"value": "false",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "is_server_owner",
+									"value": "false",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "is_server_restricted",
+									"value": "false",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "max_check_time",
+									"value": "0",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "max_requests_in_day",
+									"value": "0",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "max_results",
+									"value": "0",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "max_seasons_for_non_admin",
+									"value": "0",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "session_timeout",
+									"value": "0",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "username",
+									"value": "username#0000",
+									"type": "text",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"id": "67854e2c-5cd1-424e-a224-1c420cf2995d",
+							"name": "Throw Error",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://0.0.0.0:5454/api/user?id=99",
+									"protocol": "http",
+									"host": [
+										"0",
+										"0",
+										"0",
+										"0"
+									],
+									"port": "5454",
+									"path": [
+										"api",
+										"user"
+									],
+									"query": [
+										{
+											"key": "id",
+											"value": "99",
+											"type": "text"
+										},
+										{
+											"key": "is_additional_settings",
+											"value": " false",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "is_admin",
+											"value": " false",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "is_server_owner",
+											"value": " false",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "is_server_restricted",
+											"value": " false",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "max_check_time",
+											"value": " 600",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "max_requests_in_day",
+											"value": " 0",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "max_results",
+											"value": " 0",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "max_seasons_for_non_admin",
+											"value": " 0",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "session_timeout",
+											"value": " 60",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "username",
+											"value": " null",
+											"type": "text",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"status": "BAD REQUEST",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "56"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 21 Apr 2023 06:03:11 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"error\": \"No user found that matches these parameters\"\n}"
+						},
+						{
+							"id": "23e3a635-9571-4dc9-86c0-e5fc5a528579",
+							"name": "Get First Admin/Owner/Not Restricted User",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://0.0.0.0:5454/api/user?is_admin=true&is_server_owner=true&is_server_restricted=false",
+									"protocol": "http",
+									"host": [
+										"0",
+										"0",
+										"0",
+										"0"
+									],
+									"port": "5454",
+									"path": [
+										"api",
+										"user"
+									],
+									"query": [
+										{
+											"key": "id",
+											"value": "0",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "is_additional_settings",
+											"value": "false",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "is_admin",
+											"value": "true",
+											"type": "text"
+										},
+										{
+											"key": "is_server_owner",
+											"value": "true",
+											"type": "text"
+										},
+										{
+											"key": "is_server_restricted",
+											"value": "false",
+											"type": "text"
+										},
+										{
+											"key": "max_check_time",
+											"value": "600",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "max_requests_in_day",
+											"value": "0",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "max_results",
+											"value": "0",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "max_seasons_for_non_admin",
+											"value": "0",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "session_timeout",
+											"value": "60",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "username",
+											"value": "username#0000",
+											"type": "text",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "291"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 21 Apr 2023 06:06:03 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"added\": \"Thu, 13 Apr 2023 06:58:39 GMT\",\n    \"id\": 1,\n    \"is_additional_settings\": true,\n    \"is_admin\": true,\n    \"is_server_owner\": true,\n    \"is_server_restricted\": false,\n    \"max_check_time\": 600,\n    \"max_requests_in_day\": 0,\n    \"max_results\": 0,\n    \"max_seasons_for_non_admin\": 0,\n    \"session_timeout\": 60,\n    \"username\": \"NicholasHeyer#4212\"\n}"
+						},
+						{
+							"id": "04809b34-51cd-451b-b9ff-5561c600093d",
+							"name": "Get User #10",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://0.0.0.0:5454/api/user?id=10",
+									"protocol": "http",
+									"host": [
+										"0",
+										"0",
+										"0",
+										"0"
+									],
+									"port": "5454",
+									"path": [
+										"api",
+										"user"
+									],
+									"query": [
+										{
+											"key": "id",
+											"value": "10",
+											"type": "text"
+										},
+										{
+											"key": "is_additional_settings",
+											"value": "false",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "is_admin",
+											"value": "false",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "is_server_owner",
+											"value": "false",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "is_server_restricted",
+											"value": "false",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "max_check_time",
+											"value": "0",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "max_requests_in_day",
+											"value": "0",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "max_results",
+											"value": "0",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "max_seasons_for_non_admin",
+											"value": "0",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "session_timeout",
+											"value": "0",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "username",
+											"value": "username#0000",
+											"type": "text",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "291"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 21 Apr 2023 06:10:21 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"added\": \"Thu, 13 Apr 2023 07:02:52 GMT\",\n    \"id\": 10,\n    \"is_additional_settings\": false,\n    \"is_admin\": false,\n    \"is_server_owner\": false,\n    \"is_server_restricted\": true,\n    \"max_check_time\": 600,\n    \"max_requests_in_day\": 0,\n    \"max_results\": 0,\n    \"max_seasons_for_non_admin\": 0,\n    \"session_timeout\": 60,\n    \"username\": \"BrewFather#2002\"\n}"
+						},
+						{
+							"id": "4b854a6d-601e-400b-9b83-4cbc767b8f57",
+							"name": "Get First Admin/Restricted User",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://0.0.0.0:5454/api/user?is_admin=true&is_server_restricted=true",
+									"protocol": "http",
+									"host": [
+										"0",
+										"0",
+										"0",
+										"0"
+									],
+									"port": "5454",
+									"path": [
+										"api",
+										"user"
+									],
+									"query": [
+										{
+											"key": "id",
+											"value": "0",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "is_additional_settings",
+											"value": "false",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "is_admin",
+											"value": "true",
+											"type": "text"
+										},
+										{
+											"key": "is_server_owner",
+											"value": "false",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "is_server_restricted",
+											"value": "true",
+											"type": "text"
+										},
+										{
+											"key": "max_check_time",
+											"value": "0",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "max_requests_in_day",
+											"value": "0",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "max_results",
+											"value": "0",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "max_seasons_for_non_admin",
+											"value": "0",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "session_timeout",
+											"value": "0",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "username",
+											"value": "username#0000",
+											"type": "text",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "291"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 21 Apr 2023 06:10:52 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"added\": \"Thu, 13 Apr 2023 06:59:36 GMT\",\n    \"id\": 2,\n    \"is_additional_settings\": false,\n    \"is_admin\": true,\n    \"is_server_owner\": false,\n    \"is_server_restricted\": true,\n    \"max_check_time\": 600,\n    \"max_requests_in_day\": 0,\n    \"max_results\": 0,\n    \"max_seasons_for_non_admin\": 0,\n    \"session_timeout\": 60,\n    \"username\": \"Sirius_Stark#9455\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Create User",
+					"id": "0cc75783-23b6-48c6-bc8e-146437adb227",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  //\"discord_server_id\": 1,\n  //\"is_additional_settings\": false,\n  //\"is_admin\": false,\n  //\"is_server_owner\": false,\n  //\"is_server_restricted\": false,\n  //\"max_check_time\": 0,\n  //\"max_requests_in_day\": 0,\n  //\"max_results\": 0,\n  //\"max_seasons_for_non_admin\": 0,\n  //\"session_timeout\": 0,\n  \"username\": \"testUser#0000\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://0.0.0.0:5454/api/user",
+							"protocol": "http",
+							"host": [
+								"0",
+								"0",
+								"0",
+								"0"
+							],
+							"port": "5454",
+							"path": [
+								"api",
+								"user"
+							]
+						}
+					},
+					"response": [
+						{
+							"id": "1c666fe0-e69d-4c74-a0be-5c74ec221160",
+							"name": "Create User With All Params",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"discord_server_id\": 1,\n  \"is_additional_settings\": false,\n  \"is_admin\": false,\n  \"is_server_owner\": false,\n  \"is_server_restricted\": false,\n  \"max_check_time\": 0,\n  \"max_requests_in_day\": 0,\n  \"max_results\": 0,\n  \"max_seasons_for_non_admin\": 0,\n  \"session_timeout\": 0,\n  \"username\": \"testUser#0000\"\n}\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://0.0.0.0:5454/api/user",
+									"protocol": "http",
+									"host": [
+										"0",
+										"0",
+										"0",
+										"0"
+									],
+									"port": "5454",
+									"path": [
+										"api",
+										"user"
+									]
+								}
+							},
+							"status": "CREATED",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "287"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 21 Apr 2023 06:25:58 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"added\": \"Thu, 20 Apr 2023 23:25:58 GMT\",\n    \"id\": 14,\n    \"is_additional_settings\": false,\n    \"is_admin\": false,\n    \"is_server_owner\": false,\n    \"is_server_restricted\": false,\n    \"max_check_time\": 0,\n    \"max_requests_in_day\": 0,\n    \"max_results\": 0,\n    \"max_seasons_for_non_admin\": 0,\n    \"session_timeout\": 0,\n    \"username\": \"testUser#0000\"\n}"
+						},
+						{
+							"id": "105a4c00-5535-4a1c-abaa-af23eee7c2f0",
+							"name": "Create User With Only Username",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  //\"discord_server_id\": 1,\n  //\"is_additional_settings\": false,\n  //\"is_admin\": false,\n  //\"is_server_owner\": false,\n  //\"is_server_restricted\": false,\n  //\"max_check_time\": 0,\n  //\"max_requests_in_day\": 0,\n  //\"max_results\": 0,\n  //\"max_seasons_for_non_admin\": 0,\n  //\"session_timeout\": 0,\n  \"username\": \"testUserWithOnlyUsername#0000\"\n}\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://0.0.0.0:5454/api/user",
+									"protocol": "http",
+									"host": [
+										"0",
+										"0",
+										"0",
+										"0"
+									],
+									"port": "5454",
+									"path": [
+										"api",
+										"user"
+									]
+								}
+							},
+							"status": "CREATED",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "306"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 21 Apr 2023 06:31:23 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"added\": \"Thu, 20 Apr 2023 23:31:23 GMT\",\n    \"id\": 13,\n    \"is_additional_settings\": false,\n    \"is_admin\": false,\n    \"is_server_owner\": false,\n    \"is_server_restricted\": false,\n    \"max_check_time\": 600,\n    \"max_requests_in_day\": 0,\n    \"max_results\": 0,\n    \"max_seasons_for_non_admin\": 0,\n    \"session_timeout\": 60,\n    \"username\": \"testUserWithOnlyUsernameProvided#0000\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Update User",
+					"id": "6917a037-fb52-4773-8d8b-46ac1e577fff",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  //\"discord_server_id\": 1\n  //\"is_additional_settings\": false,\n  //\"is_admin\": false,\n  //\"is_server_owner\": false\n  //\"is_server_restricted\": false,\n  //\"max_check_time\": 0,\n  //\"max_requests_in_day\": 0,\n  //\"max_results\": 0,\n  //\"max_seasons_for_non_admin\": 0,\n  //\"session_timeout\": 0,\n  //\"username\": \"testUser#0000\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://0.0.0.0:5454/api/user/1",
+							"protocol": "http",
+							"host": [
+								"0",
+								"0",
+								"0",
+								"0"
+							],
+							"port": "5454",
+							"path": [
+								"api",
+								"user",
+								"1"
+							]
+						}
+					},
+					"response": [
+						{
+							"id": "3082ec8c-663b-47c4-a429-ed9bb92dee3e",
+							"name": "No Changes With No Params",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  //\"discord_server_id\": 1,\n  //\"is_additional_settings\": false,\n  //\"is_admin\": false,\n  //\"is_server_owner\": false\n  //\"is_server_restricted\": false,\n  //\"max_check_time\": 0,\n  //\"max_requests_in_day\": 0,\n  //\"max_results\": 0,\n  //\"max_seasons_for_non_admin\": 0,\n  //\"session_timeout\": 0,\n  //\"username\": \"testUser#0000\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": ""
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "291"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 21 Apr 2023 06:43:14 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"added\": \"Thu, 13 Apr 2023 06:58:39 GMT\",\n    \"id\": 1,\n    \"is_additional_settings\": true,\n    \"is_admin\": true,\n    \"is_server_owner\": true,\n    \"is_server_restricted\": false,\n    \"max_check_time\": 600,\n    \"max_requests_in_day\": 0,\n    \"max_results\": 0,\n    \"max_seasons_for_non_admin\": 0,\n    \"session_timeout\": 60,\n    \"username\": \"NicholasHeyer#4212\"\n}"
+						},
+						{
+							"id": "7fbc46bc-c815-49dd-8d5c-97ac88d12d3a",
+							"name": "Make User Non-Admin/Non-Restricted",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  //\"discord_server_id\": 1,\n  //\"is_additional_settings\": false,\n  \"is_admin\": false,\n  \"is_server_owner\": false\n  //\"is_server_restricted\": false,\n  //\"max_check_time\": 0,\n  //\"max_requests_in_day\": 0,\n  //\"max_results\": 0,\n  //\"max_seasons_for_non_admin\": 0,\n  //\"session_timeout\": 0,\n  //\"username\": \"testUser#0000\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://0.0.0.0:5454/api/user/1",
+									"protocol": "http",
+									"host": [
+										"0",
+										"0",
+										"0",
+										"0"
+									],
+									"port": "5454",
+									"path": [
+										"api",
+										"user",
+										"1"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "293"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 21 Apr 2023 06:39:40 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"added\": \"Thu, 13 Apr 2023 06:58:39 GMT\",\n    \"id\": 1,\n    \"is_additional_settings\": true,\n    \"is_admin\": false,\n    \"is_server_owner\": false,\n    \"is_server_restricted\": false,\n    \"max_check_time\": 600,\n    \"max_requests_in_day\": 0,\n    \"max_results\": 0,\n    \"max_seasons_for_non_admin\": 0,\n    \"session_timeout\": 60,\n    \"username\": \"NicholasHeyer#4212\"\n}"
+						},
+						{
+							"id": "a8e4dd1d-eace-48b6-a083-b1c43f1536e9",
+							"name": "Error When ID Doesn't Exist",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  //\"discord_server_id\": 1,\n  //\"is_additional_settings\": false,\n  //\"is_admin\": false,\n  //\"is_server_owner\": false\n  //\"is_server_restricted\": false,\n  //\"max_check_time\": 0,\n  //\"max_requests_in_day\": 0,\n  //\"max_results\": 0,\n  //\"max_seasons_for_non_admin\": 0,\n  //\"session_timeout\": 0,\n  //\"username\": \"testUser#0000\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://0.0.0.0:5454/api/user/99",
+									"protocol": "http",
+									"host": [
+										"0",
+										"0",
+										"0",
+										"0"
+									],
+									"port": "5454",
+									"path": [
+										"api",
+										"user",
+										"99"
+									]
+								}
+							},
+							"status": "NOT FOUND",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "40"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 21 Apr 2023 06:42:42 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"error\": \"User with ID '99' not found\"\n}"
+						},
+						{
+							"id": "65b943b1-0812-43c3-aefc-afb0c750b42c",
+							"name": "Add Discord Server #1 To User",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"discord_server_id\": 1\n  //\"is_additional_settings\": false,\n  //\"is_admin\": false,\n  //\"is_server_owner\": false\n  //\"is_server_restricted\": false,\n  //\"max_check_time\": 0,\n  //\"max_requests_in_day\": 0,\n  //\"max_results\": 0,\n  //\"max_seasons_for_non_admin\": 0,\n  //\"session_timeout\": 0,\n  //\"username\": \"testUser#0000\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://0.0.0.0:5454/api/user/1",
+									"protocol": "http",
+									"host": [
+										"0",
+										"0",
+										"0",
+										"0"
+									],
+									"port": "5454",
+									"path": [
+										"api",
+										"user",
+										"1"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "290"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 21 Apr 2023 06:46:38 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"added\": \"Thu, 13 Apr 2023 06:58:39 GMT\",\n    \"id\": 1,\n    \"is_additional_settings\": true,\n    \"is_admin\": true,\n    \"is_server_owner\": true,\n    \"is_server_restricted\": true,\n    \"max_check_time\": 600,\n    \"max_requests_in_day\": 0,\n    \"max_results\": 0,\n    \"max_seasons_for_non_admin\": 0,\n    \"session_timeout\": 60,\n    \"username\": \"NicholasHeyer#4212\"\n}"
+						},
+						{
+							"id": "b8ad90d6-fa3d-44f7-88ec-b4939abe3cde",
+							"name": "Error When User Already In Discord Server",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"discord_server_id\": 3\n  //\"is_additional_settings\": false,\n  //\"is_admin\": false,\n  //\"is_server_owner\": false\n  //\"is_server_restricted\": false,\n  //\"max_check_time\": 0,\n  //\"max_requests_in_day\": 0,\n  //\"max_results\": 0,\n  //\"max_seasons_for_non_admin\": 0,\n  //\"session_timeout\": 0,\n  //\"username\": \"testUser#0000\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://0.0.0.0:5454/api/user/1",
+									"protocol": "http",
+									"host": [
+										"0",
+										"0",
+										"0",
+										"0"
+									],
+									"port": "5454",
+									"path": [
+										"api",
+										"user",
+										"1"
+									]
+								}
+							},
+							"status": "BAD REQUEST",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "78"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 21 Apr 2023 06:51:08 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"error\": \"User already exists within Discord Server: 'Wayback Boiz' (ID: 3)\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Delete User",
+					"id": "c0a21ffb-f3ee-4827-957f-c6ca1ac920e2",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://0.0.0.0:5454/api/user/1",
+							"protocol": "http",
+							"host": [
+								"0",
+								"0",
+								"0",
+								"0"
+							],
+							"port": "5454",
+							"path": [
+								"api",
+								"user",
+								"1"
+							]
+						}
+					},
+					"response": [
+						{
+							"id": "79626ae4-1f84-4f8b-be02-d245c397538d",
+							"name": "Success",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "http://0.0.0.0:5454/api/user/13",
+									"protocol": "http",
+									"host": [
+										"0",
+										"0",
+										"0",
+										"0"
+									],
+									"port": "5454",
+									"path": [
+										"api",
+										"user",
+										"13"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "48"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 21 Apr 2023 06:55:09 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"message\": \"User with ID 13 has been deleted.\"\n}"
+						},
+						{
+							"id": "1a0e2c63-79f5-445c-b89b-81afa3f4f549",
+							"name": "Error When ID Doesn't Exist",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "http://0.0.0.0:5454/api/user/999",
+									"protocol": "http",
+									"host": [
+										"0",
+										"0",
+										"0",
+										"0"
+									],
+									"port": "5454",
+									"path": [
+										"api",
+										"user",
+										"999"
+									]
+								}
+							},
+							"status": "NOT FOUND",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "41"
+								},
+								{
+									"key": "Date",
+									"value": "Fri, 21 Apr 2023 06:57:36 GMT"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"error\": \"User with ID '999' not found\"\n}"
+						}
+					]
+				}
+			],
+			"id": "fd675279-ce36-45ec-9453-e158a1e2fe85"
+		}
+	]
+}

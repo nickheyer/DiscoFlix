@@ -3,7 +3,7 @@
 
 
 ### The ideal way for you and your users to request media via Discord.
-Compatible with Radarr & Sonarr.
+Compatible with Radarr & Sonarr. Includes a [REST API](https://www.postman.com/galactic-equinox-215583/workspace/discoflixpublic/documentation/23251960-1f000df7-56aa-495e-9a00-fd0eeefe33ab).
 
 <hr />
 
@@ -33,14 +33,17 @@ curl https://raw.githubusercontent.com/nickheyer/DiscoFlix/main/auto_install_upd
 
 
 ##### Download Docker Image (x86_64 Architecture) 
+
 ```bash
 docker image pull nickheyer/discoflix:latest
 ```
 ##### Download Docker Image (aarch64 Architecture, ie: Raspberry-Pi) 
+
 ```bash
 docker image pull nickheyer/discoflix_rpi:latest
 ```
 ##### Run Docker Container
+
 ```bash
 docker run -d -p 5454:5454 nickheyer/discoflix
 ```
@@ -91,7 +94,8 @@ sh ./run.sh
 
 ## General Instructions
 
-#### Accessing The Web-UI
+
+### Accessing The Web-UI
 
 ![Peek 2023-04-07 20-49](https://user-images.githubusercontent.com/60236014/230701931-2bf15aaa-93e5-4060-89a8-60233f0ac211.gif)
 
@@ -99,7 +103,7 @@ sh ./run.sh
 
 > If you are hosting DiscoFlix (using Docker) on the same machine that you are hosting Radarr & Sonarr, you won't be able to access your Radarr & Sonarr using `http://localhost:<port>`, as that would be referencing the localhost of the docker container itself. Instead, use `http://host.docker.internal:<port>` - consider this the `localhost` of the machine hosting the docker container.
 
-#### *If you would like to access DiscoFlix remotely, as in not on the same network as the host machine, you will need to do some port forwarding to expose port 5454 to the internet. If you run into any trouble here, feel free to join the [Discord](https://discord.com/invite/6Z9yKTbsrP)!*
+#### *If you would like to access DiscoFlix remotely, as in not on the same network as the host machine, you will need to do some port forwarding to expose port 5454 to the internet. Run into trouble? Feel free to join the [Discord](https://discord.com/invite/6Z9yKTbsrP)!*
 
 <hr />
 
@@ -114,22 +118,25 @@ sh ./run.sh
 #### *If you haven't already, now is also a good time to invite the bot to the server or servers you would like to monitor, you can do that via the Discord Developer Portal. Admin access is the only level we have tested. Anything less may result in errors.*
 
 <hr />
+
 <br />
 
 ## Usage
 
 
 ### Add Yourself As An Admin
+
 ![Peek 2023-04-07 20-10](https://user-images.githubusercontent.com/60236014/230700808-3e6c6663-4d42-467f-9130-542f054b73ce.gif)
 
 
 
 
 ### Test That The Bot Is Running
+
 Type the following into a discord chat message that the bot can see:
 
 ```
-!df test
+!df testeader
 ```
 
 ![Peek 2023-04-07 20-15](https://user-images.githubusercontent.com/60236014/230700917-a54846b6-804c-461f-83df-fa2c6b003e64.gif)
@@ -153,6 +160,7 @@ We can also test our Sonarr requests. Let's try "Cyberpunk Edgerunners".
 
 
 ### Available Commands
+
 To see the commands available to you, type `!df help`. DiscoFlix should respond with a table containing some or all of the below commands.
 
 
@@ -170,6 +178,17 @@ To see the commands available to you, type `!df help`. DiscoFlix should respond 
 > The above commands assume that your command prefix is set to the default `!df`. Adjust accordingly.
 
 > Keep in mind that you will need to mark yourself as "server owner" in the user control panel to use the debug commands.
+
+<br />
+
+## API
+
+[![Run in Postman](https://run.pstmn.io/button.svg)](https://app.getpostman.com/run-collection/23251960-1f000df7-56aa-495e-9a00-fd0eeefe33ab?action=collection%2Ffork&collection-url=entityId%3D23251960-1f000df7-56aa-495e-9a00-fd0eeefe33ab%26entityType%3Dcollection%26workspaceId%3Ded14656f-43d1-4444-affa-ebb323d67835)
+
+Or just view the [docs](https://www.postman.com/galactic-equinox-215583/workspace/discoflixpublic/documentation/23251960-1f000df7-56aa-495e-9a00-fd0eeefe33ab).
+
+<br />
+
 ## Further Notes
 
 
