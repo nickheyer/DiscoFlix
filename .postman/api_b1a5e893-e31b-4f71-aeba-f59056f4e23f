@@ -9,7 +9,7 @@ id = b1a5e893-e31b-4f71-aeba-f59056f4e23f
 
 [config.relations.collections]
 rootDirectory = postman/collections
-files[] = {"id":"23251960-ce4e9f07-f048-4914-a4b0-a351e7ea5c1c","path":"DiscoFlix API.json","metaData":{"generateCollectionPreferences":"{\"updateCollectionSync\":true}"}}
+files[] = {"id":"23251960-ce4e9f07-f048-4914-a4b0-a351e7ea5c1c","path":"DiscoFlix REST API.json","metaData":{}}
 
 [config.relations.collections.metaData]
 
