@@ -3,7 +3,7 @@
 
 
 ### The ideal way for you and your users to request media via Discord.
-Compatible with Radarr & Sonarr. Includes a [REST API](#api).
+Compatible with Radarr & Sonarr. Includes a [REST API](https://www.postman.com/galactic-equinox-215583/workspace/discoflixpublic/documentation/23251960-1f000df7-56aa-495e-9a00-fd0eeefe33ab).
 
 <hr />
 
@@ -184,6 +184,8 @@ To see the commands available to you, type `!df help`. DiscoFlix should respond 
 ## API
 
 [![Run in Postman](https://run.pstmn.io/button.svg)](https://app.getpostman.com/run-collection/23251960-1f000df7-56aa-495e-9a00-fd0eeefe33ab?action=collection%2Ffork&collection-url=entityId%3D23251960-1f000df7-56aa-495e-9a00-fd0eeefe33ab%26entityType%3Dcollection%26workspaceId%3Ded14656f-43d1-4444-affa-ebb323d67835)
+
+Or just view the [docs](https://www.postman.com/galactic-equinox-215583/workspace/discoflixpublic/documentation/23251960-1f000df7-56aa-495e-9a00-fd0eeefe33ab).
 
 <br />
 
