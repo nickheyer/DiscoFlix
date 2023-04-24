@@ -136,7 +136,7 @@ sh ./run.sh
 Type the following into a discord chat message that the bot can see:
 
 ```
-!df testeader
+!df test
 ```
 
 ![Peek 2023-04-07 20-15](https://user-images.githubusercontent.com/60236014/230700917-a54846b6-804c-461f-83df-fa2c6b003e64.gif)
