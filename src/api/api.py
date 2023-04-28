@@ -105,8 +105,12 @@ def get_users():
             query = query.where(field == value)
         else:
             return jsonify({"error": f"Invalid field '{key}' in query parameters"}), 400
-
-    users = [model_to_dict(user) for user in query]
+    
+    if not query_params.get('recursive', False):
+        users = [model_to_dict(user) for user in query]
+    else:
+        users = [model_to_dict(user, backrefs=True, recurse=True) for user in query]
+    
     return jsonify(users), 200
 
 @rest.route('/user', methods=['GET'])
@@ -126,11 +130,11 @@ def get_user():
                     return jsonify({"error": f"Invalid boolean value '{value}' for field '{key}'"}), 400
 
             query = query.where(field == value)
-        else:
-            return jsonify({"error": f"Invalid field '{key}' in query parameters"}), 400
 
-    if query:
+    if query and not query_params.get('recursive', False):
         user = model_to_dict(query[0])
+    elif query:
+        user = model_to_dict(query[0], backrefs=True, recurse=True)
     else:
         return jsonify({"error": f"No user found that matches these parameters"}), 400
     return jsonify(user), 200
@@ -191,3 +195,82 @@ def delete_user(user_id):
     user.delete_instance()
     return jsonify({"message": f"User with ID {user_id} has been deleted."}), 200
 
+# --- DISCORD SERVERS(S) (GET, CREATE, DELETE, UPDATE) ---
+
+@rest.route('/server', methods=['GET'])
+def get_server():
+    query_params = request.args
+    query = DiscordServer.select()
+    for key, value in query_params.items():
+        if hasattr(DiscordServer, key):
+            field = getattr(DiscordServer, key)
+            if isinstance(field, BooleanField):
+                if value.lower() in ['true', '1']:
+                    value = True
+                elif value.lower() in ['false', '0']:
+                    value = False
+                else:
+                    return jsonify({"error": f"Invalid boolean value '{value}' for field '{key}'"}), 400
+
+            query = query.where(field == value)
+
+    if query and not query_params.get('recursive', False):
+        server = model_to_dict(query[0])
+    elif query:
+        server = model_to_dict(query[0], backrefs=True, recurse=True)
+    else:
+        return jsonify({"error": f"No server found that matches these parameters"}), 400
+    return jsonify(server), 200
+
+@rest.route('/servers', methods=['GET'])
+def get_servers():
+    query_params = request.args
+    query = DiscordServer.select()
+    for key, value in query_params.items():
+        if hasattr(DiscordServer, key):
+            field = getattr(DiscordServer, key)
+            if isinstance(field, BooleanField):
+                if value.lower() in ['true', '1']:
+                    value = True
+                elif value.lower() in ['false', '0']:
+                    value = False
+                else:
+                    return jsonify({"error": f"Invalid boolean value '{value}' for field '{key}'"}), 400
+
+            query = query.where(field == value)
+
+    if query and not query_params.get('recursive', False):
+        server = [model_to_dict(server) for server in query]
+    elif query:
+        server = [model_to_dict(server, backrefs=True, recurse=True) for server in query]
+    else:
+        return jsonify({"error": f"No server found that matches these parameters"}), 400
+    return jsonify(server), 200
+
+@rest.route('/server', methods=['POST'])
+def create_server():
+    data = request.get_json()
+    new_server= DiscordServer.create(**data)
+    new_server.save()
+    return jsonify(model_to_dict(new_server)), 201
+
+@rest.route('/server/<int:server_id>', methods=['PUT'])
+def update_server(server_id):
+    data = request.get_json()
+    try:
+        server_to_update = DiscordServer.get(DiscordServer.id == server_id)
+    except DiscordServer.DoesNotExist:
+        return jsonify({"error": f"Server with ID '{server_id}' not found"}), 404
+    for key, value in data.items():
+        setattr(server_to_update, key, value)
+    server_to_update.save()
+    return jsonify(model_to_dict(server_to_update)), 200
+
+@rest.route('/server/<int:server_id>', methods=['DELETE'])
+def delete_server(server_id):
+    try:
+        server = DiscordServer.get_by_id(server_id)
+    except DiscordServer.DoesNotExist:
+        return jsonify({"error": f"Server with ID '{server_id}' not found"}), 404
+    server.delete_instance()
+    return jsonify({"message": f"Server with ID {server_id} has been deleted."}), 200
