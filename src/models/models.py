@@ -105,8 +105,8 @@ class Media(BaseModel):
 class MediaRequest(BaseModel):
     id = AutoField()
     created = CharField(default=datetime.datetime.now)
-    made_in = ForeignKeyField(DiscordServer, backref="requests")
-    media = ForeignKeyField(Media, backref="requests")
+    made_in = ForeignKeyField(DiscordServer, backref="requests", null=True)
+    media = ForeignKeyField(Media, backref="requests", null=True)
     orig_message = CharField(default="", null=True)
     orig_parsed_title = CharField(default="", null=True)
     orig_parsed_type = CharField(default="", null=True)
