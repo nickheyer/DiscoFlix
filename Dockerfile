@@ -1,23 +1,30 @@
-FROM python:3.10-alpine
+FROM python:3.11-slim-buster
 
-RUN apk add --update alpine-sdk
+# Install system packages required by your application
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libffi-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-# copy the requirements file into the image
+# Copy the requirements file into the image
 COPY ./requirements.txt /app/requirements.txt
 
-# switch working directory
+# Set working directory
 WORKDIR /app
 
-# Install any needed packages specified in requirements.txt
-RUN apk add --no-cache --update \
-    build-base \
-    libffi-dev \
-    && pip install --trusted-host pypi.python.org -r requirements.txt
+# Install Python dependencies
+RUN pip install --no-cache-dir \
+    cython \
+    greenlet \
+    cffi \
+    gevent \
+    -r requirements.txt
 
-# copy every content from the local file to the image
+# Copy the rest of your application code
 COPY . /app
 
+# Expose the port your app runs on
 EXPOSE 5454
 
-# configure the container to run in an executed manner
+# Configure the container to run as an executable
 ENTRYPOINT [ "sh", "./run.sh" ]
