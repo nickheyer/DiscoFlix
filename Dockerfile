@@ -17,6 +17,8 @@ RUN pip install --no-cache-dir \
     gevent \
     -r requirements.txt
 
+RUN apt update
+
 # Copy the rest of your application code
 COPY . /app
 

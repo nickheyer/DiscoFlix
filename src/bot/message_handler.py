@@ -1,4 +1,3 @@
-from asyncio import coroutine
 from bot.user_manager import get_users_for_auth, get_user_settings, get_user
 
 
@@ -164,14 +163,16 @@ class Message_Handler:
             setattr(self.config, k, v)
             setattr(self.args["config"], k, v)
 
+    async def _default(*args):
+        return None
+
     def generate_fn(self):
         if not self.valid:
             # Reject
-            default_lambda = coroutine(lambda *args: None)
             if hasattr(self, "command") and not self.quiet_err:
-                fn = self.command.get("on_reject", default_lambda)
+                fn = self.command.get("on_reject", self._default)
             else:
-                fn = default_lambda
+                fn = self._default
         else:
             # Resolve
             fn = self.command["fn"]
