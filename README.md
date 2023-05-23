@@ -101,7 +101,7 @@ sh ./run.sh
 
 #### *You will need to get the IP address of the computer hosting DiscoFlix. On Windows, you would typically type `ipconfig` on the host machine and look for your `ipv4`.*
 
-> If you are hosting DiscoFlix (using Docker) on the same machine that you are hosting Radarr & Sonarr, you won't be able to access your Radarr & Sonarr using `http://localhost:<port>`, as that would be referencing the localhost of the docker container itself. Instead, use `http://host.docker.internal:<port>` - consider this the `localhost` of the machine hosting the docker container.
+> If you are hosting DiscoFlix (using Docker) on the same machine that you are hosting Radarr & Sonarr, you might not be able to access your Radarr & Sonarr using `http://localhost:<port>`, as that would be referencing the localhost of the docker container itself. Instead, use `http://host.docker.internal:<port>` - consider this the `localhost` of the machine hosting the docker container. In some cases, this may not be an issue.
 
 #### *If you would like to access DiscoFlix remotely, as in not on the same network as the host machine, you will need to do some port forwarding to expose port 5454 to the internet. Run into trouble? Feel free to join the [Discord](https://discord.com/invite/6Z9yKTbsrP)!*
 
@@ -114,8 +114,11 @@ sh ./run.sh
 
 <hr />
 
-![Peek 2023-04-07 20-01](https://user-images.githubusercontent.com/60236014/230700480-36a89984-59ea-4c65-a269-1d4e34230872.gif)
+#### *To get your Discord Token, go to the "bot" tab in your developer portal. You may need to click "reset Token" and/or enter authentication code if you have 2FA enabled. Make sure to enable all `Privileged Gateway Intents`)*
+![Peek 2023-05-22 22-06](https://github.com/nickheyer/DiscoFlix/assets/60236014/b197418d-ef70-4a74-9b0d-d43d6802f45b)
+
 #### *If you haven't already, now is also a good time to invite the bot to the server or servers you would like to monitor, you can do that via the Discord Developer Portal. Admin access is the only level we have tested. Anything less may result in errors.*
+![Peek 2023-04-07 20-01](https://user-images.githubusercontent.com/60236014/230700480-36a89984-59ea-4c65-a269-1d4e34230872.gif)
 
 <hr />
 
