@@ -23,21 +23,21 @@ As this application is intended to interface with [Sonarr](https://sonarr.tv) an
 
 ## Installation (Recommended Method)
 
-### Linux -- Fully Automated Install & Updates
+### Linux (Fully Automated)
 
 ```bash 
 curl https://raw.githubusercontent.com/nickheyer/DiscoFlix/main/auto_install_update.sh -o auto_install_update.sh && sudo bash auto_install_update.sh
 ```
 
-### Other Operating Systems (Windows/Mac) or (Manual Docker Installation)
+### Other Operating Systems (Windows, Mac, etc.)
 
 
-##### Download Docker Image (x86_64 Architecture) 
+##### Download Docker Image (Recommended - x86_64 Architecture) 
 
 ```bash
 docker image pull nickheyer/discoflix:latest
 ```
-##### Download Docker Image (aarch64 Architecture, ie: Raspberry-Pi) 
+##### OR Download Docker Image (ARM64, aarch64 Architecture, ie: Raspberry-Pi, Mac M1, etc.) 
 
 ```bash
 docker image pull nickheyer/discoflix_rpi:latest
