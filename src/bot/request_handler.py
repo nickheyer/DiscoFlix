@@ -15,13 +15,16 @@ from datetime import datetime
 class RequestHandler:
     radarr_session = sonarr_session = None
 
-    def __init__(self, context, request_message, logger) -> None:
+    def __init__(self, context, logger, author, server_id, message_content, channel) -> None:
+        self.message_channel = channel
+        self.server_id = server_id
+        self.message_content = message_content
         self.options = context
         self.request = context["primary"]
         self.request_type = context["command"]["ref"]
         self.config = context["config"]
-        self.message = request_message
-        self.author = request_message.author
+        #self.message = request_message
+        self.author = author
         self.user = get_user(str(self.author))
         self.logger = logger
         self.quality_profile = 1
@@ -82,8 +85,8 @@ class RequestHandler:
         self.request_object = create_media_request(
             self.user,
             self.media,
-            get_discord_server_from_id(self.message.guild.id),
-            self.message.content,
+            get_discord_server_from_id(self.server_id),
+            self.message_content,
             self.request,
             self.request_type,
         )
@@ -94,7 +97,7 @@ class RequestHandler:
         await self._respond(content=f"_{title.upper()}_", file=file)
 
     async def _respond(self, *args, **kwargs):
-        return await self.message.channel.send(*args, **kwargs)
+        return await self.message_channel.send(*args, **kwargs)
 
     async def _edit_response(self, *args, **kwargs):
         return await self.response.edit(*args, **kwargs)
@@ -273,7 +276,7 @@ class RequestHandler:
         self._record_request()
         self.remoteId = self.selected_content[self.id_key]
         await self.view.content_selected()
-        await self.message.delete()
+        #await self.message.delete() # This will not work with slash commands
         # WHERE THE DOWNLOAD BEGINS
         self.download_dir = self.get_root_dirs()[0]["path"]
         self.download_response = self.select_content(

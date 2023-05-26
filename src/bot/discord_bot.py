@@ -6,6 +6,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import socketio
 import discord
+from discord import app_commands
 import traceback
 import argparse
 
@@ -179,13 +180,13 @@ async def refresh_users():
 
 
 # MESSAGE FUNCTIONS ------
-async def _test(m, options):
+async def _test(m, options, author, server_id, message_content, channel):
     await send_message(m, "Testing!")
     if options["debug"]:
         await send_message(m, f'```python\n{options["command"]}\n```')
 
 
-async def _echo(m, options):
+async def _echo(m, options, author, server_id, message_content, channel):
     await send_message(
         m,
         options["primary"],
@@ -194,7 +195,7 @@ async def _echo(m, options):
         await send_message(m, f'```python\n{options["command"]}\n```')
 
 
-async def _err(m, options):
+async def _err(m, options, author, server_id, message_content, channel):
     await send_message(m, "Let's throw an error!")
     if options["specify"]:
         raise Exception(options["specify"])
@@ -202,13 +203,13 @@ async def _err(m, options):
         raise Exception("THIS IS AN INTENDED ERROR!")
 
 
-async def _log(m, options):
+async def _log(m, options, author, server_id, message_content, channel):
     if options["message"]:
         await send_message(m, f"Log added!\n```\n{options['primary']}\n```")
     await add_log(options["primary"])
 
 
-async def _apply(m, options):
+async def _apply(m, options, author, server_id, message_content, channel): ############# BROKEN FOR SLASH COMMAND
     await change_bot_presence(f"Adding Users")
     admins = get_users_in_server_with(m, ["admin"])
     admin_mention = generate_mention_users_with(m, ["admin"])
@@ -219,30 +220,30 @@ async def _apply(m, options):
         if view.result in ["DENIED", False, None]:
             return
         await add_user_from_message(m, view.result == "REGISTER_ADMIN")
-        await add_log(f"Added User: {m.author} ({view.result})")
+        await add_log(f"Added User: {author} ({view.result})")
     else:
         print("Timed-Out")
     return
 
 
-async def _find_content(m, options):
-    if not get_user_requests_last_24_hours(str(m.author)):
+async def _find_content(m, options, author, server_id, message_content, channel):
+    if not get_user_requests_last_24_hours(str(author)):
         return
     await change_bot_presence(f"Downloading")
-    handler = RequestHandler(options, m, add_log)
+    handler = RequestHandler(options, add_log, author, server_id, message_content, channel)
     if not await handler.validate_request():
         return False
     return await handler.process_request()
 
 
-async def _help(m, options):
+async def _help(m, options, author, server_id, message_content, channel):
     commands = ListCommands(options, m, MESSAGE_MAP)
     embed = commands.generate_embed()
     await m.reply(embed=embed)
     return True
 
 
-async def _add_user(m, options):
+async def _add_user(m, options, author, server_id, message_content, channel):
     users_to_add = []
     if len(m.mentions) == 0:
         existing = get_user(options["primary"])
@@ -423,18 +424,64 @@ MESSAGE_MAP = {
     },
 }
 
-# BEGIN CLIENT EVENTS -----
+# SLASH COMMANDS
 
+tree = app_commands.CommandTree(client)
 
 @client.event
 async def on_ready() -> None:
     await on_startup()
+    await tree.sync(guild=discord.Object(id=1080421430426091551))
 
+# MOVIE SLASH COMMAND
+@tree.command(name="movie", description="Request a movie", guild=discord.Object(id=1080421430426091551))
+async def self(interaction: discord.Interaction, movie: str):
+    # GRAB VARIABLES
+    channel = interaction.channel
+    server_id = interaction.guild.id
+    message = None
+    user_author = interaction.user
+    message_content_text = f"!df movie {movie}"
+
+    # SATISFY SLASH COMMAND
+    await interaction.response.send_message("running command...")
+
+    # INSTANTIATE MESSAGE HANDLER
+    handler = Message_Handler(message, MESSAGE_MAP, config(), message_content_text, user_author, channel, server_id)
+    bound_fn = handler.generate_fn()
+    await bound_fn()  # Resolves with fn / rejects with on_reject
+
+# SHOW SLASH COMMAND
+@tree.command(name="show", description="Request a tv-show", guild=discord.Object(id=1080421430426091551))
+async def self(interaction: discord.Interaction, show: str):
+    # GRAB VARIABLES
+    channel = interaction.channel
+    server_id = interaction.guild.id
+    message = None
+    user_author = interaction.user
+    message_content_text = f"!df show {show}"
+
+    # SATISFY SLASH COMMAND
+    await interaction.response.send_message("running command...")
+
+    # INSTANTIATE MESSAGE HANDLER
+    handler = Message_Handler(message, MESSAGE_MAP, config(), message_content_text, user_author, channel, server_id)
+    bound_fn = handler.generate_fn()
+    await bound_fn()  # Resolves with fn / rejects with on_reject
+
+
+# BEGIN CLIENT EVENTS -----
 
 @client.event
 async def on_message(message) -> None:
+    # GRAB VARIABLES
+    channel = message.channel
+    server_id = message.guild.id
+    message_content_text = message.content
+    user_author = message.author
+
     # INSTANTIATE MESSAGE HANDLER
-    handler = Message_Handler(message, MESSAGE_MAP, config())
+    handler = Message_Handler(message, MESSAGE_MAP, config(), message_content_text, user_author, channel, server_id)
     bound_fn = handler.generate_fn()
     await bound_fn()  # Resolves with fn / rejects with on_reject
 

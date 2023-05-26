@@ -1,15 +1,19 @@
 from bot.user_manager import get_users_for_auth, get_user_settings, get_user
-
-
 class Message_Handler:
-    def __init__(self, message, message_map, config) -> None:
+
+    def __init__(self, message, message_map, config, message_content_text, author, channel, server_id) -> None:
+
+        self.channel = channel
         self.message = message
-        self.message_content = message.content
-        self.server_id = message.guild.id
+        self.message_content = message_content_text
+        self.server_id = server_id
         self.message_map = message_map
         self.config = config
-        self.args = {"requestor": self.message.author, "config": self.config}
+        self.author = author
+        self.args = {"requestor": self.author, "config": self.config}
+    
         self.valid = self.__parse_message()
+        
 
     def __parse_message(self):
         self.quiet_err = True
@@ -25,8 +29,8 @@ class Message_Handler:
         return True
 
     def __parse_sender(self):
-        self.sender = self.message.author
-        self.username = str(self.message.author)
+        self.sender = self.author
+        self.username = str(self.author)
         self.is_bot = self.sender.bot
         self.merge_user_specific_configuration(self.username)
         return not self.is_bot
@@ -176,5 +180,5 @@ class Message_Handler:
         else:
             # Resolve
             fn = self.command["fn"]
-        self.fn = lambda: fn(self.message, self.args)
+        self.fn = lambda: fn(self.message, self.args, self.author, self.server_id, self.message_content, self.channel)
         return self.fn
