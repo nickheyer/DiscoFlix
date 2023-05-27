@@ -178,3 +178,36 @@ class Message_Handler:
             fn = self.command["fn"]
         self.fn = lambda: fn(self.message, self.args)
         return self.fn
+
+class From_Interaction:
+    def __init__(self, interaction, config) -> None:
+        self.config = config
+        self.id = interaction.id
+        self.channel = interaction.channel
+        self.created_at = interaction.created_at
+        self.author = interaction.user
+        self.guild = interaction.guild
+        self.command = interaction.data.get('name', '')
+        self.content = f'{self.config.prefix_keyword} {self.command} '
+        for text in interaction.data.get('options', []):
+            self.content+= text.get('value', '')
+        self.type = interaction.type
+        self.application_id = interaction.application_id
+        self.components = []
+        self.attachments = []
+        self.embeds = []
+        self.mention_everyone = False
+        self.mentions = []
+        self.nonce = None
+        self.pinned = False
+        self.reactions = []
+    
+    async def reply(self, *args, **kwargs):
+        return await self.channel.send( *args, **kwargs)
+    
+    async def edit(self, *args, **kwargs):
+        return await self.reply(*args, **kwargs)
+    
+    async def delete(self):
+        return True
+    

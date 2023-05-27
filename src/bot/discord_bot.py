@@ -6,12 +6,13 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import socketio
 import discord
+from discord import app_commands
 import traceback
 import argparse
 
 from lib.utils import get_bug_report_path
 from bot.request_handler import RequestHandler
-from bot.message_handler import Message_Handler
+from bot.message_handler import Message_Handler, From_Interaction
 from bot.config_manager import config
 from bot.user_manager import (
     get_users_in_server,
@@ -177,6 +178,11 @@ async def add_user_from_info(
 async def refresh_users():
     await SIO.emit("refresh_users", {})
 
+async def stub_callback(interaction: discord.Interaction):
+    pass
+
+async def stub_callback_with_arg(interaction: discord.Interaction, input: str):
+    pass
 
 # MESSAGE FUNCTIONS ------
 async def _test(m, options):
@@ -281,7 +287,6 @@ async def _add_user(m, options):
     embed = discord.Embed(title=final_title, color=final_color)
     embed.description = description
     await m.reply(embed=embed)
-
 
 # MESSAGE MAP ------
 MESSAGE_MAP = {
@@ -425,11 +430,32 @@ MESSAGE_MAP = {
 
 # BEGIN CLIENT EVENTS -----
 
+tree = app_commands.CommandTree(client)
 
 @client.event
 async def on_ready() -> None:
     await on_startup()
+    tree.clear_commands(guild=None)
+    await tree.sync(guild=None)
+    for cmd, val in MESSAGE_MAP.items():
+        command = app_commands.Command(
+            name=str(cmd),
+            description=val.get('description', ''),
+            callback=stub_callback_with_arg if (
+            'primary' in val.get('args', [])
+            and val['args']['primary'].get('used', False)
+            ) else stub_callback,
+            guild_ids=[1026356618885070878],
+        )
+        tree.add_command(command)
+    await tree.sync(guild=discord.Object(id=1026356618885070878))
 
+@client.event
+async def on_interaction(interaction) -> None:
+    if interaction.type == discord.InteractionType.application_command:
+        converted = From_Interaction(interaction, config())
+        print(converted.content)
+        await on_message(message=converted)
 
 @client.event
 async def on_message(message) -> None:
