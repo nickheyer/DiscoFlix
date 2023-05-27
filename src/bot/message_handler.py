@@ -1,3 +1,4 @@
+import re
 from bot.user_manager import get_users_for_auth, get_user_settings, get_user
 
 
@@ -8,6 +9,7 @@ class Message_Handler:
         self.server_id = message.guild.id
         self.message_map = message_map
         self.config = config
+        self.is_slash = hasattr(message, 'is_slash')
         self.args = {"requestor": self.message.author, "config": self.config}
         self.valid = self.__parse_message()
 
@@ -19,6 +21,7 @@ class Message_Handler:
             or not self.__parse_command()
             or not self.__parse_permissions()
             or not self.__parse_requirements()
+            or not self.__parse_slash()
             or not self.__parse_args()
         ):
             return False
@@ -48,6 +51,11 @@ class Message_Handler:
                     self.args["command"] = self.command
                     return True
         return False
+
+    def __parse_slash(self):
+        if not self.is_slash:
+            return True
+        return self.command.get("slash_enabled", True)
 
     def __parse_permissions(self):
         self.quiet_err = False
@@ -178,3 +186,38 @@ class Message_Handler:
             fn = self.command["fn"]
         self.fn = lambda: fn(self.message, self.args)
         return self.fn
+
+class From_Interaction:
+    def __init__(self, interaction, config) -> None:
+        self.config = config
+        self.interaction = interaction
+        self.id = interaction.id
+        self.channel = interaction.channel
+        self.created_at = interaction.created_at
+        self.author = interaction.user
+        self.guild = interaction.guild
+        self.command = interaction.data.get('name', '')
+        self.content = f'{self.config.prefix_keyword} {self.command} '
+        for text in interaction.data.get('options', []):
+            self.content+= text.get('value', '')
+        self.type = interaction.type
+        self.application_id = interaction.application_id
+        self.is_slash = True
+        self.components = []
+        self.attachments = []
+        self.embeds = []
+        self.mention_everyone = False
+        self.mentions = [self.guild.get_member(int(match)) for match in re.findall(r"<@!?([0-9]{15,20})>", self.content)]
+        self.nonce = None
+        self.pinned = False
+        self.reactions = []
+    
+    async def reply(self, *args, **kwargs):
+        return await self.channel.send( *args, **kwargs)
+    
+    async def edit(self, *args, **kwargs):
+        return True
+    
+    async def delete(self):
+        return True
+    
