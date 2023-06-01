@@ -35,6 +35,9 @@ intents.members = True
 client = discord.Client(intents=intents)
 embeded = discord.Embed()
 
+# INSTANTIATING DISCORD COMMAND TREE
+tree = app_commands.CommandTree(client)
+
 # SOCKETIO INSTANTIATION
 SIO = socketio.AsyncClient()
 
@@ -64,6 +67,21 @@ async def on_startup():
     )
     return
 
+async def update_slash_commands():
+    for cmd, val in MESSAGE_MAP.items():
+        if not val.get('is_slash', True):
+            continue
+        command = app_commands.Command(
+            name=str(cmd),
+            description=val.get('description', ''),
+            callback=stub_callback_with_arg if (
+            'primary' in val.get('args', [])
+            and val['args']['primary'].get('used', False)
+            ) else stub_callback,
+            guild_ids=None,
+        )
+        tree.add_command(command, override=True)
+    await tree.sync(guild=None)
 
 async def update_all_servers():
     servers = [
@@ -293,6 +311,7 @@ MESSAGE_MAP = {
     "test": {
         "ref": "test",
         "permissions": ["user", "developer"],
+        "slash_enabled": True,
         "aliases": ["test"],
         "requirements": [],
         "args": {
@@ -312,6 +331,7 @@ MESSAGE_MAP = {
     "help": {
         "ref": "help",
         "permissions": [],
+        "slash_enabled": True,
         "aliases": ["help"],
         "requirements": [],
         "args": {"primary": {"required": False, "used": False}, "additional": []},
@@ -321,6 +341,7 @@ MESSAGE_MAP = {
     "echo": {
         "ref": "echo",
         "permissions": ["developer", "owner"],
+        "slash_enabled": True,
         "aliases": ["echo"],
         "requirements": [],
         "args": {
@@ -340,6 +361,7 @@ MESSAGE_MAP = {
     "error": {
         "ref": "error",
         "permissions": ["developer", "owner"],
+        "slash_enabled": True,
         "aliases": ["error", "err", "raise"],
         "requirements": [],
         "args": {
@@ -359,6 +381,7 @@ MESSAGE_MAP = {
     "log": {
         "ref": "log",
         "permissions": ["developer", "owner"],
+        "slash_enabled": True,
         "aliases": ["log", "add-log"],
         "requirements": [],
         "args": {
@@ -378,6 +401,7 @@ MESSAGE_MAP = {
     "movie": {
         "ref": "movie",
         "permissions": ["user", "developer"],
+        "slash_enabled": True,
         "aliases": ["movie", "add-movie"],
         "requirements": ["is_radarr_enabled", "radarr_token", "radarr_url"],
         "args": {
@@ -391,6 +415,7 @@ MESSAGE_MAP = {
     "show": {
         "ref": "show",
         "permissions": ["user", "developer"],
+        "slash_enabled": True,
         "aliases": ["show", "add-show", "tv-show", "add-tv-show", "tv", "tvshow"],
         "requirements": ["is_sonarr_enabled", "sonarr_token", "sonarr_url"],
         "args": {
@@ -404,6 +429,7 @@ MESSAGE_MAP = {
     "user": {
         "ref": "user",
         "permissions": ["admin", "owner"],
+        "slash_enabled": True,
         "aliases": ["user", "add-user", "add", "delete-user", "delete"],
         "requirements": [],
         "args": {
@@ -430,32 +456,18 @@ MESSAGE_MAP = {
 
 # BEGIN CLIENT EVENTS -----
 
-tree = app_commands.CommandTree(client)
-
 @client.event
 async def on_ready() -> None:
     await on_startup()
-    tree.clear_commands(guild=None)
-    await tree.sync(guild=None)
-    for cmd, val in MESSAGE_MAP.items():
-        command = app_commands.Command(
-            name=str(cmd),
-            description=val.get('description', ''),
-            callback=stub_callback_with_arg if (
-            'primary' in val.get('args', [])
-            and val['args']['primary'].get('used', False)
-            ) else stub_callback,
-            guild_ids=[1026356618885070878],
-        )
-        tree.add_command(command)
-    await tree.sync(guild=discord.Object(id=1026356618885070878))
-
+    await update_slash_commands()
+    
 @client.event
 async def on_interaction(interaction) -> None:
     if interaction.type == discord.InteractionType.application_command:
+        await interaction.response.send_message(content='*...*', silent=True, ephemeral=True, delete_after=0.5)
         converted = From_Interaction(interaction, config())
-        print(converted.content)
         await on_message(message=converted)
+        
 
 @client.event
 async def on_message(message) -> None:
@@ -463,7 +475,6 @@ async def on_message(message) -> None:
     handler = Message_Handler(message, MESSAGE_MAP, config())
     bound_fn = handler.generate_fn()
     await bound_fn()  # Resolves with fn / rejects with on_reject
-
 
 @client.event
 async def on_guild_join(guild):
