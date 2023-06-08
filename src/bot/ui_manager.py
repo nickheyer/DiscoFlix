@@ -444,11 +444,16 @@ class ListCommands():
             required_roles = set(command_info['permissions'])
             if not required_roles or required_roles.intersection(user_roles):
                 aliases = ', '.join(command_info['aliases'])
-                usage = f"{self.prefix} {command_info['aliases'][0]}" + (' <' + command_info['args']['primary']['ref'] + '>' if command_info['args']['primary']['used'] else '')
+                usage = f"{command_info['aliases'][0]}" + (' <' + command_info['args']['primary']['ref'] + '>' if command_info['args']['primary']['used'] else '')
+                additional_usage = ''
                 for additional_arg in command_info['args']['additional']:
-                    usage += f" [{additional_arg['aliases'][0]}]" if not additional_arg['required'] else f" <{additional_arg['aliases'][0]}>"
+                    additional_usage += f" [{additional_arg['aliases'][0]}]" if not additional_arg['required'] else f" <{additional_arg['aliases'][0]}>"
                 description = command_info.get('description', None)
-                embed.add_field(name=f"{command.title()} ({aliases})", value=(f"Description: `{description}`\n" if description else "") + f"Usage: `{usage}`", inline=False)
+                field_text = f"Description: `{description}`\n" if description else ""
+                field_text += f"Usage: `{self.prefix} {usage}{additional_usage}`"
+                if command_info.get('slash_enabled'):
+                    field_text += f"\nSlash: `/{usage}`"
+                embed.add_field(name=f"{command.title()} ({aliases})", value=field_text, inline=False)
         
         self.embed = embed
         return embed

@@ -1,5 +1,4 @@
 import os
-import gevent
 from sys import platform
 import subprocess
 from subprocess import Popen
