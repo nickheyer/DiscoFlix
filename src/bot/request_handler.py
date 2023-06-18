@@ -284,7 +284,7 @@ class RequestHandler:
         await self.logger(
             f'Downloading {self.selected_content["title"]} to {self.download_dir}'
         )
-        self.databaseId = self.download_response["id"]
+        self.databaseId = self.download_response.get('id', False)
         self.monitor_outcome = await self._monitor_download()
         if not self.monitor_outcome:
             await self.logger(f'Download ({self.selected_content["title"]}) timed-out.')
