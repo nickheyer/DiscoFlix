@@ -8,6 +8,7 @@ from flask import Flask, render_template, request
 from flask_socketio import SocketIO
 import atexit
 import json
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from models.utils import (
     update_config,
@@ -47,6 +48,7 @@ from apispec_webframeworks.flask import FlaskPlugin
 # --- FLASK/SOCKET INSTANTIATION
 
 app = Flask(__name__)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1, x_prefix=1)
 socketio = SocketIO(app, cors_allowed_origins="*")
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 

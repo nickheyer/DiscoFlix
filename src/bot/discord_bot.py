@@ -44,7 +44,11 @@ SIO = socketio.AsyncClient()
 
 # STARTUP FUNCTIONS -----
 async def socket_start():
-    await SIO.connect(f"http://{args.host}")
+    env_url = os.environ.get('internal_df_url')
+    if env_url:
+        await SIO.connect(env_url)
+    else:
+        await SIO.connect(f"http://{args.host}")
 
 
 async def change_bot_presence(presence):
