@@ -47,7 +47,7 @@ from apispec_webframeworks.flask import FlaskPlugin
 # --- FLASK/SOCKET INSTANTIATION
 
 app = Flask(__name__)
-socketio = SocketIO(app)
+socketio = SocketIO(app, cors_allowed_origins="*")
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
 # --- IMPORTING REST API ROUTES ---
