@@ -1,3 +1,6 @@
+# DJANGO CHANNELS: https://channels.readthedocs.io/en/latest/tutorial/part_1.html
+
 from django.shortcuts import render
 
-# Create your views here.
+def index(request):
+    return render(request, "DiscoFlixClient/index.html")
