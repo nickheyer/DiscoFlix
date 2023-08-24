@@ -1,58 +1,89 @@
 import { FIELD_SORT, ADDITIONAL_USER_SETTINGS } from "./config.js";
+import _ from 'https://cdn.jsdelivr.net/npm/lodash@4.17.21/+esm';
 
 document.addEventListener("DOMContentLoaded", (event) => {
   // ------------------ STARTUP EVENTS -----------------------------
 
   class WebSocketWrapper {
     constructor(url) {
-      this.socket = new WebSocket(url);
-      this.bindDefaultListeners();
-      this.messageQueue = [];
+        this.socket = new WebSocket(url);
+        this.messageQueue = [];
+        this.eventListeners = {};
+        this.callbacks = {};
+        this.callbackId = 0;
+
+        this.socket.addEventListener('open', this.onOpen.bind(this));
+        this.socket.addEventListener('message', this.onMessage.bind(this));
+        this.socket.addEventListener('close', this.onClose.bind(this));
     }
-  
-    bindDefaultListeners() {
-      this.socket.addEventListener('open', (event) => {
-        console.log('WebSocket opened successfully');
-        this.flushMessageQueue();
-        this._handleEvent('connect', event);
-      });
+
+    onOpen() {
+        this.messageQueue.forEach((message) => {
+            this.realEmit(message.event, message.data);
+        });
+        this.messageQueue = [];
+    }
+
+    onClose() {
+        // Optional reconnection logic
+    }
+
+    onMessage(message) {
       
-      this.socket.addEventListener('message', (event) => this._handleEvent('message', event.data));
-      this.socket.addEventListener('close', (event) => this._handleEvent('disconnect', event));
-      this.socket.addEventListener('error', (event) => this._handleEvent('error', event));
+      const parsedMessage = JSON.parse(message.data);
+      const event = parsedMessage.event;
+      const parsedData = parsedMessage.data;
+      const callbackId = parsedData.callbackId;
+      
+      if (this.eventListeners[event]) {
+          this.eventListeners[event].forEach(callback => callback());
+      }
+
+      if (_.isInteger(callbackId) && _.isFunction(this.callbacks[callbackId])) {
+          console.log('IN CALLBACK CALLER');
+          this.callbacks[callbackId](parsedData);
+          delete this.callbacks[callbackId];
+      }
     }
-  
-    flushMessageQueue() {
-      while (this.messageQueue.length > 0) {
-        const message = this.messageQueue.shift();
+
+    on(event, callback) {
+        if (!this.eventListeners[event]) {
+            this.eventListeners[event] = [];
+        }
+        this.eventListeners[event].push(callback);
+    }
+
+    off(event, callback) {
+        if (!this.eventListeners[event]) return;
+
+        const index = this.eventListeners[event].indexOf(callback);
+        if (index !== -1) {
+            this.eventListeners[event].splice(index, 1);
+        }
+    }
+
+    emit(event, data, callback) {
+        if (callback) {
+            const callbackId = this.callbackId++;
+            this.callbacks[callbackId] = callback;
+            data.callbackId = callbackId;
+        }
+
+        if (this.socket.readyState === WebSocket.OPEN) {
+            this.realEmit(event, data);
+        } else if (this.socket.readyState !== WebSocket.CLOSING && this.socket.readyState !== WebSocket.CLOSED) {
+            this.messageQueue.push({ event, data });
+        } else {
+            console.warn('WebSocket is closing or closed. Emit failed.');
+        }
+    }
+
+    realEmit(event, data) {
+        const message = JSON.stringify({ event, data });
         this.socket.send(message);
-      }
-    }
-  
-    _handleEvent(type, data) {
-      console.log(type, data);
-      if (this.events && this.events[type]) {
-        this.events[type](data);
-      }
-    }
-  
-    on(type, callback) {
-      if (!this.events) {
-        this.events = {};
-      }
-      this.events[type] = callback;
-    }
-  
-    emit(data) {
-      const serializedData = JSON.stringify(data);
-      
-      if (this.socket.readyState === WebSocket.OPEN) {
-        this.socket.send(serializedData);
-      } else {
-        this.messageQueue.push(serializedData);
-      }
     }
   }
+
   // Start websocket connection when page is loaded
   const socket = new WebSocketWrapper(
     'ws://'
@@ -63,7 +94,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
   // Tell the web-server that we've connected, say hi
   socket.emit("client_connect", {
     message: "hello server",
-  }); // Returns on 'client_info'
+  }, (data) => console.log(`BIG DATA: ${JSON.stringify(data)}`)); // Returns on 'client_info'
 
   // When we've said hi to the server, itll send us all the data we need to populate screen
   socket.on("client_info", (data) => {

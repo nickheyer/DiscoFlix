@@ -12,7 +12,15 @@ class ClientConsumer(WebsocketConsumer):
         pass
 
     def receive(self, text_data):
-        print(f'DATA RECIEVED: {text_data}')
-        text_data_json = json.loads(text_data)
-        #message = text_data_json["message"]
-        self.send(text_data=json.dumps({"message": 'HELLO THERE!'}))
+        message = json.loads(text_data)
+        data = message.get('data')
+        callback_id = data.get('callbackId')
+        event = message.get('event')
+        print(data)
+        self.send(text_data=json.dumps({
+            "event": event,
+            "data": {
+                "message": 'HELLO THERE!',
+                'callbackId': callback_id
+            }
+        }))
