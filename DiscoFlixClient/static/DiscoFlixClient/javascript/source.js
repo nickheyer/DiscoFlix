@@ -29,19 +29,19 @@ document.addEventListener("DOMContentLoaded", (event) => {
     }
 
     onMessage(message) {
-      
-      const parsedMessage = JSON.parse(message.data);
-      const event = parsedMessage.event;
-      const parsedData = parsedMessage.data;
-      const callbackId = parsedData.callbackId;
+      console.log(message);
+      const parsedSocketData = JSON.parse(message.data);
+      const parsedMessageData = parsedSocketData.data;
+      const event = parsedSocketData.event;
+      const parsedMessage = parsedMessageData.message;
+      const callbackId = parsedMessageData.callbackId;
       
       if (this.eventListeners[event]) {
-          this.eventListeners[event].forEach(callback => callback());
+          this.eventListeners[event].forEach(callback => callback(parsedMessageData));
       }
 
       if (_.isInteger(callbackId) && _.isFunction(this.callbacks[callbackId])) {
-          console.log('IN CALLBACK CALLER');
-          this.callbacks[callbackId](parsedData);
+          this.callbacks[callbackId](parsedMessageData);
           delete this.callbacks[callbackId];
       }
     }
@@ -207,13 +207,13 @@ document.addEventListener("DOMContentLoaded", (event) => {
         const currentVal = data.fields[field] ? data.fields[field] : "";
         let fieldGen;
         switch (fieldType) {
-          case "VARCHAR":
+          case "CharField":
             fieldGen = generateCharFormField;
             break;
-          case "INT":
+          case "IntegerField":
             fieldGen = generateIntFormField;
             break;
-          case "BOOL":
+          case "BooleanField":
             fieldGen = generateFormSwitch;
             break;
           default:
