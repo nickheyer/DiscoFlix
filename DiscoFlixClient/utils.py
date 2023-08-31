@@ -18,53 +18,62 @@ from DiscoFlixClient.models import (
     DiscordServer
 )
 
-@database_sync_to_async
-def get_config():
+def get_config_sync():
     try:
         return Configuration.objects.first()
     except ObjectDoesNotExist:
         return None
 
 @database_sync_to_async
+def get_config():
+    return get_config_sync()
+
+@database_sync_to_async
 def get_config_dict():
-    config = get_config()
+    config = get_config_sync()
     return model_to_dict(config)
 
 @database_sync_to_async
 def update_config(data):
-    config = get_config()
+    config = get_config_sync()
     changed = []
     for k, v in data.items():
         if hasattr(config, k):
-            if getattr(config, k) != v:
+            attribute = getattr(config, k)
+            if str(attribute) != str(v):
                 changed.append(k)
-                setattr(config, k, v)
+            setattr(config, k, v)
     config.save()
     config_dict = model_to_dict(config)
     config_dict['changed'] = changed
     return config_dict
 
-@database_sync_to_async
-def get_state():
+def get_state_sync():
     try:
         return State.objects.first()
     except ObjectDoesNotExist:
         return None
 
+
+@database_sync_to_async
+def get_state():
+    return get_state_sync()
+
 @database_sync_to_async
 def get_state_dict():
-    state = get_state()
+    state = get_state_sync()
     return model_to_dict(state)
 
 @database_sync_to_async
 def update_state(data):
-    state = get_state()
+    state = get_state_sync()
     changed = []
     for k, v in data.items():
         if hasattr(state, k):
-            if getattr(state, k) != v:
+            attribute = getattr(state, k)
+            if str(attribute) != str(v):
                 changed.append(k)
-                setattr(state, k, v)
+            setattr(state, k, v)
     state.save()
     state_dict = model_to_dict(state)
     state_dict['changed'] = changed
@@ -89,9 +98,28 @@ def get_logs(num):
 @database_sync_to_async
 def add_log(entry):
     try:
-        EventLog.create(entry=entry)
+        EventLog.objects.create(entry=entry)
     except Exception as e:
         print(f"Error adding log: {e}")
+
+@database_sync_to_async
+def add_refresh_log(entry, num=100):
+    try:
+      EventLog.objects.create(entry=entry)
+    except Exception as e:
+      print(f"Error adding log: {e}")
+    try:
+      logs = EventLog.objects.all().order_by('-created')[:num]
+      if logs.exists():
+        return [
+          f"{log.created.strftime('%Y-%m-%d %H:%M:%S')}: {log.entry}"
+          for log in logs][::-1]
+      else:
+        print("No logs found")
+        return []
+    except Exception as e:
+      print(f"Error fetching logs: {e}")
+      return []
 
 @database_sync_to_async
 def get_dict(model_str):
@@ -114,8 +142,7 @@ def get_dict(model_str):
         print(f"An error occurred: {e}")
         return {}
 
-@database_sync_to_async
-def get_verbose_dict(model_str):
+def get_verbose_dict_sync(model_str):
     try:
         Model = apps.get_model('DiscoFlixClient', model_str)
     except LookupError:
@@ -146,13 +173,14 @@ def get_verbose_dict(model_str):
         return {}
 
 @database_sync_to_async
+def get_verbose_dict(model_str):
+  return get_verbose_dict_sync(model_str)
+
+@database_sync_to_async
 def get_users_dict():
     users = User.objects.all()
     users_dict = [
-        model_to_dict(
-            user,
-            fields=[field.name for field in User._meta.fields if field.name != "id"]
-        )
+        model_to_dict(user)
         for user in users
     ]
 
@@ -219,7 +247,7 @@ def delete_user(id):
     if not id:
         return None
     try:
-        user = User.objects.get(pk=id)
+        user = User.objects.get(id=id)
         username = user.username
         user.delete()
         return username
@@ -228,19 +256,24 @@ def delete_user(id):
 
 @database_sync_to_async
 def get_user_from_id(id):
-    user = User.objects.filter(pk=id).first()
+    # if id == 'undefined':
+    #     user = User.objects.first()
+    #     user.delete()
+    #     return
+    user = User.objects.filter(id=id).first()
     if user:
         return model_to_dict(user)
     return None
 
 @database_sync_to_async
 def edit_user_from_dict(data):
-    username = data.get("username", None)
-    user_id = data.get("id", None)
+    user_info = data.get("user_info")
+    username = user_info.get("username", None)
+    user_id = user_info.get("id", None)
     user = None
     
     if user_id:
-        user = User.objects.filter(pk=user_id).first()
+        user = User.objects.filter(id=user_id).first()
     elif username:
         user = User.objects.filter(username=username).first()
 
@@ -344,23 +377,7 @@ def reset_database(choices):
 
 @database_sync_to_async
 def reset_entire_db():
-    tables_to_reset = [
-        'configuration',
-        'state',
-        'errlog',
-        'eventlog',
-        'user',
-        'discordserver',
-        'mediarequest',
-        'media',
-    ]
-
-    # Using raw SQL to drop tables
-    with connection.cursor() as cursor:
-        for table in tables_to_reset:
-            cursor.execute(f"DROP TABLE IF EXISTS {table} CASCADE;")
-    
-    call_command('migrate')
+    call_command('flush', '--noinput')
 
     # Create default State and Configuration if needed
     if not State.objects.exists():
@@ -368,7 +385,6 @@ def reset_entire_db():
     if not Configuration.objects.exists():
         Configuration.objects.create()
 
-@database_sync_to_async
 def export_data(choices):
     """
     Exports data from specified models to a JSON file.

@@ -25,22 +25,23 @@ document.addEventListener("DOMContentLoaded", (event) => {
     }
 
     onClose() {
-        // Optional reconnection logic
+        // reconnection logic gonna go here
+        
     }
 
     onMessage(message) {
-      console.log(message);
       const parsedSocketData = JSON.parse(message.data);
       const parsedMessageData = parsedSocketData.data;
       const event = parsedSocketData.event;
       const parsedMessage = parsedMessageData.message;
-      const callbackId = parsedMessageData.callbackId;
-      
-      if (this.eventListeners[event]) {
+      const callbackId = parsedSocketData.callbackId;
+
+      if (event && this.eventListeners[event]) {
           this.eventListeners[event].forEach(callback => callback(parsedMessageData));
       }
 
       if (_.isInteger(callbackId) && _.isFunction(this.callbacks[callbackId])) {
+          console.log('IN CALLBACK CALLING')
           this.callbacks[callbackId](parsedMessageData);
           delete this.callbacks[callbackId];
       }
@@ -94,7 +95,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
   // Tell the web-server that we've connected, say hi
   socket.emit("client_connect", {
     message: "hello server",
-  }, (data) => console.log(`BIG DATA: ${JSON.stringify(data)}`)); // Returns on 'client_info'
+  }, (data) => console.log(`Client connected`)); // Returns on 'client_info'
 
   // When we've said hi to the server, itll send us all the data we need to populate screen
   socket.on("client_info", (data) => {
@@ -436,6 +437,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
         preparedData[$(fieldInput).data("value")] = fieldInput.value;
       }
     });
+    console.log(preparedData);
     return preparedData;
   };
 
@@ -585,6 +587,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
     showOrHideFeedback(false);
     const userId = row.querySelector('th[name="user-id-row"]').innerText;
     socket.emit("get_user_info_from_id", { id: userId }, (resp) => {
+      console.log(resp);
       populateUserModal(resp, userId);
       addedUserModalDeleteButton.hidden = false;
       addedUserModalLabel.innerText = "Edit User";

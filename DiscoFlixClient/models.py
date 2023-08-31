@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.timezone import now
 
 class Configuration(models.Model):
     media_server_name = models.CharField("Media Server Name", max_length=255, null=True, default="The Server")
@@ -74,7 +75,7 @@ class MediaRequest(models.Model):
 
 
 class User(models.Model):
-    added = models.DateTimeField(auto_now_add=True)
+    added = models.DateTimeField(default=now, editable=True, )
     is_admin = models.BooleanField(default=False)
     is_server_restricted = models.BooleanField(default=False)
     username = models.TextField(null=True)
