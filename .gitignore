@@ -1,7 +1,8 @@
 
 
 *.tldr
-
+.vscode
+backups/
 
 
 # Byte-compiled / optimized / DLL files
