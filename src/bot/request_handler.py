@@ -275,7 +275,7 @@ class RequestHandler:
         await self.view.content_selected()
         await self.message.delete()
         # WHERE THE DOWNLOAD BEGINS
-        self.download_dir = self.get_root_dirs()[0]["path"]
+        self.download_dir = f'{self.get_root_dirs()[0]["path"]}/'
         self.download_response = self.select_content(
             self.remoteId, self.quality_profile, self.download_dir
         )
