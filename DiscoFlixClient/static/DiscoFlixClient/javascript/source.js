@@ -33,7 +33,6 @@ document.addEventListener("DOMContentLoaded", (event) => {
       const parsedSocketData = JSON.parse(message.data);
       const parsedMessageData = parsedSocketData.data;
       const event = parsedSocketData.event;
-      const parsedMessage = parsedMessageData.message;
       const callbackId = parsedSocketData.callbackId;
 
       if (event && this.eventListeners[event]) {
@@ -110,12 +109,6 @@ document.addEventListener("DOMContentLoaded", (event) => {
   // ----- MODAL RECURSION FIX --------
   $.fn.modal.Constructor.prototype.enforceFocus = function () {};
 
-  // ----- IS THIS MOBILE DEV ---------
-  const isMobile =
-    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-      navigator.userAgent
-    );
-
   // ------------------ CONFIGURATION EVENTS -----------------------------
 
   // Configuration elements
@@ -126,9 +119,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
   socket.on("config_updated", (data) => {
     const isPopVisible =
       window.getComputedStyle(configPopOver).getPropertyValue("visibility") ===
-      "visible"
-        ? true
-        : false;
+      "visible";
     if (data.error) {
       alert(data.error);
     } else if (isPopVisible) {
@@ -150,6 +141,25 @@ document.addEventListener("DOMContentLoaded", (event) => {
             <div class="input-group mb-3 form-floating">
                 <input type="text" class="form-control input-format-1 input-format-config" id="${fieldName}" name="${tagName}" placeholder="${verboseFieldName}"
                 aria-label="${verboseFieldName}" aria-describedby="field-${verboseFieldName}" value="${val}" data-value="${fieldName}">
+                <label for="${fieldName}">${verboseFieldName}</label>
+            </div>
+        </div>`;
+  };
+
+  // Generate a configuration field for password input
+  const generatePassFormField = (
+    parentTag,
+    val,
+    fieldName,
+    verboseFieldName,
+    isGlobal = true
+  ) => {
+    const tagName = isGlobal ? "cred-form-field" : "added-user-form-field";
+    parentTag.innerHTML += `
+        <div>
+            <div class="input-group mb-3 form-floating">
+                <input type="password" class="form-control input-format-1 input-format-config" id="${fieldName}" name="${tagName}" placeholder="${verboseFieldName}"
+                aria-label="${verboseFieldName}" aria-describedby="field-${verboseFieldName}" value="" data-value="${fieldName}">
                 <label for="${fieldName}">${verboseFieldName}</label>
             </div>
         </div>`;
@@ -274,7 +284,6 @@ document.addEventListener("DOMContentLoaded", (event) => {
   );
   const userTable = document.getElementById("user-table-body");
   const userBody = document.getElementById("user-body");
-  const userPopOver = document.getElementById("offcanvasUser");
   const userPopOverClose = document.getElementById("close-user-form");
   const userSuggestDatalist = document.getElementById("user-input-datalist");
   const userFilterInput = document.getElementById("user-search-input");
@@ -433,6 +442,8 @@ document.addEventListener("DOMContentLoaded", (event) => {
         preparedData[$(fieldInput).data("value")] = !fieldInput.checked;
       } else if (fieldInput.type === "checkbox") {
         preparedData[$(fieldInput).data("value")] = fieldInput.checked;
+      } else if (fieldInput.type === "password" && _.isEmpty(fieldInput.value)) {
+        return null;
       } else {
         preparedData[$(fieldInput).data("value")] = fieldInput.value;
       }
@@ -495,6 +506,9 @@ document.addEventListener("DOMContentLoaded", (event) => {
           case "VARCHAR":
             fieldGen = generateCharFormField;
             break;
+          case 'PASSWORD':
+            fieldGen = generatePassFormField;
+            break;
           case "INT":
             fieldGen = generateIntFormField;
             break;
@@ -531,6 +545,9 @@ document.addEventListener("DOMContentLoaded", (event) => {
         switch (fieldType) {
           case "VARCHAR":
             fieldGen = generateCharFormField;
+            break;
+          case 'PASSWORD':
+            fieldGen = generatePassFormField;
             break;
           case "INT":
             fieldGen = generateIntFormField;
@@ -597,25 +614,25 @@ document.addEventListener("DOMContentLoaded", (event) => {
 
   // Filter user management table
   $(userFilterInput).on("keyup", function () {
-    var value = $(this).val().toLowerCase();
+    const value = $(this).val().toLowerCase();
     userBody.scrollTo({
       top: 0,
       behavior: "smooth",
     });
     $("#user-table tbody tr").filter(function () {
       // Toggling table rows if stringified tr does not contain substring
-      var row = $(this);
-      var columns = row.find("td");
-      var found = false;
+      const row = $(this);
+      const columns = row.find("td");
+      let found = false;
       columns.each(function () {
-        var column = $(this);
-        var text = column.text();
-        var lowerText = text.toLowerCase();
+        const column = $(this);
+        const text = column.text();
+        const lowerText = text.toLowerCase();
         if (value && lowerText.indexOf(value) > -1) {
           // Highlight the substring within the column
-          var startIndex = lowerText.indexOf(value);
-          var endIndex = startIndex + value.length;
-          var highlightedText =
+          const startIndex = lowerText.indexOf(value);
+          const endIndex = startIndex + value.length;
+          const highlightedText =
             text.substring(0, startIndex) +
             '<span class="highlighted">' +
             text.substring(startIndex, endIndex) +
@@ -857,11 +874,6 @@ document.addEventListener("DOMContentLoaded", (event) => {
     "discord-io-switchLabel"
   );
 
-  // When a new status is recieved, update status bar above console
-  socket.on("update_status", (data) => {
-    updateCurrentStatus(data);
-  });
-
   // Update status bar to reflect current status
   const updateCurrentStatus = (data) => {
     const statusBox = document.getElementById("status-box");
@@ -869,7 +881,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
   };
 
   const requestStatusUpdate = (statusStr) => {
-    socket.emit("change_client_status", { status: statusStr });
+    socket.emit("change_client_status", { status: statusStr }, (data) => updateCurrentStatus(data));
   };
 
   // Update on/off switches to reflect current values
@@ -924,12 +936,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
 
   // Returns switch element based on passed in data
   const getSwitchFromData = (data) => {
-    switch (data.bot_name) {
-      case "discord":
-        return discordBotSwitch;
-      default:
-        return null;
-    }
+    return data.bot_name === "discord" ? discordBotSwitch : null;
   };
 
   // Shutdown bot and re-enable switch after one second
@@ -1006,7 +1013,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
 
   // Console elem
 
-  var logTxt = document.getElementById("console");
+  const logTxt = document.getElementById("console");
 
   // Update console log to reflect current logs
   const updateLog = (data) => {

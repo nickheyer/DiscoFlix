@@ -25,11 +25,9 @@ SECRET_KEY = 'django-insecure-(g73e%4r+5t5&c)z1p-1a+!vu1fdbymtjmxw2e@=o)5ghj$!b6
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
-CORS_ALLOWED_ORIGIN_REGEXES = [
-    r"/socket.io/",
-]
+CORS_ALLOW_ALL_ORIGINS = True
 
 # Application definition
 
@@ -37,6 +35,7 @@ INSTALLED_APPS = [
     'daphne',
     'channels',
     'DiscoFlixClient',
+    'DiscoFlixBot',
     'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -95,6 +94,9 @@ CHANNEL_LAYERS = {
         'BACKEND': 'channels.layers.InMemoryChannelLayer',
     },
 }
+
+
+AUTH_USER_MODEL = 'DiscoFlixClient.User'
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators

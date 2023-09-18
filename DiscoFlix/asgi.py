@@ -13,6 +13,8 @@ from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.auth import AuthMiddlewareStack
 from channels.security.websocket import AllowedHostsOriginValidator
 from django.core.asgi import get_asgi_application
+from django.core.management import call_command
+import atexit
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'DiscoFlix.settings')
 django.setup()
@@ -32,3 +34,11 @@ application = ProtocolTypeRouter({
         ]))
     ),
 })
+
+# AT EXIT CMD
+atexit.register(call_command, 'sigint')
+
+# AT STARTUP CMD
+call_command('initializedb')
+call_command('startloop')
+

@@ -1,5 +1,8 @@
 from django.db import models
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.utils.timezone import now
+
+import os
 
 class Configuration(models.Model):
     media_server_name = models.CharField("Media Server Name", max_length=255, null=True, default="The Server")
@@ -26,16 +29,17 @@ class State(models.Model):
     discord_state = models.BooleanField(default=False)
     app_state = models.BooleanField(default=True)
     current_activity = models.CharField(max_length=255, default="Offline")
+    host_url = models.CharField(max_length=128, default='0.0.0.0:5454')
 
 
 class ErrLog(models.Model):
     created = models.DateTimeField(auto_now_add=True)
-    entry = models.CharField(max_length=255, default="Error Occured")
+    entry = models.CharField(max_length=2048, default="Error Occured")
 
 
 class EventLog(models.Model):
     created = models.DateTimeField(auto_now_add=True)
-    entry = models.CharField(max_length=255, default="Event Occured")
+    entry = models.CharField(max_length=2048, default="Event Occured")
 
 
 class DiscordServer(models.Model):
@@ -55,8 +59,8 @@ class Media(models.Model):
     season_count = models.IntegerField(null=True)
     network = models.CharField(max_length=255, null=True)
     air_time = models.CharField(max_length=255, null=True)
-    tvdb_id = models.IntegerField(null=True)
-    imdb_id = models.IntegerField(null=True)
+    tvdb_id = models.CharField(max_length=255, null=True)
+    imdb_id = models.CharField(max_length=255, null=True)
     first_aired = models.CharField(max_length=255, null=True)
     series_type = models.CharField(max_length=255, null=True)
     in_theaters = models.CharField(max_length=255, null=True)
@@ -74,17 +78,46 @@ class MediaRequest(models.Model):
     status = models.BooleanField(default=False, null=True)
 
 
-class User(models.Model):
+class UserManager(BaseUserManager):
+    def create_user(self, username, password=None, **extra_fields):
+        if not username:
+            raise ValueError('The Username field is required')
+        user = self.model(username=username, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+class User(AbstractBaseUser):
     added = models.DateTimeField(default=now, editable=True, )
     is_admin = models.BooleanField(default=False)
     is_server_restricted = models.BooleanField(default=False)
-    username = models.TextField(null=True)
+    username = models.CharField(max_length=255, unique=True, null=False)
     discord_servers = models.ManyToManyField(DiscordServer, related_name="users")
     requests = models.ManyToManyField(MediaRequest, related_name="users")
     is_additional_settings = models.BooleanField(default=False)
-    is_server_owner = models.BooleanField(default=False)
+    is_superuser = models.BooleanField(default=False)
+    is_staff = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
     session_timeout = models.IntegerField(default=60)
     max_check_time = models.IntegerField(default=600)
     max_results = models.IntegerField(default=0)
     max_seasons_for_non_admin = models.IntegerField(default=0)
     max_requests_in_day = models.IntegerField(default=0)
+
+    objects = UserManager()
+
+    USERNAME_FIELD = 'username'
+    REQUIRED_FIELDS = []
+
+    def has_perm(self, perm, obj=None):
+        """Does the user have a specific permission?"""
+        return True
+
+    def has_module_perms(self, app_label):
+        """Does the user have permissions to view the app"""
+        return True
+
+    def __str__(self):
+        return self.username
+
+

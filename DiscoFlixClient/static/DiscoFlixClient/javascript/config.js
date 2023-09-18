@@ -51,9 +51,19 @@ export const ADDITIONAL_USER_SETTINGS = {
       TYPE: 'INT',
       DEFAULT: 0
   },
-  'is_server_owner': {
-      VERBOSE: 'Server Owner',
+  'is_superuser': {
+      VERBOSE: 'Server Owner / Super User',
       TYPE: 'BOOL',
       DEFAULT: false
+  },
+  'is_staff': {
+      VERBOSE: 'Can Access Admin Panel',
+      TYPE: 'BOOL',
+      DEFAULT: false
+  },
+  'password': {
+      VERBOSE: 'Admin Panel Password',
+      TYPE: 'PASSWORD',
+      DEFAULT: ''
   }
 };
