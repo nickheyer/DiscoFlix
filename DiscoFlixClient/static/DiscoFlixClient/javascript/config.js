@@ -57,12 +57,12 @@ export const ADDITIONAL_USER_SETTINGS = {
       DEFAULT: false
   },
   'is_staff': {
-      VERBOSE: 'Can Access Admin Panel',
+      VERBOSE: 'Grant Database Access',
       TYPE: 'BOOL',
       DEFAULT: false
   },
   'password': {
-      VERBOSE: 'Admin Panel Password',
+      VERBOSE: 'Database Access Password',
       TYPE: 'PASSWORD',
       DEFAULT: ''
   }

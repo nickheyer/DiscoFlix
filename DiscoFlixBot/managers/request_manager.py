@@ -78,7 +78,6 @@ class RequestHandler:
                 self.id_key = "tvdbId"
             self.get_root_dirs = self.request_method.get_root
         except Exception as e:
-            print(e)
             self.request_method = None
         return self.request_method
 

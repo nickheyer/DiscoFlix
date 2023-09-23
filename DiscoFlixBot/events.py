@@ -56,10 +56,7 @@ async def on_error(bot, *args):
     channel = args[0].channel
     report_content = StringIO(str(err))
     config_cls = await config()
-    print(config_cls.is_debug)
-
     if config_cls.is_debug:
-        print('SETTING UP ERROR MESSAGE')
         embeded = discord.Embed(
             title="Error Occured :(",
             url="https://github.com/nickheyer/DiscoFlix/issues/new",

@@ -8,7 +8,7 @@
   <div class="container">
       <div style="margin:auto; width:100%; margin-top: 10px;">
           <h1 class="name" >DiscoFlix</h1>
-          <p id="title-header" class="titles" align="center" >"Your friendly neighborhood media-requesting, Radarr/Sonarr-interfacing, movie-and-tv-show-listing-bot for your media server."</p>
+          <p id="title-header" class="titles" style="text-align:center;" >"Your friendly neighborhood media-requesting, Radarr/Sonarr-interfacing, movie-and-tv-show-listing-bot for your media server."</p>
       </div>
 
       <div><br></div>
@@ -29,6 +29,8 @@
           <div class="bar-btns">
             <button class="bar-btn"  name = "offcanvas-open-button" id="offcanvasConf-button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasConf" type="button" role="tab" aria-controls="offcanvasConf" aria-selected="true" style="background-color:#16191d;color:#966fd6;">Config</button>
             <button class="bar-btn"  name = "offcanvas-open-button" id="offcanvasUser-button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasUser" type="button" role="tab" aria-controls="offcanvasUser" aria-selected="true" style="background-color:#16191d;color:#966fd6;">Users</button>
+            <a href='{% url "admin:index" %}'><button class="bar-btn" id="offcanvasDB-link" type="button" role="tab" style="background-color:#16191d;color:#966fd6;">DB</button></a>
+            <a href='/api/'><button class="bar-btn" id="offcanvasAPI-link" type="button" role="tab" style="background-color:#16191d;color:#966fd6;">API</button></a>
           </div>
         </div>
         <textarea class="card3 console-log" id='console' rows="24" cols="auto" readonly spellcheck="false"></textarea>
@@ -61,7 +63,11 @@
                 </button>
               </h2>
               <div id="media-server-collapse" class="accordion-collapse collapse" data-bs-parent="#config-container">
-                <div id="media-server-configuration" class="accordion-body"> 
+                <div id="media-server-configuration" class="accordion-body">
+                </div>
+                <div id="media-server-test-container" class="test-button-container">
+                  <button id="media-server-test-button" name="test-button" class="btn btn-outline-secondary test-button" type="button">Test Connection</button>
+                  <span id="media-server-connection-status"></span>
                 </div>
               </div>
             </div>
@@ -73,6 +79,10 @@
               </h2>
               <div id="discord-bot-collapse" class="accordion-collapse collapse" data-bs-parent="#config-container">
                 <div id="discord-bot-configuration" class="accordion-body"> 
+                </div>
+                <div id="discord-bot-test-container" class="test-button-container">
+                  <button id="discord-bot-test-button" name="test-button" class="btn btn-outline-secondary test-button" type="button">Validate Token</button>
+                  <span id="discord-bot-connection-status"></span>
                 </div>
               </div>
             </div>
@@ -175,20 +185,20 @@
       </div>
       <div class="modal-body">
         <div class="mb-3">
-          <p>Choose the data you would like to import:</p>
+          <p>Importing the below data:</p>
       </div>
       <div class="btn-group mb-3" role="group" aria-label="Import options">
-          <input type="checkbox" class="btn-check" name="import-settings-config" id="ImportConfigurationModel" data-value="Configuration" autocomplete="off">
+          <input type="checkbox" class="btn-check" name="import-settings-config" id="ImportConfigurationModel" data-value="Configuration" autocomplete="off" checked disabled>
           <label class="btn btn-outline-secondary" for="ImportConfigurationModel" id="ImportConfigurationModelLabel">Configuration</label>
   
-          <input type="checkbox" class="btn-check" name="import-settings-config" id="ImportEventLogModel" data-value="EventLog" autocomplete="off">
+          <input type="checkbox" class="btn-check" name="import-settings-config" id="ImportEventLogModel" data-value="EventLog" autocomplete="off" checked disabled>
           <label class="btn btn-outline-secondary" for="ImportEventLogModel" id="ImportEventLogModelLabel">Logs</label>
   
-          <input type="checkbox" class="btn-check" name="import-settings-config" id="ImportUserModel" data-value="User" autocomplete="off">
+          <input type="checkbox" class="btn-check" name="import-settings-config" id="ImportUserModel" data-value="User" autocomplete="off" checked disabled>
           <label class="btn btn-outline-secondary" for="ImportUserModel" id="ImportUserModelLabel">Users</label>
       </div>
       <div class="mb-3">
-          <p class="text-muted">Select the import options above and click the "Import" button to upload the data. You can choose one or more options.</p>
+          <p class="text-muted">The imported data must have been previously exported from DiscoFlix (or follow the same format).</p>
       </div>
       </div>
       <div class="modal-footer">
@@ -255,14 +265,14 @@
             <div>
               <input type="checkbox" class="btn-check" name="added-user-form-field" id="addedUserIsAdmin" data-value="is_admin" autocomplete="off">
               <label class="btn btn-outline-secondary" for="addedUserIsAdmin" id="addedUserIsAdminFieldLabel">Non-Admin</label>
-              <label class="form-check-label" for="addedUserIsAdminFieldLabel" id="addedUserIsAdminFieldSecLabel">&lt; Change role to admin</label>
+              <label class="form-check-label" for="addedUserIsAdminFieldLabel" id="addedUserIsAdminFieldSecLabel">&lt; Change to admin</label>
             </div>
           </div>
           <div style="margin-top:15px; margin-bottom:15px">
             <div>
               <input type="checkbox" class="btn-check" name="added-user-form-field" id="addedUserIsAdditionalSettings" data-value="is_additional_settings" autocomplete="off">
               <label class="btn btn-outline-secondary" for="addedUserIsAdditionalSettings" id="addedUserIsAdditionalSettingsLabel">Using Global Settings</label>
-              <label class="form-check-label" for="addedUserIsAdditionalSettings" id="addedUserIsAdditionalSettingsSecLabel">&lt; Change to user-specific</label>
+              <label class="form-check-label" for="addedUserIsAdditionalSettings" id="addedUserIsAdditionalSettingsSecLabel">&lt; Change to user</label>
             </div>
           </div>
           <div style="margin-top: 15px;" id="addedUserAdditionalSettingsDiv" hidden>
@@ -276,7 +286,7 @@
             <div>
               <input type="checkbox" class="btn-check" name="added-user-form-field" id="addedUserIsServerRestricted" data-value="is_server_restricted" autocomplete="off" checked>
               <label class="btn btn-outline-secondary" for="addedUserIsServerRestricted" id="addedUserIsServerRestrictedLabel">All Servers</label>
-              <label class="form-check-label" for="addedUserIsServerRestrictedLabel" id="addedUserIsServerRestrictedSecLabel">&lt; Change to some servers</label>
+              <label class="form-check-label" for="addedUserIsServerRestrictedLabel" id="addedUserIsServerRestrictedSecLabel">&lt; Change to some</label>
             </div>
           </div>
           <!-- Server Details For -->

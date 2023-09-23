@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.utils.timezone import now
 
 import os
@@ -87,13 +87,13 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-class User(AbstractBaseUser):
+class User(AbstractBaseUser, PermissionsMixin):
     added = models.DateTimeField(default=now, editable=True, )
     is_admin = models.BooleanField(default=False)
     is_server_restricted = models.BooleanField(default=False)
     username = models.CharField(max_length=255, unique=True, null=False)
-    discord_servers = models.ManyToManyField(DiscordServer, related_name="users")
-    requests = models.ManyToManyField(MediaRequest, related_name="users")
+    discord_servers = models.ManyToManyField(DiscordServer, related_name="users", blank=True)
+    requests = models.ManyToManyField(MediaRequest, related_name="users", blank=True)
     is_additional_settings = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)

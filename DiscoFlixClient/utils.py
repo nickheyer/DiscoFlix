@@ -8,9 +8,13 @@ from django.apps import apps
 from channels.db import database_sync_to_async
 from django.core.exceptions import ObjectDoesNotExist
 from asgiref.sync import async_to_sync, sync_to_async
+from django.core.management.color import color_style
 
 import os
+import requests
+import io
 import subprocess
+import json
 import threading
 import sys
 import signal
@@ -26,6 +30,10 @@ from DiscoFlixClient.models import (
     DiscordServer,
     UserManager
 )
+
+from DiscoFlixBot.lib.api import radarr, sonarr
+
+style = color_style()
 
 @database_sync_to_async
 def save_instance(instance):
@@ -57,7 +65,7 @@ def update_config(data):
     for k, v in data.items():
         if hasattr(config, k):
             attribute = getattr(config, k)
-            if str(attribute) != str(v):
+            if str(attribute) != str(v) and (attribute or v):
                 changed.append(k)
             setattr(config, k, v)
     config.save()
@@ -181,10 +189,8 @@ def get_verbose_dict_sync(model_str):
     try:
         instance = found_model.objects.first()
         if instance is None:
-            print(f"No instances of {found_model} found.")
             return {}
 
-        print(f"Instance of {found_model} found: {instance}")
         fields = model_to_dict(instance)
         meta_fields = found_model._meta.get_fields()
         verbose_names = {}
@@ -325,7 +331,7 @@ def get_user_dict(**kwargs):
 def get_user(**kwargs):
     return get_user_sync(**kwargs)
 
-
+@database_sync_to_async
 def get_user_settings(user):
     if not user:
         return {}
@@ -513,9 +519,10 @@ def get_users_for_auth(server_id, permissions, username):
 
 
 @database_sync_to_async
-def update_servers(servers):
-    server_ids = [s["server_id"] for s in servers]
-    DiscordServer.objects.exclude(server_id__in=server_ids).delete()
+def update_servers(servers, delete = False):
+    if delete:
+        server_ids = [s["server_id"] for s in servers]
+        DiscordServer.objects.exclude(server_id__in=server_ids).delete()
 
     for server in servers:
         _updated, _created = DiscordServer.objects.update_or_create(
@@ -613,41 +620,63 @@ def reset_entire_db():
     if not Configuration.objects.exists():
         Configuration.objects.create()
 
-
+@database_sync_to_async
 def export_data(choices):
     """
-    Exports data from specified models to a JSON file.
+    Exports data from specified models to a JSON file (buffer till it reaches client).
     """
-    # List of models to dump data from
     models_to_dump = []
-    if choices["Configuration"]:
+    if "Configuration" in choices:
         models_to_dump.append("DiscoFlixClient.Configuration")
-    if choices["EventLog"]:
+    if "EventLog" in choices:
         models_to_dump.append("DiscoFlixClient.EventLog")
         models_to_dump.append("DiscoFlixClient.ErrLog")
-    if choices["User"]:
+    if "User" in choices:
         models_to_dump.append("DiscoFlixClient.User")
         models_to_dump.append("DiscoFlixClient.DiscordServer")
         models_to_dump.append("DiscoFlixClient.MediaRequest")
         models_to_dump.append("DiscoFlixClient.Media")
 
-    file_path = os.path.join(settings.BACKUPS_DIR, "DiscoDB.json")
-    call_command("dumpdata", *models_to_dump, output=file_path, format="json")
-    return file_path
+    buffer = io.StringIO()
+    call_command("dumpdata", *models_to_dump, stdout=buffer, format="json")
+
+    dumped_data = buffer.getvalue()
+    buffer.close()
+    
+    return dumped_data
 
 
 @database_sync_to_async
-def import_data(choices, file_path):
+def import_data(data_obj):
     """
-    Imports data from a JSON file into specified models. Choices currently disabled.
+    Imports data from a JSON string into specified models.
     """
 
-    call_command("loaddata", file_path)
+    if not data_obj:
+        return False
+    
+    data_str = data_obj
+
+    process = subprocess.Popen(
+        ['python', 'manage.py', 'importdata'], 
+        stdin=subprocess.PIPE, 
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True
+    )
+    stdout, stderr = process.communicate(input=data_str)
+    
+    if process.returncode != 0:
+        print("STDOUT:", stdout)
+        print("STDERR:", stderr)
+        return False
 
     if not State.objects.exists():
         State.objects.create()
     if not Configuration.objects.exists():
         Configuration.objects.create()
+    
+    return True
 
 
 def handle_stdout(pipe, logger=None):
@@ -679,3 +708,46 @@ def change_bot_state(current_state):
     state = get_state_sync()
     state.discord_state = current_state
     state.save()
+
+def validate_discord_token(token):
+    print(style.SUCCESS(f"VALIDATING DISCORD TOKEN: {token}"))
+    if not token:
+        return False
+    response = requests.get(
+        "https://discord.com/api/v9/users/@me",
+        headers = {"Authorization": f"Bot {token}"}
+    )
+    print(style.NOTICE(f"DISCORD VALIDATION RESPONSE:\n{response}"))
+    return response.status_code == 200
+
+def validate_sonarr(url, token):
+    print(style.SUCCESS(f"VALIDATING SONARR CONNECTION:\n{url}\n{token}"))
+    if None in [url, token]:
+        return False
+    try:
+      sonarr_instance = sonarr.SonarrAPI(url, token)
+      status = sonarr_instance.get_system_status()
+      print(style.SUCCESS(f"SONARR SYSTEM STATUS:\n{status}"))
+      if not status:
+          return False
+      return True
+    except Exception as e:
+      print(style.ERROR(f"SONARR ERR:\n{e}"))
+
+    return False
+
+def validate_radarr(url, token):
+    print(style.SUCCESS(f"VALIDATING RADARR CONNECTION:\n{url}\n{token}"))
+    if None in [url, token]:
+        return False
+    try:
+      radarr_instance = radarr.RadarrAPI(url, token)
+      status = radarr_instance.get_system_status()
+      print(style.SUCCESS(f"RADARR SYSTEM STATUS:\n{status}"))
+      if not status:
+        return False
+      return True
+    except Exception as e:
+      print(style.ERROR(f"RADARR ERR:\n{e}"))
+
+    return False

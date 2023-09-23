@@ -131,6 +131,8 @@ class DiscordBot:
         return unadded
 
     async def get_servers(self):
+        if not self.client:
+            return []
         servers = [
             {"server_name": str(guild), "server_id": guild.id}
             for guild in self.client.guilds
@@ -161,6 +163,5 @@ class DiscordBot:
                 if isinstance(attr, type) and issubclass(attr, Command) and attr is not Command:
                     command_classes.append(attr)
         
-        print(f'COMMAND CLASSES: {command_classes}')
         #sys.path.pop(0)
         return command_classes

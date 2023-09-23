@@ -160,7 +160,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
             <div class="input-group mb-3 form-floating">
                 <input type="password" class="form-control input-format-1 input-format-config" id="${fieldName}" name="${tagName}" placeholder="${verboseFieldName}"
                 aria-label="${verboseFieldName}" aria-describedby="field-${verboseFieldName}" value="" data-value="${fieldName}">
-                <label for="${fieldName}">${verboseFieldName}</label>
+                <label id="${fieldName}-label" for="${fieldName}">${verboseFieldName}</label>
             </div>
         </div>`;
   };
@@ -272,6 +272,73 @@ document.addEventListener("DOMContentLoaded", (event) => {
     saveConfigInFields();
   };
 
+  // ---- CONNECTION TESTS -----
+  function clearStatusAfterDelay(elem, duration = 5000) {
+    setTimeout(function() {
+      $(elem).html('');
+    }, duration);
+  }
+
+  const mediaServerTestButton = document.getElementById('media-server-test-button');
+  const mediaServerStatus = document.getElementById('media-server-connection-status');
+
+  mediaServerTestButton.onclick = (e) => {
+    // Simulate a connection test
+    mediaServerTestButton.disabled = true;
+
+    const configData = getConfigFromFields();
+
+    socket.emit('test-connection', { connection: 'media', config: configData }, (data) => {
+        if (data.error) {
+          $(mediaServerStatus).html(`
+            <div class="alert alert-danger alert-dismissible fade show" role="alert" style='margin: 20px 20px 20px 0;'>
+              ✖ Connection Failed: ${data.error}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          `);
+        } else {
+          $(mediaServerStatus).html(`
+            <div class="alert alert-success alert-dismissible fade show" role="alert" style='margin: 20px 20px 20px 0;'>
+                ✔ Connection Successful: Saving configuration...
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          `);
+        }
+        mediaServerTestButton.disabled = false;
+        clearStatusAfterDelay(mediaServerStatus);
+    });
+  };
+
+  const discordBotTestButton = document.getElementById('discord-bot-test-button');
+  const discordBotStatus = document.getElementById('discord-bot-connection-status');
+
+  discordBotTestButton.onclick = (e) => {
+    // Simulate a connection test
+    discordBotTestButton.disabled = true;
+
+    const configData = getConfigFromFields();
+
+    socket.emit('test-connection', { connection: 'discord', config: configData }, (data) => {
+        if (data.error) {
+          $(discordBotStatus).html(`
+          <div class="alert alert-danger alert-dismissible fade show" role="alert" style='margin: 20px 20px 20px 0;'>
+            ✖ Error: ${data.error}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+          `);
+        } else {
+          $(discordBotStatus).html(`
+          <div class="alert alert-success alert-dismissible fade show" role="alert" style='margin: 20px 20px 20px 0;'>
+              ✔ Connection Successful: Saving configuration...
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+          `);
+        }
+        discordBotTestButton.disabled = false;
+        clearStatusAfterDelay(discordBotStatus);
+    });
+  };
+
   // ------------------ USER EVENTS -----------------------------
 
   // User Table/Popover Elements
@@ -327,6 +394,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
   const addedUserIsAdditionalSettingsSecLabel = document.getElementById(
     "addedUserIsAdditionalSettingsSecLabel"
   );
+
 
   // To populate the auto-suggestions when typing in a user
   socket.on("unadded_users_sent", (data) => {
@@ -453,11 +521,14 @@ document.addEventListener("DOMContentLoaded", (event) => {
   };
 
   // Gets all servers from DB. If user is in a server, 'active' is true
-  const getAllServers = (username) => {
+  const getAllServers = (username, refreshed = false) => {
     socket.emit(
       "request_servers_from_client",
       { username: username },
       (data) => {
+        if (data.error && refreshed) {
+          alert(data.error);
+        }
         generateServerRows(data["servers"]);
       }
     );
@@ -491,7 +562,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
     addedUserModalLabel.innerText = "Add User";
     // Set username field in add user modal to the first input field's value
     addedUserUsernameField.value = userInput.value;
-    // Click the hidden button that dismisses the previous modal and opens add user
+    defineInputLogic();
     userInputButtonHidden.click();
   };
 
@@ -582,7 +653,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
       document.getElementById("addedUserIsServerRestrictedLabel").innerText =
         "Some Servers";
       document.getElementById("addedUserIsServerRestrictedSecLabel").innerText =
-        "< Change to all servers";
+        "< Change to all";
       addedUserServerDiv.hidden = false;
     } else {
       addedUserServerDiv.hidden = true;
@@ -597,7 +668,56 @@ document.addEventListener("DOMContentLoaded", (event) => {
     } else {
       changeAdditionalSettings(false, userDict);
     }
+
+    defineInputLogic();
   };
+
+
+  function defineInputLogic() {
+
+    const addedUserPassword = document.getElementById("password");
+    const addedUserPasswordLabel = document.getElementById("password-label");
+    const addedUserIsSuperUser = document.getElementById("is_superuser");
+    const addedUserIsStaff = document.getElementById("is_staff");
+    const addedUserIsStaffFn = (e) => {
+      if (addedUserIsStaff.checked) { // ON
+        addedUserPassword.disabled = false;
+        addedUserPassword.hidden = false;
+        addedUserPasswordLabel.hidden = false;
+
+      } else if (!addedUserIsStaff.checked) { // OFF
+
+        if (!addedUserIsSuperUser.checked) {
+          addedUserPassword.value = '';
+          addedUserPassword.disabled = true;
+          addedUserPassword.hidden = true;
+          addedUserPasswordLabel.hidden = true;
+        }
+      }
+    }
+  
+    addedUserIsStaff.onchange = addedUserIsStaffFn;
+    addedUserIsStaffFn();
+  
+    const addedUserIsSuperUserFn = (e) => {
+      if (addedUserIsSuperUser.checked) { // ON
+        addedUserIsStaff.checked = true;
+
+        addedUserPasswordLabel.hidden = false;
+        addedUserPassword.disabled = false;
+        addedUserPassword.hidden = false;
+
+      } else if (!addedUserIsSuperUser.checked) { // OFF
+        addedUserPassword.value = '';
+        addedUserPassword.disabled = true;
+        addedUserPasswordLabel.hidden = true;
+        addedUserPassword.hidden = true;
+      }
+    }
+  
+    addedUserIsSuperUser.onchange = addedUserIsSuperUserFn;
+    addedUserIsSuperUserFn();
+  }
 
   // Convert add user modal to edit user modal, populate with selected user's values
   const editUser = (row) => {
@@ -709,8 +829,8 @@ document.addEventListener("DOMContentLoaded", (event) => {
   };
 
   // When error in added user modal
-  const showOrHideFeedback = (show = false, msg = "") => {
-    const feedback = document.querySelector(".invalid-feedback");
+  const showOrHideFeedback = (show = false, msg = "", selector = ".invalid-feedback") => {
+    const feedback = document.querySelector(selector);
     if (show) {
       feedback.style.display = "inline";
       feedback.innerText = msg;
@@ -727,7 +847,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
 
   // When Refresh button is clicked in add user modal
   addedUserServerRefreshButton.onclick = (e) => {
-    getAllServers(addedUserUsernameField.value);
+    getAllServers(addedUserUsernameField.value, true);
   };
 
   // When All Servers/Some Servers checkbox is checked/unchecked in add/edit user modal
@@ -739,10 +859,10 @@ document.addEventListener("DOMContentLoaded", (event) => {
     if (!addedUserServerAllOrSomeButton.checked) {
       getAllServers(addedUserUsernameField.value);
       label.innerText = "Some Servers";
-      secLabel.innerText = "< Change to all servers";
+      secLabel.innerText = "< Change to all";
     } else {
       label.innerText = "All Servers";
-      secLabel.innerText = "< Change to some servers";
+      secLabel.innerText = "< Change to some";
     }
     addedUserServerDiv.hidden = !addedUserServerDiv.hidden;
   };
@@ -751,10 +871,10 @@ document.addEventListener("DOMContentLoaded", (event) => {
   addedUserIsAdminField.onchange = (e) => {
     if (addedUserIsAdminField.checked) {
       addedUserIsAdminFieldLabel.innerText = "Admin";
-      addedUserIsAdminFieldSecLabel.innerText = "< Change role to non-admin";
+      addedUserIsAdminFieldSecLabel.innerText = "< Change to non-admin";
     } else {
       addedUserIsAdminFieldLabel.innerText = "Non-Admin";
-      addedUserIsAdminFieldSecLabel.innerText = "< Change role to admin";
+      addedUserIsAdminFieldSecLabel.innerText = "< Change to admin";
     }
   };
 
@@ -766,7 +886,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
     } else {
       addedUserIsAdditionalSettingsLabel.innerText = "Using Global Settings";
       addedUserIsAdditionalSettingsSecLabel.innerText =
-        "< Change to user-specific";
+        "< Change to user";
       addedUserAdditionalSettingsDiv.hidden = true;
     }
   };
@@ -792,40 +912,26 @@ document.addEventListener("DOMContentLoaded", (event) => {
     return preparedData;
   };
 
-  const getImportExportSettings = (action, data = null) => {
-    const preparedData = getImportExportChoices(action);
-    if (!preparedData) {
-      return null;
-    }
-    socket.emit(
-      "import_export_from_client",
-      {
-        action: action,
-        choices: preparedData,
-        data: data,
-      },
-      (data) => {
-        if (data["err"]) {
-          alert(data["err"]);
-        } else if (data["import_success"]) {
-          location.reload();
-        }
-      }
-    );
-    return true;
-  };
-
-  importButton.onclick = (e) => {
-    if (!getImportExportChoices("import")) {
-      alert("Selection invalid or missing entirely.");
-      return null;
-    }
+  const importData = () => {
     const fileUpload = document.getElementById("configupload");
     fileUpload.addEventListener("change", function () {
       const GetFile = new FileReader();
       GetFile.onload = function () {
-        try {
-          getImportExportSettings("import", GetFile.result);
+        try {  
+          socket.emit(
+            "import_export_from_client",
+            {
+              action: 'import',
+              choices: [],
+              data: GetFile.result,
+            }, (data) => { // CALLBACK
+              if (data.error) {
+                alert(data.error);
+              } else if (data.success) {
+                location.reload();
+              }
+            }
+          );
         } catch (err) {
           alert("File is not a valid file -> " + err);
         }
@@ -835,30 +941,50 @@ document.addEventListener("DOMContentLoaded", (event) => {
     $(fileUpload).trigger("click");
   };
 
-  exportButton.onclick = (e) => {
-    const res = getImportExportSettings("export");
-    if (!res) {
+  const exportData = () => {
+    const action = 'export';
+    const preparedData = getImportExportChoices(action);
+    if (_.isEmpty(preparedData)) {
       alert("Selection invalid or missing entirely.");
+      return null;
     }
+    socket.emit(
+      "import_export_from_client",
+      {
+        action: action,
+        choices: preparedData,
+        data: null,
+      }, (data) => { // CALLBACK
+        if (data.error) {
+          alert(data.error);
+        } else if (data.success && data.content) {
+          const blob = new Blob([data.content], { type: "application/octet-stream" });
+          const link = document.createElement("a");
+          link.href = URL.createObjectURL(blob);
+          link.download = "DiscoDB.json";
+          link.style.display = "none";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(link.href);
+        }
+      }
+    );
   };
 
-  socket.on("exported_backup_file", (data) => {
-    const blob = new Blob([data], { type: "application/octet-stream" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "DiscoDB.json";
-    link.style.display = "none";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(link.href);
-  });
+  importButton.onclick = (e) => {
+    importData();
+  };
+
+  exportButton.onclick = (e) => {
+    exportData();
+  };
 
   resetButton.onclick = (e) => {
     socket.emit("reset_db_from_client", {}, (data) => {
-      if (data["err"]) {
-        alert(data["err"]);
-      } else if (data["reset_success"]) {
+      if (data.error) {
+        alert(data.error);
+      } else if (data.success) {
         location.reload();
       }
     });

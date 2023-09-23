@@ -31,12 +31,17 @@ from DiscoFlixClient.utils import (
     get_user,
     get_user_dict,
     reset_entire_db,
+    export_data,
+    import_data,
     update_state,
     get_users_list,
     get_all_user_servers,
     update_servers,
     change_bot_state,
     get_state,
+    validate_discord_token,
+    validate_sonarr,
+    validate_radarr,
 )
 
 
@@ -81,7 +86,7 @@ class ClientConsumer(AsyncWebsocketConsumer):
         data = text_data_json.get("data")
         callback_id = data.get("callbackId")
 
-        logger.debug(text_data_json)
+        # logger.debug(text_data_json)
 
         handler = self.event_handlers.get(event)
         if handler:
@@ -118,6 +123,36 @@ class ClientConsumer(AsyncWebsocketConsumer):
 
         await self.emit(response_data)
 
+    async def validate_startup(self):
+        config = await get_config()
+
+        if config.is_radarr_enabled:
+            await self.send_log(
+                "RADARR ENABLED - VALIDATING CONFIGURATION/CONNECTION..."
+            )
+            valid_radarr = validate_radarr(config.radarr_url, config.radarr_token)
+            if not valid_radarr:
+                await self.send_log("RADARR VALIDATION FAILED ✖ CANCELLING STARTUP.")
+                return False
+            await self.send_log("RADARR VALIDATION PASSED ✔")
+
+        if config.is_sonarr_enabled:
+            await self.send_log(
+                "SONARR ENABLED - VALIDATING CONFIGURATION/CONNECTION..."
+            )
+            valid_sonarr = validate_sonarr(config.sonarr_url, config.sonarr_token)
+            if not valid_sonarr:
+                await self.send_log("SONARR VALIDATION FAILED ✖ CANCELLING STARTUP.")
+                return False
+            await self.send_log("SONARR VALIDATION PASSED ✔")
+
+        await self.send_log("VALIDATING DISCORD TOKEN/CONNECTION...")
+        if not validate_discord_token(config.discord_token):
+            await self.send_log("DISCORD VALIDATION FAILED ✖ CANCELLING STARTUP.")
+            return False
+        await self.send_log("DISCORD VALIDATION PASSED ✔")
+        return True
+
     # CLIENT COMMANDS/ROUTES
 
     @event_handler("client_connect")
@@ -144,8 +179,9 @@ class ClientConsumer(AsyncWebsocketConsumer):
                 ]
             )
             await self.send_log(f"Configuration updated: {updated_configs}")
-        response_data["callbackId"] = callback_id
-        await self.emit({"event": "config_updated", "data": response_data})
+        if callback_id:
+            response_data["callbackId"] = callback_id
+            await self.emit({"event": "config_updated", "data": response_data})
 
     @event_handler("add_user_from_client")
     async def add_user_from_client(self, data=None, callback_id=None):
@@ -205,7 +241,7 @@ class ClientConsumer(AsyncWebsocketConsumer):
 
     @event_handler("get_user_info_from_id")
     async def get_user_info_from_id(self, data=None, callback_id=None):
-        response_data =  await get_user_dict(id=data.get("id"))
+        response_data = await get_user_dict(id=data.get("id"))
         await self.emit({"callbackId": callback_id, "data": response_data})
 
     @event_handler("delete_user")
@@ -225,10 +261,40 @@ class ClientConsumer(AsyncWebsocketConsumer):
         # kill_all_bots()
         try:
             await reset_entire_db()
-            response = {"reset_success": True}
-        except Exception:
-            response = {"reset_success": False}
+            response = {"success": True}
+        except Exception as e:
+            response = {"error": e}
         await self.emit({"callbackId": callback_id, "data": response})
+
+    @event_handler("import_export_from_client")
+    async def import_export_db(self, data=None, callback_id=None):
+        action = data.get("action")
+        if not action:
+            return
+
+        if action == "export":
+            data_choices = data.get("choices", {})
+            choices = [choice for choice in data_choices.keys() if data_choices[choice]]
+            export_data_content = await export_data(choices)
+            await self.emit(
+                {
+                    "callbackId": callback_id,
+                    "data": {"content": export_data_content, "success": True},
+                }
+            )
+        elif action == "import":
+            content = data.get("data")
+            import_data_result = await import_data(content)
+            response = {"callbackId": callback_id, "data": {}}
+
+            if import_data_result:
+                response["data"]["success"] = True
+            else:
+                response["data"][
+                    "error"
+                ] = "Unable to import file. Potentially invalid operation."
+
+            await self.emit(response)
 
     @event_handler("server_off")
     async def turn_server_off(self, _data=None, _callback_id=None):
@@ -250,17 +316,34 @@ class ClientConsumer(AsyncWebsocketConsumer):
     async def request_servers_from_client(self, data=None, callback_id=None):
         await DiscordBot().get_servers()
         server_list = await get_all_user_servers(data.get("username"))
-        await self.emit({"callbackId": callback_id, "data": {"servers": server_list}})
+        await self.emit(
+            {"callbackId": callback_id, "data": {"servers": server_list}}
+        )
 
     # BOT COMMANDS/ROUTES
 
     @event_handler("bot_on")
     async def turn_bot_on(self, _data=None, _callback_id=None):
+        is_valid = await self.validate_startup()
+        if not is_valid:
+            await self.send_log("STARTUP FAILED ✖")
+            await self.emit(
+                {
+                    "event": "bot_on_finished",
+                    "data": {
+                        "success": False,
+                        "bot_name": "discord",
+                        "error": "Startup failure, see console.",
+                    },
+                }
+            )
+            return
+
+        await self.send_log("STARTUP COMMENCING ✔")
         await change_bot_state(True)
         print(style.NOTICE("[Bot] - PROCESS IS BEING STARTED..."))
         await main()
         await self.update_client()
-
         print(style.SUCCESS("[Bot] - BOT IS FINSIHED STARTING!..."))
 
     @event_handler("bot_off")
@@ -272,3 +355,38 @@ class ClientConsumer(AsyncWebsocketConsumer):
         await self.update_client()
 
         print(style.SUCCESS("[Bot] - BOT IS KILLED!..."))
+
+    # VALIDATORS
+    @event_handler("test-connection")
+    async def test_connection(self, data=None, callback_id=None):
+        validation_type = data.get("connection")
+        config = data.get("config")
+        errors = []
+
+        if validation_type == "media":
+            if config.get("is_radarr_enabled") and not validate_radarr(
+                config.get("radarr_url"), config.get("radarr_token")
+            ):
+                errors.append("Unable to connect to Radarr")
+            if config.get("is_sonarr_enabled") and not validate_sonarr(
+                config.get("sonarr_url"), config.get("sonarr_token")
+            ):
+                errors.append("Unable to connect to Sonarr")
+            if not config.get("is_radarr_enabled") and not config.get(
+                "is_sonarr_enabled"
+            ):
+                errors.append(
+                    "Radarr and Sonarr Requests are disabled. Try enabling them!"
+                )
+
+        elif validation_type == "discord":
+            if not validate_discord_token(config.get("discord_token")):
+                errors.append("Discord token is invalid")
+
+        if errors:
+            await self.emit(
+                {"callbackId": callback_id, "data": {"error": ". ".join(errors)}}
+            )
+        else:
+            await self.emit({"callbackId": callback_id, "data": {"success": True}})
+            await self.update_config(config)  # Saving on success

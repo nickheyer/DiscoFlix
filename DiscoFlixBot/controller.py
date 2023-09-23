@@ -10,8 +10,6 @@ async def main():
     token = (
         config.discord_token
     )
-    # 'OTQ2MjAxMzU5NDA4MDU0Mjcy.GEIE6I.q3hhs9wFoIrhhbbVkfKoGoDhIHbDjosCmy_38A'
-    print(f'[CONTROLLER] BOT USING TOKEN: "{token}"')
 
     bot_instance = DiscordBot()
     await bot_instance.start(token)

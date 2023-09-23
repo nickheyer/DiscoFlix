@@ -40,13 +40,11 @@ class MessageHandler:
         for step in req_parsing_steps:
             result = await step() if asyncio.iscoroutinefunction(step) else step()
             if not result:
-                print(f'FAILED: {step}')
                 return False
 
         for step, rej in addtional_steps:
             result = await step() if asyncio.iscoroutinefunction(step) else step()
             if not result:
-                print(f'FAILED: {step}')
                 self.rejection = rej
                 return False         
         return True
@@ -56,7 +54,7 @@ class MessageHandler:
         self.username = str(self.message.author)
         self.is_bot = self.sender.bot
         self.user = await get_user(username=self.username)
-        self.user_settings = get_user_settings(self.user)
+        self.user_settings = await get_user_settings(self.user)
         return not self.is_bot
 
     def __parse_prefix(self):
@@ -91,9 +89,7 @@ class MessageHandler:
     
     def __parse_conditions(self):
         conditions = self.command.conditions
-        print(f'CONDITIONS (ALL): {conditions}')
         for requirement in conditions:
-            print(f'REQUIREMENT: {requirement} ({type(requirement)})')
             if isinstance(requirement, tuple):
                 fn = requirement[0]
                 result = fn(*requirement[1])
@@ -106,7 +102,6 @@ class MessageHandler:
                     return False
             elif isinstance(requirement, str):
                 config_setting = getattr(self.config, requirement, False)
-                print(f'CHECKING CONFIG: {config_setting}')
                 if not config_setting:
                     return False
             else:

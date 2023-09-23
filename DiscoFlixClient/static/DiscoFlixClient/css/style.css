@@ -76,7 +76,9 @@ body {
   color:#966fd6;
 }
 
-
+.form-check-label {
+  font-size: small !important;
+}
 
 .scenter {
   margin: auto;
@@ -371,6 +373,11 @@ textarea {
 
 .user-body {
   z-index: 0;
+}
+
+.test-button-container {
+  margin-left: 20px;
+  margin-bottom: 20px;
 }
 
 .console-log {

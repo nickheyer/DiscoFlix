@@ -19,5 +19,5 @@ from django.urls import include, path
 
 urlpatterns = [
     path("", include("DiscoFlixClient.urls")),
-    path('admin/', admin.site.urls),
+    path('db/', admin.site.urls),
 ]

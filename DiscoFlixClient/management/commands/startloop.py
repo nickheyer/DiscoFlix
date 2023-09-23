@@ -35,6 +35,5 @@ class Command(BaseCommand):
                 }
                 await websocket.send(json.dumps(bot_on_data))
                 response = await websocket.recv()
-                print(response)
 
         loop.run_until_complete(bot_starter_ws_client())
