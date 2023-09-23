@@ -1,9 +1,11 @@
 
 
+.dockerignore
+
 *.tldr
 .vscode
 backups/
-
+deploy/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
