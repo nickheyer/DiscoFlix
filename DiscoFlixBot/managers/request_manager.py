@@ -247,14 +247,15 @@ class RequestHandler:
         self.selected_content = await self._cycle_content()
         if self.selected_content and self.view.approval_required:
             # REQUIRES ADMIN APPROVAL, CREATE APPROVAL VIEW
+            
+            # I need to add in a dynamically created rejection str here
             approval_view = ApproveRequest(
                 self.options,
                 self.response,
-                f'{self.selected_content.get("title", "Untitled")}\'s season count '
-                + f'({self.selected_content["seasonCount"]}) exceeds the maximum season '
-                + f"count for this user ({self.config.max_seasons_for_non_admin}).",
+                'User is not authorized to make this request.',
                 self.embed,
             )
+            await approval_view.async_init()
             emb = await approval_view.generate_embed()
             await self._edit_response(
                 content=approval_view.get_admin_mentions(),

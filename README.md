@@ -45,7 +45,7 @@ docker image pull nickheyer/discoflix_rpi:latest
 ##### Run Docker Container
 
 ```bash
-docker run -d -p 5454:5454 nickheyer/discoflix
+docker run -d -p 5454:5454 --name discoflix nickheyer/discoflix
 ```
 ##### The server within the docker container can be accessed locally at [http://127.0.0.1:5454](http://127.0.0.1:5454)
 
@@ -84,7 +84,12 @@ cd ./DiscoFlix
 pip install -r requirements.txt
 ```
 
-5. Run DiscoFlix
+5. Run Migrations
+```bash 
+python manage.py migrate
+```
+
+6. Run DiscoFlix
 ```bash
 sh ./run.sh
 ```
@@ -169,14 +174,14 @@ To see the commands available to you, type `!df help`. DiscoFlix should respond 
 
 | Command | Aliases                       | Description                               | Usage                     |
 |---------|-------------------------------|-------------------------------------------|---------------------------|
-| Test    | test                          | Confirm bot is on and listening           | `!df test [-d]`           |
+| Test    | test                          | Confirm bot is on and listening           | `!df test`           |
 | Help    | help                          | Display all authorized commands.          | `!df help`                |
-| Echo    | echo                          | Confirm bot is handling input as intended.| `!df echo <text to echo> [-d]`|
+| Echo    | echo                          | Confirm bot is handling input as intended.| `!df echo <text to echo>`|
 | Error   | error, err, raise             | Confirm bot is handling errors as intended| `!df error [-s]`          |
-| Log     | log, add-log                  | Confirm bot is logging information to console as intended | `!df log <text to log> [-m]`|
+| Log     | log, add-log                  | Confirm bot is logging information to console as intended | `!df log <text to log>`|
 | Movie   | movie, add-movie              | Request a movie                           | `!df movie <title>`       |
 | Show    | show, add-show, tv-show, add-tv-show, tv, tvshow | Request a tv-show   | `!df show <title>`         |
-| User    | user, add-user, add | Add a user   | `!df user <user_to_add> [-a]`         |
+| User    | user, add-user, add | Add a user   | `!df user <user_to_add>`         |
 
 > The above commands assume that your command prefix is set to the default `!df`. Adjust accordingly.
 

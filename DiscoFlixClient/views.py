@@ -6,6 +6,8 @@ from DiscoFlixClient.utils import (
     update_state_sync
 )
 
+from DiscoFlixClient.permissions import AllowGETUnauthenticated
+
 # ---------------- INDEX, ETC. ----------------
 
 def index(request):

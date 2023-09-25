@@ -137,6 +137,7 @@ class DiscordBot:
             {"server_name": str(guild), "server_id": guild.id}
             for guild in self.client.guilds
         ]
+
         await update_servers(servers)
         return servers
 

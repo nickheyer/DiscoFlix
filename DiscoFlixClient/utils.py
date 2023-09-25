@@ -9,6 +9,7 @@ from channels.db import database_sync_to_async
 from django.core.exceptions import ObjectDoesNotExist
 from asgiref.sync import async_to_sync, sync_to_async
 from django.core.management.color import color_style
+from rest_framework.authtoken.models import Token
 
 import os
 import requests
@@ -211,12 +212,27 @@ def get_verbose_dict_sync(model_str):
 def get_verbose_dict(model_str):
     return get_verbose_dict_sync(model_str)
 
+def get_user_token_sync(user_cls = None, username = None, id = None):
+    if not user_cls:
+       user_cls = get_user_sync(username, id)
+       if not user_cls:
+           return None 
+    token, _created = Token.objects.get_or_create(user=user_cls)
+    return token.key
+
+@database_sync_to_async
+def get_user_token(user_cls = None, username = None, id = None):
+    return get_user_token_sync(user_cls, username, id)
 
 @database_sync_to_async
 def get_users_dict():
     users = User.objects.all()
-    users_dict = [model_to_dict(user, exclude=["discord_servers", "requests"]) for user in users]
-
+    users_dict = []
+    for user in users:
+        user_dict = model_to_dict(user, exclude=["discord_servers", "requests"])
+        user_dict['token'] = get_user_token_sync(user)
+        users_dict.append(user_dict)
+        
     return users_dict
 
 
@@ -278,12 +294,12 @@ def edit_user(info):
                 if k == 'password':
                     user.set_password(v)
                 else:
-                    # Cast value to the appropriate type based on the field type
                     if isinstance(field, models.BooleanField):
-                        v = bool(v)
+                        v = bool(v) if v else False
                     elif isinstance(field, models.IntegerField):
-                        v = int(v)
+                        v = int(v) if v else 0
                     setattr(user, k, v)
+                    
 
     user.save()
 
@@ -323,7 +339,9 @@ def get_user_sync(**kwargs):
 def get_user_dict(**kwargs):
     user = get_user_sync(**kwargs)
     if user:
-        return model_to_dict(user, exclude=["discord_servers", "requests"])
+        user_dict = model_to_dict(user, exclude=["discord_servers", "requests"])
+        user_dict['token'] = get_user_token_sync(user)
+        return user_dict
     return None
 
 
@@ -442,7 +460,10 @@ def eval_user_roles(user):
 
 @database_sync_to_async
 def get_users_in_server(server_id, permissions=[]):
-    server = DiscordServer.objects.filter(id=server_id).first()
+    server = DiscordServer.objects.filter(server_id=server_id).first()
+
+    if not server:
+        return []
 
     # Fetch users associated with the server
     users_in_server = server.users.all()
@@ -479,7 +500,6 @@ def get_user_requests_last_24_hours(username):
 
     # Filter MediaRequest instances created within the last 24 hours and requested by the given user
     recent_requests_count = user.requests.filter(created__gte=one_day_ago).count()
-
     # If the user has a max_requests_in_day attribute and it exceeds the recent_requests_count, return False
     if user.max_requests_in_day and recent_requests_count >= user.max_requests_in_day:
         return False
@@ -520,12 +540,13 @@ def get_users_for_auth(server_id, permissions, username):
 
 @database_sync_to_async
 def update_servers(servers, delete = False):
+    
     if delete:
         server_ids = [s["server_id"] for s in servers]
         DiscordServer.objects.exclude(server_id__in=server_ids).delete()
 
     for server in servers:
-        _updated, _created = DiscordServer.objects.update_or_create(
+        _get, _created = DiscordServer.objects.get_or_create(
             server_id=server["server_id"],
             defaults={"server_name": server["server_name"]},
         )

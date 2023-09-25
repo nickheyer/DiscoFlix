@@ -26,6 +26,12 @@
   background-color: #16191d !important;
 }
 
+#user-token-data:read-only {
+  /* outline: none !important;
+  box-shadow: none !important; */
+  background-color:#16191d !important;
+}
+
 .accordion-header,
 .accordion-button {
   color: #966fd6 !important;

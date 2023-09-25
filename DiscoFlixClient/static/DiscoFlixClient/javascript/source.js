@@ -394,6 +394,8 @@ document.addEventListener("DOMContentLoaded", (event) => {
   const addedUserIsAdditionalSettingsSecLabel = document.getElementById(
     "addedUserIsAdditionalSettingsSecLabel"
   );
+  const userTokenField = document.getElementById('user-token-data');
+  const userTokenDiv = document.getElementById('user-token-data-div');
 
 
   // To populate the auto-suggestions when typing in a user
@@ -415,6 +417,8 @@ document.addEventListener("DOMContentLoaded", (event) => {
     userFilterInput.value = "";
     addedUserId.value = "";
     addedUserModalDeleteButton.hidden = true;
+    userTokenDiv.hidden = true;
+    userTokenField.value = "";
     $("#user-table tbody tr").show();
     if (addedUserIsAdminField.checked) {
       addedUserIsAdminField.click();
@@ -657,6 +661,13 @@ document.addEventListener("DOMContentLoaded", (event) => {
       addedUserServerDiv.hidden = false;
     } else {
       addedUserServerDiv.hidden = true;
+    }
+    if (userDict.token) {
+      userTokenDiv.hidden = false;
+      userTokenField.value = `Token ${userDict.token}`;
+    } else {
+      userTokenDiv.hidden = true;
+      userTokenField.value = "";
     }
     // Get all servers regardless if hidden
     getAllServers(userDict.username);

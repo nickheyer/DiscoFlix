@@ -1,6 +1,14 @@
 import discord
 
-from DiscoFlixClient.utils import eval_user_roles, get_users_in_server, get_user
+from DiscoFlixClient.utils import (
+    eval_user_roles,
+    get_users_in_server,
+    get_user,
+    get_user_requests_last_24_hours,
+)
+
+from DiscoFlixBot.managers.permission_manager import requires_admin
+
 
 class ContentSelectionView(discord.ui.View):
     def __init__(self, context, content_list, author, response_object):
@@ -20,7 +28,7 @@ class ContentSelectionView(discord.ui.View):
 
     async def async_init(self):
         self.user_roles = await eval_user_roles(str(self.author))
-        self.user_config = await get_user(username = str(self.author))
+        self.user_config = await get_user(username=str(self.author))
 
     async def on_timeout(self) -> None:
         self.result = None
@@ -166,13 +174,8 @@ class ContentSelectionView(discord.ui.View):
         seasons = content.get("seasonCount", None)
         if seasons:
             embed.insert_field_at(index=0, name="Seasons", value=seasons, inline=True)
-            if not self.user_config.is_admin and (
-                self.config.max_seasons_for_non_admin != 0
-                and seasons > self.config.max_seasons_for_non_admin
-            ):
-                await self.change_button_text("select", "Ask Admin")
-            else:
-                await self.change_button_text("select", "Select")
+        if await requires_admin(self, seasons):
+            await self.change_button_text("select", "Ask Admin")
         else:
             await self.change_button_text("select", "Select")
         relevant_fields = {"runtime": " Minutes", "status": "", "episodeCount": ""}
@@ -237,21 +240,6 @@ class ApproveNewUser(discord.ui.View):
         if interaction.user not in self.authorized_users:
             return
         self.result = "REGISTER_USER"
-        await self.generate_embed(interaction)
-        self.stop()
-
-    @discord.ui.button(
-        label="Register Admin",
-        style=discord.ButtonStyle.green,
-        custom_id="register_admin",
-        row=0,
-    )
-    async def register_admin_button(
-        self, interaction: discord.Interaction, button: discord.ui.Button
-    ):
-        if interaction.user not in self.authorized_users:
-            return
-        self.result = "REGISTER_ADMIN"
         await self.generate_embed(interaction)
         self.stop()
 
@@ -336,8 +324,8 @@ class ApproveRequest(discord.ui.View):
 
     async def on_timeout(self) -> None:
         self.result = False
-        await self.generate_embed(timed_out=True)
-        await self.reply.edit(content=None, embed=None, view=None)
+        timeout_embed = await self.generate_embed(timed_out=True)
+        await self.response.edit(content=None, embed=timeout_embed, view=None)
         return await super().on_timeout()
 
     async def get_admins(self, message_object):
@@ -384,7 +372,14 @@ class ApproveRequest(discord.ui.View):
         self.stop()
 
     async def generate_embed(self, interaction=False, timed_out=False):
-        if not self.authorized_users:
+        if timed_out:
+            embed = discord.Embed(
+                title="Authorization Timed-Out", color=discord.Color.brand_red()
+            )
+            embed.description = "No responses provided, moving on."
+            self.embed = embed
+            return embed
+        elif not self.authorized_users:
             embed = discord.Embed(
                 title="Authorization Required", color=discord.Color.brand_red()
             )
@@ -409,7 +404,7 @@ class ApproveRequest(discord.ui.View):
             return embed
 
 
-class ListCommands():
+class ListCommands:
     def __init__(self, context, command_classes):
         self.context = context
         self.config = context.config
@@ -421,33 +416,42 @@ class ListCommands():
         self.embed = None
 
     async def generate_embed(self):
-        embed = discord.Embed(title="Help", description="List of available commands:", color=self.user.color)
+        embed = discord.Embed(
+            title="Help",
+            description="List of available commands:",
+            color=self.user.color,
+        )
         user_roles = set(await eval_user_roles(self.user_str))
         _debug = self.config.is_debug
-        print(f'THE CURRENT ROLES FOR THIS USER: {user_roles}')
-        print(f'CURRENT COMANDS FROM CONTEXT: {self.commands}')
+        if _debug:
+          print(f"THE CURRENT ROLES FOR THIS USER: {user_roles}")
+          print(f"CURRENT COMANDS FROM CONTEXT: {self.commands}")
         for command_cls in self.commands:
             required_roles = set(command_cls.permissions)
             authorized_roles = required_roles.intersection(user_roles)
 
             if not required_roles or authorized_roles or _debug:
                 name = command_cls.name
-                aliases = '*, *'.join(command_cls.aliases)
-                usage = f"{command_cls.aliases[0]}" + (' <input>' if command_cls.requires_input else '')
+                aliases = "*, *".join(command_cls.aliases)
+                usage = f"{command_cls.aliases[0]}" + (
+                    " <input>" if command_cls.requires_input else ""
+                )
                 description = command_cls.description
                 field_text = f"Description: `{description}`\n" if description else ""
                 field_text += f"Usage: `{self.prefix} {usage}`"
                 if command_cls.slash_enabled:
                     field_text += f"\nSlash: `/{usage}`"
                 if _debug and (required_roles and not authorized_roles):
-                    field_text += '\nAuthorization: `Not authorized`'
+                    field_text += "\nAuthorization: `Not authorized`"
                 elif _debug:
-                    field_text += '\nAuthorization: `Authorized`'
-                embed.add_field(name=f"{name} [*{aliases}*]", value=field_text, inline=False)
-        
+                    field_text += "\nAuthorization: `Authorized`"
+                embed.add_field(
+                    name=f"{name} [*{aliases}*]", value=field_text, inline=False
+                )
+
         if _debug:
             information_field = f'Username: `{self.user_str}`\nUser Roles: `{"`, `".join(user_roles)}`\nCommands Registered: `{len(self.commands)}`'
-            embed.add_field(name='User Debug Information', value=information_field)
-        
+            embed.add_field(name="User Debug Information", value=information_field)
+
         self.embed = embed
         return embed

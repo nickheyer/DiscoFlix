@@ -55,6 +55,9 @@ class MessageHandler:
         self.is_bot = self.sender.bot
         self.user = await get_user(username=self.username)
         self.user_settings = await get_user_settings(self.user)
+        for key, val in self.user_settings.items():
+            if hasattr(self.config, key):
+                setattr(self.config, key, val)
         return not self.is_bot
 
     def __parse_prefix(self):
@@ -68,9 +71,7 @@ class MessageHandler:
         else:
             registry = CommandRegistry()
             cmd_str = self.split_message[1].lower()
-            print(f'INCOMING COMMAND: {cmd_str}')
             cmd = registry.get(cmd_str)
-            print(f'PULLED FROM REGISTRY: {cmd}')
             if cmd:
                 self.command = cmd
                 return True

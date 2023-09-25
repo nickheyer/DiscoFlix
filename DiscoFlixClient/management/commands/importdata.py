@@ -1,5 +1,4 @@
 from django.core.management import BaseCommand
-from django.core.management import call_command
 from django.apps import apps
 from django.core.serializers import base, python, deserialize
 from django.db import migrations
