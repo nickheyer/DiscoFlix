@@ -1,5 +1,7 @@
 #!/bin/sh
-PORT=5454
-cd src
-gunicorn -k geventwebsocket.gunicorn.workers.GeventWebSocketWorker -w 1 --bind 0.0.0.0:$PORT app:app
-echo "Shutting down Gunicorn Server"
+
+echo "Applying Django migrations..."
+python manage.py migrate
+
+echo "STARTING DAPHNE|DJANGO|DISCO ASGI SERVER"
+daphne -b 0.0.0.0 -p 5454 DiscoFlix.asgi:application

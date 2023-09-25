@@ -1,16 +1,16 @@
-data/
-log/
-old-venv/
-venv/
 
+
+.dockerignore
+
+*.tldr
+.vscode
+backups/
+deploy/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
-
-*.tldr
-.vscode
 
 # C extensions
 *.so
@@ -23,7 +23,6 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
 lib64/
 parts/
 sdist/

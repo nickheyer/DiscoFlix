@@ -1,0 +1,12 @@
+{% extends "rest_framework/base.html" %}
+
+
+{% block title %}
+DISCOFLIX REST API
+{% endblock %}
+
+{% block style %}
+{{ block.super }}
+{% load static %}
+<link rel="shortcut icon" type="image/png" href="{% static 'DiscoFlixClient/images/favicon.png' %}" />
+{% endblock %}
