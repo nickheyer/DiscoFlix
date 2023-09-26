@@ -85,10 +85,9 @@ document.addEventListener("DOMContentLoaded", (event) => {
   }
 
   // Start websocket connection when page is loaded
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
   const socket = new WebSocketWrapper(
-    'ws://'
-    + window.location.host
-    + '/ws/client/'
+    protocol + '//' + window.location.host + '/ws/client/'
   );
 
   // Tell the web-server that we've connected, say hi
