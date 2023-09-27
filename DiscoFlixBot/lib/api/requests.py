@@ -51,7 +51,7 @@ class RequestAPI:
             return response.json()
         except requests.exceptions.RequestException as e:
             logger.error(f"HTTP request failed: {e}")
-            return None
+            return {}
 
     def request_post(self, path: str, data: dict) -> dict:
         """Wrapper on the requests.post
@@ -71,7 +71,7 @@ class RequestAPI:
             return response.json()
         except requests.exceptions.RequestException as e:
             logger.error(f"HTTP POST request failed: {e}")
-            return None
+            return {}
 
     def request_put(self, path: str, data: dict) -> dict:
         """Wrapper on the requests.put
@@ -91,7 +91,7 @@ class RequestAPI:
             return response.json()
         except requests.exceptions.RequestException as e:
             logger.error(f"HTTP PUT request failed: {e}")
-            return None
+            return {}
 
     def request_delete(self, path: str, data: dict) -> dict:
         """Wrapper on the requests.delete
@@ -111,7 +111,7 @@ class RequestAPI:
             return response.json()
         except requests.exceptions.RequestException as e:
             logger.error(f"HTTP DELETE request failed: {e}")
-            return None
+            return {}
         except ValueError:
             # Catch JSON decode error in case the response has no body
-            return None
+            return {}
