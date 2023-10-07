@@ -8,6 +8,7 @@ class LogCommand(Command):
         self.permissions = ["user", "developer", "owner"]
         self.description = "Confirm bot is logging information to console/server as intended"
         self.aliases = ["log"]
+        self.requires_input = True
 
 
     async def execute(self, message, ctx):
