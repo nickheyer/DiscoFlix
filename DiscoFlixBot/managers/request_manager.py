@@ -175,6 +175,7 @@ class RequestHandler:
         while current_time_waited <= max_time_waited:
             await sleep(wait_interval)
             content_info = self.get_info(self.databaseId)
+
             # Perform checks here
             if self.request_type == "movie":
                 content_history = self.request_method.get_history_movie(self.databaseId)
@@ -201,6 +202,7 @@ class RequestHandler:
                     )
                 else:
                     new_content_status = STATUS_MAP["SEARCHING"]
+                    
             elif self.request_type == "show":
                 seasons = content_info.get("seasonCount", None)
                 episodes = content_info.get("episodeCount", 0)
@@ -224,14 +226,7 @@ class RequestHandler:
             else:
                 current_time_waited += wait_interval
 
-        if self.request_type == "movie":
-            await self.view.update_status(*STATUS_MAP["TIMED_OUT"])
-        elif self.request_type == "show":
-            custom_status = (
-                f"Timed out with {content_status[0]}",
-                STATUS_MAP["TIMED_OUT"][1],
-            )
-            await self.view.update_status(*custom_status)
+        await self.view.update_status(*STATUS_MAP["TIMED_OUT"])
         return False
 
     async def process_request(self):

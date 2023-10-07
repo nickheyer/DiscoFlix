@@ -13,14 +13,14 @@ class Command:
       - string: refers to settings/configuration value in DB, ie: 'is_radarr_enabled'
     """
         
-    name = None
-    permissions = []
-    slash_enabled = True
-    aliases = []
-    description = ''
-    requires_input = False
-    conditions = []
-
+    def __init__(self) -> None:
+        self.name = None
+        self.permissions = []
+        self.slash_enabled = True
+        self.aliases = []
+        self.description = ''
+        self.requires_input = False
+        self.conditions = []
 
     """
     --- CLASS METHOD ARGUMENTS DESCRIPTIONS --- [ SEE BELOW ]

@@ -1,9 +1,13 @@
 from DiscoFlixBot.base_command import Command
 
 class ErrorCommand(Command):
-    name = "error"
-    permissions = ["user", "developer", "owner"]
-    description = "Confirm bot is handling errors as intended"
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.name = "error"
+        self.permissions = ["user", "developer", "owner"]
+        self.description = "Confirm bot is handling errors as intended"
+        self.aliases = ["error"]
 
     async def execute(self, message, ctx):
         await message.channel.send("Let's throw an error!")

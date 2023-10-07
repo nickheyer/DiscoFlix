@@ -4,6 +4,7 @@ import sys
 import importlib
 import discord
 import asyncio
+import logging
 
 from DiscoFlixClient.utils import (
     get_verbose_dict,
@@ -19,6 +20,10 @@ from django.core.serializers.json import DjangoJSONEncoder
 from DiscoFlixBot import events
 from DiscoFlixBot.registry import CommandRegistry
 from DiscoFlixBot.base_command import Command
+from django.core.management.color import color_style
+
+style = color_style()
+logger = logging.getLogger(__name__)
 
 
 class DiscordBot:
@@ -150,19 +155,36 @@ class DiscordBot:
         await update_state({"current_activity": presence})
         await self.update_client()
 
+
     def import_commands(self, directory="commands"):
+        """
+        Dynamically imports command classes from the specified directory.
+        
+        :param directory: The directory containing command module files.
+        :type directory: str
+        :return: A list of imported command classes.
+        :rtype: list[type[Command]]
+        """
         command_classes = []
         full_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), directory)
         sys.path.insert(0, full_path)
-        command_files = [f[:-3] for f in os.listdir(full_path) if f.endswith('.py')]
-        for file_name in command_files:
-            module_name = f"{file_name}"
-            module = importlib.import_module(module_name, 'DiscoFlixBot.commands')
-            for attr_name in dir(module):
-                
-                attr = getattr(module, attr_name)
-                if isinstance(attr, type) and issubclass(attr, Command) and attr is not Command:
-                    command_classes.append(attr)
         
-        #sys.path.pop(0)
+        try:
+            command_files = [f[:-3] for f in os.listdir(full_path) if f.endswith('.py')]
+            for file_name in command_files:
+                module_name = f"{file_name}"
+                try:
+                    module = importlib.import_module(module_name, 'DiscoFlixBot.commands')
+                    for attr_name in dir(module):
+                        attr = getattr(module, attr_name)
+                        if isinstance(attr, type) and issubclass(attr, Command) and attr is not Command:
+                            command_classes.append(attr)
+                except Exception as e:
+                    logging.error(f"Error importing {module_name}: {str(e)}")
+        except Exception as e:
+            logging.error(f"Error accessing directory {full_path}: {str(e)}")
+        finally:
+            if sys.path[0] == full_path:
+                sys.path.pop(0)
+            
         return command_classes

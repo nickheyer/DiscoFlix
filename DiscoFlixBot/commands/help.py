@@ -3,9 +3,13 @@ from DiscoFlixBot.managers.ui_manager import ListCommands
 from DiscoFlixBot.registry import CommandRegistry
 
 class HelpCommand(Command):
-    name = "help"
-    permissions = ["user", "developer", "unregistered"]
-    description = "Display all authorized commands."
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.name = "help"
+        self.permissions = ["user", "developer", "unregistered"]
+        self.description = "Display all authorized commands."
+        self.aliases = ["help"]
 
     async def execute(self, message, ctx):
         registry = CommandRegistry()

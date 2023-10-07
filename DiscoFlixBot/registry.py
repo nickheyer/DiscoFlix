@@ -19,7 +19,7 @@ class CommandRegistry:
             print(f'REGISTERING COMMAND: {command.name}')
 
             if command.name not in command.aliases: # Defaulting name to cmd
-                command.aliases = [command.name, *command.aliases]
+                command.aliases.append(command.name)
 
             for alias in command.aliases:
                 print(f'REGISTERING ALIAS: {alias} / {command}')
@@ -48,7 +48,9 @@ class CommandRegistry:
             return stub_callback
 
     def get(self, name):
-        print(f'GETTING ALL COMMANDS: {self.commands}')
+        command_dict = self.commands
+        command_list = "\n".join([f"{name} : {cls_inst.name}" for name, cls_inst in command_dict.items()])
+        print(f'GETTING ALL COMMANDS: {command_list}')
         return self.commands.get(name)
 
     def all(self):

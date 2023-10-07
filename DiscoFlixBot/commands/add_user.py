@@ -3,11 +3,14 @@ from DiscoFlixClient.utils import get_user, add_user
 from discord import Color, Embed
 
 class AddUserCommand(Command):
-    name = "add-user"
-    permissions = ["admin", "owner"]
-    description = "Add/modify users"
-    aliases = ["user", "add"]
-    requires_input = True
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.name = "add-user"
+        self.permissions = ["admin", "owner"]
+        self.description = "Add/modify users"
+        self.aliases = ["user", "add"]
+        self.requires_input = True
 
     async def execute(self, message, ctx):
         users_to_add = []

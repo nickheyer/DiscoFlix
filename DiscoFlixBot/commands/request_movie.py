@@ -3,11 +3,16 @@ from DiscoFlixBot.managers.request_manager import RequestHandler
 from DiscoFlixBot.lib.utils.utils import handle_unregistered
 
 class RequestMovieCommand(Command):
-    name = "movie"
-    permissions = ["user", "owner", "admin", "developer"]
-    description = "Request a movie"
-    conditions = ["is_radarr_enabled", "radarr_token", "radarr_url"]
-    requires_input = True
+
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.name = "movie"
+        self.aliases = ['movie', 'film']
+        self.permissions = ["user", "owner", "admin", "developer"]
+        self.description = "Request a movie"
+        self.conditions = ["is_radarr_enabled", "radarr_token", "radarr_url"]
+        self.requires_input = True
 
     async def execute(self, message, ctx):
         handler = RequestHandler(ctx)

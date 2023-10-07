@@ -2,3 +2,4 @@
 *.tldr
 __pycache__/
 deploy/
+data/db.sqlite3

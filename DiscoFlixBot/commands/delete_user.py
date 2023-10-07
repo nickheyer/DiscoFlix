@@ -4,11 +4,13 @@ from discord import Color, Embed
 
 
 class DeleteUserCommand(Command):
-    name = "delete-user"
-    permissions = ["admin", "owner"]
-    description = "Remove/modify users"
-    aliases = ["remove", "delete", "rm", "del"]
-    requires_input = True
+    def __init__(self) -> None:
+        super().__init__()
+        self.name = "delete-user"
+        self.permissions = ["admin", "owner"]
+        self.description = "Remove/modify users"
+        self.aliases = ["remove", "delete", "rm", "del"]
+        self.requires_input = True
 
     async def execute(self, message, ctx):
         users_to_rm = []
