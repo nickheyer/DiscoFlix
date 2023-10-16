@@ -131,6 +131,7 @@ def get_logs(num):
 
 
 def add_log_sync(entry):
+    print(style.SUCCESS(f"LOGGED: {entry}"))
     try:
         EventLog.objects.create(entry=entry)
     except Exception as e:

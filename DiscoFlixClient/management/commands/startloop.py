@@ -16,8 +16,7 @@ class Command(BaseCommand):
 
         if discord_state: # IF WE LEFT THE BOT RUNNING AT SIGTERM, ETC.
           add_log_sync('[BOT] STARTUP: BOT STARTING UP')
-          host = state.host_url
-          uri = f"ws://{host}/ws/client/"
+          uri = f"ws://localhost:5454/ws/client/"
           self.stdout.write(f"Connecting to: {uri}")
           p = Process(target=self.ws_client, args=(uri,))
           p.start()
@@ -34,6 +33,6 @@ class Command(BaseCommand):
                     "data": {}
                 }
                 await websocket.send(json.dumps(bot_on_data))
-                response = await websocket.recv()
+                await websocket.recv()
 
         loop.run_until_complete(bot_starter_ws_client())
