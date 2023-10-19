@@ -323,21 +323,22 @@ class ClientConsumer(AsyncWebsocketConsumer):
     # BOT COMMANDS/ROUTES
 
     @event_handler("bot_on")
-    async def turn_bot_on(self, _data=None, _callback_id=None):
-        is_valid = await self.validate_startup()
-        if not is_valid:
-            await self.send_log("STARTUP FAILED ✖")
-            await self.emit(
-                {
-                    "event": "bot_on_finished",
-                    "data": {
-                        "success": False,
-                        "bot_name": "discord",
-                        "error": "Startup failure, see console.",
-                    },
-                }
-            )
-            return
+    async def turn_bot_on(self, data={}, _callback_id=None):
+        if not data or (data and not data.get('bypass_validation')):
+            is_valid = await self.validate_startup()
+            if not is_valid:
+                await self.send_log("STARTUP FAILED ✖")
+                await self.emit(
+                    {
+                        "event": "bot_on_finished",
+                        "data": {
+                            "success": False,
+                            "bot_name": "discord",
+                            "error": "Startup failure, see console.",
+                        },
+                    }
+                )
+                return
 
         await self.send_log("STARTUP COMMENCING ✔")
         await change_bot_state(True)

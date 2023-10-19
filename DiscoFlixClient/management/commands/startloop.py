@@ -30,7 +30,7 @@ class Command(BaseCommand):
             async with websockets.connect(uri) as websocket:
                 bot_on_data = {
                     "event": "bot_on",
-                    "data": {}
+                    "data": { 'validation_bypass': True }
                 }
                 await websocket.send(json.dumps(bot_on_data))
                 await websocket.recv()
