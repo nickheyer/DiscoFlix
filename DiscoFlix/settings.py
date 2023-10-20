@@ -24,7 +24,7 @@ def get_or_create_secret_key():
 
 SECRET_KEY = get_or_create_secret_key()
 
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 CSRF_TRUSTED_ORIGINS = ["*"]
