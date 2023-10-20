@@ -324,7 +324,7 @@ class ClientConsumer(AsyncWebsocketConsumer):
 
     @event_handler("bot_on")
     async def turn_bot_on(self, data={}, _callback_id=None):
-        if not data or (data and not data.get('bypass_validation')):
+        if not data or (data and not data.get('validation_bypass')):
             is_valid = await self.validate_startup()
             if not is_valid:
                 await self.send_log("STARTUP FAILED ✖")
@@ -339,7 +339,8 @@ class ClientConsumer(AsyncWebsocketConsumer):
                     }
                 )
                 return
-
+        else:
+            await self.send_log("STARTUP VALIDATION BYPASSED BY SYSTEM RESTART ✔")
         await self.send_log("STARTUP COMMENCING ✔")
         await change_bot_state(True)
         print(style.NOTICE("[Bot] - PROCESS IS BEING STARTED..."))

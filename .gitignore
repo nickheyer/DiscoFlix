@@ -3,3 +3,4 @@
 __pycache__/
 deploy/
 data/db.sqlite3
+data/django_key.txt
