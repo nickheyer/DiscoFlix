@@ -12,7 +12,7 @@ class SonarrAPI(RequestAPI):
             api_key (str): API key from Sonarr.
         """
         super().__init__(host_url, api_key)
-        self.base = "/api"
+        self.base = "/api/v3"
 
     def get_calendar(
         self, start_date: Optional[str] = None, end_date: Optional[str] = None
