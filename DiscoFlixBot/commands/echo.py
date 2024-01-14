@@ -5,7 +5,7 @@ class EchoCommand(Command):
     def __init__(self) -> None:
         super().__init__()
         self.name = "echo"
-        self.permissions = ["user", "developer"]
+        self.permissions = ["developer"]
         self.description = "Confirm bot can respond to messages"
         self.aliases = ["echo"]
         self.requires_input = True

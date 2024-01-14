@@ -5,7 +5,7 @@ class ErrorCommand(Command):
     def __init__(self) -> None:
         super().__init__()
         self.name = "error"
-        self.permissions = ["user", "developer", "owner"]
+        self.permissions = ["developer", "owner"]
         self.description = "Confirm bot is handling errors as intended"
         self.aliases = ["error"]
 

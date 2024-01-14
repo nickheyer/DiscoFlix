@@ -5,7 +5,7 @@ class LogCommand(Command):
     def __init__(self) -> None:
         super().__init__()
         self.name = "log"
-        self.permissions = ["user", "developer", "owner"]
+        self.permissions = ["developer", "owner"]
         self.description = "Confirm bot is logging information to console/server as intended"
         self.aliases = ["log"]
         self.requires_input = True
