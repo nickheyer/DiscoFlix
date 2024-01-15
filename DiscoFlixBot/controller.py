@@ -1,6 +1,5 @@
-from DiscoFlixClient.utils import get_config, get_config_sync, get_state_sync
+from DiscoFlixClient.utils import get_config
 from DiscoFlixBot.bot import DiscordBot
-import asyncio
 
 
 async def main():
