@@ -6,4 +6,4 @@ data/db.sqlite3
 data/django_key.txt
 .env
 .pytest_cache
-file.tree.github
+filetree.txt
