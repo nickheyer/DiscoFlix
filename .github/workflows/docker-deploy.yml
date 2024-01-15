@@ -48,3 +48,30 @@ jobs:
       env:
         app: discoflix
         docker_user: nickheyer
+
+    - name: Notify Discord
+      if: success()
+      run: |
+        COMMIT_SHA_SHORT=$(echo $GITHUB_SHA | cut -c1-7)
+        curl -H "Content-Type: application/json" \
+              -d '{
+                    "embeds": [{
+                      "title": "New Docker Images Available for DiscoFlix!",
+                      "description": "The latest Docker images for DiscoFlix have been successfully built and pushed. Please update your containers to the latest version.",
+                      "url": "https://github.com/nickheyer/DiscoFlix/commit/${{ github.sha }}",
+                      "color": 5814783,
+                      "fields": [
+                        {
+                          "name": "Commit",
+                          "value": "[`${COMMIT_SHA_SHORT}`](https://github.com/nickheyer/DiscoFlix/commit/${{ github.sha }})"
+                        }
+                      ],
+                      "image": {
+                        "url": "https://github.com/nickheyer/DiscoFlix/blob/main/DiscoFlixClient/static/DiscoFlixClient/images/favicon.png"
+                      },
+                      "footer": {
+                        "text": "DiscoFlix Deployment"
+                      }
+                    }]
+                  }' \
+              ${{ secrets.DISCORD_WEBHOOK_URL }}
