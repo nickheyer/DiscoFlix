@@ -16,6 +16,7 @@ jobs:
       github.event.workflow_run.conclusion == 'success' ||
       github.event_name == 'workflow_dispatch'
 
+    environment: DiscoEnv
     steps:
     - name: Check out repository
       uses: actions/checkout@v2
