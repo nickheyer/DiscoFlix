@@ -1,0 +1,19 @@
+
+name: Update Feed ~ Heyer.app
+
+on: push
+
+jobs:
+
+  send-request:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Send
+        uses: fjogeleit/http-request-action@v1
+        with:
+          url: 'https://heyer.app/miscapi/feedevent/'
+          method: 'POST'
+          customHeaders: '{"Content-Type": "application/json", "Authorization":"Token 81476205a0e4310d12596330bd56b3fa3962494f"}'
+          data: '{"source": "Github", "description": "Pushed commit to ${{github.event.repository.full_name}}: ${{ github.event.head_commit.message }}", "link":"${{github.event.repository.url}}"}'
