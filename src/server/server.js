@@ -1,49 +1,31 @@
 const Koa = require('koa');
-const Router = require('koa-router');
 const serve = require('koa-static');
+const views = require('koa-views');
 const bodyParser = require('koa-bodyparser');
-
-const { createUser, getAllUsers } = require('../shared/models/user');
+const errorHandler = require('./middlewares/errorHandler');
+const routes = require('./routes');
+const socketHandler = require('./sockets/socketHandler');
+const http = require('http');
+const socketIo = require('socket.io');
 
 const app = new Koa();
-const router = new Router();
+const server = http.createServer(app.callback());
+const io = socketIo(server);
 
-// Middleware
+// Middlewares
 app.use(bodyParser());
+app.use(errorHandler());
 app.use(serve(__dirname + '/static'));
-app.use(router.routes()).use(router.allowedMethods());
+app.use(views(__dirname + '/views', { extension: 'ejs' }));
 
 // Routes
-router.get('/', ctx => {
-  ctx.body = 'Hello from the foundations of what will be DiscoFlix[js]!';
-});
+app.use(routes.routes()).use(routes.allowedMethods());
 
-router.post('/users', async ctx => {
-  try {
-    const { name, email } = ctx.request.body;
-    const newUser = await createUser(name, email);
-    ctx.status = 201;
-    ctx.body = newUser;
-  } catch (error) {
-    ctx.status = 400;
-    ctx.body = error.message;
-  }
-});
+// Sockets
+socketHandler(io);
 
-router.get('/users', async ctx => {
-  try {
-    const users = await getAllUsers();
-    ctx.status = 200;
-    ctx.body = users;
-  } catch (error) {
-    ctx.status = 500;
-    ctx.body = error.message;
-  }
-});
-
-// App instantiation
+// Start the server
 const port = process.env.PORT || 4000;
-
-app.listen(port, () => {
+server.listen(port, () => {
   console.log(`Server listening on port ${port}`);
 });

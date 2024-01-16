@@ -1,22 +1,118 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// PRISMA GENERATOR
 
 generator client {
   provider = "prisma-client-js"
 }
+
+// DATABASE INFORMATION
 
 datasource db {
   provider = "sqlite"
   url      = "file:./disco.db"
 }
 
+// MODEL DEFINITIONS
 
+model Configuration {
+  id                        Int     @id @default(autoincrement())
+  media_server_name         String? @default("The Server")
+  prefix_keyword            String? @default("!df")
+  discord_token             String?
+  radarr_url                String?
+  radarr_token              String?
+  sonarr_url                String?
+  sonarr_token              String?
+  session_timeout           Int?    @default(60)
+  max_check_time            Int?    @default(600)
+  max_results               Int?    @default(0)
+  max_seasons_for_non_admin Int?    @default(0)
+  is_verbose_logging        Boolean @default(false)
+  is_debug                  Boolean @default(false)
+  is_radarr_enabled         Boolean @default(true)
+  is_sonarr_enabled         Boolean @default(true)
+  is_trailers_enabled       Boolean @default(true)
+}
 
+model State {
+  id               Int     @id @default(autoincrement())
+  discord_state    Boolean @default(false)
+  app_state        Boolean @default(true)
+  current_activity String  @default("Offline")
+  host_url         String  @default("0.0.0.0:5454")
+}
 
-// MODEL DEFINITIONS BELOW
+model ErrLog {
+  id      Int      @id @default(autoincrement())
+  created DateTime @default(now())
+  entry   String   @default("Error Occured")
+}
+
+model EventLog {
+  id      Int      @id @default(autoincrement())
+  created DateTime @default(now())
+  entry   String   @default("Event Occured")
+}
+
+model DiscordServer {
+  id          Int            @id @default(autoincrement())
+  server_name String?
+  server_id   String?
+  users       User[]         @relation("UserDiscordServers")
+  requests    MediaRequest[] @relation("DiscordServerRequests")
+}
+
+model Media {
+  id           Int            @id @default(autoincrement())
+  title        String?
+  overview     String?
+  poster_url   String?
+  year         Int?
+  path         String?
+  monitored    Boolean?
+  runtime      Int?
+  added        String?
+  season_count Int?
+  network      String?
+  air_time     String?
+  tvdb_id      String?
+  imdb_id      String?
+  first_aired  String?
+  series_type  String?
+  in_theaters  String?
+  website_url  String?
+  trailer_url  String?
+  requests     MediaRequest[] @relation("MediaRequests")
+}
+
+model MediaRequest {
+  id                Int           @id @default(autoincrement())
+  created           DateTime      @default(now())
+  made_in           DiscordServer @relation("DiscordServerRequests", fields: [madeInId], references: [id])
+  madeInId          Int
+  media             Media         @relation("MediaRequests", fields: [mediaId], references: [id])
+  mediaId           Int
+  orig_message      String?
+  orig_parsed_title String?
+  orig_parsed_type  String?
+  status            Boolean?
+  users             User[]        @relation("UserMediaRequests")
+}
 
 model User {
-  id    Int     @id @default(autoincrement())
-  name  String
-  email String  @unique
+  id                        Int             @id @default(autoincrement())
+  added                     DateTime        @default(now())
+  is_admin                  Boolean         @default(false)
+  is_server_restricted      Boolean         @default(false)
+  username                  String          @unique
+  discord_servers           DiscordServer[] @relation("UserDiscordServers")
+  requests                  MediaRequest[]  @relation("UserMediaRequests")
+  is_additional_settings    Boolean         @default(false)
+  is_superuser              Boolean         @default(false)
+  is_staff                  Boolean         @default(false)
+  is_active                 Boolean         @default(true)
+  session_timeout           Int             @default(60)
+  max_check_time            Int             @default(600)
+  max_results               Int             @default(0)
+  max_seasons_for_non_admin Int             @default(0)
+  max_requests_in_day       Int             @default(0)
 }

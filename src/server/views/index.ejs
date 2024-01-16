@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Welcome to DiscoFlix</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <h1>Welcome to DiscoFlix</h1>
+  <!-- Loop through an array -->
+  <p><%= message %></p>
+  
+  <ul>
+    <!-- Loop through an array -->
+    <% for (let user of users) { %>
+      <li><%= user.username %></li>
+    <% } %>
+  </ul>
+
+  <script src="/js/source.js"></script>
+</body>
+</html>
