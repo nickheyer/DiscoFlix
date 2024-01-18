@@ -6,11 +6,11 @@ const errorHandler = require('./middlewares/errorHandler');
 const routes = require('./routes');
 const socketHandler = require('./sockets/socketHandler');
 const http = require('http');
-const socketIo = require('socket.io');
+const WebSocket = require('ws');
 
 const app = new Koa();
 const server = http.createServer(app.callback());
-const io = socketIo(server);
+const wss = new WebSocket.Server({ server });
 
 // Middlewares
 app.use(bodyParser());
@@ -22,7 +22,7 @@ app.use(views(__dirname + '/views', { extension: 'ejs' }));
 app.use(routes.routes()).use(routes.allowedMethods());
 
 // Sockets
-socketHandler(io);
+socketHandler(wss);
 
 // Start the server
 const port = process.env.PORT || 4000;

@@ -1,11 +1,15 @@
-module.exports = function (io) {
-  io.on('connection', (socket) => {
+module.exports = function (wss) {
+  wss.on('connection', (ws) => {
     console.log('A user connected');
 
-    socket.on('disconnect', () => {
-      console.log('User disconnected');
+    ws.on('message', (message) => {
+      const msg = JSON.parse(message);
+      console.log('Received:', msg);
+      ws.send('Message received');
     });
 
-    // More event listeners...
+    ws.on('disconnect', () => {
+      console.log('User disconnected');
+    });
   });
 };

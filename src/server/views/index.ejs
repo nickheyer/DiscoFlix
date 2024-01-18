@@ -1,21 +1,41 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <title>Welcome to DiscoFlix</title>
   <link rel="stylesheet" href="/css/style.css">
+  <script src="https://unpkg.com/htmx.org@1.9.10"
+    integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC"
+    crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/htmx.org/dist/ext/ws.js"></script>
+  <script src="/js/source.js"></script>
 </head>
+
 <body>
   <h1>Welcome to DiscoFlix</h1>
   <!-- Loop through an array -->
-  <p><%= message %></p>
-  
+  <p>
+    <%= message %>
+  </p>
+
   <ul>
     <!-- Loop through an array -->
     <% for (let user of users) { %>
-      <li><%= user.username %></li>
-    <% } %>
+      <li>
+        <%= user.username %>
+      </li>
+      <% } %>
   </ul>
 
-  <script src="/js/source.js"></script>
+  <div hx-ext="ws" ws-connect="/">
+    <div id="notifications"></div>
+    <div id="chat_room">
+      ...
+    </div>
+    <form id="form" ws-send>
+      <input name="chat_message">
+    </form>
+  </div>
 </body>
+
 </html>
