@@ -1,0 +1,5 @@
+/* I'll put "chat" stylings here when I get to that point */
+
+.messages {
+  color:oklab(from color l a b)
+}

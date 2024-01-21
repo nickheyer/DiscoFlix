@@ -1,0 +1,17 @@
+/* A base stylesheet for all of our components */
+
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap');
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--dark-bg);
+    color: #FFFFFF;
+    font-family: 'Roboto', sans-serif;
+}
+
+.rootDiv {
+    display: grid;
+    grid-template-columns: 0px 70px 300px;
+    grid-template-rows: auto;
+}

@@ -1,0 +1,191 @@
+/* Contains styling for the nav bar and server buttons */
+
+.servers {
+  grid-column-start: 1;
+  grid-column-end: 2;
+  grid-row-start: row1-start;
+  grid-row-end: 3;
+  position: absolute;
+  width: 70px;
+  height: 100%;
+  background-color: var(--dark-server-list);
+  overflow-y: auto;
+  scrollbar-width: 0px;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  user-select: none;
+}
+
+.servers::-webkit-scrollbar, .nav::-webkit-scrollbar {
+  width: 0px;
+}
+
+.homeButton {
+  position: relative;
+  background-color: var(--dark-bg);
+  color: #FFFFFF;
+  border-radius: 50%;
+  text-align: center;
+  height: 48px;
+  width: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 15px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.server {
+  position: relative;
+  background-color: var(--dark-bg);
+  color: #FFFFFF;
+  border-radius: 50%;
+  text-align: center;
+  height: 48px;
+  width: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 7px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.server img {
+  height: 48px;
+  width: 48px;
+  border-radius: 50%;
+  text-align: center;
+  transition: 0.2s;
+  user-select: none;
+}
+
+.invite {
+  color: var(--green) !important;
+  font-size: 48px;
+}
+
+.invite:hover {
+  color: #FFFFFF !important;
+  background-color: var(--green) !important;
+}
+
+.server.active, .server:hover {
+  background-color: var(--blurple);
+  border-radius: 30%;
+  transition: 0.3s;
+}
+
+.server img:hover {
+  border-radius: 30%;
+  transition: 0.3s;
+}
+
+.homeButton:hover {
+  background-color: var(--blurple);
+  border-radius: 30%;
+  transition: 0.3s;
+}
+
+.serverDivider {
+  margin-top: 7px;
+  width: 50%;
+  background-color: var(--server-divider);
+  height: 3px;
+  border: none;
+  border-radius: 15px;
+}
+
+.sideBar {
+  grid-column-start: 3;
+  grid-column-end: 4;
+  grid-row-start: 1;
+  grid-row-end: 1;
+  position: relative;
+  float:right;
+  width: 90%;
+  height: 100vh;
+  background-color: var(--dark-primary);
+}
+.nav {
+  overflow-y: auto;
+}
+
+.navGuildItems {
+  display: flex;
+  justify-content: space-between;
+  -moz-box-align: center;
+  align-items: center;
+  -moz-box-pack: justify;
+  padding: 0px 11px 0px 16px;
+  background-color: var(--dark-primary);
+  z-index: 2;
+}
+
+.guildOpener {
+  margin-left: 5px;
+  font-weight: 800 !important;
+}
+
+.navGuild {
+  border-bottom: 1px solid var(--dark-server-list);
+}
+
+.guildDropdown {
+  margin-right: 43px;
+}
+
+.guildSelectorName {
+  font-size: 16px !important;
+  font-weight: bold;
+  color: var(--text-gray);
+  user-select: none;
+  cursor: pointer;
+}
+
+.guildSelectorDropdown {
+  width: 28px;
+  height: 28px;
+  color: var(--text-gray);
+  cursor: pointer;
+  border: 0px;
+  outline: 0px;
+  display: inline-block;
+  vertical-align: middle;
+  overflow: hidden;
+  margin: 0px;
+  padding: 0px;
+  box-sizing: border-box;
+}
+
+.guildSelectorDropdown:hover {
+  color: var(--blurple);
+  transform: rotate(90deg);
+  border-radius: 100%;
+  transition: 0.3s;
+}
+
+.guildSelectorDropdownHidden {
+  transform: rotate(90deg);
+  width: 28px;
+  height: 28px;
+  color: var(--text-gray);
+  cursor: pointer;
+  border: 0px;
+  outline: 0px;
+  display: inline-block;
+  vertical-align: middle;
+  overflow: hidden;
+  margin: 0px;
+  padding: 0px;
+  box-sizing: border-box;
+}
+
+.guildSelectorDropdownHidden:hover {
+  color: var(--blurple);
+  transform: rotate(-180deg);
+  border-radius: 100%;
+  transition: 0.3s;
+}

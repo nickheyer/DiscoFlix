@@ -1,0 +1,15 @@
+/* Storing variables at the root scope */
+
+:root {
+  --dark-bg: #36393f;
+  --dark-server-list: #202225;
+  --server-divider: #2d2f32;
+  --blurple: #7289da;
+  --dark-blurple: #4d5e94;
+  --green: #43b581;
+  --dark-primary: #2f3136;
+  --text-gray: #dcddde;
+  --user-box: #292B2F;
+  --iconColor: #b9bbbe;
+  --red: #dd4444;
+}

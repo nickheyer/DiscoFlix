@@ -1,0 +1,25 @@
+extends layouts/layout
+
+block content
+  div.rootDiv
+    //- include components/header
+    include components/sideBar
+    include components/servers
+    include components/container
+    include components/members
+    //- include components/footer
+
+
+
+  //- h1 DiscoFlix Chat
+
+  //- h3 Current date-time is #{message}!
+
+  //- div(hx-ext="ws", ws-connect="/")
+  //-   div#notifications
+  //-   div#chat_room
+  //-     p ...
+
+  //-   form#form(ws-send)
+  //-     input(type="text", name="chat_message", placeholder="Type a message...")
+  //-     button(type="submit") Send

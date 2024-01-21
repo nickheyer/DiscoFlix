@@ -7,16 +7,21 @@ const routes = require('./routes');
 const socketHandler = require('./sockets/socketHandler');
 const http = require('http');
 const WebSocket = require('ws');
+const Pug = require('koa-pug');
 
 const app = new Koa();
 const server = http.createServer(app.callback());
 const wss = new WebSocket.Server({ server });
+const pug = new Pug({
+  viewPath: `${__dirname}/views`,
+  basedir: `${__dirname}/views`,
+  app: app
+});
 
 // Middlewares
 app.use(bodyParser());
 app.use(errorHandler());
 app.use(serve(__dirname + '/static'));
-app.use(views(__dirname + '/views', { extension: 'ejs' }));
 
 // Routes
 app.use(routes.routes()).use(routes.allowedMethods());
@@ -27,5 +32,5 @@ socketHandler(wss);
 // Start the server
 const port = process.env.PORT || 4000;
 server.listen(port, () => {
-  console.log(`Server listening on port ${port}`);
+  console.log(`Server listening on http://0.0.0.0:${port}`);
 });

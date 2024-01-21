@@ -1,5 +1,8 @@
 const Router = require('koa-router');
-const { createUserHandler, getAllUsersHandler } = require('../api/users');
+const {
+  createUserHandler,
+  getAllUsersHandler
+} = require('../api/users');
 
 const router = new Router();
 
