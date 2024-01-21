@@ -8,7 +8,8 @@
   },
   "scripts": {
     "start": "node src/server/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "migrate": "npx prisma migrate dev && npx prisma generate"
   },
   "keywords": [],
   "author": "Nicholas Heyer",

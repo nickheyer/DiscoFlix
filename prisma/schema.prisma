@@ -26,7 +26,6 @@ model Configuration {
   max_check_time            Int?    @default(600)
   max_results               Int?    @default(0)
   max_seasons_for_non_admin Int?    @default(0)
-  is_verbose_logging        Boolean @default(false)
   is_debug                  Boolean @default(false)
   is_radarr_enabled         Boolean @default(true)
   is_sonarr_enabled         Boolean @default(true)
@@ -37,6 +36,7 @@ model State {
   id               Int     @id @default(autoincrement())
   discord_state    Boolean @default(false)
   app_state        Boolean @default(true)
+  sidebar_exp      Boolean @default(true)
   current_activity String  @default("Offline")
   host_url         String  @default("0.0.0.0:5454")
 }

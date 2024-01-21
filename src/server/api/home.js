@@ -1,11 +1,10 @@
-const { getAllUsers } = require('../../shared/models/user');
+const { getState } = require('../../shared/models/state');
 
 async function renderHome(ctx) {
-  const today = new Date(Date.now());
-  
+  const currState = await getState();
+  const sidebar_exp = currState.sidebar_exp;
   await ctx.render('index', {
-    message: `Today's date is ${today.toLocaleString()}`,
-    title: 'DiscoFlix'
+    sidebar_expanded: sidebar_exp ? 'expanded' : ''
   });
 }
 

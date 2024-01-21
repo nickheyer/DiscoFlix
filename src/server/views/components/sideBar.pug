@@ -1,3 +1,7 @@
-div.sideBar
+div#serverSideBar(
+  hx-trigger="load, done",
+  hx-swap="outerHTML",
+  class=sidebar_expanded
+)
   include nav
   include userBox
