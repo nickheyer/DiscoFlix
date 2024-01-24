@@ -1,19 +1,13 @@
 const { getState } = require('../../shared/models/state');
-const { getServers } = require('../../shared/models/discordServer');
-const { createServerBubbles, createMockServers } = require('./discordServer');
+const { getServerTemplateObj } = require('./discordServer');
 
 async function renderHome(ctx) {
   const currState = await getState();
-  let currServers = await getServers();
-  if (currServers.length < 1) {
-    currServers = await createMockServers();
-  }
-
-  const currServerBubbles = await createServerBubbles(currServers);
+  const serverTemplateObj = await getServerTemplateObj();
 
   await ctx.render('index', {
     state: currState,
-    serverBubbles: currServerBubbles
+    servers: serverTemplateObj
   });
 }
 

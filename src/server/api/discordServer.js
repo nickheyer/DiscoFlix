@@ -5,6 +5,8 @@ const {
   createServer,
   updateServer
 } = require('../../shared/models/discordServer');
+const _ = require('lodash');
+
 
 async function createMockServers() {
   const mockServerRows = [];
@@ -12,7 +14,7 @@ async function createMockServers() {
   for (let i = 0; i < 9; i++) {
     const mockServerData = {
       server_name: `Test Server ${i}`,
-      server_id: `${Math.floor(i * Math.random())}`,
+      server_id: `${Math.floor(Math.random() * 1000) + i}`,
       active_ui_state: i === 0,
       unread_ui_state: i % 2 === 0,
       server_avatar_url: i > 3 ? `https://cdn.discordapp.com/embed/avatars/${imgInd++}.png` : null
@@ -23,6 +25,7 @@ async function createMockServers() {
 }
 
 async function createServerBubble(serverParams = {
+  id,
   serverName: 'Discord Server',
   serverTrunc: 'DS',
   serverImage: null,
@@ -38,6 +41,7 @@ async function createServerBubbles(serverRows = []) {
   const serverBubbles = [];
   for (const serverRow of serverRows) {
     const serverBubbleHTML = await createServerBubble({
+      id: serverRow.id,
       serverName: serverRow.server_name,
       serverTrunc: serverRow.server_name.slice(0, 2),
       serverActive: serverRow.active_ui_state,
@@ -49,8 +53,23 @@ async function createServerBubbles(serverRows = []) {
   return serverBubbles;
 }
 
+async function getServerTemplateObj() {
+  let serverRows = await getServers();
+  if (serverRows.length < 1) {
+    serverRows = await createMockServers();
+  }
+  const serverBubbles = await createServerBubbles(serverRows);
+  const activeServer = _.find(serverRows, 'active_ui_state');
+  return {
+    serverBubbles,
+    serverRows,
+    activeServer
+  };
+}
+
 module.exports = {
   createServerBubble,
   createServerBubbles,
-  createMockServers
+  createMockServers,
+  getServerTemplateObj
 };

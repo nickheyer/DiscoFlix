@@ -83,6 +83,12 @@
   transition: 0.3s;
 }
 
+.server.active img {
+  background-color: var(--blurple);
+  border-radius: 30%;
+  transition: 0.3s;
+}
+
 .homeButton:hover {
   background-color: var(--blurple);
   border-radius: 30%;

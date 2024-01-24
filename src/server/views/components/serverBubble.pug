@@ -1,5 +1,10 @@
-div.server(class=serverActive && 'active')
+div(
+  class=serverActive ? 'server active' : 'server',
+  hx-get=!serverActive && `/change-active-server/${id}`,
+  hx-target=!serverActive && "#serverSelector",
+  hx-swap=!serverActive && "outerHTML"
+)
   if serverImage
     img.serverIcon(src=serverImage, class=serverUnread && 'unread')
   else
-    p.serverIcon(class=serverActive && 'active' class=serverUnread && 'unread') !{serverTrunc}
+    p.serverIcon(class=serverUnread && 'unread') !{serverTrunc}
