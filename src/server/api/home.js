@@ -1,10 +1,19 @@
 const { getState } = require('../../shared/models/state');
+const { getServers } = require('../../shared/models/discordServer');
+const { createServerBubbles, createMockServers } = require('./discordServer');
 
 async function renderHome(ctx) {
   const currState = await getState();
-  const sidebar_exp = currState.sidebar_exp;
+  let currServers = await getServers();
+  if (currServers.length < 1) {
+    currServers = await createMockServers();
+  }
+
+  const currServerBubbles = await createServerBubbles(currServers);
+
   await ctx.render('index', {
-    sidebar_expanded: sidebar_exp ? 'expanded' : ''
+    state: currState,
+    serverBubbles: currServerBubbles
   });
 }
 

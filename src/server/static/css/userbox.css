@@ -53,19 +53,20 @@
   margin-right: 8px;
 }
 
-.mic, .headphone, .settings {
+.botPowerIcon, .serverPowerIcon, .settingsIcon {
   padding: 3px;
   user-select: none;
   cursor: pointer;
 }
 
-.mic svg, .headphone svg, .settings svg {
+.botPowerIcon svg, .serverPowerIcon svg, .settingsIcon svg {
+  padding: 3px;
   height: 20px;
   width: 20px;
   fill: var(--iconColor);
 }
 
-.mic:hover, .headphone:hover, .settings:hover {
+.botPowerIcon:hover, .serverPowerIcon:hover, .settingsIcon:hover {
   background-color: var(--dark-bg);
 }
 

@@ -1,11 +1,3 @@
-/*
-  Warnings:
-
-  - You are about to drop the column `email` on the `User` table. All the data in the column will be lost.
-  - You are about to drop the column `name` on the `User` table. All the data in the column will be lost.
-  - Added the required column `username` to the `User` table without a default value. This is not possible if the table is not empty.
-
-*/
 -- CreateTable
 CREATE TABLE "Configuration" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -20,7 +12,6 @@ CREATE TABLE "Configuration" (
     "max_check_time" INTEGER DEFAULT 600,
     "max_results" INTEGER DEFAULT 0,
     "max_seasons_for_non_admin" INTEGER DEFAULT 0,
-    "is_verbose_logging" BOOLEAN NOT NULL DEFAULT false,
     "is_debug" BOOLEAN NOT NULL DEFAULT false,
     "is_radarr_enabled" BOOLEAN NOT NULL DEFAULT true,
     "is_sonarr_enabled" BOOLEAN NOT NULL DEFAULT true,
@@ -32,8 +23,7 @@ CREATE TABLE "State" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "discord_state" BOOLEAN NOT NULL DEFAULT false,
     "app_state" BOOLEAN NOT NULL DEFAULT true,
-    "current_activity" TEXT NOT NULL DEFAULT 'Offline',
-    "host_url" TEXT NOT NULL DEFAULT '0.0.0.0:5454'
+    "sidebar_exp_state" BOOLEAN NOT NULL DEFAULT true
 );
 
 -- CreateTable
@@ -51,10 +41,20 @@ CREATE TABLE "EventLog" (
 );
 
 -- CreateTable
+CREATE TABLE "DiscordBot" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "bot_username" TEXT DEFAULT 'DiscoFlix Bot',
+    "bot_discriminator" TEXT DEFAULT '0001'
+);
+
+-- CreateTable
 CREATE TABLE "DiscordServer" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "active_ui_state" BOOLEAN NOT NULL DEFAULT false,
+    "unread_ui_state" BOOLEAN NOT NULL DEFAULT false,
     "server_name" TEXT,
-    "server_id" TEXT
+    "server_id" TEXT,
+    "server_avatar_url" TEXT
 );
 
 -- CreateTable
@@ -95,24 +95,7 @@ CREATE TABLE "MediaRequest" (
 );
 
 -- CreateTable
-CREATE TABLE "_UserDiscordServers" (
-    "A" INTEGER NOT NULL,
-    "B" INTEGER NOT NULL,
-    CONSTRAINT "_UserDiscordServers_A_fkey" FOREIGN KEY ("A") REFERENCES "DiscordServer" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT "_UserDiscordServers_B_fkey" FOREIGN KEY ("B") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
-);
-
--- CreateTable
-CREATE TABLE "_UserMediaRequests" (
-    "A" INTEGER NOT NULL,
-    "B" INTEGER NOT NULL,
-    CONSTRAINT "_UserMediaRequests_A_fkey" FOREIGN KEY ("A") REFERENCES "MediaRequest" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT "_UserMediaRequests_B_fkey" FOREIGN KEY ("B") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
-);
-
--- RedefineTables
-PRAGMA foreign_keys=OFF;
-CREATE TABLE "new_User" (
+CREATE TABLE "User" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "added" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "is_admin" BOOLEAN NOT NULL DEFAULT false,
@@ -128,12 +111,25 @@ CREATE TABLE "new_User" (
     "max_seasons_for_non_admin" INTEGER NOT NULL DEFAULT 0,
     "max_requests_in_day" INTEGER NOT NULL DEFAULT 0
 );
-INSERT INTO "new_User" ("id") SELECT "id" FROM "User";
-DROP TABLE "User";
-ALTER TABLE "new_User" RENAME TO "User";
+
+-- CreateTable
+CREATE TABLE "_UserDiscordServers" (
+    "A" INTEGER NOT NULL,
+    "B" INTEGER NOT NULL,
+    CONSTRAINT "_UserDiscordServers_A_fkey" FOREIGN KEY ("A") REFERENCES "DiscordServer" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "_UserDiscordServers_B_fkey" FOREIGN KEY ("B") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "_UserMediaRequests" (
+    "A" INTEGER NOT NULL,
+    "B" INTEGER NOT NULL,
+    CONSTRAINT "_UserMediaRequests_A_fkey" FOREIGN KEY ("A") REFERENCES "MediaRequest" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "_UserMediaRequests_B_fkey" FOREIGN KEY ("B") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateIndex
 CREATE UNIQUE INDEX "User_username_key" ON "User"("username");
-PRAGMA foreign_key_check;
-PRAGMA foreign_keys=ON;
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_UserDiscordServers_AB_unique" ON "_UserDiscordServers"("A", "B");

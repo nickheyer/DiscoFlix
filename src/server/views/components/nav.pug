@@ -3,15 +3,18 @@ div.nav
     div.navGuild
       div.guildOpener
         div.navGuildItems
-          h4.guildSelectorName Server Name
 
+          // Need to replace with currently "active" server
+          h4.guildSelectorName Test Server Name
+
+          // Exp arrow next to server name, dynamically generates server details
           svg.guildSelectorDropdown(
             viewBox="0 0 24 24",
             aria-hidden="true",
             focusable="false",
             fill="currentColor",
             xmlns="http://www.w3.org/2000/svg",
-            hx-post="/toggle-sidebar",
+            hx-get="/toggle-sidebar",
             hx-target="#serverSideBar",
             hx-swap="outerHTML"
           )

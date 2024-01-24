@@ -33,12 +33,10 @@ model Configuration {
 }
 
 model State {
-  id               Int     @id @default(autoincrement())
-  discord_state    Boolean @default(false)
-  app_state        Boolean @default(true)
-  sidebar_exp      Boolean @default(true)
-  current_activity String  @default("Offline")
-  host_url         String  @default("0.0.0.0:5454")
+  id                Int     @id @default(autoincrement())
+  discord_state     Boolean @default(false)
+  app_state         Boolean @default(true)
+  sidebar_exp_state Boolean @default(true)
 }
 
 model ErrLog {
@@ -53,12 +51,21 @@ model EventLog {
   entry   String   @default("Event Occured")
 }
 
+model DiscordBot {
+  id                Int     @id @default(autoincrement())
+  bot_username      String? @default("DiscoFlix Bot")
+  bot_discriminator String? @default("0001")
+}
+
 model DiscordServer {
-  id          Int            @id @default(autoincrement())
-  server_name String?
-  server_id   String?
-  users       User[]         @relation("UserDiscordServers")
-  requests    MediaRequest[] @relation("DiscordServerRequests")
+  id                Int            @id @default(autoincrement())
+  active_ui_state   Boolean        @default(false)
+  unread_ui_state   Boolean        @default(false)
+  server_name       String?
+  server_id         String?
+  server_avatar_url String?
+  users             User[]         @relation("UserDiscordServers")
+  requests          MediaRequest[] @relation("DiscordServerRequests")
 }
 
 model Media {

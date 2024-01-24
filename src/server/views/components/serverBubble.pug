@@ -1,0 +1,5 @@
+div.server(class=serverActive && 'active')
+  if serverImage
+    img.serverIcon(src=serverImage, class=serverUnread && 'unread')
+  else
+    p.serverIcon(class=serverActive && 'active' class=serverUnread && 'unread') !{serverTrunc}

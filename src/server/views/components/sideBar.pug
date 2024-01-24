@@ -1,7 +1,5 @@
 div#serverSideBar(
-  hx-trigger="load, done",
-  hx-swap="outerHTML",
-  class=sidebar_expanded
+  class=(state.sidebar_exp_state ? 'expanded' : 'collapsed')
 )
   include nav
   include userBox
