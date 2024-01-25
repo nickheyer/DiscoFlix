@@ -1,8 +1,7 @@
 div(
   class=serverActive ? 'server active' : 'server',
   hx-get=!serverActive && `/change-active-server/${id}`,
-  hx-target=!serverActive && "#serverSelector",
-  hx-swap=!serverActive && "outerHTML"
+  hx-select-oob=!serverActive && "#serverSelector,#guildNameBanner",
 )
   if serverImage
     img.serverIcon(src=serverImage, class=serverUnread && 'unread')
