@@ -1,6 +1,5 @@
-const { compileView } = require('../../shared/utils/common');
+const { getServerTemplateObj } = require('../../shared/utils/common');
 const { updateState, getState } = require('../../shared/models/state');
-const { getServerTemplateObj } = require('./discordServer');
 const { updateServer } = require('../../shared/models/discordServer');
 
 const endpointToStateKey = {
@@ -10,19 +9,19 @@ const endpointToStateKey = {
 };
 
 async function toggleSidebarState(ctx) {
-    const currentState = await getState();
-    const serverTemplateObj = await getServerTemplateObj();
+  const currentState = await getState();
+  const serverTemplateObj = await getServerTemplateObj();
 
-    const stateKey = endpointToStateKey[ctx.request.url];
-    if (stateKey) {
-      currentState[stateKey] = !currentState[stateKey];
-      await updateState(currentState);
-    }
-    ctx.status = 200;
-    ctx.body = await compileView('sideBar.pug', {
-      state: currentState,
-      servers: serverTemplateObj
-    });
+  const stateKey = endpointToStateKey[ctx.request.url];
+  if (stateKey) {
+    currentState[stateKey] = !currentState[stateKey];
+    await updateState(currentState);
+  }
+
+  await ctx.compileView('sideBar.pug', {
+    state: currentState,
+    servers: serverTemplateObj
+  });
 }
 
 async function changeActiveServers(ctx) {
@@ -31,16 +30,12 @@ async function changeActiveServers(ctx) {
   await updateServer({ active_ui_state: true }, { active_ui_state: false });
   await updateServer({ id: newActiveServerID }, { active_ui_state: true });
 
-  const serverTemplateObj = await getServerTemplateObj();
+  const servers = await getServerTemplateObj();
 
-  ctx.status = 200;
-  ctx.body = await compileView('servers.pug', {
-    servers: serverTemplateObj
-  });
-  
-  ctx.body += await compileView('serverBanner.pug', {
-    servers: serverTemplateObj
-  });
+  await ctx.compileView([
+    'servers.pug',
+    'serverBanner.pug'
+  ], { servers });
 }
 
 module.exports = {

@@ -1,5 +1,5 @@
 const { getState } = require('../../shared/models/state');
-const { getServerTemplateObj } = require('./discordServer');
+const { getServerTemplateObj } = require('../../shared/utils/common');
 
 async function renderHome(ctx) {
   const currState = await getState();

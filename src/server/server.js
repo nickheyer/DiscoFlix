@@ -4,6 +4,7 @@ const views = require('koa-views');
 const bodyParser = require('koa-bodyparser');
 const errorHandler = require('./middlewares/errorHandler');
 const debugHandler = require('./middlewares/debugHandler');
+const { compileMiddleware } = require('./middlewares/compiler');
 const routes = require('./routes');
 const socketHandler = require('./sockets/socketHandler');
 const http = require('http');
@@ -23,6 +24,7 @@ const pug = new Pug({
 app.use(bodyParser());
 app.use(errorHandler());
 app.use(debugHandler());
+app.use(compileMiddleware);
 app.use(serve(__dirname + '/static'));
 
 // Routes
