@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // ON HTMX LOAD CONTENT / AJAX
 htmx.on("htmx:load", function () {
-  function confirmSwal(promptData, e) {;
+  function confirmSwal(promptData, e) {
     Swal.fire({
       title: "Proceed?",
       text: promptData,
@@ -32,4 +32,7 @@ htmx.on("htmx:load", function () {
     element.setAttribute('hx-trigger', 'confirmed');
     htmx.process(element); // HTMX ATTR REQUIRES PROCESSING
   });
+
+  // CONSTRUCT TOOLTIPS VIA TIPPY
+  tippy('[data-tippy-content]');
 });

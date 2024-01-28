@@ -8,6 +8,11 @@ const endpointToStateKey = {
   '/toggle-sidebar': 'sidebar_exp_state',
 };
 
+/**
+ * Toggles the expanded/collapsed state of sidebar, as well as power button io state(s).
+ * @async
+ * @param {Object} ctx - The Koa context object.
+ */
 async function toggleSidebarState(ctx) {
   const currentState = await getState();
   const serverTemplateObj = await getServerTemplateObj();
@@ -18,12 +23,18 @@ async function toggleSidebarState(ctx) {
     await updateState(currentState);
   }
 
-  await ctx.compileView('sideBar.pug', {
+  await ctx.compileView('nav/sideBar.pug', {
     state: currentState,
     servers: serverTemplateObj
   });
 }
 
+
+/**
+ * Changes the active servers' state and renders the server and server banner templates.
+ * @async
+ * @param {Object} ctx - The Koa context object. Expects `id` in `ctx.params` for the new active server.
+ */
 async function changeActiveServers(ctx) {
   const newActiveServerID = Number.parseInt(ctx.params.id);
 
@@ -33,8 +44,8 @@ async function changeActiveServers(ctx) {
   const servers = await getServerTemplateObj();
 
   await ctx.compileView([
-    'servers.pug',
-    'serverBanner.pug'
+    'nav/servers/servers.pug',
+    'nav/servers/serverBanner.pug'
   ], { servers });
 }
 

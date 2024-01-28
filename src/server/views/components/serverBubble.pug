@@ -1,9 +1,0 @@
-div(
-  class=serverActive ? 'server active' : 'server',
-  hx-get=!serverActive && `/change-active-server/${id}`,
-  hx-select-oob=!serverActive && "#serverSelector,#guildNameBanner",
-)
-  if serverImage
-    img.serverIcon(src=serverImage, class=serverUnread && 'unread')
-  else
-    p.serverIcon(class=serverUnread && 'unread') !{serverTrunc}

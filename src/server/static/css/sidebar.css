@@ -117,40 +117,46 @@
   background-color: var(--dark-primary);
   transition: width 0.6s ease;
 }
+
 #serverSideBar.expanded {
   width: 90%;
   overflow: auto;
 }
-#serverSideBar:not(.expanded) .guildSelectorDropdown{
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  transform: rotate(90deg);
-  color: var(--text-gray);
-  cursor: pointer;
-  border: 0px;
-  outline: 0px;
-  display: inline-block;
-  vertical-align: middle;
-  margin: 0px;
-  padding: 0px;
-  box-sizing: border-box;
-}
-#serverSideBar:not(.expanded) .guildSelectorDropdown:hover {
-  color: var(--blurple);
-  transform: rotate(-90deg);
-}
-#serverSideBar:not(.expanded) .guildSelectorName,
-#serverSideBar:not(.expanded) .userInfo,
-#serverSideBar:not(.expanded) .userMenuIcons{
-  display: none;
-}
-#serverSideBar:not(.expanded) .navGuildItems{
-  padding: 0;
-}
 
-.nav {
-  overflow: hidden;
+
+#serverSideBar:not(.expanded) {
+  .guildSelectorDropdown {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    transform: rotate(90deg);
+    color: var(--text-gray);
+    cursor: pointer;
+    border: 0px;
+    outline: 0px;
+    display: inline-block;
+    vertical-align: middle;
+    margin: 0px;
+    padding: 0px;
+    box-sizing: border-box;
+  }
+  .guildSelectorDropdown:hover {
+    color: var(--blurple);
+    transform: rotate(-90deg);
+  }
+
+  .channelViewContainer,
+  .guildSelectorName,
+  .userInfo,
+  .userMenuIcons{
+    display: none;
+  }
+  .navGuildItems{
+    padding: 0;
+  }
+  .nav {
+    overflow: hidden;
+  }
 }
 
 .navGuildItems {
@@ -202,10 +208,126 @@
   transition-duration: 0.6s; 
   transition-timing-function: ease;
   transition-delay: 0.1s;
+
+  &:hover {
+    color: var(--blurple);
+    transform: rotate(90deg);
+    border-radius: 100%;
+  }
 }
 
-.guildSelectorDropdown:hover {
-  color: var(--blurple);
-  transform: rotate(90deg);
-  border-radius: 100%;
+
+
+
+
+
+
+
+/* The space between server banner and user info */
+.channelViewContainer {
+  background-color: var(--secondary);
+  display: flex;
+  grid-area: CL;
+  flex-direction: column;
+  padding: 0px 9.5px 0px 16px;
 }
+
+
+
+/* The container for the channel-row containing name and config buttons */
+.channelViewOption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  padding: 8px 3px;
+  border-radius: 5px;
+  background-color: transparent;
+  transition: background-color 0.2s;
+  font-family: var(--font-family) !important;
+  margin-top: 2px;
+
+  > div {
+    display: flex;
+    align-items: center;
+  }
+  > div span {
+    margin-left: 5px;
+    color: var(--senary);
+  }
+  &:hover,
+  &.active {
+    background-color: var(--quinary);
+    > div span {
+      color: var(--white);
+    }
+    .channelViewOptionConfig {
+      transition: 0.7ms;
+      visibility: visible !important;
+    }
+  }
+
+  &:hover > .channelViewOptionConfig {
+    transition: 0.7ms;
+    visibility: visible !important;
+  }
+
+  .channelViewOptionConfig {
+    transition: 0.7ms;
+    visibility: hidden;
+  }
+}
+
+
+/* Contains channel name/type */
+.channelViewOptionInfo {
+  display: flex;
+  -moz-box-align: center;
+  align-items: center;
+}
+.hashTagIcon {
+  width: 20px;
+  height: 20px;
+  color: var(--symbol);
+}
+.channelViewOptionInfo span {
+  margin-left: 5px;
+}
+.channelViewOption.active .channelViewOptionInfo span {
+  color: var(--white);
+}
+
+/* Contains channel config buttons */
+.channelViewOptionConfig svg {
+  width: 16px;
+  height: 16px;
+  color: var(--symbol);
+  cursor: pointer;
+  transition: color 0.2s ease 0s;
+}
+.channelViewOptionConfig svg:last-child {
+  margin-left: 4px;
+}
+
+/* The header above a group of channels */
+.channelViewHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 24px;
+  margin-bottom: 4px;
+  > span {
+    text-transform: uppercase;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--gray);
+  }
+}
+
+.channelViewHeader > svg {
+  width: 21px;
+  height: 21px;
+  color: var(--symbol);
+  cursor: pointer;
+}
+

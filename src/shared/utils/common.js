@@ -34,7 +34,7 @@ async function createServerBubble(serverParams = {
   serverActive: false,
   serverUnread: false
 }) {
-  return await compileView('serverBubble.pug', serverParams);
+  return await compileView('nav/servers/serverBubble.pug', serverParams);
 };
 
 async function createServerBubbles(serverRows = []) {

@@ -18,6 +18,7 @@
   "dependencies": {
     "@prisma/client": "^5.8.1",
     "discord.js": "^14.14.1",
+    "jsdoc": "^4.0.2",
     "koa": "^2.15.0",
     "koa-bodyparser": "^4.4.1",
     "koa-pug": "^5.1.0",

@@ -2,16 +2,32 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap');
 
+html, body, #root {
+  height: 100%;
+  scroll-behavior: smooth;
+}
+
+*, button, input {
+  border: 0;
+  outline: 0;
+  font-family: var(--font-family);
+}
+
 body {
     margin: 0;
     padding: 0;
     background-color: var(--dark-bg);
     color: #FFFFFF;
-    font-family: 'Roboto', sans-serif;
+    font-family: var(--font-family);
+    outline: 0px;
+    opacity: 1;
+    font-weight: 400 !important;
 }
 
 .rootDiv {
     display: grid;
     grid-template-columns: 0px 70px 300px;
     grid-template-rows: auto;
+        box-sizing: border-box;
+    scroll-behavior: smooth;
 }
