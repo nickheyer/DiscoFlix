@@ -5,6 +5,9 @@ document.addEventListener("DOMContentLoaded", () => {
   console.log('DOM IS LOADED'); // htmx.logAll();
 });
 
+
+
+
 // ON HTMX LOAD CONTENT / AJAX
 htmx.on("htmx:load", function () {
   function confirmSwal(promptData, e) {
@@ -24,6 +27,9 @@ htmx.on("htmx:load", function () {
     })
   }
 
+
+
+
   // BIND CONFIRMATION FUNCTION TO ALL DATA-CONFIRM TAGS
   const confirmators = document.querySelectorAll('[data-confirm]');
   Array.from(confirmators).forEach((element) => {
@@ -33,6 +39,32 @@ htmx.on("htmx:load", function () {
     htmx.process(element); // HTMX ATTR REQUIRES PROCESSING
   });
 
+
+
   // CONSTRUCT TOOLTIPS VIA TIPPY
-  tippy('[data-tippy-content]');
+  tippy('[data-tippy-content]', {
+    interactiveDebounce: 75,
+    offset: [0, 10],
+    onTrigger(instance) {
+      instance.hideWithInteractivity('mouseleave')
+    }
+  });
+
+
+
+  // INITIALIZE SORTABLE LIB
+  const serverBubbleContainer = document.getElementById('serverBubbleContainer');
+  const serverBubbleSortable = new Sortable(serverBubbleContainer, {
+    animation: 150,
+    ghostClass: 'ghost',
+    delay: 50,
+    delayOnTouchOnly: true,
+    easing: "cubic-bezier(1, 0, 0, 1)",
+    onEnd: function (evt) {
+      this.option('disabled', true);
+    }
+  })
+  serverBubbleContainer.addEventListener("htmx:afterSwap", function() {
+    serverBubbleSortable.option('disabled', false);
+  });
 });

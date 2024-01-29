@@ -5,7 +5,8 @@ const {
   getServer,
   getServers,
   createServer,
-  updateServer
+  updateServer,
+  getServersSorted
 } = require('../models/discordServer');
 
 
@@ -18,7 +19,8 @@ async function createMockServers() {
       server_id: `${Math.floor(Math.random() * 1000) + i}`,
       active_ui_state: i === 0,
       unread_ui_state: i % 2 === 0,
-      server_avatar_url: i > 3 ? `https://cdn.discordapp.com/embed/avatars/${imgInd++}.png` : null
+      server_avatar_url: i > 3 ? `https://cdn.discordapp.com/embed/avatars/${imgInd++}.png` : null,
+      sort_position: i
     };
     mockServerRows.push(await createServer(mockServerData));
   }
@@ -27,12 +29,14 @@ async function createMockServers() {
 
 async function createServerBubble(serverParams = {
   id,
+  serverSortPosition,
   serverName: 'Discord Server',
   serverTrunc: 'DS',
   serverImage: null,
   serverColor: null,
   serverActive: false,
-  serverUnread: false
+  serverUnread: false,
+
 }) {
   return await compileView('nav/servers/serverBubble.pug', serverParams);
 };
@@ -42,6 +46,7 @@ async function createServerBubbles(serverRows = []) {
   for (const serverRow of serverRows) {
     const serverBubbleHTML = await createServerBubble({
       id: serverRow.id,
+      serverSortPosition: serverRow.sort_position,
       serverName: serverRow.server_name,
       serverTrunc: serverRow.server_name.slice(0, 2),
       serverActive: serverRow.active_ui_state,
@@ -53,8 +58,10 @@ async function createServerBubbles(serverRows = []) {
   return serverBubbles;
 }
 
-async function getServerTemplateObj() {
-  let serverRows = await getServers();
+async function getServerTemplateObj(serverRows = null) {
+  if (_.isEmpty(serverRows)) {
+    serverRows = await getServersSorted();
+  }
   if (serverRows.length < 1) {
     serverRows = await createMockServers();
   }

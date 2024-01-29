@@ -1,6 +1,6 @@
 const { getServerTemplateObj } = require('../../shared/utils/common');
 const { updateState, getState } = require('../../shared/models/state');
-const { updateServer } = require('../../shared/models/discordServer');
+const { updateServer, reorderServers } = require('../../shared/models/discordServer');
 
 const endpointToStateKey = {
   '/toggle-bot': 'discord_state',
@@ -49,7 +49,17 @@ async function changeActiveServers(ctx) {
   ], { servers });
 }
 
+async function changeServerSortOrder(ctx) {
+  const newSortOrder = await reorderServers(ctx.request.body.item);
+  const servers = await getServerTemplateObj(newSortOrder);
+
+  await ctx.compileView([
+    'nav/servers/servers.pug'
+  ], { servers });
+}
+
 module.exports = {
   toggleSidebarState,
-  changeActiveServers
+  changeActiveServers,
+  changeServerSortOrder
 };

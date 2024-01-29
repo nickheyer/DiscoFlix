@@ -5,6 +5,7 @@ div(
   data-tippy-content=serverName
   data-tippy-placement='right'
 )
+  input(type='hidden' name='item' value=id)
   if serverImage
     img.serverIcon(src=serverImage, class=serverUnread && 'unread')
   else
