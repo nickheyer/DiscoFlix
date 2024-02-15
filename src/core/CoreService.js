@@ -35,7 +35,7 @@ class CoreService {
   get client() {
     if (!this._client) {
       this.logger.info('Attaching DiscordJS to core-service');
-      this._client = require('../bot/bot')(this);
+      this._client = require('./bot/bot')(this);
     }
     return this._client;
   }
