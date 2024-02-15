@@ -1,62 +1,63 @@
 const _ = require('lodash');
 
-const { Prisma, PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
-
-async function createServer(data = {}) {
-  const server = await prisma.discordServer.create({ data: data });
-  return server;
-}
-
-async function getServer(where = {}) {
-  const server = await prisma.discordServer.findFirst({ where: where });
-  return server;
-}
-
-async function getServers(where = {}) {
-  const servers = await prisma.discordServer.findMany({ where: where });
-  return servers;
-}
-
-async function getServersSorted(where = {}) {
-  const servers = await prisma.discordServer.findMany({
-    where: where,
-    orderBy: { sort_position: 'asc' }
-  });
-  return servers;
-}
-
-async function updateServer(where = {}, data = {}) {
-  const server = await getServer(where);
-  if (server) {
-    return await prisma.discordServer.update({
-      where: { id: server.id },
-      data
-    })
+class DiscordServer {
+  constructor(core) {
+    this.core = core;
+    this.prisma = core.prisma;
+    this.logger = core.logger;
   }
-  return null;
-}
 
-async function reorderServers(newSortPositions) {
-  const updateQueries = [];
-  for (let i = 0; i < newSortPositions.length; i++) {
-    const serverId = newSortPositions[i];
-    const updateQuery = prisma.discordServer.update({
-        where: { id: parseInt(serverId) },
-        data: { sort_position: i }
+  async create(data = {}) {
+    this.logger.debug('Creating DiscordServer:', data);
+    return this.prisma.discordServer.create({ data });
+  }
+
+  async upsert(data = {}) {
+    const server_id = data.server_id;
+    let foundServer = await this.get({ server_id });
+    if (!foundServer) {
+      const servers = await this.getMany();
+      data.sort_position = servers.length;
+      foundServer = await this.create(data);
+    } else if (!_.isMatch(foundServer, data)) {
+      foundServer = await this.update({ server_id }, data);
+    }
+    return foundServer;
+  }
+
+  async get(where = {}) {
+    return this.prisma.discordServer.findFirst({ where });
+  }
+
+  async getMany(where = {}) {
+    return this.prisma.discordServer.findMany({ where });
+  }
+
+  async getSorted(where = {}) {
+    this.logger.info('Getting sorted DiscordServers');
+    return this.prisma.discordServer.findMany({
+      where,
+      orderBy: { sort_position: 'asc' }
     });
-    updateQueries.push(updateQuery);
   }
 
-  return await prisma.$transaction(updateQueries);
+  async update(where = {}, data = {}) {
+    return this.prisma.discordServer.update({ where, data });
+  }
+
+  async reorder(newSortPositions = []) {
+    const updateQueries = newSortPositions.map((server_id, index) => 
+      this.prisma.discordServer.update({
+        where: { server_id },
+        data: { sort_position: index }
+      })
+    );
+    return this.prisma.$transaction(updateQueries);
+  }
+
+  async deleteMany(where = {}) {
+    return this.prisma.discordServer.deleteMany({ where });
+  }
 }
 
-
-module.exports = {
-  createServer,
-  getServer,
-  updateServer,
-  getServers,
-  reorderServers,
-  getServersSorted
-};
+module.exports = DiscordServer;

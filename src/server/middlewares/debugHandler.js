@@ -1,15 +1,11 @@
-function debugHandler(verbose = false) {
+function debugHandler() {
   return async (ctx, next) => {
     try {
-      const currTime = new Date(Date.now()).toLocaleTimeString();
-      if (verbose) {
-        console.log(currTime, JSON.stringify(ctx, 4, 2));
-      } else {
-        console.log(`${currTime} || ${ctx.request.method} REQUEST RECIEVED AT ${ctx.request.url} BY ${ctx.request.header.host}`);
-      }
+      global.logger.info(`${ctx.request.method} REQUEST RECIEVED AT ${ctx.request.url} BY ${ctx.request.header.host}`);
       await next();
     } catch (err) {
-      console.error(`Encountered an error: ${err}`);
+      global.logger.error(`Encountered an error: ${err}`);
+      console.trace(err);
     }
   };
 }

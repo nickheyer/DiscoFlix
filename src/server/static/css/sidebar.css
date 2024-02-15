@@ -129,6 +129,19 @@
 #serverSideBar.expanded {
   width: 90%;
   overflow: auto;
+
+  .guildSelectorName,
+  .userInfo,
+  .userMenuIcons,
+  .channelViewContainer {
+    opacity: 1;
+    transition: opacity 1s ease .3s;
+  }
+
+  .guildSelectorName {
+    position: initial;
+    top: initial;
+  }
 }
 
 
@@ -153,17 +166,23 @@
     transform: rotate(-90deg);
   }
 
-  .channelViewContainer,
-  .guildSelectorName,
-  .userInfo,
-  .userMenuIcons{
-    display: none;
-  }
   .navGuildItems{
     padding: 0;
   }
   .nav {
     overflow: hidden;
+  }
+
+  .guildSelectorName,
+  .userInfo,
+  .userMenuIcons,
+  .channelViewContainer {
+    opacity: 0;
+  }
+
+  .guildSelectorName {
+    position:fixed;
+    top:-1000vh;
   }
 }
 
@@ -196,6 +215,7 @@
   color: var(--text-gray);
   user-select: none;
   cursor: pointer;
+  transition: opacity 0.2s ease 0s;
 }
 
 .guildSelectorDropdown {
@@ -238,6 +258,7 @@
   grid-area: CL;
   flex-direction: column;
   padding: 0px 9.5px 0px 16px;
+  transition: opacity 0.2s ease 0s;
 }
 
 

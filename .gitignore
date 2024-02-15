@@ -1,5 +1,7 @@
 disco.db
 *.db-journal
+.vscode/
+
 
 # Logs
 logs

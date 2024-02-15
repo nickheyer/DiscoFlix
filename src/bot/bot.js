@@ -1,8 +1,12 @@
 const { Client } = require('discord.js');
-const client = new Client();
+const intentManager = require('./managers/intentManager');
+const eventManager = require('./managers/eventManager');
 
-client.on('ready', () => {
-  console.log(`Logged in as ${client.user.tag}!`);
-});
+function generateClient(coreService) {
+    const client = new Client(intentManager());
+    client.core = coreService;
+    eventManager(client);
+    return client;
+}
 
-client.login('token-not-yet-created');
+module.exports = generateClient;

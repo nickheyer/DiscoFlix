@@ -22,8 +22,9 @@ CREATE TABLE "Configuration" (
 CREATE TABLE "State" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "discord_state" BOOLEAN NOT NULL DEFAULT false,
-    "app_state" BOOLEAN NOT NULL DEFAULT true,
-    "sidebar_exp_state" BOOLEAN NOT NULL DEFAULT true
+    "sidebar_exp_state" BOOLEAN NOT NULL DEFAULT true,
+    "active_server_id" TEXT,
+    CONSTRAINT "State_active_server_id_fkey" FOREIGN KEY ("active_server_id") REFERENCES "DiscordServer" ("server_id") ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 -- CreateTable
@@ -43,19 +44,42 @@ CREATE TABLE "EventLog" (
 -- CreateTable
 CREATE TABLE "DiscordBot" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "bot_username" TEXT DEFAULT 'DiscoFlix Bot',
-    "bot_discriminator" TEXT DEFAULT '0001'
+    "bot_username" TEXT DEFAULT 'Unavailable',
+    "bot_discriminator" TEXT DEFAULT '0000',
+    "bot_avatar_url" TEXT,
+    "bot_invite_link" TEXT
 );
 
 -- CreateTable
 CREATE TABLE "DiscordServer" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "active_ui_state" BOOLEAN NOT NULL DEFAULT false,
+    "server_id" TEXT NOT NULL PRIMARY KEY,
     "unread_ui_state" BOOLEAN NOT NULL DEFAULT false,
     "server_name" TEXT,
-    "server_id" TEXT,
     "server_avatar_url" TEXT,
     "sort_position" INTEGER NOT NULL
+);
+
+-- CreateTable
+CREATE TABLE "DiscordServerChannel" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "discord_server" TEXT NOT NULL,
+    "channel_id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "type" TEXT NOT NULL DEFAULT 'text',
+    CONSTRAINT "DiscordServerChannel_discord_server_fkey" FOREIGN KEY ("discord_server") REFERENCES "DiscordServer" ("server_id") ON DELETE RESTRICT ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "DiscordMessage" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "server_id" TEXT NOT NULL,
+    "channel_id" INTEGER NOT NULL,
+    "user_id" INTEGER NOT NULL,
+    "content" TEXT NOT NULL,
+    "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "DiscordMessage_server_id_fkey" FOREIGN KEY ("server_id") REFERENCES "DiscordServer" ("server_id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "DiscordMessage_channel_id_fkey" FOREIGN KEY ("channel_id") REFERENCES "DiscordServerChannel" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "DiscordMessage_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
 -- CreateTable
@@ -85,13 +109,13 @@ CREATE TABLE "Media" (
 CREATE TABLE "MediaRequest" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "created" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "madeInId" INTEGER NOT NULL,
+    "madeInId" TEXT NOT NULL,
     "mediaId" INTEGER NOT NULL,
     "orig_message" TEXT,
     "orig_parsed_title" TEXT,
     "orig_parsed_type" TEXT,
     "status" BOOLEAN,
-    CONSTRAINT "MediaRequest_madeInId_fkey" FOREIGN KEY ("madeInId") REFERENCES "DiscordServer" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "MediaRequest_madeInId_fkey" FOREIGN KEY ("madeInId") REFERENCES "DiscordServer" ("server_id") ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT "MediaRequest_mediaId_fkey" FOREIGN KEY ("mediaId") REFERENCES "Media" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
@@ -115,9 +139,9 @@ CREATE TABLE "User" (
 
 -- CreateTable
 CREATE TABLE "_UserDiscordServers" (
-    "A" INTEGER NOT NULL,
+    "A" TEXT NOT NULL,
     "B" INTEGER NOT NULL,
-    CONSTRAINT "_UserDiscordServers_A_fkey" FOREIGN KEY ("A") REFERENCES "DiscordServer" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "_UserDiscordServers_A_fkey" FOREIGN KEY ("A") REFERENCES "DiscordServer" ("server_id") ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT "_UserDiscordServers_B_fkey" FOREIGN KEY ("B") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
@@ -128,6 +152,21 @@ CREATE TABLE "_UserMediaRequests" (
     CONSTRAINT "_UserMediaRequests_A_fkey" FOREIGN KEY ("A") REFERENCES "MediaRequest" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT "_UserMediaRequests_B_fkey" FOREIGN KEY ("B") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+-- CreateIndex
+CREATE UNIQUE INDEX "State_active_server_id_key" ON "State"("active_server_id");
+
+-- CreateIndex
+CREATE INDEX "DiscordServerChannel_discord_server_idx" ON "DiscordServerChannel"("discord_server");
+
+-- CreateIndex
+CREATE INDEX "DiscordMessage_server_id_idx" ON "DiscordMessage"("server_id");
+
+-- CreateIndex
+CREATE INDEX "DiscordMessage_channel_id_idx" ON "DiscordMessage"("channel_id");
+
+-- CreateIndex
+CREATE INDEX "DiscordMessage_user_id_idx" ON "DiscordMessage"("user_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_username_key" ON "User"("username");

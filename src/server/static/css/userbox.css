@@ -12,18 +12,9 @@
 }
 
 .userAvatar {
-  position: absolute;
   height: 40px;
   width: 40px;
-  margin: 5px 5px 5px 10px;
   border-radius: 50%;
-  cursor: pointer;
-  user-select: none;
-}
-
-.userAvatar:hover {
-  background-color: #000000;
-  opacity: 0.8;
 }
 
 .userInfo {
@@ -72,4 +63,83 @@
 
 .iconStrikethrough {
   fill: var(--red);
+}
+
+.userBoxShutdownContainer {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  background-color: transparent;
+  transition: background-color 0.2s;
+  font-family: var(--font-family) !important;
+  margin: 8px;
+  width: 100%;
+  text-align: center;
+
+  > #shutdownButton {
+    display: flex;
+    -moz-box-align: center;
+    align-items: center;
+    margin:auto;
+    width: auto;
+    border-radius: 5px;
+  }
+  > #shutdownButton span {
+    padding: 3px 8px;
+    color: var(--senary);
+  }
+  &:hover > #shutdownButton,
+  &.active > #shutdownButton {
+    background-color: var(--quinary);
+    > span {
+      color: var(--white);
+    }
+  }
+}
+
+.userAvatarBubble {
+  position: absolute;
+  height: 40px;
+  width: 40px;
+  margin: 5px 5px 5px 10px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.userAvatarBubble:hover {
+  > .userAvatar {
+    background-color: #000000;
+  }
+  
+  opacity: 0.8;
+}
+
+.statusBubble {
+  background-color: var(--yellow);
+	width: 12px;
+	height: 12px;
+	position: absolute;
+	bottom: -4px;
+	right: -4px;
+	border-radius: 50%;
+	border: 4px solid var(--quaternary);
+	text-align: right;
+	font-size: 13px;
+	font-weight: bold;
+	color: var(--white);
+	content: "2";
+	display: inline;
+  visibility: hidden;
+}
+
+.statusBubble.offline {
+  transition: 0.7ms;
+  background-color: var(--red);
+  visibility: visible !important;
+}
+
+.statusBubble.online {
+  transition: 0.7ms;
+  background-color: var(--green);
+  visibility: visible !important;
 }

@@ -1,0 +1,11 @@
+//
+  REPLACES THE POWER BTNS/USER INFO WITH A CONFIRMATION/REFRESH BTN
+  ADDING THIS HTML TO THE RESP AUTOMATICALLY SWAPS IN
+.userBox#userControlsContainer(hx-swap-oob="outerHTML")
+  .userBoxShutdownContainer
+   #shutdownButton(onclick="window.location.reload()")
+    span 
+      | Server has been shut down.
+      br
+      | Click to refresh.
+

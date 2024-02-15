@@ -33,10 +33,11 @@ model Configuration {
 }
 
 model State {
-  id                Int     @id @default(autoincrement())
-  discord_state     Boolean @default(false)
-  app_state         Boolean @default(true)
-  sidebar_exp_state Boolean @default(true)
+  id                Int            @id @default(autoincrement())
+  discord_state     Boolean        @default(false)
+  sidebar_exp_state Boolean        @default(true)
+  active_server_id  String?        @unique
+  activeServer      DiscordServer? @relation(fields: [active_server_id], references: [server_id])
 }
 
 model ErrLog {
@@ -53,21 +54,53 @@ model EventLog {
 
 model DiscordBot {
   id                Int     @id @default(autoincrement())
-  bot_username      String? @default("DiscoFlix Bot")
-  bot_discriminator String? @default("0001")
+  bot_username      String? @default("Unavailable")
+  bot_discriminator String? @default("0000")
+  bot_avatar_url    String?
+  bot_invite_link   String?
 }
 
 model DiscordServer {
-  id                Int            @id @default(autoincrement())
-  active_ui_state   Boolean        @default(false)
+  server_id         String         @id
   unread_ui_state   Boolean        @default(false)
   server_name       String?
-  server_id         String?
   server_avatar_url String?
   sort_position     Int
   users             User[]         @relation("UserDiscordServers")
   requests          MediaRequest[] @relation("DiscordServerRequests")
+  channels          DiscordServerChannel[]
+  messages          DiscordMessage[]
+  state             State?         
 }
+
+model DiscordServerChannel {
+  id          Int             @id @default(autoincrement())
+  discord_server   String
+  channel_id  String
+  name        String
+  type        String          @default("text") // Assuming 'text' and 'voice' as possible values
+  server      DiscordServer   @relation(fields: [discord_server], references: [server_id])
+  messages    DiscordMessage[]
+
+  @@index([discord_server])
+}
+
+model DiscordMessage {
+  id          Int                  @id @default(autoincrement())
+  server_id   String
+  channel_id  Int
+  user_id     Int
+  content     String
+  created_at  DateTime             @default(now())
+  server      DiscordServer        @relation(fields: [server_id], references: [server_id])
+  channel     DiscordServerChannel @relation(fields: [channel_id], references: [id])
+  user        User                 @relation(fields: [user_id], references: [id])
+
+  @@index([server_id])
+  @@index([channel_id])
+  @@index([user_id])
+}
+
 
 model Media {
   id           Int            @id @default(autoincrement())
@@ -95,8 +128,8 @@ model Media {
 model MediaRequest {
   id                Int           @id @default(autoincrement())
   created           DateTime      @default(now())
-  made_in           DiscordServer @relation("DiscordServerRequests", fields: [madeInId], references: [id])
-  madeInId          Int
+  made_in           DiscordServer @relation("DiscordServerRequests", fields: [madeInId], references: [server_id])
+  madeInId          String
   media             Media         @relation("MediaRequests", fields: [mediaId], references: [id])
   mediaId           Int
   orig_message      String?
@@ -123,4 +156,5 @@ model User {
   max_results               Int             @default(0)
   max_seasons_for_non_admin Int             @default(0)
   max_requests_in_day       Int             @default(0)
+  messages                  DiscordMessage[]
 }

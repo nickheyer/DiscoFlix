@@ -1,7 +1,7 @@
 extends layouts/layout
 
 block content
-  div.rootDiv
+  div.rootDiv(hx-ext="ws" ws-connect="/")
     //- include components/header
     include components/nav/sideBar
     include components/nav/servers/servers
