@@ -13,7 +13,7 @@ class CoreService {
     }
     CoreService._instance = this;
     this._bindLogging();
-    this._prisma = new PrismaClient();
+    this._prisma = null;
     this._app = null;
     this._server = null;
     this._client = null;
@@ -22,7 +22,7 @@ class CoreService {
     this._bindModels();
     this._bindMethods();
     this._bindSockets();
-    this.shutdownServer = this.generateTerminator()
+    this._initDiscordClient();
   }
 
   static get instance() {
@@ -35,7 +35,7 @@ class CoreService {
   get client() {
     if (!this._client) {
       this.logger.info('Attaching DiscordJS to core-service');
-      this._client = require('../bot/bot')(this);
+      this._client = require('./bot/bot')(this);
     }
     return this._client;
   }
@@ -52,11 +52,20 @@ class CoreService {
     if (!this._server) {
       this.logger.info('Attaching Http Server to core-service');
       this._server = http.createServer(this.app.callback());
+    
+      // SETTING EVENT HANDLERS FOR ON SHUTDOWN
+      process.on('SIGINT', (e) => this.shutdownServer('SIGNINT', e));
+      process.on('SIGTERM', (e) => this.shutdownServer('SIGTERM', e,));
+      process.on('uncaughtException', (e) => this.uncaughtShutdown('uncaughtException', e));
     }
     return this._server;
   }
 
   get prisma() {
+    if (!this._prisma) {
+      this.logger.info('Generating Prisma Cli Instance');
+      this._prisma = new PrismaClient();
+    }
     return this._prisma;
   }
 
@@ -78,8 +87,14 @@ class CoreService {
       ctx.core = this;
       await next();
     });
-    this.autoStartBot();
     return app;
+  }
+  
+  _initDiscordClient() {
+    this.logger.info('Initializing Discord Bot');
+    const clientInstance = this.client;
+    this.autoStartBot();
+    return clientInstance;
   }
 
   _bindModels() {

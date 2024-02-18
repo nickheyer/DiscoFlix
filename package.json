@@ -8,6 +8,7 @@
   },
   "scripts": {
     "start": "node src/server/server.js",
+    "inspect": "node --inspect src/server/server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "migrate": "npx prisma migrate dev && npx prisma generate",
     "reset": "rm -rf ./prisma/disco.db* ./prisma/migrations && npx prisma migrate dev --name init"

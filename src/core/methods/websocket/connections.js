@@ -1,7 +1,6 @@
 const uuid = require('uuid');
 
-
-module.exports = {
+module.exports =  {
   addClientWS(ws) {
     const id = uuid.v4();
     const color = Math.floor(Math.random() * 360);
@@ -22,4 +21,4 @@ module.exports = {
     this.logger.debug(compiledTemplate);
     await this.emit(compiledTemplate);
   }
-}
+};

@@ -1,6 +1,5 @@
-const { app, server, logger } = require('../shared/CoreService');
+const { app, server } = require('../core/CoreService');
 const serve = require('koa-static');
-const views = require('koa-views');
 const bodyParser = require('koa-bodyparser');
 const errorHandler = require('./middlewares/errorHandler');
 const debugHandler = require('./middlewares/debugHandler');

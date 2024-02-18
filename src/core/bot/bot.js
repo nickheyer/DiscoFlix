@@ -2,9 +2,9 @@ const { Client } = require('discord.js');
 const intentManager = require('./managers/intentManager');
 const eventManager = require('./managers/eventManager');
 
-function generateClient(coreService) {
+function generateClient(core) {
     const client = new Client(intentManager());
-    client.core = coreService;
+    client.core = core;
     eventManager(client);
     return client;
 }

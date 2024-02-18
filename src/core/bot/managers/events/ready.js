@@ -1,16 +1,12 @@
 const { Events } = require('discord.js');
 
-
-async function registerBotOnReady(client) {
-  await client.core.refreshBotInfo(true);
-  await client.core.updateServerSortOrder();
-}
-
 module.exports = {
 	name: Events.ClientReady,
 	once: false,
 	async execute(client) {
-    await registerBotOnReady(client);
+    const core = client.core;
+    await core.refreshBotInfo(true);
+    await core.updateServerSortOrder();
     global.logger.info(`Logged in as ${client.user.tag}!`);
 	},
 };
