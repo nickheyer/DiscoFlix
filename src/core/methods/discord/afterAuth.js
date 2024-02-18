@@ -1,20 +1,16 @@
 module.exports = {
   async getDiscordServers() {
     const servers = [];
-    const isReady = this.client.isReady();
-    if (isReady) {
-      const foundServers = await this.client.guilds.fetch();
-      this.logger.debug('Discord servers found: ', foundServers.toJSON());
-      foundServers.each(async (foundServer) => {
-        const guildInfo = {
-          server_name: foundServer.name,
-          server_id: foundServer.id,
-          server_avatar_url: foundServer.iconURL()
-        };
-        this.logger.debug('PUSHING SERVER TO UPSERT: ', guildInfo);
-        servers.push(guildInfo);
-      });
-    }
+    const foundServers = await this.client.guilds.fetch();
+    foundServers.each(async (foundServer) => {
+      const guildInfo = {
+        server_name: foundServer.name,
+        server_id: foundServer.id,
+        server_avatar_url: foundServer.iconURL()
+      };
+      logger.debug('Fetch Discord Servers, Upserting to DB: ', guildInfo);
+      servers.push(guildInfo);
+    });
     return servers;
   },
 
@@ -41,12 +37,6 @@ module.exports = {
     await this.updatePowerState(powerOn, discordBot)
   },
 
-  async getInviteLink() {
-    const discordBot = await this.discordBot.get();
-    const inviteLink = discordBot.bot_invite_link;
-    return inviteLink;
-  },
-
   async setInviteLink() {
     const inviteLink = this.client.generateInvite({ scopes: ['bot'] });
     return await this.discordBot.update({ bot_invite_link: inviteLink });
@@ -61,16 +51,4 @@ module.exports = {
     });
   },
 
-  async updatePowerState(powerOn, discordBotInst = null) {
-    const discordBot = discordBotInst || await this.discordBot.get();
-    this.logger.debug('Changing Discord Bot Power State: ', discordBot);
-    await this.emitCompiled([
-      'nav/user/buttons/botPowerButton.pug',
-      'nav/user/userBoxInfo.pug',
-      'nav/servers/addServer.pug'
-    ], {
-      discordBot,
-      state: await this.state.update({ discord_state: powerOn })
-    });
-  }
-}
+};
