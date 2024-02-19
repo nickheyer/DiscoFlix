@@ -1,7 +1,7 @@
 module.exports = {
   async updatePowerState(powerOn, discordBotInst = null) {
-    this.logger.debug('Changing Discord Bot Power State: ', discordBot);
     const discordBot = discordBotInst || await this.discordBot.get();
+    this.logger.debug('Changing Discord Bot Power State: ', discordBot);
     await this.emitCompiled([
       'nav/user/buttons/botPowerButton.pug',
       'nav/user/userBoxInfo.pug',

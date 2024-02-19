@@ -28,17 +28,11 @@ CREATE TABLE "State" (
 );
 
 -- CreateTable
-CREATE TABLE "ErrLog" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "created" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "entry" TEXT NOT NULL DEFAULT 'Error Occured'
-);
-
--- CreateTable
 CREATE TABLE "EventLog" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "created" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "entry" TEXT NOT NULL DEFAULT 'Event Occured'
+    "timestamp" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "level" TEXT NOT NULL,
+    "message" TEXT NOT NULL
 );
 
 -- CreateTable

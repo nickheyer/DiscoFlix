@@ -1,4 +1,5 @@
 const uuid = require('uuid');
+const _ = require('lodash');
 
 module.exports =  {
   addClientWS(ws) {
@@ -11,14 +12,14 @@ module.exports =  {
 
   async emit(data) {
     await Promise.all([...this.connections.keys()].map(async (client) => {
-      this.logger.debug('Sent data to ws client: ', data);
+      this.logger.debug(`Sent data to ws client`);
       await client.send(data);
     }));
   },
 
   async emitCompiled(templateFiles = [], templateValues = {}) {
     const compiledTemplate = await this.compile(templateFiles, templateValues);
-    this.logger.debug(compiledTemplate);
+    this.logger.debug(`Sending:\nTemplates:\n${JSON.stringify(templateFiles, 4, 2)}\nValues:\n${JSON.stringify(_.keys(templateValues), 4, 2)}`);
     await this.emit(compiledTemplate);
   }
 };

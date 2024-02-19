@@ -4,6 +4,7 @@ const { PrismaClient } = require('@prisma/client');
 const http = require('http');
 const WebSocket = require('ws');
 
+
 class CoreService {
   static _instance;
 
@@ -63,7 +64,6 @@ class CoreService {
 
   get prisma() {
     if (!this._prisma) {
-      this.logger.info('Generating Prisma Cli Instance');
       this._prisma = new PrismaClient();
     }
     return this._prisma;
@@ -106,21 +106,8 @@ class CoreService {
   }
 
   _bindLogging() {
-    const { createLogger } = require('winston');
-    const logWrapper = require('@epegzz/winston-dev-console').default;
-
-    const winLogger = createLogger({
-      level: 'silly',
-    });
-    this.logger = logWrapper.init(winLogger);
-    this.logger.add(
-      logWrapper.transport({
-        showTimestamps: false,
-        addLineSeparation: true,
-      })
-    );
-
-    global.logger = this.logger;
+    console.log('Initializing logger');
+    this.logger = require('../../logging')({ prisma: this.prisma });
     this.logger.silly('Logging Initialized');
   }
 

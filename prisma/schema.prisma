@@ -40,16 +40,11 @@ model State {
   activeServer      DiscordServer? @relation(fields: [active_server_id], references: [server_id])
 }
 
-model ErrLog {
-  id      Int      @id @default(autoincrement())
-  created DateTime @default(now())
-  entry   String   @default("Error Occured")
-}
-
 model EventLog {
-  id      Int      @id @default(autoincrement())
-  created DateTime @default(now())
-  entry   String   @default("Event Occured")
+  id        Int      @id @default(autoincrement())
+  timestamp DateTime @default(now())
+  level     String
+  message   String
 }
 
 model DiscordBot {
