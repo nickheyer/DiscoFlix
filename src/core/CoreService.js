@@ -106,7 +106,6 @@ class CoreService {
   }
 
   _bindLogging() {
-    console.log('Initializing logger');
     this.logger = require('../../logging')({ prisma: this.prisma });
     this.logger.silly('Logging Initialized');
   }

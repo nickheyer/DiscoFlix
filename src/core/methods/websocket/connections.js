@@ -19,7 +19,7 @@ module.exports =  {
 
   async emitCompiled(templateFiles = [], templateValues = {}) {
     const compiledTemplate = await this.compile(templateFiles, templateValues);
-    this.logger.debug(`Sending:\nTemplates:\n${JSON.stringify(templateFiles, 4, 2)}\nValues:\n${JSON.stringify(_.keys(templateValues), 4, 2)}`);
+    this.logger.debug(`Sending:\nTemplates:\n${JSON.stringify(templateFiles, 4, 2)}\nWith Values:\n${JSON.stringify(_.keys(templateValues), 4, 2)}`);
     await this.emit(compiledTemplate);
   }
 };

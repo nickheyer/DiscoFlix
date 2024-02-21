@@ -1,21 +1,28 @@
-function getLogger(opts = {}) {
-  const { createLogger, transports } = require('winston');
-  const logWrapper = require('@epegzz/winston-dev-console').default;
+const { createLogger, transports } = require('winston');
+const { default: logWrapper } = require('@epegzz/winston-dev-console');
+require('winston-daily-rotate-file');
 
+function getLogger(opts = {}) {
   const winLogger = createLogger({
     level: 'silly',
     transports: [
-      new (transports.File)({
-        name: 'info-file',
-        filename: `${__dirname}/logs/filelog-info.log`,
-        level: 'silly'
+      new transports.DailyRotateFile({
+        filename: `${__dirname}/logs/dflog-%DATE%.log`,
+        datePattern: 'YYYY-MM-DD-HH',
+        zippedArchive: true,
+        frequency: '1d',
+        maxSize: '20m',
+        maxFiles: '14d'
       }),
-
-      new (transports.File)({
-        name: 'error-file',
-        filename: `${__dirname}/logs/filelog-error.log`,
-        level: 'error'
-      })
+      new transports.DailyRotateFile({
+        level: 'error',
+        filename: `${__dirname}/logs/dferr-%DATE%.log`,
+        datePattern: 'YYYY-MM-DD-HH',
+        zippedArchive: true,
+        frequency: '1d',
+        maxSize: '20m',
+        maxFiles: '14d'
+      }),
     ]
   });
   const logger = logWrapper.init(winLogger);
@@ -25,9 +32,6 @@ function getLogger(opts = {}) {
       addLineSeparation: true,
     })
   );
-  // logger.add(
-  //   new PrismaWinstonTransporter(opts)
-  // )
 
   global.logger = logger;
   return logger;
