@@ -1,7 +1,7 @@
 function debugHandler() {
   return async (ctx, next) => {
     try {
-      global.logger.info(`${ctx.request.method} REQUEST RECIEVED AT ${ctx.request.url} BY ${ctx.request.header.host}`);
+      global.logger.info(`Request recieved:\nMethod: ${ctx.request.method}\nURL: ${ctx.request.url}\nHost: ${ctx.request.header.host}`);
       await next();
     } catch (err) {
       global.logger.error(`Encountered an error: ${err}`);
