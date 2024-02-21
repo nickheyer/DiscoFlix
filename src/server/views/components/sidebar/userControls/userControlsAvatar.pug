@@ -1,0 +1,7 @@
+div.currentUserImage
+  div.userAvatarBubble
+    div.statusBubble(class=(discordBot.bot_username ? (state.discord_state ? 'online' : 'offline') : ''))
+    img.userAvatar(
+      src=(discordBot.bot_avatar_url || "https://cdn.discordapp.com/embed/avatars/0.png")
+      alt="avatar"
+    )

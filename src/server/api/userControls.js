@@ -11,7 +11,7 @@ async function toggleBotState(ctx) {
 
 async function toggleAppState(ctx) {
   ctx.response.status = 286;
-  await ctx.compileView('nav/user/userControlShutdown.pug');
+  await ctx.compileView('sidebar/userControls/userControlShutdown.pug');
   ctx.res.on('finish', async () => {
     await ctx.core.shutdownServer(ctx.request.url);
   });

@@ -3,9 +3,8 @@ module.exports = {
     const discordBot = discordBotInst || await this.discordBot.get();
     this.logger.debug('Changing Discord Bot Power State: ', discordBot);
     await this.emitCompiled([
-      'nav/user/buttons/botPowerButton.pug',
-      'nav/user/userBoxInfo.pug',
-      'nav/servers/addServer.pug'
+      'sidebar/userControls/userControlsLayout.pug',
+      'sidebar/servers/addServerButton.pug'
     ], {
       discordBot,
       state: await this.state.update({ discord_state: powerOn })

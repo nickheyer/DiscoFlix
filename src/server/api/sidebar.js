@@ -5,7 +5,7 @@ async function toggleSidebarState(ctx) {
   state['sidebar_exp_state'] = !state['sidebar_exp_state'];
   await ctx.core.state.update(state);
   const discordBot = await ctx.core.discordBot.get();
-  await ctx.compileView('nav/sideBar.pug', { state, servers, discordBot });
+  await ctx.compileView('sidebar/sidebarLayout.pug', { state, servers, discordBot });
 }
 
 async function changeActiveServers(ctx) {
@@ -14,18 +14,17 @@ async function changeActiveServers(ctx) {
   const servers = await ctx.core.getServerTemplateObj(null, state);
   const discordBot = await ctx.core.discordBot.get();
   await ctx.compileView([
-    'nav/servers/servers.pug',
-    'nav/servers/serverBanner.pug'
+    'sidebar/servers/serverSortableContainer.pug',
+    'sidebar/servers/serverBannerLabel.pug'
   ], { servers, discordBot });
 }
 
 async function changeServerSortOrder(ctx) {
   const newSortOrder = await ctx.core.discordServer.reorder(ctx.request.body.item);
   const servers = await ctx.core.getServerTemplateObj(newSortOrder);
-  const discordBot = await ctx.core.discordBot.get();
   await ctx.compileView([
-    'nav/servers/servers.pug'
-  ], { servers, discordBot });
+    'sidebar/servers/serverSortableContainer.pug'
+  ], { servers });
 }
 
 module.exports = {

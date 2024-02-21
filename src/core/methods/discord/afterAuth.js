@@ -45,9 +45,8 @@ module.exports = {
   async updateServerSortOrder() {
     const serverRows = await this.refreshDiscordServers();
     const servers = await this.getServerTemplateObj(serverRows);
-    const discordBot = await this.discordBot.get();
-    await this.emitCompiled('nav/servers/servers.pug', {
-      servers, discordBot
+    await this.emitCompiled('sidebar/servers/serverSortableContainer.pug', {
+      servers
     });
   },
 

@@ -6,7 +6,7 @@ module.exports = {
     activeServer = activeServer || await this.state.getActive(state);
     const activeID = activeServer ? activeServer.server_id : null;
     for (const serverRow of serverRows) {
-      const serverBubbleHTML = await this.compile('nav/servers/serverBubble.pug', {
+      const serverBubbleHTML = await this.compile('sidebar/servers/serverBubble.pug', {
         id: serverRow.server_id,
         serverSortPosition: serverRow.sort_position,
         serverName: serverRow.server_name,

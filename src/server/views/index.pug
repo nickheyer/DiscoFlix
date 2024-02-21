@@ -1,25 +1,23 @@
-extends layouts/layout
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    title= title
+    
+    link(href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,700;0,900;1,300;1,400;1,500&amp;display=swap" rel="stylesheet")
+    link(rel="stylesheet" href="/css/style.css")
+    link(rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@5/dark.css")
 
-block content
-  div.rootDiv(hx-ext="ws" ws-connect="/")
-    //- include components/header
-    include components/nav/sideBar
-    include components/nav/servers/servers
-    include components/chat/container
-    include components/members/members
-    //- include components/footer
+    script(src="https://unpkg.com/@popperjs/core@2" crossorigin="anonymous")
+    script(src="https://unpkg.com/tippy.js@6" crossorigin="anonymous")
+    script(src="https://unpkg.com/htmx.org@1.9.10" crossorigin="anonymous")
+    script(src="https://unpkg.com/htmx.org/dist/ext/ws.js" crossorigin="anonymous")
+    script(src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js" crossorigin="anonymous")
+    script(src="https://cdn.jsdelivr.net/npm/sweetalert2/dist/sweetalert2.js" crossorigin="anonymous")
+    script(src="/js/source.js")
 
-
-
-  //- h1 DiscoFlix Chat
-
-  //- h3 Current date-time is #{message}!
-
-  //- div(hx-ext="ws", ws-connect="/")
-  //-   div#notifications
-  //-   div#chat_room
-  //-     p ...
-
-  //-   form#form(ws-send)
-  //-     input(type="text", name="chat_message", placeholder="Type a message...")
-  //-     button(type="submit") Send
+  body
+    noscript Please enable JavaScript to access this website.
+    div.rootDiv(hx-ext="ws" ws-connect="/")
+      include components/componentLayout

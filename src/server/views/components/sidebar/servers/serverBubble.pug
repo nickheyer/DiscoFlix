@@ -6,7 +6,9 @@ div(
   data-tippy-placement='right'
 )
   input(type='hidden' name='item' value=id)
+
   if serverImage
-    img.serverIcon(src=serverImage, class=serverUnread && 'unread')
+    include serverIconImg
+
   else
-    p.serverIcon(class=serverUnread && 'unread') !{serverTrunc}
+    include serverIconNoImg

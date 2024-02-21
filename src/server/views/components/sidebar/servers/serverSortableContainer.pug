@@ -1,0 +1,9 @@
+form.serverBubbles.sortable#serverBubbleContainer(
+  hx-post="/server-sort"
+  hx-trigger="end"
+  hx-swap="none"
+  hx-select-oob="#serverSelector"
+  hx-swap-oob="outerHTML"
+)
+  for serverBubble in servers.serverBubbles
+    | !{serverBubble}
