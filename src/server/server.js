@@ -19,7 +19,7 @@ app.use(errorHandler());
 app.use(debugHandler());
 app.use(compileMiddleware);
 app.use(defermentMiddleware);
-app.use(serve(__dirname + '/static'));
+app.use(serve('public'));
 
 // Routes
 app.use(routes.routes()).use(routes.allowedMethods());
