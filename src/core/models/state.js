@@ -29,7 +29,7 @@ class State {
 
   async changeActive(active_server_id = null) {
     if (!active_server_id) {
-      const firstServer = await this.prisma.discordServer.findFirst();
+      const firstServer = await this.discordServer.findFirst();
       active_server_id = firstServer ? firstServer.server_id : null;
     }
   
