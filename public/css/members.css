@@ -1,0 +1,14 @@
+
+/* Contains styling for the user bar */
+
+.memberContainer {
+  grid-column-start: 4;
+  height: 100%;
+  background-color: var(--dark-server-list);
+  overflow-y: auto;
+  scrollbar-width: 0px;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  user-select: none;
+}

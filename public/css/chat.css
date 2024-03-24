@@ -1,5 +1,10 @@
 /* I'll put "chat" stylings here when I get to that point */
 
+.chatContainer {
+  grid-column-start: 3;
+  height: 100%;
+}
+
 .messages {
   color:oklab(from color l a b)
 }

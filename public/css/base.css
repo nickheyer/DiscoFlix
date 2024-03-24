@@ -7,10 +7,18 @@ html, body, #root {
   scroll-behavior: smooth;
 }
 
-*, button, input {
+* {
   border: 0;
   outline: 0;
   font-family: var(--font-family);
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
+  
 }
 
 body {
@@ -26,7 +34,7 @@ body {
 
 .rootDiv {
     display: grid;
-    grid-template-columns: 0px 70px 300px;
+    grid-template-columns: 70px 300px auto 300px;
     grid-template-rows: auto;
         box-sizing: border-box;
     scroll-behavior: smooth;
