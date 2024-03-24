@@ -1,11 +1,7 @@
 /* Contains styling for the nav bar and server buttons */
 
 .servers {
-  grid-column-start: 1;
-  grid-column-end: 2;
-  grid-row-start: row1-start;
-  grid-row-end: 3;
-  position: absolute;
+  order: 1;
   width: 70px;
   height: 100%;
   background-color: var(--dark-server-list);
@@ -113,13 +109,9 @@
 }
 
 #serverSideBar {
-  grid-column-start: 2;
-  grid-column-end: 2;
-  grid-row-start: 1;
-  grid-row-end: 1;
+  order: 2;
   position: relative;
-  float:right;
-  width: 20%;
+  width: auto;
   overflow: hidden;
   height: 100vh;
   background-color: var(--dark-primary);
@@ -127,7 +119,7 @@
 }
 
 #serverSideBar.expanded {
-  width: 90%;
+  width: 270px;
   overflow: auto;
 
   .guildSelectorName,
@@ -142,15 +134,24 @@
     position: initial;
     top: initial;
   }
+
+  .guildSelectorDropdown {
+    transform: translateY(-50%) rotate(0deg);
+    transform-origin: center;
+  }
 }
 
 
 #serverSideBar:not(.expanded) {
+  width: 60px;
+  overflow: auto;
+  
   .guildSelectorDropdown {
     width: 100%;
     height: 100%;
     overflow: hidden;
-    transform: rotate(90deg);
+    transform: translateY(-50%) rotate(90deg);
+    transform-origin: center;
     color: var(--text-gray);
     cursor: pointer;
     border: 0px;
@@ -160,10 +161,10 @@
     margin: 0px;
     padding: 0px;
     box-sizing: border-box;
+    right: 0;
   }
   .guildSelectorDropdown:hover {
     color: var(--blurple);
-    transform: scale(110%);
   }
 
   .navGuildItems{
@@ -195,18 +196,12 @@
   padding: 0px 11px 0px 16px;
   background-color: var(--dark-primary);
   z-index: 2;
-}
-
-.guildOpener {
-  margin-left: 5px;
+  height: 70px;
+  position: relative;
 }
 
 .navGuild {
   border-bottom: 1px solid var(--dark-server-list);
-}
-
-.guildDropdown {
-  margin-right: 43px;
 }
 
 .guildSelectorName {
@@ -226,20 +221,24 @@
   cursor: pointer;
   border: 0px;
   outline: 0px;
-  display: inline-block;
-  vertical-align: middle;
-  overflow: hidden;
+
+  position: absolute;
+  transform: translateY(-50%);
+  transform-origin: center;
+  right: 10px;
+  top: 50%;
+
+
   margin: 0px;
   padding: 0px;
   box-sizing: border-box;
-  transition-property: all; 
+  transition-property: all;
   transition-duration: 0.6s; 
   transition-timing-function: ease;
 
   &:hover {
     color: var(--blurple);
-    transform: scale(150%);
-    border-radius: 100%;
+    height: 56px;
   }
 }
 
@@ -254,7 +253,6 @@
 .channelViewContainer {
   background-color: var(--secondary);
   display: flex;
-  grid-area: CL;
   flex-direction: column;
   padding: 0px 9.5px 0px 16px;
   transition: opacity 0.2s ease 0s;

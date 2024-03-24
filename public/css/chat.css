@@ -1,8 +1,19 @@
 /* I'll put "chat" stylings here when I get to that point */
 
 .chatContainer {
-  grid-column-start: 3;
+  order: 3;
+  flex-grow: 1;
   height: 100%;
+  resize: horizontal;
+  display: grid;
+  grid-template-rows: 1fr 70px;
+}
+
+.messageContainer {
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
 }
 
 .messages {

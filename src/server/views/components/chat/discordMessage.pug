@@ -1,0 +1,41 @@
+.message-preview
+  img.userAvatar(
+    src="https://cdn.discordapp.com/embed/avatars/0.png"
+    alt="avatar"
+  )
+  .bot-message(data-message-preview)
+    .bot-name
+      b Embed Builder
+      .bot-tag BOT
+      .bot-date Today at 17:4PM
+    .message-content(data-message-content)
+    .message-attachment.hidden(data-message-attachment="null")
+      img(src, alt)
+    .message-attachment.hidden(data-message-image-link)
+      img(src, alt)
+    .message-embed.hidden(style="border-color: #00FFFF;")
+      .embed-content
+        .embed-author.hidden(data-embed-author)
+        .embed-title.description.hidden(data-embed-title)
+        .embed-description.description.hidden(data-embed-description)
+        .embed-fields.hidden(data-embed-fields)
+        .embed-image.message-attachment.hidden(data-embed-image="null")
+          img(src, alt)
+        .embed-footer.hidden
+          img.footer-icon.hidden(src, alt, data-footer-image)
+          |  
+          span.hidden(data-footer-text)
+          |  
+          span.divider.hidden •
+          |  
+          span.hidden(data-timestamp)
+      .embed-thumbnail.hidden
+        .avatar-large
+          img(src, data-thumbnail-image)
+    .message-components.hidden(data-components)
+    .message-content.empty
+      .ellipsis
+        div
+        div
+        div
+      | Message Builder is thinking...

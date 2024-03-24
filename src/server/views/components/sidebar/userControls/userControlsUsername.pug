@@ -1,1 +1,8 @@
-h4.username !{discordBot.bot_username || "Unavailable"}
+h4.username
+  if (discordBot.bot_username)
+    if (discordBot.bot_username.length > 16)
+      | !{discordBot.bot_username.substr(0, 16) + '...'}
+    else
+      | !{discordBot.bot_username}
+  else 
+    | Unavailable

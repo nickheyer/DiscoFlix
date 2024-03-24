@@ -2,8 +2,10 @@
 /* Contains styling for the user bar */
 
 .memberContainer {
-  grid-column-start: 4;
+  order: 4;
   height: 100%;
+  align-self: flex-end;
+  width: 270px;
   background-color: var(--dark-server-list);
   overflow-y: auto;
   scrollbar-width: 0px;

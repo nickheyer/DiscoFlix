@@ -100,8 +100,9 @@
 .userAvatarBubble {
   position: absolute;
   height: 40px;
-  width: 40px;
-  margin: 5px 5px 5px 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  left: 10px;
   cursor: pointer;
   user-select: none;
 }
