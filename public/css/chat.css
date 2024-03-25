@@ -34,9 +34,27 @@
   display: flex;
   align-items: center;
   font-size: 16px;
+
+  .plusButton {
+    border-radius: 50%;
+    background: #99aab5;
+    color: #40444b;
+    width: 24px;
+    height: 24px;
+    margin-right: 16px;
+  }
+
+  .chatMessageInput {
+    width: 100%;
+    background: transparent;
+    font-size: 16px;
+    color: var(--text-gray);
+    resize: horizontal;
+
+  }
 }
 
-.message-preview {
+.chatMessageRow {
   display: flex;
   padding: 16px 0;
 
@@ -54,15 +72,15 @@
     margin-right: 16px;
   }
 
-  .bot-message {
+  .chatMessageContent {
     flex-grow: 1;
     font-size: 16px;
 
-    .bot-name {
+    .chatAuthor {
       display: flex;
       align-items: center;
 
-      .bot-tag {
+      .chatMessageTag {
         border-radius: 4px;
         background: var(--dark-blurple);
         padding: 2px 4px;
@@ -70,14 +88,14 @@
         font-size: 10px;
       }
 
-      .bot-date {
+      .chatMessageDate {
         color: var(--white);
         opacity: 0.25;
         font-size: 12px;
       }
     }
 
-    .message-content {
+    .chatMessageText {
       margin-top: 8px;
       color: #ddd;
       font-size: 14px;
@@ -126,4 +144,3 @@
       opacity: 1;
   }
 }
-
