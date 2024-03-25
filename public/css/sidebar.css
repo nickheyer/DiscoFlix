@@ -2,11 +2,10 @@
 
 .servers {
   order: 1;
-  width: 70px;
+  min-width: 70px;
   height: 100%;
   background-color: var(--dark-server-list);
-  overflow-y: auto;
-  scrollbar-width: 0px;
+  overflow-y: auto !important;
   display: flex;
   align-items: center;
   flex-direction: column;
@@ -19,6 +18,7 @@
 
 .homeButton {
   position: relative;
+  flex-shrink: 0;
   background-color: var(--dark-bg);
   color: #FFFFFF;
   border-radius: 50%;
@@ -111,16 +111,16 @@
 #serverSideBar {
   order: 2;
   position: relative;
-  width: auto;
-  overflow: hidden;
+  min-width: 60px;
   height: 100vh;
   background-color: var(--dark-primary);
   transition: width 0.6s ease;
+  overflow: hidden;
 }
 
 #serverSideBar.expanded {
   width: 270px;
-  overflow: auto;
+  
 
   .guildSelectorName,
   .userInfo,
@@ -139,12 +139,16 @@
     transform: translateY(-50%) rotate(0deg);
     transform-origin: center;
   }
+
+  .channelViewContainer {
+    overflow: auto !important;
+    height: calc(100% - 136px) !important
+  }
 }
 
 
 #serverSideBar:not(.expanded) {
   width: 60px;
-  overflow: auto;
   
   .guildSelectorDropdown {
     width: 100%;
@@ -356,4 +360,3 @@
   color: var(--symbol);
   cursor: pointer;
 }
-

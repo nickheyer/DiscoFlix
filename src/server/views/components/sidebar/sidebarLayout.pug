@@ -1,8 +1,8 @@
+include servers/servers
+
 div#serverSideBar(
   class=(state.sidebar_exp_state ? 'expanded' : 'collapsed')
 )
   include servers/serverBannerContainer
   include channels/channelsLayout
   include userControls/userControlsLayout
-
-include servers/servers

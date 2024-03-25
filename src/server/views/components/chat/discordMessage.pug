@@ -1,14 +1,22 @@
 .message-preview
   img.userAvatar(
-    src="https://cdn.discordapp.com/embed/avatars/0.png"
-    alt="avatar"
+      src=(discordBot.bot_avatar_url || "https://cdn.discordapp.com/embed/avatars/0.png")
+      alt="avatar"
   )
   .bot-message(data-message-preview)
     .bot-name
-      b Embed Builder
+      h4.username
+        if (discordBot.bot_username)
+          if (discordBot.bot_username.length > 16)
+            | !{discordBot.bot_username.substr(0, 16) + '...'}
+          else
+            | !{discordBot.bot_username}
+        else 
+          | Unavailable
       .bot-tag BOT
       .bot-date Today at 17:4PM
     .message-content(data-message-content)
+      | This is some message content!
     .message-attachment.hidden(data-message-attachment="null")
       img(src, alt)
     .message-attachment.hidden(data-message-image-link)
@@ -38,4 +46,4 @@
         div
         div
         div
-      | Message Builder is thinking...
+      | #{discordBot.bot_username} is thinking...

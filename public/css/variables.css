@@ -1,22 +1,24 @@
 /* Storing variables at the root scope */
 
 :root {
-  --dark-bg: #36393f;
-  --dark-server-list: #202225;
+  --dark-bg: #313338;
+  --chat-bar: #383a40;
+  --dark-server-list: #1e1f22;
   --server-divider: #2d2f32;
   --blurple: #7289da;
   --dark-blurple: #4d5e94;
   --green: #43b581;
-  --dark-primary: #2f3136;
+  --dark-primary: #2b2d31;
   --text-gray: #dcddde;
-  --user-box: #292B2F;
+  --user-box: #232428;
+  --dark-member-list: #2b2d31;
   --iconColor: #b9bbbe;
   --red: #f84a4b;
   --yellow: #ffd000;
 
   
   --primary: #36393f;
-  --secondary: #2f3136;
+  --secondary: #2b2d31;
   --tertiary: rgb(32,34,37);
   --quaternary: #292b2f;
   --quinary: #393d42;

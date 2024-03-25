@@ -4,9 +4,9 @@
 .memberContainer {
   order: 4;
   height: 100%;
-  align-self: flex-end;
   width: 270px;
-  background-color: var(--dark-server-list);
+  min-width: 70px;
+  background-color: var(--dark-member-list);
   overflow-y: auto;
   scrollbar-width: 0px;
   display: flex;

@@ -4,7 +4,6 @@
   order: 3;
   flex-grow: 1;
   height: 100%;
-  resize: horizontal;
   display: grid;
   grid-template-rows: 1fr 70px;
 }
@@ -14,8 +13,117 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
+  padding: 15px;
 }
 
-.messages {
-  color:oklab(from color l a b)
+.chatBarContainer {
+  position: relative;
 }
+
+.floatingChatBar {
+  box-sizing: border-box;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, 0);
+  background-color: var(--chat-bar);
+  width: calc(100% - 30px);
+
+  border-radius: 8px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+}
+
+.message-preview {
+  display: flex;
+  padding: 16px 0;
+
+  * {
+    box-sizing: border-box;
+  }
+
+  .hidden {
+    display: none !important;
+  }
+  
+  .userAvatar {
+    flex-shrink: 0;
+    overflow: hidden;
+    margin-right: 16px;
+  }
+
+  .bot-message {
+    flex-grow: 1;
+    font-size: 16px;
+
+    .bot-name {
+      display: flex;
+      align-items: center;
+
+      .bot-tag {
+        border-radius: 4px;
+        background: var(--dark-blurple);
+        padding: 2px 4px;
+        margin: 0 8px;
+        font-size: 10px;
+      }
+
+      .bot-date {
+        color: var(--white);
+        opacity: 0.25;
+        font-size: 12px;
+      }
+    }
+
+    .message-content {
+      margin-top: 8px;
+      color: #ddd;
+      font-size: 14px;
+      word-break: break-word;
+
+      &.empty {
+        color: #666;
+        display: flex;
+        align-items: center;
+      }
+    }
+
+  }
+}
+
+.ellipsis {
+  display: flex;
+  align-items: center;
+  margin-right: 8px;
+  color: #666;
+  font-size: 14px;
+  word-break: break-word;
+
+  > div {
+    margin-left: 1px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ddd;
+    animation: fade 1s ease-in-out infinite;
+
+    &:first-child {
+      animation-delay: -100ms;
+    }
+  }
+}
+
+@keyframes fade {
+  0% {
+    opacity: 1;
+  }
+  50% {
+      opacity: .25;
+  }
+  100% {
+      opacity: 1;
+  }
+}
+

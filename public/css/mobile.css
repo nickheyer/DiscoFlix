@@ -1,0 +1,37 @@
+
+
+/* While using average sized mobile device */
+
+@media(max-width:768px){
+  #serverSideBar.expanded {
+    flex: auto;
+  }
+
+  #serverSideBar.expanded ~ .chatContainer {
+    width: 0;
+    visibility: collapse;
+    overflow: hidden;
+  }
+
+  .chatContainer * {
+    font-size: .9rem;
+  }
+
+
+  .servers {
+    order: 1;
+    height: 50vh;
+  }
+
+  .memberContainer {
+    order: 1;
+    height: 50vh;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    background-color: var(--dark-server-list);
+    border-top: 3px var(--server-divider) solid;
+    max-width: 70px;
+
+  }
+}
