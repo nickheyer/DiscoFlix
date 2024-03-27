@@ -16,4 +16,16 @@ module.exports = {
     const inviteLink = discordBot.bot_invite_link;
     return inviteLink;
   },
+
+  async logMessageToInterface(discordMessage) {
+    await this.emitCompiled([
+      'chat/discordMessage.pug'
+    ], {
+      username: `${discordMessage.author.username}`,
+      isBot: !!(discordMessage.author.bot),
+      timeStamp: discordMessage.createdAt.toLocaleString(),
+      avatarUrl: discordMessage.author.displayAvatarURL(),
+      messageText: discordMessage.content
+    });
+  }
 };

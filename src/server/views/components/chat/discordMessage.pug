@@ -1,49 +1,7 @@
-.chatMessageRow
-  img.userAvatar.chatAuthorAvatar(
-      src=(discordBot.bot_avatar_url || "https://cdn.discordapp.com/embed/avatars/0.png")
-      alt="avatar"
-  )
-  .chatMessageContent(data-message-preview)
-    .chatAuthor
-      h4.username
-        if (discordBot.bot_username)
-          if (discordBot.bot_username.length > 16)
-            | !{discordBot.bot_username.substr(0, 16) + '...'}
-          else
-            | !{discordBot.bot_username}
-        else 
-          | Unavailable
-      .chatMessageTag BOT
-      .chatMessageDate Today at 17:4PM
-    .chatMessageText(data-message-content)
-      | This is some message content!
-    .chatMessageAttachment.hidden(data-message-attachment="null")
-      img(src, alt)
-    .chatMessageAttachment.hidden(data-message-image-link)
-      img(src, alt)
-    .chatEmbed.hidden(style="border-color: #00FFFF;")
-      .chatEmbedContent
-        .chatEmbedAuthor.hidden(data-embed-author)
-        .chatEmbedTitle.description.hidden(data-embed-title)
-        .chatEmbedDescription.description.hidden(data-embed-description)
-        .chatEmbedFields.hidden(data-embed-fields)
-        .chatEmbedImage.chatMessageAttachment.hidden(data-embed-image="null")
-          img(src, alt)
-        .chatEmbedfooter.hidden
-          img.chatFooterIcon.hidden(src, alt, data-footer-image)
-          |  
-          span.hidden(data-footer-text)
-          |  
-          span.divider.hidden •
-          |  
-          span.hidden(data-timestamp)
-      .chatEmbedthumbnail.hidden
-        .chatEmbedAvatar.large
-          img(src, data-thumbnail-image)
-    .chatMessageComponents.hidden(data-components)
-    .chatMessageText.empty
-      .ellipsis
-        div
-        div
-        div
-      | #{discordBot.bot_username} is thinking...
+.messageWrapper(hx-swap-oob="beforeend:#chatLog")
+  .chatMessageRow
+    include message/messageAvatar
+    .chatMessageContent()
+      include message/messageAuthor
+      include message/messageText
+      //include message/messageTyping

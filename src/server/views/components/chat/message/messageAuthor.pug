@@ -1,0 +1,11 @@
+.chatAuthor
+  h4.username
+    if (username)
+      if (username.length > 16)
+        | !{username.substr(0, 16) + '...'}
+      else
+        | !{username}
+    else 
+      | Unavailable
+  .chatMessageTag #{isBot ? "BOT" : "USER"}
+  .chatMessageDate #{timeStamp || "Time Unavailable"}

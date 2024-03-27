@@ -1,0 +1,19 @@
+.chatEmbed(style="border-color: #00FFFF;")
+  .chatEmbedContent
+    .chatEmbedAuthor.hidden()
+    .chatEmbedTitle.description.hidden()
+    .chatEmbedDescription.description.hidden()
+    .chatEmbedFields.hidden()
+    .chatEmbedImage.chatMessageAttachment.hidden()
+      img(src, alt)
+    .chatEmbedfooter.hidden
+      img.chatFooterIcon.hidden(src, alt)
+      |  
+      span.hidden()
+      |  
+      span.divider.hidden •
+      |  
+      span.hidden(data-timestamp)
+  .chatEmbedthumbnail.hidden
+    .chatEmbedAvatar.large
+      img(src)
