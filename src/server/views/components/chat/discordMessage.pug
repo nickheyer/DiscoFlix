@@ -1,5 +1,5 @@
 .messageWrapper(hx-swap-oob="beforeend:#chatLog")
-  .chatMessageRow
+  .chatMessageRow(class=isBot ? "botMsg" : "userMsg")
     include message/messageAvatar
     .chatMessageContent()
       include message/messageAuthor

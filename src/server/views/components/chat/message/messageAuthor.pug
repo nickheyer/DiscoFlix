@@ -1,5 +1,5 @@
 .chatAuthor
-  h4.username
+  b.chatAuthorUsername(style=`color: ${accentColor || white}`)
     if (username)
       if (username.length > 16)
         | !{username.substr(0, 16) + '...'}

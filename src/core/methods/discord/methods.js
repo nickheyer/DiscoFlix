@@ -18,14 +18,17 @@ module.exports = {
   },
 
   async logMessageToInterface(discordMessage) {
+    const author = await discordMessage.author.fetch(true);
+
     await this.emitCompiled([
       'chat/discordMessage.pug'
     ], {
-      username: `${discordMessage.author.username}`,
-      isBot: !!(discordMessage.author.bot),
+      username: `${author.displayName}`,
+      isBot: !!(author.bot),
       timeStamp: discordMessage.createdAt.toLocaleString(),
-      avatarUrl: discordMessage.author.displayAvatarURL(),
-      messageText: discordMessage.content
+      avatarUrl: author.displayAvatarURL(),
+      messageText: discordMessage.content,
+      accentColor: author.hexAccentColor
     });
   }
 };

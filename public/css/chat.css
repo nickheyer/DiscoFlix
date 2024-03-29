@@ -12,8 +12,8 @@
   grid-row: 1;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
-  padding: 15px;
+  justify-content: flex-end;
+  padding: 0 3% 0 2%;
 }
 
 .chatBarContainer {
@@ -58,6 +58,14 @@
   display: flex;
   padding: 16px 0;
 
+  &.botMsg {
+    align-self: flex-end;
+  }
+
+  &.userMsg {
+    align-self: flex-start;
+  }
+
   * {
     box-sizing: border-box;
   }
@@ -70,6 +78,8 @@
     flex-shrink: 0;
     overflow: hidden;
     margin-right: 16px;
+    height: 48px;
+    width: 48px;
   }
 
   .chatMessageContent {
@@ -79,6 +89,10 @@
     .chatAuthor {
       display: flex;
       align-items: center;
+
+      .chatAuthorUsername {
+        font-weight: 400;
+      }
 
       .chatMessageTag {
         border-radius: 4px;
