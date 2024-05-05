@@ -25,7 +25,11 @@ module.exports = {
     if (_.isEmpty(serverRows)) {
       serverRows = await this.discordServer.getSorted();
     }
-    const activeServer = await this.state.getActive();
+    const relServer = await this.state.getActive();
+    const activeServer = await this.discordServer.get(
+      { id: relServer.id },
+      { channels: true }
+    );
     const serverBubbles = await this.createServerBubbles(
       serverRows,
       state,

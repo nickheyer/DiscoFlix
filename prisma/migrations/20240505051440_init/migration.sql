@@ -56,10 +56,14 @@ CREATE TABLE "DiscordServer" (
 -- CreateTable
 CREATE TABLE "DiscordServerChannel" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "position" INTEGER NOT NULL,
     "discord_server" TEXT NOT NULL,
     "channel_id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "type" TEXT NOT NULL DEFAULT 'text',
+    "channel_name" TEXT NOT NULL,
+    "channel_type" INTEGER NOT NULL DEFAULT 0,
+    "isTextChannel" BOOLEAN NOT NULL DEFAULT false,
+    "isVoiceChannel" BOOLEAN NOT NULL DEFAULT false,
+    "isCategory" BOOLEAN NOT NULL DEFAULT false,
     CONSTRAINT "DiscordServerChannel_discord_server_fkey" FOREIGN KEY ("discord_server") REFERENCES "DiscordServer" ("server_id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 

@@ -1,1 +1,9 @@
-input.chatMessageInput(placeholder=("Message #" + servers.activeServer.server_name || "Channel"))
+if (servers.activeServer && servers.activeServer.server_name)
+  input.chatMessageInput(
+    placeholder="Message #" + servers.activeServer.server_name
+  )
+else
+  input.chatMessageInput(
+    placeholder="No servers currently available..."
+    disabled=true
+  )

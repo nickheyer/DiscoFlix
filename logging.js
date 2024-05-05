@@ -1,3 +1,4 @@
+const util = require('util');
 const { createLogger, transports } = require('winston');
 const { default: logWrapper } = require('@epegzz/winston-dev-console');
 require('winston-daily-rotate-file');
@@ -32,6 +33,8 @@ function getLogger(opts = {}) {
       addLineSeparation: true,
     })
   );
+
+  logger.inspect = (obj) => logger.debug(util.format(obj));
 
   global.logger = logger;
   return logger;

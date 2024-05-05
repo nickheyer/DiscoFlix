@@ -25,8 +25,8 @@ class DiscordServer {
     return foundServer;
   }
 
-  async get(where = {}) {
-    return this.prisma.discordServer.findFirst({ where });
+  async get(where = {}, include = {}) {
+    return this.prisma.discordServer.findFirst({ where, include });
   }
 
   async getMany(where = {}) {

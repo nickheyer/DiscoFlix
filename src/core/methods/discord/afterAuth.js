@@ -1,25 +1,41 @@
+const _ = require('lodash');
+
 module.exports = {
-  async getDiscordServers() {
-    const servers = [];
-    const foundServers = await this.client.guilds.fetch();
-    foundServers.each(async (foundServer) => {
+
+  async refreshDiscordServers() {
+    const foundPartialServers = await this.client.guilds.fetch();
+    const foundServers = await Promise.all(foundPartialServers.map((part) => part.fetch()));
+    await Promise.all(_.forEach(foundServers, async (foundServer) => {
       const guildInfo = {
         server_name: foundServer.name,
         server_id: foundServer.id,
         server_avatar_url: foundServer.iconURL()
       };
-      logger.debug('Fetch Discord Servers, Upserting to DB: ', guildInfo);
-      servers.push(guildInfo);
-    });
-    return servers;
-  },
+      await this.discordServer.upsert(guildInfo);
+      logger.debug('Fetched Discord Server: ', guildInfo);
 
-  async refreshDiscordServers() {
-    // GET NEW GUILDS/SERVERS FROM DISCORD API
-    const allServersFound = await this.getDiscordServers();
-    for (let i = 0; i < allServersFound.length; i++) {
-      await this.discordServer.upsert(allServersFound[i]);
-    }
+      const foundPartialChannels = await foundServer.channels.fetch();
+      const foundChannels = await Promise.all(foundPartialChannels.map((part) => part.fetch()));
+      const channels = await Promise.all(_.map(foundChannels, async (foundChannel) => {
+        const channel = {
+          discord_server: foundServer.id,
+          channel_id: foundChannel.id,
+          channel_name: foundChannel.name,
+          channel_type: foundChannel.type,
+          isTextChannel: foundChannel.type === 0,
+          isVoiceChannel: foundChannel.type === 2,
+          isCategory: foundChannel.type === 4,
+          position: foundChannel.rawPosition
+        };
+
+        await this.discordChannel.upsert(channel);
+        return channel;
+      }));
+
+      const channelNames = _.map(channels, 'channel_name');
+      logger.debug('Fetch Channels For This Server: ', channelNames);
+    }));
+
     return await this.discordServer.getSorted();
   },
 
