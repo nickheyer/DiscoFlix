@@ -7,20 +7,12 @@ class DiscordServerChannel {
     this.logger = core.logger;
   }
 
-  async create(data = {}) {
-    this.logger.debug('Creating DiscordServerChannel:', data);
-    return this.prisma.discordServerChannel.create({ data });
+  async create(...args) {
+    return this.prisma.discordServerChannel.create(...args);
   }
 
-  async upsert(data = {}) {
-    const channel_id = data.channel_id;
-    let foundChannel = await this.get({ channel_id });
-    if (!foundChannel) {
-      foundChannel = await this.create(data);
-    } else if (!_.isMatch(foundChannel, data)) {
-      foundChannel = await this.update({ channel_id }, data);
-    }
-    return foundChannel;
+  async upsert(...args) {
+    return this.prisma.discordServerChannel.upsert(...args);
   }
 
   async get(where = {}) {
@@ -41,8 +33,8 @@ class DiscordServerChannel {
     return this.prisma.discordServerChannel.delete({ where });
   }
 
-  async deleteMany(where = {}) {
-    return this.prisma.discordServerChannel.deleteMany({ where });
+  async deleteMany(...args) {
+    return this.prisma.discordServerChannel.deleteMany(...args);
   }
 }
 

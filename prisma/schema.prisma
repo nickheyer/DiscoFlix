@@ -69,15 +69,15 @@ model DiscordServer {
 }
 
 model DiscordServerChannel {
-  id             Int              @id @default(autoincrement())
+  channel_id     String           @id
+  channel_name   String
   position       Int
   discord_server String
-  channel_id     String
-  channel_name   String
   channel_type   Int              @default(0) // 0: Text, 2: Voice, 4: Category
   isTextChannel  Boolean          @default(false)
   isVoiceChannel Boolean          @default(false)
   isCategory     Boolean          @default(false)
+  parent_id      String           @default("")
   server         DiscordServer    @relation(fields: [discord_server], references: [server_id])
   messages       DiscordMessage[]
 
@@ -87,12 +87,12 @@ model DiscordServerChannel {
 model DiscordMessage {
   id         Int                  @id @default(autoincrement())
   server_id  String
-  channel_id Int
+  channel_id String
   user_id    Int
   content    String
   created_at DateTime             @default(now())
   server     DiscordServer        @relation(fields: [server_id], references: [server_id])
-  channel    DiscordServerChannel @relation(fields: [channel_id], references: [id])
+  channel    DiscordServerChannel @relation(fields: [channel_id], references: [channel_id])
   user       User                 @relation(fields: [user_id], references: [id])
 
   @@index([server_id])

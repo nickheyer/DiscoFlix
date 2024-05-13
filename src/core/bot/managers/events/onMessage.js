@@ -10,7 +10,7 @@ module.exports = {
     if (message.author.bot) {
       return false;
     }
-    await message.reply('Im listening!');
+    await message.reply(message.content);
     global.logger.info(`Message from ${message.author.username}: ${message.content}`);
 	},
 };

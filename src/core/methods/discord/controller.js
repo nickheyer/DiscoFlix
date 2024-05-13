@@ -18,10 +18,10 @@ module.exports = {
     if (!token) {
       const config = await this.configuration.get();
       token = config.discord_token;
-    }
-    if (!token) {
-      this.logger.warn('Discord bot token is required.');
-      return;
+      if (!token) {
+        this.logger.warn('Discord bot token is required.');
+        return;
+      }
     }
     if (!this.client.isReady()) {
       await this.client.login(token);

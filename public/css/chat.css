@@ -128,7 +128,8 @@
     }
 
     .chatMessageText {
-      margin-top: 8px;
+      white-space: pre;
+      margin: 8px 0 0 0;
       color: #ddd;
       font-size: 18px;
       word-break: break-word;

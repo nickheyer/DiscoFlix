@@ -1,8 +1,6 @@
-include chatChannelsHeader
-
-.chatChannelContainer
-  include chatChannel
-  include chatChannel
-  include chatChannel
-  include chatChannel
-  include chatChannel
+.chatChannelContainer#chatChannels(
+  hx-select-oob="#chatChannels"
+  hx-swap-oob="outerHTML"
+)
+  for channelRow in servers.activeServerChannels
+    | !{channelRow}

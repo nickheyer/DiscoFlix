@@ -7,22 +7,12 @@ class DiscordServer {
     this.logger = core.logger;
   }
 
-  async create(data = {}) {
-    this.logger.debug('Creating DiscordServer:', data);
-    return this.prisma.discordServer.create({ data });
+  async create(...args) {
+    return this.prisma.discordServer.create(...args);
   }
 
-  async upsert(data = {}) {
-    const server_id = data.server_id;
-    let foundServer = await this.get({ server_id });
-    if (!foundServer) {
-      const servers = await this.getMany();
-      data.sort_position = servers.length;
-      foundServer = await this.create(data);
-    } else if (!_.isMatch(foundServer, data)) {
-      foundServer = await this.update({ server_id }, data);
-    }
-    return foundServer;
+  async upsert(...args) {
+    return this.prisma.discordServer.upsert(...args);
   }
 
   async get(where = {}, include = {}) {

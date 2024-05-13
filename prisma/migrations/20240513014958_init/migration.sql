@@ -55,15 +55,15 @@ CREATE TABLE "DiscordServer" (
 
 -- CreateTable
 CREATE TABLE "DiscordServerChannel" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "channel_id" TEXT NOT NULL PRIMARY KEY,
+    "channel_name" TEXT NOT NULL,
     "position" INTEGER NOT NULL,
     "discord_server" TEXT NOT NULL,
-    "channel_id" TEXT NOT NULL,
-    "channel_name" TEXT NOT NULL,
     "channel_type" INTEGER NOT NULL DEFAULT 0,
     "isTextChannel" BOOLEAN NOT NULL DEFAULT false,
     "isVoiceChannel" BOOLEAN NOT NULL DEFAULT false,
     "isCategory" BOOLEAN NOT NULL DEFAULT false,
+    "parent_id" TEXT NOT NULL DEFAULT '',
     CONSTRAINT "DiscordServerChannel_discord_server_fkey" FOREIGN KEY ("discord_server") REFERENCES "DiscordServer" ("server_id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
@@ -71,12 +71,12 @@ CREATE TABLE "DiscordServerChannel" (
 CREATE TABLE "DiscordMessage" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "server_id" TEXT NOT NULL,
-    "channel_id" INTEGER NOT NULL,
+    "channel_id" TEXT NOT NULL,
     "user_id" INTEGER NOT NULL,
     "content" TEXT NOT NULL,
     "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "DiscordMessage_server_id_fkey" FOREIGN KEY ("server_id") REFERENCES "DiscordServer" ("server_id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "DiscordMessage_channel_id_fkey" FOREIGN KEY ("channel_id") REFERENCES "DiscordServerChannel" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "DiscordMessage_channel_id_fkey" FOREIGN KEY ("channel_id") REFERENCES "DiscordServerChannel" ("channel_id") ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT "DiscordMessage_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 

@@ -15,7 +15,8 @@ async function changeActiveServers(ctx) {
   const discordBot = await ctx.core.discordBot.get();
   await ctx.compileView([
     'sidebar/servers/serverSortableContainer.pug',
-    'sidebar/servers/serverBannerLabel.pug'
+    'sidebar/servers/serverBannerLabel.pug',
+    'sidebar/channels/chatChannels.pug'
   ], { servers, discordBot });
 }
 
@@ -26,6 +27,7 @@ async function changeServerSortOrder(ctx) {
     'sidebar/servers/serverSortableContainer.pug'
   ], { servers });
 }
+
 
 module.exports = {
   toggleSidebarState,
