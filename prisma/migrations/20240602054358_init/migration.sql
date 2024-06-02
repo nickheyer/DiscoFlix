@@ -50,7 +50,8 @@ CREATE TABLE "DiscordServer" (
     "unread_ui_state" BOOLEAN NOT NULL DEFAULT false,
     "server_name" TEXT,
     "server_avatar_url" TEXT,
-    "sort_position" INTEGER NOT NULL
+    "sort_position" INTEGER NOT NULL,
+    "active_channel_id" TEXT
 );
 
 -- CreateTable

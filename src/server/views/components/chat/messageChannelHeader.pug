@@ -1,0 +1,15 @@
+if servers.activeChannel
+  - var channelName = servers.activeChannel.channel_name 
+  .messageChannelHeader#chatChannelHeader(
+      hx-select-oob="#chatChannelHeader"
+      hx-swap-oob="outerHTML"
+  )
+    .messageChannelHeaderContent
+      include messageChannelHeaderHashIcon
+      .messageChannelHeaderText 
+        | #{channelName}
+else
+  .messageChannelHeaderPlaceholder#chatChannelHeader(
+      hx-select-oob="#chatChannelHeader"
+      hx-swap-oob="outerHTML"
+  )

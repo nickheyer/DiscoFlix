@@ -16,7 +16,8 @@ async function changeActiveServers(ctx) {
   await ctx.compileView([
     'sidebar/servers/serverSortableContainer.pug',
     'sidebar/servers/serverBannerLabel.pug',
-    'sidebar/channels/chatChannels.pug'
+    'sidebar/channels/chatChannels.pug',
+    'chat/messageChannelHeader.pug'
   ], { servers, discordBot });
 }
 
@@ -28,9 +29,19 @@ async function changeServerSortOrder(ctx) {
   ], { servers });
 }
 
+async function changeActiveChannel(ctx) {
+  const state = await ctx.core.state.get();
+  const active_channel_id = `${ctx.params.id}`;
+  await ctx.core.discordServer.update(
+    { server_id: state.active_server_id },
+    { active_channel_id }
+  );
+  await ctx.core.refreshUI(state.active_server_id);
+}
 
 module.exports = {
   toggleSidebarState,
   changeActiveServers,
-  changeServerSortOrder
+  changeServerSortOrder,
+  changeActiveChannel
 };

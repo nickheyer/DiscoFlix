@@ -1,6 +1,7 @@
+- var channelList = servers.channels || []
 .chatChannelContainer#chatChannels(
   hx-select-oob="#chatChannels"
   hx-swap-oob="outerHTML"
 )
-  for channelRow in servers.activeServerChannels
+  for channelRow in channelList
     | !{channelRow}

@@ -42,9 +42,6 @@ module.exports = {
     }
 
     const now = new Date(Date.now());
-
-    textContent = `${textContent}`;
-
     await this.emitCompiled([
       'chat/discordMessage.pug'
     ], {
@@ -52,20 +49,18 @@ module.exports = {
       isBot: false,
       timeStamp: now.toLocaleString(),
       avatarUrl: avatar,
-      messageText: textContent,
+      messageText: `${textContent}`,
       accentColor: '#43b581'
     });
   },
 
   // EMITS A TEMPLATE OF AN UPDATED GUILD/SERVER/CHANNELS/ETC
   async refreshUI(serverID) {
-    const { server, channels } = await this.getOneServerTemplate(serverID);
+    const servers = await this.getOneServerTemplate(serverID);
     await this.emitCompiled([
       'sidebar/servers/serverBannerLabel.pug',
-      'sidebar/channels/chatChannels.pug'
-    ], { servers: {
-      activeServer: server,
-      activeServerChannels: channels
-    }});
+      'sidebar/channels/chatChannels.pug',
+      'chat/messageChannelHeader.pug'
+    ], { servers });
   }
 };

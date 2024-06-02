@@ -61,6 +61,7 @@ model DiscordServer {
   server_name       String?
   server_avatar_url String?
   sort_position     Int
+  active_channel_id String?
   users             User[]                 @relation("UserDiscordServers")
   requests          MediaRequest[]         @relation("DiscordServerRequests")
   channels          DiscordServerChannel[]

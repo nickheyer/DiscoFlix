@@ -1,4 +1,7 @@
-.channelViewOption
+.channelViewOption(
+  class=(isActiveChannel ? 'active' : 'inactive'),
+  hx-get=!isActiveChannel && `/change-active-channel/${channel_id}`
+)
   .channelViewOptionInfo
     include chatChannelHashIcon
     include chatChannelName

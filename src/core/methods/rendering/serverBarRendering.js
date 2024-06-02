@@ -1,4 +1,5 @@
 const _ = require('lodash');
+const { changeActiveServers } = require('../../../server/api/sidebar');
 
 module.exports = {
   async createServerBubbles(serverRows = [], state = null, activeServer = null) {
@@ -25,7 +26,7 @@ module.exports = {
     return serverBubbles;
   },
 
-  async createActiveChannels(channels) {
+  async createActiveChannels(channels, currentChannelID = null) {
     const sortedChannels = _.sortBy(channels, ['parent_id', 'position']);
   
     // ORG BY CATEGORY
@@ -56,6 +57,10 @@ module.exports = {
   
       // COMPILE CHANNELS UNDER HEADER
       for (const channel of channels) {
+        if (!currentChannelID) {
+          currentChannelID = channel.channel_id;
+        }
+        channel.isActiveChannel = channel.channel_id === currentChannelID;
         const channelHTML = await this.compile([
           'sidebar/channels/chatChannel.pug'
         ], channel);
@@ -66,25 +71,31 @@ module.exports = {
   },
 
   async getOneServerTemplate(serverID) {
-    let server;
+    let activeServer;
     let channels = [];
     if (!serverID) {
-      server = await this.state.getActive();
-      if (server) {
-        server = await this.discordServer.get(
-          { server_id: server.server_id },
+      activeServer = await this.state.getActive();
+      if (activeServer) {
+        activeServer = await this.discordServer.get(
+          { server_id: activeServer.server_id },
           { channels: true }
         );
       }
     } else {
-      server = await this.discordServer.get({ server_id: serverID });
+      activeServer = await this.discordServer.get(
+        { server_id: serverID },
+        { channels: true }
+      );
     }
 
-    channels = await this.createActiveChannels(server.channels);
+    const currentChannelView = _.get(activeServer, 'active_channel_id', null);
+    const activeChannel = _.find(activeServer.channels, ['channel_id', currentChannelView])
+    channels = await this.createActiveChannels(activeServer.channels, currentChannelView);
 
     return {
-      server,
-      channels
+      activeServer,
+      channels,
+      activeChannel
     };
   },
 
@@ -93,14 +104,17 @@ module.exports = {
       serverRows = await this.discordServer.getSorted();
     }
 
-    let activeServerChannels = [];
+    let channels = [];
     let activeServer = await this.state.getActive();
+    let activeChannel = null;
     if (activeServer) {
       activeServer = await this.discordServer.get(
         { server_id: activeServer.server_id },
         { channels: true }
       );
-      activeServerChannels = await this.createActiveChannels(activeServer.channels);
+      const currentChannelView = _.get(activeServer, 'active_channel_id', null);
+      activeChannel = _.find(activeServer.channels, ['channel_id', currentChannelView]);
+      channels = await this.createActiveChannels(activeServer.channels, currentChannelView);
     }
 
     const serverBubbles = await this.createServerBubbles(
@@ -109,13 +123,13 @@ module.exports = {
       activeServer
     );
 
-    console.log(activeServerChannels.length);
-
     return {
       serverBubbles,
       serverRows,
       activeServer,
-      activeServerChannels
+      channels,
+      activeChannel
     };
   }
+
 };

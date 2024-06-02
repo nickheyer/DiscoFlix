@@ -49,6 +49,7 @@ module.exports = {
     const foundPartialChannels = await server.channels.fetch();
     const foundChannels = await Promise.all(foundPartialChannels.map(part => part.fetch()));
     const visibleChannelIDs = [];
+    const createdChannels = [];
     for (const foundChannel of foundChannels) {
       const channelData = {
         discord_server: server.id,
@@ -67,7 +68,7 @@ module.exports = {
         update: channelData,
         create: channelData
       });
-
+      createdChannels.push(channelData);
       visibleChannelIDs.push(foundChannel.id);
     }
 
@@ -79,6 +80,18 @@ module.exports = {
         discord_server: server.id
       }
     });
+
+    const discordServer = await this.discordServer.get({ server_id: server.id });
+    if (!discordServer.active_channel_id) {
+      const firstTextChannel = _.find(
+        createdChannels,
+        (ch) => ch.isTextChannel && ch.parent_id && ch.position === 0
+      );
+      await this.discordServer.update(
+        { server_id: discordServer.server_id },
+        { active_channel_id: firstTextChannel ? firstTextChannel.channel_id : null
+        })
+    }
   },
 
   async refreshBotInfo(powerOn) {
@@ -105,7 +118,8 @@ module.exports = {
     const servers = await this.getServerTemplateObj(serverRows);
     await this.emitCompiled([
       'sidebar/servers/serverSortableContainer.pug',
-      'sidebar/channels/chatChannels.pug'
+      'sidebar/channels/chatChannels.pug',
+      'chat/messageChannelHeader.pug'
     ], {
       servers
     });
