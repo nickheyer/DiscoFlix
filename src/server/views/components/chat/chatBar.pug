@@ -1,4 +1,7 @@
-.chatBarContainer
+.chatBarContainer#chatBar(
+  hx-select-oob="#chatBar"
+  hx-swap-oob="outerHTML"
+)
   .floatingChatBar
     include plusButton
     include chatInput

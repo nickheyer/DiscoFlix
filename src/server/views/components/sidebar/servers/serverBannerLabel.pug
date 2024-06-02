@@ -1,6 +1,7 @@
 h4.guildSelectorName#guildNameBanner
   if (servers.activeServer && servers.activeServer.server_name)
-    if (servers.activeServer.server_name.length > 21)
-      | !{servers.activeServer.server_name.substr(0, 21) + '...'}
+    - var serverName=servers.activeServer.server_name
+    if (serverName.length > 21)
+      | !{serverName.substr(0, 21) + '...'}
     else
-      | !{servers.activeServer.server_name}
+      | !{serverName}

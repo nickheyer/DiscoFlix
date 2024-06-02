@@ -1,6 +1,6 @@
-if (servers.activeServer && servers.activeServer.server_name)
+if (servers.activeChannel && servers.activeChannel.channel_name)
   input.chatMessageInput(
-    placeholder="Message #" + servers.activeServer.server_name
+    placeholder="Message #" + servers.activeChannel.channel_name
   )
 else
   input.chatMessageInput(

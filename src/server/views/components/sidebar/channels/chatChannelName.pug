@@ -1,2 +1,9 @@
 span
-  | #{channel_name || "test-channel"}
+  if (channel_name)
+    if (channel_name.length > 17)
+      | !{channel_name.substr(0, 17) + '...'}
+    else
+      | !{channel_name}
+  else
+    | NULL-CHANNEL-NAME
+  

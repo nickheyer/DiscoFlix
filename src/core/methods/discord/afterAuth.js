@@ -41,6 +41,12 @@ module.exports = {
       update: guildInfo,
       create: guildInfo
     });
+
+    const activeServer = await this.state.getActive();
+    if (!activeServer) {
+      logger.info(`No active server detected, setting active to:  ${server.id}`);
+      await this.state.changeActive(server.id);
+    }
   
     logger.debug('Fetched Discord Server:', guildInfo);
   },
@@ -118,8 +124,10 @@ module.exports = {
     const servers = await this.getServerTemplateObj(serverRows);
     await this.emitCompiled([
       'sidebar/servers/serverSortableContainer.pug',
+      'sidebar/servers/serverBannerLabel.pug',
       'sidebar/channels/chatChannels.pug',
-      'chat/messageChannelHeader.pug'
+      'chat/messageChannelHeader.pug',
+      'chat/chatBar.pug'
     ], {
       servers
     });

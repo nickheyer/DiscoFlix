@@ -17,7 +17,8 @@ async function changeActiveServers(ctx) {
     'sidebar/servers/serverSortableContainer.pug',
     'sidebar/servers/serverBannerLabel.pug',
     'sidebar/channels/chatChannels.pug',
-    'chat/messageChannelHeader.pug'
+    'chat/messageChannelHeader.pug',
+    'chat/chatBar.pug'
   ], { servers, discordBot });
 }
 

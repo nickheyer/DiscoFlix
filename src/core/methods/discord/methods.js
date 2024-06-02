@@ -60,7 +60,8 @@ module.exports = {
     await this.emitCompiled([
       'sidebar/servers/serverBannerLabel.pug',
       'sidebar/channels/chatChannels.pug',
-      'chat/messageChannelHeader.pug'
+      'chat/messageChannelHeader.pug',
+      'chat/chatBar.pug'
     ], { servers });
   }
 };
