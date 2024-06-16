@@ -13,6 +13,10 @@ class User {
     return user;
   }
 
+  async getOrCreate(data) {
+    return this.prisma.user.upsert(data);
+  }
+
   async getAll() {
     const users = await this.prisma.user.findMany();
     return users;

@@ -1,7 +1,7 @@
 .messageWrapper(hx-swap-oob="beforeend:#chatLog")
   .chatMessageRow(
-    class=isBot ? "botMsg" : "userMsg"
-    style=accentColor ? `background-color: ${accentColor}08;` : ""
+    class=isClient ? "botMsg" : "userMsg"
+    style=accentColor ? `background-color: #${accentColor}07;` : ""
   )
     .chatContentContainer
       include message/messageAvatar

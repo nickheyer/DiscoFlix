@@ -1,3 +1,12 @@
-.messageContainer
+.messageContainer#messageContainer(
+  hx-select-oob="#messageContainer"
+  hx-swap-oob="outerHTML"
+)
   .messageContainerInner#chatLog
     // DISCORD MESSAGES WILL GO HERE
+    if (messages && messages.length > 0)
+      for messageShard in messages
+        | !{messageShard}
+      .endOfMessagesDiv.divider
+        p.endOfMessagesTime
+          | !{eomStamp || "Previously..."}

@@ -11,6 +11,14 @@ class DiscordServerChannel {
     return this.prisma.discordServerChannel.create(...args);
   }
 
+  async getOrCreate(data) {
+    const ch = this.get(data);
+    if (!ch) {
+      return await this.create({ data });
+    }
+    return ch;
+  }
+
   async upsert(...args) {
     return this.prisma.discordServerChannel.upsert(...args);
   }
@@ -21,6 +29,15 @@ class DiscordServerChannel {
 
   async getMany(where = {}) {
     return this.prisma.discordServerChannel.findMany({ where });
+  }
+
+  async getMessages(channelId) {
+    return this.prisma.discordMessage.findMany({
+      where: { channel_id: channelId },
+      include: {
+        user: true,  // INCLUDE USER DETAILS
+      }
+    });
   }
 
   async update(where = {}, data = {}) {

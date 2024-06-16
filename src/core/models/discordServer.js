@@ -11,6 +11,14 @@ class DiscordServer {
     return this.prisma.discordServer.create(...args);
   }
 
+  async getOrCreate(data) {
+    const srv = this.get(data);
+    if (!srv) {
+      return await this.create({ data });
+    }
+    return srv;
+  }
+
   async upsert(...args) {
     return this.prisma.discordServer.upsert(...args);
   }

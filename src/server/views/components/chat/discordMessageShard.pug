@@ -1,0 +1,17 @@
+- var avatarUrl = user.avatar_url
+- var accentColor = `#${user.accent_color}`
+- var isBot = user.is_bot
+- var isClient = user.is_client
+- var username = user.username
+- var timeStamp = created_at 
+- var messageText = content
+.chatMessageRow(
+  class=isClient ? "botMsg" : "userMsg"
+)
+
+  .chatContentContainer
+    include message/messageAvatar
+    .chatMessageContent()
+      include message/messageAuthor
+      include message/messageText
+      //include message/messageTyping

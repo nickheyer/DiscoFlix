@@ -1,11 +1,54 @@
 /* I'll put "chat" stylings here when I get to that point */
 
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 20px 0;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #72767d;
+}
+
+.divider:not(:empty)::before {
+  margin: 0 0.4em
+}
+
+.divider:not(:empty)::after {
+  margin: 0 0.4em
+}
+
+.dividerText {
+  color: #72767d;
+  font-size: 14px;
+}
+
 .chatContainer {
   order: 3;
   flex-grow: 1;
   height: 100%;
   display: grid;
   grid-template-rows: 70px calc(100vh - 140px) 70px;
+}
+
+#chatLog {
+  div:last-child:has(.endOfMessagesTime) {
+    display: none;
+  }
+
+  .endOfMessagesDiv {
+    text-align: center;
+    margin: 20px 0;
+  }
+
+  .endOfMessagesTime {
+    color: #72767d;
+    font-size: 14px;
+  }
 }
 
 .messageChannelHeader {
@@ -43,6 +86,7 @@
   scrollbar-width: thin;
   scroll-behavior: smooth;
   scrollbar-color: var(--dark-member-list) transparent;
+  padding-bottom: 15px;
 }
 
 .messageContainerInner {
@@ -154,7 +198,7 @@
     }
 
     .chatMessageText {
-      white-space: pre;
+      white-space: break-spaces;
       margin: 8px 0 0 0;
       color: #ddd;
       font-size: 18px;

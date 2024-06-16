@@ -1,5 +1,4 @@
 const _ = require('lodash');
-const { changeActiveServers } = require('../../../server/api/sidebar');
 
 module.exports = {
   async createServerBubbles(serverRows = [], state = null, activeServer = null) {
@@ -17,7 +16,7 @@ module.exports = {
         serverName: serverRow.server_name,
         serverTrunc: serverRow.server_name.slice(0, 2),
         serverActive: serverRow.server_id === activeID,
-        serverUnread: serverRow.unread_ui_state,
+        serverUnread: serverRow.unread_message_count,
         serverImage: serverRow.server_avatar_url,
       });
       
@@ -89,14 +88,25 @@ module.exports = {
     }
 
     const currentChannelView = _.get(activeServer, 'active_channel_id', null);
-    const activeChannel = _.find(activeServer.channels, ['channel_id', currentChannelView])
-    channels = await this.createActiveChannels(activeServer.channels, currentChannelView);
+    
+    if (activeServer && activeServer.channels) {
+      const activeChannel = _.find(activeServer.channels, ['channel_id', currentChannelView])
+      channels = await this.createActiveChannels(activeServer.channels, currentChannelView);
+  
+      return {
+        activeServer,
+        channels,
+        activeChannel
+      };
+    } else {
 
-    return {
-      activeServer,
-      channels,
-      activeChannel
-    };
+      return {
+        activeServer: {},
+        channels: [],
+        activeChannel: {}
+      }
+    }
+
   },
 
   async getServerTemplateObj(serverRows = [], state = null) {

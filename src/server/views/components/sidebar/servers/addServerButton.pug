@@ -1,5 +1,6 @@
-div.server.invite(
+div.server.invite#serverInviteButton(
   data-invite=discordBot.bot_invite_link
   hx-swap-oob="outerHTML"
+  hx-select-oob="#serverInviteButton"
 )
   p.inviteButton +

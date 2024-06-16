@@ -1,3 +1,4 @@
+const _ = require("lodash");
 
 async function toggleSidebarState(ctx) {
   const state = await ctx.core.state.get();
@@ -13,13 +14,17 @@ async function changeActiveServers(ctx) {
   const state = await ctx.core.state.update({ active_server_id });
   const servers = await ctx.core.getServerTemplateObj(null, state);
   const discordBot = await ctx.core.discordBot.get();
+  const msgObjects = await ctx.core.updateMessages(null, state);
+  const messages = await ctx.core.compileMessages(msgObjects);
+  const eomStamp = _.get(_.last(msgObjects), 'created_at');
   await ctx.compileView([
     'sidebar/servers/serverSortableContainer.pug',
     'sidebar/servers/serverBannerLabel.pug',
     'sidebar/channels/chatChannels.pug',
     'chat/messageChannelHeader.pug',
-    'chat/chatBar.pug'
-  ], { servers, discordBot });
+    'chat/chatBar.pug',
+    'chat/messageContainer.pug'
+  ], { servers, discordBot, messages, eomStamp });
 }
 
 async function changeServerSortOrder(ctx) {
@@ -33,11 +38,8 @@ async function changeServerSortOrder(ctx) {
 async function changeActiveChannel(ctx) {
   const state = await ctx.core.state.get();
   const active_channel_id = `${ctx.params.id}`;
-  await ctx.core.discordServer.update(
-    { server_id: state.active_server_id },
-    { active_channel_id }
-  );
-  await ctx.core.refreshUI(state.active_server_id);
+  const messages = await ctx.core.updateMessages(active_channel_id, state);
+  await ctx.core.refreshUI(state.active_server_id, messages);
 }
 
 module.exports = {

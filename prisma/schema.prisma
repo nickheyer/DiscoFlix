@@ -41,7 +41,7 @@ model State {
 }
 
 model EventLog {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(uuid())
   timestamp DateTime @default(now())
   level     String
   message   String
@@ -56,11 +56,11 @@ model DiscordBot {
 }
 
 model DiscordServer {
-  server_id         String                 @id
-  unread_ui_state   Boolean                @default(false)
-  server_name       String?
+  server_id         String                 @id @default(uuid())
+  unread_message_count Int?             @default(0)
+  server_name       String?                @default("TBD")
   server_avatar_url String?
-  sort_position     Int
+  sort_position     Int?                   @default(-1)
   active_channel_id String?
   users             User[]                 @relation("UserDiscordServers")
   requests          MediaRequest[]         @relation("DiscordServerRequests")
@@ -70,31 +70,34 @@ model DiscordServer {
 }
 
 model DiscordServerChannel {
-  channel_id     String           @id
-  channel_name   String
-  position       Int
-  discord_server String
-  channel_type   Int              @default(0) // 0: Text, 2: Voice, 4: Category
-  isTextChannel  Boolean          @default(false)
-  isVoiceChannel Boolean          @default(false)
-  isCategory     Boolean          @default(false)
-  parent_id      String           @default("")
-  server         DiscordServer    @relation(fields: [discord_server], references: [server_id])
-  messages       DiscordMessage[]
+  channel_id           String           @id @default(uuid())
+  channel_name         String?          @default("TBD")
+  position             Int?             @default(-1)
+  discord_server       String
+  channel_type         Int              @default(0) // 0: Text, 2: Voice, 4: Category
+  isTextChannel        Boolean          @default(false)
+  isVoiceChannel       Boolean          @default(false)
+  isCategory           Boolean          @default(false)
+  parent_id            String           @default("")
+  unread_message_count Int?             @default(0)
+  server               DiscordServer    @relation(fields: [discord_server], references: [server_id])
+  messages             DiscordMessage[]
 
   @@index([discord_server])
 }
 
 model DiscordMessage {
-  id         Int                  @id @default(autoincrement())
-  server_id  String
-  channel_id String
-  user_id    Int
+  message_id String @id @default(uuid())
+  server_id  String @default(uuid())
+  channel_id String @default(uuid())
+
+  user_id    String
   content    String
-  created_at DateTime             @default(now())
-  server     DiscordServer        @relation(fields: [server_id], references: [server_id])
-  channel    DiscordServerChannel @relation(fields: [channel_id], references: [channel_id])
-  user       User                 @relation(fields: [user_id], references: [id])
+  created_at DateTime @default(now())
+
+  server  DiscordServer        @relation(fields: [server_id], references: [server_id])
+  channel DiscordServerChannel @relation(fields: [channel_id], references: [channel_id])
+  user    User                 @relation(fields: [user_id], references: [id])
 
   @@index([server_id])
   @@index([channel_id])
@@ -139,17 +142,19 @@ model MediaRequest {
 }
 
 model User {
-  id                        Int              @id @default(autoincrement())
+  id                        String           @id @default(uuid())
   added                     DateTime         @default(now())
-  is_admin                  Boolean          @default(false)
-  is_server_restricted      Boolean          @default(false)
-  username                  String           @unique
+  username                  String           @default("DiscordUser")
+  display_name              String           @default("ADiscordUser")
+  accent_color              String           @default("ffd000")
+  avatar_url                String           @default("https://cdn.discordapp.com/embed/avatars/3.png")
   discord_servers           DiscordServer[]  @relation("UserDiscordServers")
   requests                  MediaRequest[]   @relation("UserMediaRequests")
-  is_additional_settings    Boolean          @default(false)
   is_superuser              Boolean          @default(false)
   is_staff                  Boolean          @default(false)
   is_active                 Boolean          @default(true)
+  is_bot                    Boolean          @default(false)
+  is_client                 Boolean          @default(false)
   session_timeout           Int              @default(60)
   max_check_time            Int              @default(600)
   max_results               Int              @default(0)
