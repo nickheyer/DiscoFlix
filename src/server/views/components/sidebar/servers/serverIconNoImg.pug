@@ -1,1 +1,12 @@
-p.serverIcon(class=serverUnread && 'unread') !{serverTrunc}
+- var unreadCls = serverUnread ? 'unread' : ''
+- var iconCls = serverAvailable ? unreadCls : `${unreadCls} unavailable`
+
+if (!serverAvailable)
+  .statusBubble.offline
+else if (serverUnread)
+  .statusBubble.unread
+    | !{serverUnread > 9 ? '!' : serverUnread}
+else
+  .statusBubble.online
+
+p.serverIcon(class=iconCls) !{serverTrunc}

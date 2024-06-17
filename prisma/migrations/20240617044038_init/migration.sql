@@ -51,7 +51,8 @@ CREATE TABLE "DiscordServer" (
     "server_name" TEXT DEFAULT 'TBD',
     "server_avatar_url" TEXT,
     "sort_position" INTEGER DEFAULT -1,
-    "active_channel_id" TEXT
+    "active_channel_id" TEXT,
+    "available" BOOLEAN DEFAULT true
 );
 
 -- CreateTable
@@ -66,7 +67,7 @@ CREATE TABLE "DiscordServerChannel" (
     "isCategory" BOOLEAN NOT NULL DEFAULT false,
     "parent_id" TEXT NOT NULL DEFAULT '',
     "unread_message_count" INTEGER DEFAULT 0,
-    CONSTRAINT "DiscordServerChannel_discord_server_fkey" FOREIGN KEY ("discord_server") REFERENCES "DiscordServer" ("server_id") ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT "DiscordServerChannel_discord_server_fkey" FOREIGN KEY ("discord_server") REFERENCES "DiscordServer" ("server_id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- CreateTable
@@ -77,9 +78,9 @@ CREATE TABLE "DiscordMessage" (
     "user_id" TEXT NOT NULL,
     "content" TEXT NOT NULL,
     "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT "DiscordMessage_server_id_fkey" FOREIGN KEY ("server_id") REFERENCES "DiscordServer" ("server_id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "DiscordMessage_channel_id_fkey" FOREIGN KEY ("channel_id") REFERENCES "DiscordServerChannel" ("channel_id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "DiscordMessage_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT "DiscordMessage_server_id_fkey" FOREIGN KEY ("server_id") REFERENCES "DiscordServer" ("server_id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "DiscordMessage_channel_id_fkey" FOREIGN KEY ("channel_id") REFERENCES "DiscordServerChannel" ("channel_id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "DiscordMessage_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- CreateTable
@@ -125,7 +126,7 @@ CREATE TABLE "User" (
     "added" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "username" TEXT NOT NULL DEFAULT 'DiscordUser',
     "display_name" TEXT NOT NULL DEFAULT 'ADiscordUser',
-    "accent_color" TEXT NOT NULL DEFAULT 'ffd000',
+    "accent_color" TEXT NOT NULL DEFAULT 'ffffff',
     "avatar_url" TEXT NOT NULL DEFAULT 'https://cdn.discordapp.com/embed/avatars/3.png',
     "is_superuser" BOOLEAN NOT NULL DEFAULT false,
     "is_staff" BOOLEAN NOT NULL DEFAULT false,

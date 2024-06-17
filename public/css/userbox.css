@@ -128,7 +128,6 @@
 	font-size: 13px;
 	font-weight: bold;
 	color: var(--white);
-	content: "2";
 	display: inline;
   visibility: hidden;
 }
@@ -143,4 +142,29 @@
   transition: 0.7ms;
   background-color: var(--green);
   visibility: visible !important;
+}
+
+.statusBubble.unread {
+  transition: 0.7ms;
+  background-color: var(--blurple);
+  visibility: visible !important;
+  text-align: center;
+  font-size: 11px;
+  font-weight: bold;
+  color: var(--dark-bg);
+}
+
+.statusBubble.unread-channel {
+  transition: 0.7ms;
+  background-color: var(--blurple);
+  visibility: visible !important;
+  text-align: center;
+  font-size: 12px;
+  font-weight: bold;
+  color: var(--dark-bg);
+  width: 14px;
+	height: 14px;
+	position: relative;
+  bottom: unset;
+	right: unset;
 }

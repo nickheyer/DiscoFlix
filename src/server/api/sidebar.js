@@ -12,10 +12,10 @@ async function toggleSidebarState(ctx) {
 async function changeActiveServers(ctx) {
   const active_server_id = `${ctx.params.id}`;
   const state = await ctx.core.state.update({ active_server_id });
-  const servers = await ctx.core.getServerTemplateObj(null, state);
-  const discordBot = await ctx.core.discordBot.get();
   const msgObjects = await ctx.core.updateMessages(null, state);
   const messages = await ctx.core.compileMessages(msgObjects);
+  const servers = await ctx.core.getServerTemplateObj(null, state);
+  const discordBot = await ctx.core.discordBot.get();
   const eomStamp = _.get(_.last(msgObjects), 'created_at');
   await ctx.compileView([
     'sidebar/servers/serverSortableContainer.pug',
@@ -39,7 +39,7 @@ async function changeActiveChannel(ctx) {
   const state = await ctx.core.state.get();
   const active_channel_id = `${ctx.params.id}`;
   const messages = await ctx.core.updateMessages(active_channel_id, state);
-  await ctx.core.refreshUI(state.active_server_id, messages);
+  await ctx.core.refreshUI(messages);
 }
 
 module.exports = {

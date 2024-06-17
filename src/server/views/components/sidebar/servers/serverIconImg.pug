@@ -1,1 +1,12 @@
-img.serverIcon(src=serverImage, class=serverUnread && 'unread')
+- var unreadCls = serverUnread ? 'unread' : ''
+- var iconCls = serverAvailable ? unreadCls : `${unreadCls} unavailable`
+
+if (!serverAvailable)
+  .statusBubble.offline
+else if (serverUnread)
+  .statusBubble.unread
+    | !{serverUnread > 9 ? '!' : serverUnread}
+else
+  .statusBubble.online
+
+img.serverIcon(src=serverImage, class=iconCls)

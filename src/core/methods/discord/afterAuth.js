@@ -4,12 +4,15 @@ module.exports = {
 
   // PARSES CHANNELS/GUILD ATTRIBUTES OF ALL CONNECTED GUILDS (SERVERS)
   async refreshAllDiscordServers() {
+    const foundIDs = [];
     const foundPartialServers = await this.client.guilds.fetch();
     const foundServers = await Promise.all(foundPartialServers.map(part => part.fetch()));
     for (const foundServer of foundServers) {
       await this.upsertDiscordServer(foundServer);
       await this.fetchAndUpsertChannels(foundServer);
+      foundIDs.push(foundServer.id);
     }
+    await this.syncMissingServers(foundIDs);
     return await this.discordServer.getSorted();
   },
 
@@ -18,14 +21,35 @@ module.exports = {
     if (!fetchedServer) {
       const fetchedServers = await this.client.guilds.fetch();
       const foundServers = await Promise.all(fetchedServers.map(part => part.fetch()));
+      const foundIDs = [];
       for (const foundServer of foundServers) {
         await this.upsertDiscordServer(foundServer);
         await this.fetchAndUpsertChannels(foundServer);
+        foundIDs.push(foundServer.id);
       }
+      await this.syncMissingServers(foundIDs);
+      return foundIDs;
     } else {
       await this.upsertDiscordServer(fetchedServer);
       await this.fetchAndUpsertChannels(fetchedServer);
     }
+  },
+
+  async syncMissingServers(availableServerIDs) {
+    const unavailable = [];
+    const existingServers = await this.discordServer.getMany();
+    for (let i = 0; i < existingServers.length; i++) {
+      const existing = existingServers[i];
+      if (existing.available && !availableServerIDs.includes(existing.server_id)) {
+        await this.discordServer.update(
+          { server_id: existing.server_id },
+          { available: false }
+        );
+        unavailable.push(existing.server_id);
+        logger.warn(`Server currently not available or visible, marking unavailable: `, existing);
+      }
+    }
+    return unavailable;
   },
 
   async upsertDiscordServer(server) {
@@ -33,7 +57,8 @@ module.exports = {
       server_id: server.id,
       server_name: server.name,
       server_avatar_url: server.iconURL(),
-      sort_position: 0
+      sort_position: 0,
+      available: true
     };
 
     await this.discordServer.upsert({
@@ -88,15 +113,16 @@ module.exports = {
     });
 
     const discordServer = await this.discordServer.get({ server_id: server.id });
-    if (!discordServer.active_channel_id) {
+    const activeChannel = discordServer.active_channel_id;
+    if (!activeChannel || !visibleChannelIDs.includes(activeChannel)) {
       const firstTextChannel = _.find(
         createdChannels,
         (ch) => ch.isTextChannel && ch.parent_id && ch.position === 0
       );
       await this.discordServer.update(
         { server_id: discordServer.server_id },
-        { active_channel_id: firstTextChannel ? firstTextChannel.channel_id : null
-        })
+        { active_channel_id: firstTextChannel ? firstTextChannel.channel_id : null }
+      );
     }
   },
 

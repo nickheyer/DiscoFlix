@@ -3,7 +3,11 @@
   hx-get=!isActiveChannel && `/change-active-channel/${channel_id}`
 )
   .channelViewOptionInfo
-    include chatChannelHashIcon
+    if (unread_message_count)
+      .statusBubble.unread-channel
+        | !{unread_message_count > 9 ? '!' : unread_message_count}
+    else
+      include chatChannelHashIcon
     include chatChannelName
   .channelViewOptionConfig
     include chatChannelCreateInviteButton

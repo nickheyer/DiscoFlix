@@ -86,7 +86,7 @@ module.exports = {
   
     // FETCH USER DETAILS AND UPSERT
     const avatarUrl = author.displayAvatarURL();
-    const userAccent = _.trim(author.hexAccentColor || 'ffd000', '#');
+    const userAccent = _.trim(author.hexAccentColor || 'ffffff', '#');
     const isClient = author.bot &&
       (await this.discordBot.get()).bot_username === author.username;
   
@@ -145,6 +145,12 @@ module.exports = {
         messageText: rawDiscMsg.content,
         accentColor: userAccent
       });
+    } else {
+      const servers = await this.getServerTemplateObj();
+      await this.emitCompiled([
+        'sidebar/servers/serverSortableContainer.pug',
+        'sidebar/channels/chatChannels.pug'
+      ], { servers });
     }
   },
 
@@ -205,19 +211,23 @@ module.exports = {
 
     // GET ALL MESSAGES TO BE DISPLAYED
     const messages = await this.discordChannel.getMessages(active_channel_id);
-    logger.info(`MESSAGE COUNT: ${messages.length}`);
-    logger.debug(messages);
+    logger.info(`Rendering ${messages.length} messages to UI`);
 
     return messages;
   },
 
   // EMITS A TEMPLATE OF AN UPDATED GUILD/SERVER/CHANNELS/ETC
-  async refreshUI(serverID, messageObjects = []) {
-    const discordBot = await this.discordBot.get();
-    const servers = await this.getOneServerTemplate(serverID);
+  async refreshUI(messageObjects = []) {
+    console.log('REFRESHING UI!!!!');
+    if (_.isEmpty(messageObjects)) {
+      messageObjects = await this.updateMessages();
+    }
     const messages = await this.compileMessages(messageObjects);
     const eomStamp = _.get(_.last(messageObjects), 'created_at');
+    const discordBot = await this.discordBot.get();
+    const servers = await this.getServerTemplateObj();
     await this.emitCompiled([
+      'sidebar/servers/serverSortableContainer.pug',
       'sidebar/servers/serverBannerLabel.pug',
       'sidebar/channels/chatChannels.pug',
       'chat/messageChannelHeader.pug',

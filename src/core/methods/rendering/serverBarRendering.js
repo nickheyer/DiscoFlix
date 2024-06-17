@@ -18,6 +18,7 @@ module.exports = {
         serverActive: serverRow.server_id === activeID,
         serverUnread: serverRow.unread_message_count,
         serverImage: serverRow.server_avatar_url,
+        serverAvailable: serverRow.available
       });
       
       serverBubbles.push(serverBubbleHTML);

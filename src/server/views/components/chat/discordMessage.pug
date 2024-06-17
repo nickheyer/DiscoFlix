@@ -1,7 +1,9 @@
+- var rowColor = accentColor || 'ffffff'
+- var rowColorStyle = `background-color: #${rowColor}07; border-left: #${rowColor}30 5px solid`
 .messageWrapper(hx-swap-oob="beforeend:#chatLog")
   .chatMessageRow(
     class=isClient ? "botMsg" : "userMsg"
-    style=accentColor ? `background-color: #${accentColor}07;` : ""
+    style=rowColorStyle
   )
     .chatContentContainer
       include message/messageAvatar
