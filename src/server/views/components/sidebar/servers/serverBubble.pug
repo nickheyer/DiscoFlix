@@ -1,9 +1,8 @@
 div(
-  class=serverActive ? 'server active' : 'server'
+  class=`${serverActive ? 'server active' : 'server'}`
   hx-get=!serverActive && `/change-active-server/${id}`
   hx-select-oob=!serverActive && "#serverSelector,#guildNameBanner"
-  data-tippy-content=serverName
-  data-tippy-placement='right'
+  aria-label=serverName
 )
   input(type='hidden' name='item' value=id)
 

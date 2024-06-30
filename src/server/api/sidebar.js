@@ -40,6 +40,7 @@ async function changeActiveChannel(ctx) {
   const active_channel_id = `${ctx.params.id}`;
   const messages = await ctx.core.updateMessages(active_channel_id, state);
   await ctx.core.refreshUI(messages);
+  await ctx.deferToWS();
 }
 
 module.exports = {

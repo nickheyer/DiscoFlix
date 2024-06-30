@@ -1,12 +1,14 @@
 - var avatarUrl = user.avatar_url
-- var accentColor = `#${user.accent_color}`
+- var accentColor = `#${user.accent_color || 'ffffff'}`
 - var isBot = user.is_bot
 - var isClient = user.is_client
 - var username = user.username
 - var timeStamp = created_at 
 - var messageText = content
+- var rowColorStyle = `background-color: ${accentColor}03;`
 .chatMessageRow(
   class=isClient ? "botMsg" : "userMsg"
+  style=rowColorStyle
 )
 
   .chatContentContainer

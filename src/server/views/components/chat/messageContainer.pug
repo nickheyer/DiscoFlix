@@ -10,3 +10,7 @@
       .endOfMessagesDiv.divider
         p.endOfMessagesTime
           | !{eomStamp || "Previously..."}
+    else
+      .noMessagesDiv.divider
+        p.noMessageText
+          | No messages in here!

@@ -2,8 +2,7 @@
 div.serverPowerIcon#serverPowerToggle(
   hx-get="/toggle-power"
   data-confirm=`Turn web server off?`
-  data-tippy-content=`Turn web server off`
-  data-tippy-placement='top'
+  aria-label=`Turn web server off`
 )
   svg(aria-hidden="false" viewBox="0 0 16 16")
     path(d="M7.5 1v7h1V1h-1z")

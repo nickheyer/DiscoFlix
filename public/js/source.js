@@ -61,14 +61,6 @@ htmx.on("htmx:load", function () {
   const inviteModals = document.querySelectorAll('[data-invite]');
   Array.from(inviteModals).forEach(bindInvites);
 
-  tippy('[data-tippy-content]', {
-    interactiveDebounce: 75,
-    offset: [0, 10],
-    onTrigger(instance) {
-      instance.hideWithInteractivity('mouseleave')
-    }
-  });
-
   const serverBubbleContainer = document.getElementById('serverBubbleContainer');
   const serverBubbleSortable = new Sortable(serverBubbleContainer, {
     animation: 150,

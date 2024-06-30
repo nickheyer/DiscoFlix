@@ -1,0 +1,28 @@
+.loading-bar {
+  z-index: 9999;
+  opacity: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, transparent,
+      #000, transparent,
+      #000, transparent
+  );
+}
+
+.htmx-request.loading-bar {
+  opacity: 1;
+  animation: fadeIn 2s linear forwards, slide 0.8s ease-in-out infinite;
+}
+@keyframes slide {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX( 100%); }
+}
+
+@keyframes fadeIn {
+  0%   { opacity: 0; }
+  50%  { opacity: 0; }
+  100% { opacity: 1; }
+}
