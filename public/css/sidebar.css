@@ -16,6 +16,14 @@
   width: 0px;
 }
 
+.serverBtnGroup {
+  position: absolute;
+  width: fit-content;
+  display: flex;
+  flex-direction: column;
+  height: inherit
+}
+
 .homeButton {
   position: relative;
   flex-shrink: 0;
@@ -44,7 +52,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 7px;
+  margin-bottom: 10px;
   cursor: pointer;
   transition: 0.2s;
 }
@@ -68,7 +76,9 @@
 
 .invite {
   color: var(--green) !important;
-  font-size: 48px;
+  font-size: 33px;
+  font-weight: 200;
+  margin-bottom: 0;
 }
 
 .invite:hover {
@@ -101,9 +111,9 @@
 
 .serverDivider {
   margin-top: 7px;
-  width: 50%;
+  width: 38px;
   background-color: var(--server-divider);
-  height: 3px;
+  height: 2.4px;
   border: none;
   border-radius: 15px;
 }
@@ -115,7 +125,7 @@
   height: 100vh;
   background-color: var(--dark-primary);
   transition: width 0.6s ease;
-  overflow: hidden;
+  overflow-x: visible;
 }
 
 #serverSideBar.expanded {
@@ -294,6 +304,8 @@
     .channelViewOptionConfig {
       transition: 0.7ms;
       visibility: visible !important;
+      position: absolute;
+      right: 15px;
     }
   }
 
@@ -306,6 +318,20 @@
     transition: 0.7ms;
     visibility: hidden;
   }
+}
+
+.btnInter {
+  filter: brightness(100%);
+  -webkit-filter: brightness(100%);
+}
+.btnInter:hover, .btnInter:active {
+  filter: brightness(70%);
+  -webkit-filter: brightness(70%);
+  -webkit-transition: all .2s ease;
+  -moz-transition: all .2s ease;
+  -o-transition: all .2s ease;
+  -ms-transition: all .2s ease;
+  transition: all .2s ease;
 }
 
 
@@ -360,3 +386,5 @@
   color: var(--symbol);
   cursor: pointer;
 }
+
+

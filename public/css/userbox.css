@@ -29,6 +29,10 @@
   font-weight: bolder;
 }
 
+#userInfoContainer {
+  min-width: fit-content;
+}
+
 .discriminator {
   display: block !important;
   margin: 0;
@@ -37,17 +41,18 @@
 }
 
 .userMenuIcons {
+  width: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-left: auto;
-  margin-right: 8px;
+  position: relative;
 }
 
 .botPowerIcon, .serverPowerIcon, .settingsIcon {
   padding: 3px;
   user-select: none;
   cursor: pointer;
+  border-radius: 18%;
 }
 
 .botPowerIcon svg, .serverPowerIcon svg, .settingsIcon svg {
@@ -59,6 +64,11 @@
 
 .botPowerIcon:hover, .serverPowerIcon:hover, .settingsIcon:hover {
   background-color: var(--dark-bg);
+}
+
+.settingsIcon:hover svg{
+  transition: transform 1.4s cubic-bezier(0.5, 0, 0, 1);
+  transform: rotate(360deg);
 }
 
 .iconStrikethrough {
@@ -167,4 +177,12 @@
 	position: relative;
   bottom: unset;
 	right: unset;
+}
+
+.userMenuBtnGroup {
+  position: absolute;
+  display: flex;
+  top: 50%;
+  transform: translateY(-50%);
+  right: 5px;
 }

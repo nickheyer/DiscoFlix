@@ -5,6 +5,7 @@
 @media(max-width:768px){
   #serverSideBar.expanded {
     flex: auto;
+    width: 100%;
   }
 
   #serverSideBar.expanded ~ .chatContainer {
@@ -33,5 +34,33 @@
     border-top: 3px var(--server-divider) solid;
     max-width: 70px;
 
+  }
+
+  .userMenuBtnGroup {
+    right: 25px;
+    > div:has(> svg) {
+      margin: 5px;
+      > svg {
+        height: 30px;
+        width: 30px;
+      }
+    }
+  }
+
+  .channelViewOption:hover, .channelViewOption.active {
+    .channelViewOptionConfig {
+      > div:has(> svg) {
+        &::before, &::after {
+          display: none;
+        }
+        > svg {
+          height: 25px;
+          width: 25px;
+        }
+      }
+    }
+  }
+  .channelViewOption {
+    height: 2em;
   }
 }

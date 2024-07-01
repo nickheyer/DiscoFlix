@@ -112,6 +112,7 @@
   grid-row: 3;
   position: relative;
   height: 70px;
+  z-index: -1;
 }
 
 .floatingChatBar {
@@ -213,9 +214,10 @@
     .chatMessageText {
       white-space: break-spaces;
       margin: 8px 0 0 0;
-      color: #ddd;
+      color: var(--message-text);
       font-size: 18px;
       word-break: break-word;
+
 
       &.empty {
         color: #666;

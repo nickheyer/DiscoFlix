@@ -3,6 +3,7 @@ div(
   hx-get=!serverActive && `/change-active-server/${id}`
   hx-select-oob=!serverActive && "#serverSelector,#guildNameBanner"
   aria-label=serverName
+  data-cooltipz-dir='right'
 )
   input(type='hidden' name='item' value=id)
 
