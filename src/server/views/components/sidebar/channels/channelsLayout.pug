@@ -1,3 +1,6 @@
 <!-- Channel Container -->
-.channelViewContainer
+.channelViewContainer.chatView#channelView(
+  hx-select-oob='#channelView'
+  hx-swap-oob='outerHTML'
+)
   include chatChannels

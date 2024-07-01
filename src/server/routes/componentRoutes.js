@@ -3,8 +3,10 @@ const {
   toggleSidebarState,
   changeActiveServers,
   changeServerSortOrder,
-  changeActiveChannel
+  changeActiveChannel,
+  toggleSettings
 } = require('../api/sidebar');
+
 const {
   toggleBotState,
   toggleAppState
@@ -15,6 +17,7 @@ const router = new Router();
 router.get('/toggle-sidebar', toggleSidebarState);
 router.get('/toggle-bot', toggleBotState);
 router.get('/toggle-power', toggleAppState);
+router.get('/toggle-settings/:action', toggleSettings)
 router.get('/change-active-server/:id', changeActiveServers);
 router.get('/change-active-channel/:id', changeActiveChannel)
 
