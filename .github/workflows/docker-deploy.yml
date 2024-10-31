@@ -15,63 +15,54 @@ jobs:
     if: >
       github.event.workflow_run.conclusion == 'success' ||
       github.event_name == 'workflow_dispatch'
-
     environment: DiscoEnv
     steps:
-    - name: Check out repository
-      uses: actions/checkout@v2
+      - name: Check out repository
+        uses: actions/checkout@v3
 
-    - name: Log in to Docker Hub
-      uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKER_HUB_USERNAME }}
-        password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v1
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
 
-    - name: Build and push Docker image for x86
-      run: |
-        echo "Building ${app}-image for x86"
-        docker build -t "${docker_user}/${app}" .
-        echo "Pushing x86 ${app}-image to dockerhub"
-        docker push "${docker_user}/${app}"
-      env:
-        app: discoflix
-        docker_user: nickheyer
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
 
-    - name: Build and push Docker image for ARM64
-      run: |
-        echo "Building ${app}-image for ARM64"
-        export DOCKER_CLI_EXPERIMENTAL=enabled
-        docker buildx build --platform=linux/arm64 -t "${docker_user}/${app}_rpi" . --push
-      env:
-        app: discoflix
-        docker_user: nickheyer
+      - name: Build and push Docker image (multi-arch)
+        uses: docker/build-push-action@v4
+        with:
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_HUB_USERNAME }}/discoflix:latest
 
-    - name: Notify Discord
-      if: success()
-      run: |
-        COMMIT_SHA_SHORT=$(echo "${{ github.sha }}" | cut -c1-7)
-        curl -H "Content-Type: application/json" \
-              -d '{
-                    "embeds": [{
-                      "title": "DiscoFlix has been updated!",
-                      "description": "The latest Docker images for DiscoFlix have been successfully built and pushed. Please update your containers to the latest version.",
-                      "url": "https://github.com/nickheyer/DiscoFlix/commit/${{ github.sha }}",
-                      "color": 5814783,
-                      "fields": [
-                        {
-                          "name": "Commit",
-                          "value": "[`'"$COMMIT_SHA_SHORT"'`](https://github.com/nickheyer/DiscoFlix/commit/${{ github.sha }})"
+      - name: Notify Discord
+        if: success()
+        run: |
+          COMMIT_SHA_SHORT=$(echo "${{ github.sha }}" | cut -c1-7)
+          curl -H "Content-Type: application/json" \
+                -d '{
+                      "embeds": [{
+                        "title": "DiscoFlix has been updated!",
+                        "description": "The latest Docker images for DiscoFlix have been successfully built and pushed. Please update your containers to the latest version.",
+                        "url": "https://github.com/${{ github.repository }}/commit/${{ github.sha }}",
+                        "color": 5814783,
+                        "fields": [
+                          {
+                            "name": "Commit",
+                            "value": "[`'"$COMMIT_SHA_SHORT"'`](https://github.com/${{ github.repository }}/commit/${{ github.sha }})"
+                          }
+                        ],
+                        "image": {
+                          "url": "https://i.imgur.com/wMhrFuq.png"
+                        },
+                        "footer": {
+                          "text": "DiscoFlix Deployment"
                         }
-                      ],
-                      "image": {
-                        "url": "https://i.imgur.com/wMhrFuq.png"
-                      },
-                      "footer": {
-                        "text": "DiscoFlix Deployment"
-                      }
-                    }]
-                  }' \
-              ${{ secrets.DISCORD_WEBHOOK_URL }}
+                      }]
+                    }' \
+                ${{ secrets.DISCORD_WEBHOOK_URL }}
