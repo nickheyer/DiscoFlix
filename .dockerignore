@@ -7,3 +7,16 @@ data/django_key.txt
 .env
 .pytest_cache
 filetree.txt
+.git
+__pycache__
+*.pyc
+.venv
+venv
+.DS_Store
+.idea
+tests
+docs
+*.md
+docker-compose.yml
+Dockerfile
+requirements.txt

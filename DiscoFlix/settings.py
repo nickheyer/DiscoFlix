@@ -51,14 +51,16 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
 
-    # COMMENT OUT THE BELOW LINE TO ENABLE CSRF
-    "DiscoFlixClient.middleware_custom.DisableCSRF",
+    "django.middleware.csrf.CsrfViewMiddleware",
 
-    "django.middleware.security.SecurityMiddleware",
+    # UNCOMMENT OUT THE BELOW LINE TO DISABLE CSRF
+    #"DiscoFlixClient.middleware_custom.DisableCSRF",
+
+    
 
     # COMMENT OUT THE BELOW LINE IF YOU ARE SERVING STATIC FILES BEHIND REVERSE PROXY, IE: NGINX OR APACHE
     "whitenoise.middleware.WhiteNoiseMiddleware",
-    
+    "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -79,6 +81,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "django.template.context_processors.csrf"
             ],
         },
     },
