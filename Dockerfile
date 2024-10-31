@@ -18,13 +18,16 @@ RUN pip install "poetry==$POETRY_VERSION" \
 FROM python:3.12-slim as prod
 
 WORKDIR /app
+COPY . /app/
 COPY --from=build /app/requirements.txt .
 
 RUN set -ex \
-    && addgroup --system --gid 1001 appgroup \
+    && addgroup --system --gid 1001 worker \
     && adduser --system --uid 1001 --gid 1001 --no-create-home worker \
+    && chown -R worker:worker /app \
     && apt-get update \
     && apt-get upgrade -y \
+    && apt-get install -y procps \
     && pip install -r requirements.txt \
     && apt-get autoremove -y \
     && apt-get clean -y \
