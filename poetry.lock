@@ -609,6 +609,27 @@ files = [
 django = ">=4.2"
 
 [[package]]
+name = "dpytest"
+version = "0.7.0"
+description = "A package that assists in writing tests for discord.py"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "dpytest-0.7.0-py3-none-any.whl", hash = "sha256:b9febeb860e6bc05bac3d433882becdba1b965ff4db1667e2d629acbc868b0d2"},
+    {file = "dpytest-0.7.0.tar.gz", hash = "sha256:9f16d58347591756a8d662a44c2307864698c8a5656408a584d0bb5d69c83bbb"},
+]
+
+[package.dependencies]
+"discord.py" = ">=2.3,<3.0"
+pytest = "*"
+pytest-asyncio = "*"
+
+[package.extras]
+dev = ["build", "flake8", "invoke"]
+doc = ["sphinx"]
+test = ["pytest", "pytest-asyncio"]
+
+[[package]]
 name = "drf-spectacular"
 version = "0.27.2"
 description = "Sane and flexible OpenAPI 3 schema generation for Django REST framework"
@@ -1844,4 +1865,4 @@ testing = ["coverage[toml]", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "cf4d15a65930b10356fc85cc8205f5215cfadb92ebd779ebb3b3d05f4861597c"
+content-hash = "26b1413185399623dbbcedb1af7eb01d96bdba27f4cf8d6ceedc117e15842dc5"

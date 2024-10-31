@@ -24,6 +24,7 @@ requests = "^2.32.3"
 whitenoise = "^6.8.2"
 djangorestframework = "^3.15.2"
 drf-yasg = "^1.21.8"
+dpytest = "^0.7.0"
 
 
 [build-system]
