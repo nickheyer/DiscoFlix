@@ -133,6 +133,7 @@ class RadarrAPI(RequestAPI):
         rootDir: Optional[str] = None,
         monitored: bool = True,
         searchForMovie: bool = True,
+        tag_id=None
     ) -> Dict:
         """
         Adds a new movie to the collection.
@@ -154,6 +155,10 @@ class RadarrAPI(RequestAPI):
         movie_json = self.construct_movie_json(
             term, qualityProfileId, rootDir, monitored, searchForMovie
         )
+
+        if tag_id is not None:
+            movie_json['tags'] = [tag_id]
+            print(f'Added Tag to Content: [{tag_id}]')
 
         path = f"{self.base}/movie"
         response = self.request_post(path, data=movie_json)
@@ -416,6 +421,68 @@ class RadarrAPI(RequestAPI):
         return res
 
     # Tag
+    def get_tags(self):
+        """Query Radarr for tags
+
+        Args:
+            None
+        Returns:
+            json response
+
+        """
+        path = f"{self.base}/tag"
+        res = self.request_get(path)
+        return res
+
+    def get_id_for_tag_name(self, tag_name):
+        """Query Radarr for tags.
+            Search returned tags for provided name.
+            Return ID associated with name, 
+            or return -1 if tag not found matching name.
+
+        Args:
+            Required - tag_name (str)
+        Returns:
+            int
+
+        """
+        res = self.get_tags()
+        print(f'Available tags: {res}')
+        for x in res:
+            if tag_name.lower() in x.get('label', ''):
+                return x.get('id', -1)
+        return -1
+
+    def create_tag(self, **kwargs):
+        """Create a tag in Radarr with a specified tag name/label
+
+        Args:
+            None
+        Returns:
+            json response
+
+        """
+        path = f"{self.base}/tag"
+        kwargs.setdefault('label', 'DF')
+        kwargs.setdefault('id', 0)
+        res = self.request_post(path, data=kwargs)
+        return res
+
+    def get_or_create_tag(self, tag_name="DF"):
+        """Get existing tag or create a tag in Radarr with a specified tag name/label
+
+        Args:
+            None
+        Returns:
+            int
+
+        """
+        existing = self.get_id_for_tag_name(tag_name)
+        if existing != -1:
+            return existing
+        else:
+            new = self.create_tag(label=tag_name)
+            return new.get('id', -1)
 
     # diskspace
     def get_disk_space(self):

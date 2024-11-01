@@ -6,7 +6,8 @@ from DiscoFlixClient.utils import (
     create_media,
     create_media_request,
     get_discord_server_from_id,
-    save_instance
+    save_instance,
+    update_config
 )
 
 from discord import Embed
@@ -37,6 +38,21 @@ class RequestHandler:
         await self._log_request(self.author, self.request, "requested")
         return True
 
+    async def _get_or_create_tag(self, request_type):
+        tag_id = -1
+        tag_label = getattr(self.config, 'tag_label', 'DF')
+        if not self.request_method or not self.config.is_tagging_enabled:
+            tag_id = -1
+        elif request_type == "movie":
+            self.config.radarr_tag_id = self.request_method.get_or_create_tag(tag_label)
+            await update_config({ "radarr_tag_id": self.config.radarr_tag_id })
+            tag_id = self.config.radarr_tag_id
+        elif request_type == "show":
+            self.config.sonarr_tag_id = self.request_method.get_or_create_tag(tag_label)
+            await update_config({ "sonarr_tag_id": self.config.sonarr_tag_id })
+            tag_id = self.config.sonarr_tag_id
+        return tag_id
+
     def _define_request_methods(self):
         self.request_method = None
         try:
@@ -52,9 +68,9 @@ class RequestHandler:
                 self.get_info = self.request_method.get_movie
 
                 def selector_fn(*args, **kwargs):
-                    return self.request_method.add_movie(
-                        *args, **kwargs, monitored=True, searchForMovie=True
-                    )
+                    kwargs.setdefault('monitored', True)
+                    kwargs.setdefault('searchForMovie', True)
+                    return self.request_method.add_movie(*args, **kwargs)
 
                 self.select_content = selector_fn
                 self.id_key = "tmdbId"
@@ -70,9 +86,9 @@ class RequestHandler:
                 self.get_info = self.request_method.get_series
 
                 def selector_fn(*args, **kwargs):
-                    return self.request_method.add_series(
-                        *args, **kwargs, monitored=True, searchForMissingEpisodes=True
-                    )
+                    kwargs.setdefault('monitored', True)
+                    kwargs.setdefault('searchForMissingEpisodes', True)
+                    return self.request_method.add_series(*args, **kwargs)
 
                 self.select_content = selector_fn
                 self.id_key = "tvdbId"
@@ -160,6 +176,8 @@ class RequestHandler:
             ),
         }
 
+        if self.config.is_tagging_enabled:
+            await self.view.update_tag(self.config.tag_label)
         if not self.download_response:
             await self.view.update_status(*STATUS_MAP["FAILED"])
             return False
@@ -273,9 +291,16 @@ class RequestHandler:
         await self.message.delete()
         # WHERE THE DOWNLOAD BEGINS
         self.download_dir = f'{self.get_root_dirs()[0]["path"]}/'
+
+        opt_kwargs = {}
+        self.tag_id = await self._get_or_create_tag(self.request_type)
+        if self.tag_id != -1:
+            opt_kwargs['tag_id'] = self.tag_id
+
         self.download_response = self.select_content(
-            self.remoteId, self.quality_profile, self.download_dir
+            self.remoteId, self.quality_profile, self.download_dir, **opt_kwargs
         )
+
         if not self.download_response:
             return False
         await self.logger(

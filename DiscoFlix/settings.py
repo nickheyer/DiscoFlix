@@ -54,7 +54,7 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",
 
     # UNCOMMENT OUT THE BELOW LINE TO DISABLE CSRF
-    #"DiscoFlixClient.middleware_custom.DisableCSRF",
+    "DiscoFlixClient.middleware_custom.DisableCSRF",
 
     
 

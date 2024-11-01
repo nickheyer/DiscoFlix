@@ -6,7 +6,9 @@ export const FIELD_SORT = {
       'radarr_url',
       'radarr_token',
       'sonarr_url',
-      'sonarr_token'
+      'sonarr_token',
+      'is_tagging_enabled',
+      'tag_label'
   ],
   'discord-bot-configuration': [
       'prefix_keyword',

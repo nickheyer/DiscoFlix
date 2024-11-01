@@ -24,6 +24,10 @@ class Configuration(models.Model):
     is_sonarr_enabled = models.BooleanField("Enable Sonarr Requests", default=True)
     is_trailers_enabled = models.BooleanField("Enable YouTube Trailers", default=True)
 
+    is_tagging_enabled = models.BooleanField("Enable Tagging Content", default=False)
+    tag_label = models.CharField("Tag Label", max_length=16, null=True, default="DF")
+    radarr_tag_id = models.IntegerField("Radarr Tag ID", null=True, default=0)
+    sonarr_tag_id = models.IntegerField("Sonarr Tag ID", null=True, default=0)
 
 class State(models.Model):
     discord_state = models.BooleanField(default=False)

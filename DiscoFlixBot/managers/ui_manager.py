@@ -101,6 +101,15 @@ class ContentSelectionView(discord.ui.View):
                 item.label = text
                 break
 
+    async def update_tag(self, tag_label='None'):
+        print(f'UPDATING TAG IN UI: {tag_label}')
+        self.embed.insert_field_at(
+                index=0,
+                name='Tag',
+                value=f'{tag_label}',
+                inline=True,
+            )
+
     async def update_requestor(self):
         self.embed.set_author(name=self.author, icon_url=self.author.display_avatar.url)
         self.embed.color = self.author.colour

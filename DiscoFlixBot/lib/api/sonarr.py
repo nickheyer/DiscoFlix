@@ -222,6 +222,7 @@ class SonarrAPI(RequestAPI):
         ignoreEpisodesWithFiles=False,
         ignoreEpisodesWithoutFiles=False,
         searchForMissingEpisodes=False,
+        tag_id=None
     ):
         """Add a new series to your collection
 
@@ -248,6 +249,10 @@ class SonarrAPI(RequestAPI):
             ignoreEpisodesWithoutFiles,
             searchForMissingEpisodes,
         )
+
+        if tag_id is not None:
+            series_json['tags'] = [tag_id]
+            print(f'Added Tag to Content: [{tag_id}]')
 
         path = f"{self.base}/series"
         res = self.request_post(path, data=series_json)
@@ -458,3 +463,68 @@ class SonarrAPI(RequestAPI):
         path = f"{self.base}/release/push"
         res = self.request_post(path, data=kwargs)
         return res
+
+
+    def get_tags(self):
+        """Query Sonarr for tags
+
+        Args:
+            None
+        Returns:
+            json response
+
+        """
+        path = f"{self.base}/tag"
+        res = self.request_get(path)
+        print(f'TAGS FOUND: {res}')
+        return res
+
+    def get_id_for_tag_name(self, tag_name):
+        """Query Sonarr for tags.
+            Search returned tags for provided name.
+            Return ID associated with name, 
+            or return -1 if tag not found matching name.
+
+        Args:
+            Required - tag_name (str)
+        Returns:
+            int
+
+        """
+        res = self.get_tags()
+        print(f'AVAILABLE TAGS: {res}')
+        for x in res:
+            if tag_name.lower() in x.get('label', ''):
+                return x.get('id', -1)
+        return -1
+
+    def create_tag(self, **kwargs):
+        """Create a tag in Sonarr with a specified tag name/label
+
+        Args:
+            None
+        Returns:
+            json response
+
+        """
+        path = f"{self.base}/tag"
+        kwargs.setdefault('label', 'DF')
+        kwargs.setdefault('id', 0)
+        res = self.request_post(path, data=kwargs)
+        return res
+
+    def get_or_create_tag(self, tag_name="DF"):
+        """Get existing tag or create a tag in Sonarr with a specified tag name/label
+
+        Args:
+            None
+        Returns:
+            int
+
+        """
+        existing = self.get_id_for_tag_name(tag_name)
+        if existing != -1:
+            return existing
+        else:
+            new = self.create_tag(label=tag_name)
+            return new.get('id', -1)
