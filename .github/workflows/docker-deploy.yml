@@ -8,31 +8,54 @@ on:
       - completed
   workflow_dispatch:
 
+env:
+  TRIGGER_REGEX: ^DF-DOCKER
+  SHOULD_BUILD: false
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    environment: DiscoEnv
 
     if: >
       github.event.workflow_run.conclusion == 'success' ||
       github.event_name == 'workflow_dispatch'
-    environment: DiscoEnv
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
 
+      - name: Check commit message for keyword
+        id: check-commit-message
+        run: |
+          # Fetch the last commit message
+          COMMIT_MESSAGE=$(git log -1 --pretty=%B)
+          
+          # Check if the commit message starts with "${{ env.TRIGGER_REGEX }}"
+          if [[ "$COMMIT_MESSAGE" =~ ${{ env.TRIGGER_REGEX }} ]]; then
+            echo "Keyword found at the start of the commit message."
+            echo "SHOULD_BUILD=true" >> $GITHUB_ENV
+          else
+            echo "No relevant keyword found at the start of the commit message."
+          fi
+
       - name: Set up Docker Buildx
+        if: ${{ env.SHOULD_BUILD == 'true' }}
         uses: docker/setup-buildx-action@v2
 
       - name: Log in to Docker Hub
+        if: env.SHOULD_BUILD == 'true'
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
 
       - name: Set up QEMU
+        if: ${{ env.SHOULD_BUILD == 'true' }}
         uses: docker/setup-qemu-action@v2
 
       - name: Build and push Docker image (multi-arch)
+        if: ${{ env.SHOULD_BUILD == 'true' }}
         uses: docker/build-push-action@v4
         with:
           platforms: linux/amd64,linux/arm64
@@ -41,7 +64,7 @@ jobs:
             ${{ secrets.DOCKER_HUB_USERNAME }}/discoflix:latest
 
       - name: Notify Discord
-        if: success()
+        if: ${{ success() && env.SHOULD_BUILD == 'true' }}
         run: |
           COMMIT_SHA_SHORT=$(echo "${{ github.sha }}" | cut -c1-7)
           curl -H "Content-Type: application/json" \
