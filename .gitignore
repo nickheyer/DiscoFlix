@@ -7,3 +7,4 @@ data/django_key.txt
 .env
 .pytest_cache
 filetree.txt
+.vscode/

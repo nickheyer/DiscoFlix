@@ -25,29 +25,66 @@ As this application is intended to interface with [Sonarr](https://sonarr.tv) an
 
 ### Linux (Fully Automated)
 
-```bash 
-curl https://raw.githubusercontent.com/nickheyer/DiscoFlix/main/auto_install_update.sh -o auto_install_update.sh && sudo bash auto_install_update.sh
+```bash
+wget https://raw.githubusercontent.com/nickheyer/DiscoFlix/main/auto_install_update.sh
+sudo ./auto_install_update.sh
 ```
 
-### Other Operating Systems (Windows, Mac, etc.)
+### Installation Using Docker CLI (All Operating Systems)
 
 
-##### Download Docker Image (Recommended - x86_64 Architecture) 
+#### Download Docker Image
+
+To get the latest version of Discoflix, run:
 
 ```bash
 docker image pull nickheyer/discoflix:latest
 ```
-##### OR Download Docker Image (ARM64, aarch64 Architecture, ie: Raspberry-Pi, Mac M1, etc.) 
 
-```bash
-docker image pull nickheyer/discoflix_rpi:latest
-```
-##### Run Docker Container
+#### Run Docker Container
 
+To run Discoflix in a container, use the following command. Make sure to mount a volume to `/app/data` in the container so that your data persists across container restarts. Here's how to do it:
+
+**Example**:  
 ```bash
-docker run -d -p 5454:5454 --name discoflix nickheyer/discoflix
+docker run -d -p 5454:5454 --name discoflix -v /opt/discoflix/data:/app/data nickheyer/discoflix
 ```
+
+**On Other Platforms**:  
+You can replace `/opt/discoflix/data` with an appropriate path on your local system. For Windows and macOS, specify the full path you want to use for data storage.
+This allows DiscoFlix's database to remain on your pc even if you delete or update your container!
+
 ##### The server within the docker container can be accessed locally at [http://127.0.0.1:5454](http://127.0.0.1:5454)
+
+
+### Installation Using Docker-Compose
+
+#### Prep
+
+First, get the compose file:
+
+```bash
+mkdir -p /opt/discoflix/data && cd /opt/discoflix
+wget https://raw.githubusercontent.com/nickheyer/DiscoFlix/main/docker-compose.yml
+```
+
+#### Start the Container Using Docker Compose
+
+With Docker Compose installed on your system, you can start Discoflix by running:
+
+```bash
+docker-compose -f /opt/discoflix/docker-compose.yml up -d
+```
+
+This will pull the latest Discoflix image and run it, mounting the volume specified in the `docker-compose.yml` file. This will use the default /opt/discoflix/data, so modify this path if needed.
+
+##### The server within the docker container can be accessed locally at [http://127.0.0.1:5454](http://127.0.0.1:5454)
+
+**To stop the service**, use:
+
+```bash
+docker-compose -f /opt/discoflix/docker-compose.yml down
+```
 
 <hr />
 <br />

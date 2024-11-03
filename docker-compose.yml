@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  discoflix:
+    image: nickheyer/discoflix:latest
+    container_name: discoflix
+    ports:
+      - "5454:5454"
+    volumes:
+      - /opt/discoflix/data:/app/data
+    restart: unless-stopped
