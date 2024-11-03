@@ -15,7 +15,7 @@ host_volume_dir="${HOST_VOLUME_DIR:-/opt/discoflix/data}"
 container_data_path="${CONTAINER_DATA_PATH:-/app/data}"
 volume_path="${host_volume_dir}:${container_data_path}"
 service_file="/etc/systemd/system/docker-${docker_app}.service"
-create_service="${CREATE_SERVICE:-false}"
+create_service="${CREATE_SERVICE:-1}"
 
 # CHECK ROOT
 if [ "$EUID" -ne 0 ]; then
@@ -37,7 +37,7 @@ which docker > /dev/null || {
 }
 
 # CREATE SYSTEMD SERVICE IF SYSTEMD IS PRESENT AND CREATE_SERVICE IS TRUE
-if command -v systemctl &> /dev/null && [ "$create_service" = "true" ]; then
+if command -v systemctl &> /dev/null && [[ "$create_service" -eq 1 ]]; then
     if [ -f "$service_file" ]; then
         echo "Stopping existing ${app_name} service..."
         systemctl stop "docker-${docker_app}.service"
@@ -59,6 +59,8 @@ WantedBy=multi-user.target
 EOF
         systemctl daemon-reload
     fi
+else
+    echo "Skipping creation of systemd service file."
 fi
 
 # MAKE SURE VOL MOUNT DIR EXISTS
@@ -99,7 +101,7 @@ echo "Starting ${app_name} container..."
 docker run -d -p "${ports}" -v "${volume_path}" --name "${docker_app}" "${docker_repo}"
 
 # START SYSTEMD SERVICE IF SYSTEMD IS PRESENT AND CREATE_SERVICE IS TRUE
-if command -v systemctl &> /dev/null && [ "$create_service" = "true" ]; then
+if command -v systemctl &> /dev/null && [[ "$create_service" -eq 1 ]]; then
     echo "Enabling and starting ${app_name} service..."
     systemctl enable "docker-${docker_app}.service"
     systemctl start "docker-${docker_app}.service"
