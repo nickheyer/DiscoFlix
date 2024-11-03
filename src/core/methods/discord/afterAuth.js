@@ -67,7 +67,7 @@ module.exports = {
       create: guildInfo
     });
 
-    const activeServer = await this.state.getActive();
+    const activeServer = await this.state.getActiveServer();
     if (!activeServer) {
       logger.info(`No active server detected, setting active to:  ${server.id}`);
       await this.state.changeActive(server.id);

@@ -3,7 +3,7 @@ const _ = require('lodash');
 module.exports = {
   async createServerBubbles(serverRows = [], state = null, activeServer = null) {
     const serverBubbles = [];
-    activeServer = activeServer || await this.state.getActive(state);
+    activeServer = activeServer || await this.state.getActiveServer(state);
     const activeID = activeServer ? activeServer.server_id : null;
     
     for (const serverRow of serverRows) {
@@ -74,7 +74,7 @@ module.exports = {
     let activeServer;
     let channels = [];
     if (!serverID) {
-      activeServer = await this.state.getActive();
+      activeServer = await this.state.getActiveServer();
       if (activeServer) {
         activeServer = await this.discordServer.get(
           { server_id: activeServer.server_id },
@@ -116,7 +116,7 @@ module.exports = {
     }
 
     let channels = [];
-    let activeServer = await this.state.getActive();
+    let activeServer = await this.state.getActiveServer();
     let activeChannel = null;
     if (activeServer) {
       activeServer = await this.discordServer.get(

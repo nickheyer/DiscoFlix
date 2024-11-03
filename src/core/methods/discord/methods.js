@@ -71,7 +71,7 @@ module.exports = {
 
     logger.debug(author);
 
-    const activeServer = await this.state.getActive();
+    const activeServer = await this.state.getActiveServer();
     const isActiveChannel = activeServer.active_channel_id === rawDiscMsg.channelId;
   
     const discordServer = await this.discordServer.update(
