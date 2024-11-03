@@ -18,7 +18,7 @@ class State {
     });
   }
 
-  async getActive(state = null) {
+  async getActiveServer(state = null) {
     if (!state) {
 
       // FORCE A DEPTH OF 2 QUERY
