@@ -1,0 +1,25 @@
+.modal-overlay
+  .modal-dialog.modal-dialog-centered
+    .modal-content
+      .modal-header
+        h5.modal-title Invite #{discordBot.bot_username}
+        button.modal-close-button(type="button", aria-label="Close", data-bs-dismiss="modal") &times;
+      .modal-body
+        p Click the invite button or share the URL below:
+        input.modal-readonly-input(
+          id="invite-link"
+          type="url"
+          placeholder="No invite URL available"
+          readonly="true"
+          value=discordBot.bot_invite_link
+          style="text-align: center;"
+        )
+      .modal-footer
+        if (discordBot.bot_invite_link)
+            a.btn.modal-button(
+            id="invite-button"
+            href=discordBot.bot_invite_link
+            target="_blank"
+            rel="noopener noreferrer"
+            ) Invite
+        button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Close

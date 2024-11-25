@@ -1,9 +1,13 @@
 // BOT POWER BUTTON - STATEFUL
 div.botPowerIcon#botPowerToggle(
-  hx-get="/toggle-bot"
-  hx-swap="none"
+  hx-get="/modal/bot/power"
+  hx-target="#modals-here"
+  hx-trigger="click"
+  
   hx-swap-oob="outerHTML"
-  data-confirm=`Turn Discord bot ${state.discord_state ? 'off' : 'on'}?`
+  data-bs-toggle="modal"
+  data-bs-target="#modals-here"
+
   aria-label=`Turn Discord bot ${state.discord_state ? 'off' : 'on'}`
   data-cooltipz-dir='top'
 )

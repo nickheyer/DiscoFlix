@@ -5,9 +5,9 @@
     .chatEmbedDescription.description.hidden()
     .chatEmbedFields.hidden()
     .chatEmbedImage.chatMessageAttachment.hidden()
-      img(src, alt)
+      img(src, alt, referrerpolicy="no-referrer")
     .chatEmbedfooter.hidden
-      img.chatFooterIcon.hidden(src, alt)
+      img.chatFooterIcon.hidden(src, alt, referrerpolicy="no-referrer")
       |  
       span.hidden()
       |  
@@ -16,4 +16,4 @@
       span.hidden(data-timestamp)
   .chatEmbedthumbnail.hidden
     .chatEmbedAvatar.large
-      img(src)
+      img(src, referrerpolicy="no-referrer")

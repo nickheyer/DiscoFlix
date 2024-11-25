@@ -1,5 +1,11 @@
 const _ = require('lodash');
 
+
+function genInvite(client) {
+  return client.generateInvite({ scopes: ['bot'], permissions: ['1689934407138496']});
+}
+
+
 module.exports = {
 
   // PARSES CHANNELS/GUILD ATTRIBUTES OF ALL CONNECTED GUILDS (SERVERS)
@@ -127,11 +133,14 @@ module.exports = {
   },
 
   async refreshBotInfo(powerOn) {
-    const inviteLink = this.client.generateInvite({ scopes: ['bot'] });
-    const clientName = this.client.user.displayName;
-    const clientDiscrim = this.client.user.discriminator;
-    const clientAvatar = this.client.user.displayAvatarURL();
+    const inviteLink = genInvite(this.client);
+    const botClient = this.client.user;
+    const clientID = botClient.id;
+    const clientName = botClient.displayName;
+    const clientDiscrim = botClient.discriminator;
+    const clientAvatar = botClient.displayAvatarURL();
     const discordBot = await this.discordBot.update({
+      bot_id: clientID,
       bot_username: clientName,
       bot_discriminator: clientDiscrim,
       bot_invite_link: inviteLink,
@@ -141,22 +150,27 @@ module.exports = {
   },
 
   async setInviteLink() {
-    const inviteLink = this.client.generateInvite({ scopes: ['bot'] });
+    const inviteLink = genInvite(this.client);
     return await this.discordBot.update({ bot_invite_link: inviteLink });
   },
 
   async updateServerSortOrder() {
     const serverRows = await this.refreshAllDiscordServers();
     const servers = await this.getServerTemplateObj(serverRows);
+    const discordBot = await this.discordBot.get();
+    const state = await this.state.get();
     await this.emitCompiled([
       'sidebar/servers/serverSortableContainer.pug',
       'sidebar/servers/serverBannerLabel.pug',
       'sidebar/channels/chatChannels.pug',
       'chat/messageChannelHeader.pug',
-      'chat/chatBar.pug'
+      'chat/chatBar.pug',
+      'modals/bot/power.pug'
     ], {
-      servers
+      servers,
+      discordBot,
+      state,
+      loading: false
     });
   },
-
 };

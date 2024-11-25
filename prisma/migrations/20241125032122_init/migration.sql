@@ -38,6 +38,7 @@ CREATE TABLE "EventLog" (
 -- CreateTable
 CREATE TABLE "DiscordBot" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "bot_id" TEXT DEFAULT '0',
     "bot_username" TEXT DEFAULT 'Unavailable',
     "bot_discriminator" TEXT DEFAULT '0000',
     "bot_avatar_url" TEXT,

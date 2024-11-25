@@ -1,5 +1,6 @@
 /* We import all of our component style sheets here */
 
+@import 'bootstrap.css';
 @import 'variables.css';
 @import 'base.css';
 @import 'sidebar.css';
@@ -7,5 +8,8 @@
 @import 'members.css';
 @import 'userbox.css';
 @import 'mobile.css';
+@import 'modals.css';
 @import 'misc.css';
+
+
 

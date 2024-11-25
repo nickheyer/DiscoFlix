@@ -20,6 +20,7 @@ app.use(debugHandler());
 app.use(compileMiddleware);
 app.use(defermentMiddleware);
 app.use(serve('public'));
+app.use(serve('.cache'));
 
 // Routes
 app.use(routes.routes()).use(routes.allowedMethods());

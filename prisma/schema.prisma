@@ -49,6 +49,7 @@ model EventLog {
 
 model DiscordBot {
   id                Int     @id @default(autoincrement())
+  bot_id            String? @default("0")
   bot_username      String? @default("Unavailable")
   bot_discriminator String? @default("0000")
   bot_avatar_url    String?

@@ -1,4 +1,10 @@
-.channelViewOption
+.channelViewOption(
+  hx-get="/modal/settings/standard"
+  hx-target="#modals-here"
+  hx-trigger="click"
+  data-bs-toggle="modal"
+  data-bs-target="#modals-here"
+)
   .channelViewOptionInfo
     include settingsChannelHashIcon
     include settingsChannelName

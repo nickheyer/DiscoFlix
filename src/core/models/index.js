@@ -1,3 +1,4 @@
+const prismaMW = require('./middleware.js');
 const State = require('./state');
 const Configuration = require('./configuration');
 const DiscordServer = require('./discordServer');
@@ -8,6 +9,7 @@ const User = require('./user');
 
 
 module.exports = (core) => {
+  prismaMW(core);
   core.state = new State(core);
   core.configuration = new Configuration(core);
   core.discordServer = new DiscordServer(core);

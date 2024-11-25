@@ -1,6 +1,8 @@
 div.server.invite#serverInviteButton(
-  data-invite=discordBot.bot_invite_link
-  hx-swap-oob="outerHTML"
-  hx-select-oob="#serverInviteButton"
+  hx-get="/modal/bot/invite"
+  hx-target="#modals-here"
+  hx-trigger="click"
+  data-bs-toggle="modal"
+  data-bs-target="#modals-here"
 )
   p.inviteButton +
