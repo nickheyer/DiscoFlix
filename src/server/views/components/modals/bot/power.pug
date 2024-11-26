@@ -7,21 +7,21 @@
             button.modal-close-button(type="button", aria-label="Close", data-bs-dismiss="modal") &times;
         .modal-body
             p Do you want to turn the Discord bot #{state.discord_state ? 'off' : 'on'}?
-        if loading
-            .switch-container
-                img( alt="Result loading...", width="150", src="/images/bars.svg")
-        else 
-            .switch-container
-                label.switch
-                    input#bot-power-switch(
-                        type="checkbox"
-                        hx-get="/toggle-bot"
-                        hx-target="#modals-here"
-                        hx-trigger="click"
-                        checked=state.discord_state
-                        )
+            if loading
+                .switch-container
+                    .loader
+            else 
+                .switch-container
+                    label.switch
+                        input#bot-power-switch(
+                            type="checkbox"
+                            hx-get="/toggle-bot"
+                            hx-target="#modals-here"
+                            hx-trigger="click"
+                            checked=state.discord_state
+                            )
 
-                    span.slider#bot-power-slider
+                        span.slider#bot-power-slider
 
 
                     

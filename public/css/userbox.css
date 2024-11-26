@@ -143,33 +143,33 @@
 }
 
 .statusBubble.offline {
-  transition: 0.7ms;
+  transition: 1.7ms;
   background-color: var(--red);
   visibility: visible !important;
 }
 
 .statusBubble.online {
-  transition: 0.7ms;
+  transition: 1.7ms;
   background-color: var(--green);
   visibility: visible !important;
 }
 
 .statusBubble.unread {
-  transition: 0.7ms;
+  transition: 1.7ms;
   background-color: var(--blurple);
   visibility: visible !important;
   text-align: center;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: bold;
   color: var(--dark-bg);
 }
 
 .statusBubble.unread-channel {
-  transition: 0.7ms;
+  transition: 1.7ms;
   background-color: var(--blurple);
   visibility: visible !important;
   text-align: center;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: bold;
   color: var(--dark-bg);
   width: 14px;

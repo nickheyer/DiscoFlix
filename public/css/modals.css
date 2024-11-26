@@ -25,6 +25,7 @@
 .modal-header {
     padding: 16px 24px;
     border-bottom: 1px solid #202225;
+    align-content: center;
 }
 
 .modal-title {
@@ -53,6 +54,8 @@
     padding: 16px 24px;
     font-size: 16px;
     line-height: 1.5;
+    text-align: center;
+    min-height: 200px;
 }
 
 .modal-footer {
@@ -108,39 +111,48 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 16px 0;
-}
+    margin-top: 75px;
+
+    &:has(.loader),
+    &:has(.switch input:checked+.slider:before) {
+        animation: fadeIn 1s ease-in-out;
+    }
+} 
+
 
 .switch {
     position: relative;
-    display: inline-block;
-    width: 60px;
-    height: 34px;
-}
+    margin: auto;
+} 
 
 .switch input {
     opacity: 0;
     width: 0;
     height: 0;
-}
+} 
 
 .slider {
+    -webkit-transform: translate3d(-50%, -50%, 0);
+    -moz-transform: translate3d(-50%, -50%, 0);
+    transform: translate3d(-50%, -50%, 0);
     position: absolute;
     cursor: pointer;
     background-color: #72767d;
     border-radius: 34px;
+    height: 50px;
+    width: 100px;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
     transition: background-color 0.2s;
-}
+} 
 
 .slider:before {
     position: absolute;
     content: "";
-    height: 26px;
-    width: 26px;
+    height: 42px;
+    width: 42px;
     background-color: #fff;
     border-radius: 50%;
     left: 4px;
@@ -149,11 +161,11 @@
 }
 
 .switch input:checked+.slider {
-    background-color: #5865f2;
+    background-color: #3b5a7d;
 }
 
 .switch input:checked+.slider:before {
-    transform: translateX(26px);
+    transform: translateX(50px);
 }
 
 .switch:hover .slider {
@@ -163,3 +175,39 @@
 .switch input:checked:hover+.slider {
     background-color: #4752c4;
 }
+
+.loader {
+    display: inline-grid;
+    width: 90px;
+    aspect-ratio: 1;
+    animation: l3-0 5s steps(10) infinite;
+  }
+  .loader:before,
+  .loader:after {
+    content:"";
+    grid-area: 1/1;
+  }
+  .loader:before {
+    clip-path: polygon(100% 50%,90.45% 79.39%,65.45% 97.55%,34.55% 97.55%,9.55% 79.39%,0% 50%,9.55% 20.61%,34.55% 2.45%,65.45% 2.45%,90.45% 20.61%,100% 50%,85.6% 24.14%,63.6% 8.15%,36.4% 8.15%,14.4% 24.14%,6% 50%,14.4% 75.86%,36.4% 91.85%,63.6% 91.85%,85.6% 75.86%,94% 50%,85.6% 24.14%);
+    background: #4752c4;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
+  }
+  .loader:after {
+    background: #5c5f66;
+    clip-path: polygon(100% 50%,65.45% 97.55%,9.55% 79.39%,9.55% 20.61%,65.45% 2.45%);
+    margin: 27%;
+    translate: 46% 0;
+    transform-origin: right;
+    animation: l3-1 .5s linear infinite;
+  }
+  @keyframes l3-0 {to{rotate: 1turn}}
+  @keyframes l3-1 {
+    0%{rotate:  18deg}
+    to{rotate: -18deg}
+  }
+
+  @keyframes fadeIn {
+    0%   { opacity: 0; }
+    50%  { opacity: 0; }
+    100% { opacity: 1; }
+  }
