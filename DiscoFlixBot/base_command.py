@@ -7,6 +7,7 @@ class Command:
     aliases: Parsed commands allowed, ie: !df movie == !df film if ['movie', 'film'].
     description: Description to be given in help menu.
     requires_input: If command requires input following the command.
+    invokable: Can be called as a command directly, set to False when non-standard interpretation is required
     conditions: Can take 3 different data-types as input...
       - tuple: (function, arguments-for-function)
       - function: function that returns truthy/falsey value
@@ -21,6 +22,7 @@ class Command:
         self.description = ''
         self.requires_input = False
         self.conditions = []
+        self.invokable = True
 
     """
     --- CLASS METHOD ARGUMENTS DESCRIPTIONS --- [ SEE BELOW ]

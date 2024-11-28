@@ -10,6 +10,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from asgiref.sync import async_to_sync, sync_to_async
 from django.core.management.color import color_style
 from rest_framework.authtoken.models import Token
+import openai
 
 import os
 import requests
@@ -313,7 +314,6 @@ def edit_user(info):
             new_server.users.add(user)
 
     return True
-
 
 @database_sync_to_async
 def delete_user(**kwargs):
@@ -773,3 +773,14 @@ def validate_radarr(url, token):
       print(style.ERROR(f"RADARR ERR:\n{e}"))
 
     return False
+
+def validate_openai_token(token):
+    client = openai.OpenAI(api_key=token)
+    try:
+        client.models.list()
+    except openai.AuthenticationError as e:
+        print(style.ERROR(f"OPENAI ERR:\n{e}"))
+        return False
+    else:
+        return True
+

@@ -47,13 +47,23 @@ class CommandRegistry:
                 pass
             return stub_callback
 
-    def get(self, name):
-        command_dict = self.commands
+    def get_filtered_commands(self, **kwargs):
+        return {
+            name: cls_inst
+            for name, cls_inst in self.commands.items()
+            if all(getattr(cls_inst, key, None) == value for key, value in kwargs.items())
+        }
+
+    def get(self, name, **kwargs):
+        command_dict = self.get_filtered_commands(**kwargs)
         command_list = "\n".join([f"{name} : {cls_inst.name}" for name, cls_inst in command_dict.items()])
         print(f'GETTING ALL COMMANDS: {command_list}')
-        return self.commands.get(name)
+        return command_dict.get(name)
 
-    def all(self):
-        if not self.commands:
+    def all(self, **kwargs):
+        command_dict = self.get_filtered_commands(**kwargs)
+        if not command_dict:
             return []
-        return set(self.commands.values())
+
+        return set(command_dict.values())
+        

@@ -338,6 +338,36 @@ document.addEventListener("DOMContentLoaded", (event) => {
     });
   };
 
+  const openaiTestButton = document.getElementById('openai-test-button');
+  const openaiStatus = document.getElementById('openai-connection-status');
+
+  openaiTestButton.onclick = (e) => {
+    openaiTestButton.disabled = true;
+
+    const configData = getConfigFromFields(); // Assume this retrieves the OpenAI token from your form
+
+    socket.emit('test-connection', { connection: 'openai', config: configData }, (data) => {
+      if (data.error) {
+        $(openaiStatus).html(`
+          <div class="alert alert-danger alert-dismissible fade show" role="alert" style='margin: 20px 20px 20px 0;'>
+            ✖ Error: ${data.error}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        `);
+      } else {
+        $(openaiStatus).html(`
+          <div class="alert alert-success alert-dismissible fade show" role="alert" style='margin: 20px 20px 20px 0;'>
+            ✔ Connection Successful: Token is valid.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        `);
+      }
+      openaiTestButton.disabled = false;
+      clearStatusAfterDelay(openaiStatus);
+    });
+  };
+
+
   // ------------------ USER EVENTS -----------------------------
 
   // User Table/Popover Elements

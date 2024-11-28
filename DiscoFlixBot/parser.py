@@ -23,7 +23,6 @@ class MessageHandler:
         
         
     async def __parse_message(self):
-        
         req_parsing_steps = [ # WILL IGNORE MESSAGE ON FAILURE
           self.__parse_sender,
           self.__parse_prefix,
@@ -36,6 +35,9 @@ class MessageHandler:
           (self.__parse_slash, 'Slash command not allowed for this command usage.'),
           (self.__parse_args, 'Failed to parse command arguments. Arguments invalid.'),
         ]
+
+        if self.__parse_bot_mentions():
+            return True
 
         for step in req_parsing_steps:
             result = await step() if asyncio.iscoroutinefunction(step) else step()
@@ -65,13 +67,24 @@ class MessageHandler:
         self.split_message = self.message_content.strip().split()
         return len(self.split_message) > 1 and self.split_message[0] == prefix
 
+    def __parse_bot_mentions(self):
+        client = self.bot.client.user
+        self.is_mentioned = client.mentioned_in(self.message) or client.name in self.message.content
+        if self.is_mentioned:
+            self.command = CommandRegistry().get('mentioned')
+            self.sender = self.message.author
+            self.username = str(self.message.author)
+            self.is_bot = self.sender.bot
+            return not self.is_bot
+        return False
+
     def __parse_command(self):
         if len(self.split_message) < 2:
             return False
         else:
             registry = CommandRegistry()
             cmd_str = self.split_message[1].lower()
-            cmd = registry.get(cmd_str)
+            cmd = registry.get(cmd_str, invokable=True)
             if cmd:
                 self.command = cmd
                 return True

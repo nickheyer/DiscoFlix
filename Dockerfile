@@ -28,9 +28,6 @@ RUN set -ex \
     && if getent group 1000 >/dev/null 2>&1; then \
          groupdel "$(getent group 1000 | cut -d: -f1)"; \
        fi \
-    && addgroup --system --gid 1000 worker \
-    && adduser --system --uid 1000 --gid 1000 --no-create-home worker \
-    && chown -R worker:worker /app \
     && apt-get update \
     && apt-get upgrade -y \
     && apt-get install -y --no-install-recommends procps \
@@ -43,4 +40,4 @@ RUN set -ex \
 
 EXPOSE 5454
 CMD ["sh", "./run.sh"]
-USER worker
+USER root

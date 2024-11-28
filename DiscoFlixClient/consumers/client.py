@@ -4,11 +4,14 @@ from functools import wraps
 import os
 import sys
 import asyncio
+import signal
+import psutil
 
 from django.core.serializers.json import DjangoJSONEncoder
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.core.management.color import color_style
 from django.forms.models import model_to_dict
+from django.core.management import call_command
 
 from DiscoFlixBot.controller import (
     main,
@@ -26,6 +29,7 @@ from DiscoFlixClient.utils import (
     update_config,
     get_config,
     add_user,
+    add_log,
     edit_user,
     delete_user,
     get_user,
@@ -42,6 +46,7 @@ from DiscoFlixClient.utils import (
     validate_discord_token,
     validate_sonarr,
     validate_radarr,
+    validate_openai_token,
 )
 
 
@@ -99,13 +104,30 @@ class ClientConsumer(AsyncWebsocketConsumer):
         logs = await add_refresh_log(f"[CLIENT] {entry}", num)
         return await self.emit({"event": "bot_log_added", "data": {"log": logs}})
 
+    async def shutdown_linux(self, *args, **kwargs):
+        try:
+            print('[CLIENT] INITIATING CLEANUP BEFORE SIGKILL...')
+            state = await get_state()
+            if state.discord_state:
+                await add_log('[BOT] SIGINT: BOT SHUTTING DOWN')
+                await add_log('[CLIENT] SIGINT: SERVER SHUTTING DOWN')
+                status = {"current_activity": 'Offline'}
+                await update_state(status)
+                
+            logger.debug('SUCCESFUL SIGKILL SHUTDOWN')
+            os.system("pkill -9 -f 'daphne'")
+            os.system("pkill -9 -f 'poetry'")
+
+        except Exception as e:
+            print(f"Error during shutdown: {e}")
+
     async def shutdown_server(self, *args, **kwargs):
         await update_state({"discord_state": False, "current_activity": "Offline"})
         if sys.platform in ["linux", "linux2"]:
-            os.system("pkill -f daphne")
+            await self.shutdown_linux(*args, **kwargs)
         else:
             os.system("pkill -f django")
-        sys.exit()
+            sys.exit()
 
     async def update_client(self, callback_id=None):
         response_data = {
@@ -151,6 +173,16 @@ class ClientConsumer(AsyncWebsocketConsumer):
             await self.send_log("DISCORD VALIDATION FAILED ✖ CANCELLING STARTUP.")
             return False
         await self.send_log("DISCORD VALIDATION PASSED ✔")
+        
+        if config.is_openai_enabled:
+            await self.send_log(
+                "EXPERIMENTAL OPENAI CHAT RESPONSES ENABLED - VALIDATING CONFIGURATION/CONNECTION..."
+            )
+            valid_openai = validate_openai_token(config.openai_token)
+            if not valid_openai:
+                await self.send_log("OPENAI VALIDATION FAILED ✖ CANCELLING STARTUP.")
+                return False
+            await self.send_log("OPENAI VALIDATION PASSED ✔")
         return True
 
     # CLIENT COMMANDS/ROUTES
@@ -384,6 +416,9 @@ class ClientConsumer(AsyncWebsocketConsumer):
         elif validation_type == "discord":
             if not validate_discord_token(config.get("discord_token")):
                 errors.append("Discord token is invalid")
+        elif validation_type == "openai":
+            if not validate_openai_token(config.get("openai_token")):
+                errors.append("OpenAI token is invalid")
 
         if errors:
             await self.emit(

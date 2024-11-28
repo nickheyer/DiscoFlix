@@ -86,6 +86,23 @@
                 </div>
               </div>
             </div>
+
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#openai-collapse" aria-expanded="false" aria-controls="openai-collapse">
+                  OpenAI
+                </button>
+              </h2>
+              <div id="openai-collapse" class="accordion-collapse collapse" data-bs-parent="#config-container">
+                <div id="openai-configuration" class="accordion-body"> 
+                </div>
+                <div id="openai-test-container" class="test-button-container">
+                  <button id="openai-test-button" name="test-button" class="btn btn-outline-secondary test-button" type="button">Validate Token</button>
+                  <span id="openai-connection-status"></span>
+                </div>
+              </div>
+            </div>
+
             <div class="accordion-item">
               <h2 class="accordion-header">
                 <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#misc-collapse" aria-expanded="false" aria-controls="misc-collapse">
