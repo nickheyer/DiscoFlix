@@ -8,3 +8,7 @@ data/django_key.txt
 .pytest_cache
 filetree.txt
 .vscode/
+node_modules
+.cache
+logs
+disco.db
