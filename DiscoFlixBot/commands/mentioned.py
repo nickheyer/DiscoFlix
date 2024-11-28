@@ -11,6 +11,9 @@ class MentionedCommand(Command):
         self.permissions = ["user", "developer"]
         self.description = "A fairly simple interface for openai. Great for recommending movies and tv shows."
         self.aliases = ["mentioned"]
+        self.slash_enabled = False
+        self.invokable = False
+        
 
     async def execute(self, message, ctx):
         content = message.content.strip()

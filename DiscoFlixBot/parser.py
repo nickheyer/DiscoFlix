@@ -37,7 +37,12 @@ class MessageHandler:
         ]
 
         if self.__parse_bot_mentions():
-            return True
+            result = self.__parse_permissions()
+            if not result:
+                self.rejection = 'Failed to validate user request based on current permissions or state.'
+                return False
+            else:
+                return True
 
         for step in req_parsing_steps:
             result = await step() if asyncio.iscoroutinefunction(step) else step()
