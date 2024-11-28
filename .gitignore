@@ -1,7 +1,9 @@
 disco.db
 *.db-journal
 .vscode/
-
+node_modules
+.cache
+logs
 
 # Logs
 logs
