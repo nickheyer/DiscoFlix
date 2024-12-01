@@ -528,3 +528,4 @@ class SonarrAPI(RequestAPI):
         else:
             new = self.create_tag(label=tag_name)
             return new.get('id', -1)
+        

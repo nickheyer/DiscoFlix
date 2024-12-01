@@ -12,7 +12,7 @@ class RequestAPI:
             host_url (str): Host url to sonarr/radarr.
             api_key: API key from sonarr/radarr.
         """
-        self.host_url = host_url
+        self.host_url = host_url.rstrip('/')
         self.api_key = api_key
         self.session = requests.Session()
         self.auth = None
@@ -41,7 +41,7 @@ class RequestAPI:
         """
 
         headers = {"X-Api-Key": self.api_key}
-        request_url = f"{self.host_url}{path}"
+        request_url = f"{self.host_url}/{path.lstrip('/')}"
 
         try:
             response = self.session.get(
@@ -62,7 +62,7 @@ class RequestAPI:
             dict: Response JSON data.
         """
         headers = {"X-Api-Key": self.api_key}
-        request_url = f"{self.host_url}{path}"
+        request_url = f"{self.host_url}/{path.lstrip('/')}"
         try:
             response = self.session.post(
                 request_url, headers=headers, json=data, auth=self.auth
@@ -82,7 +82,7 @@ class RequestAPI:
             dict: Response JSON data.
         """
         headers = {"X-Api-Key": self.api_key}
-        request_url = f"{self.host_url}{path}"
+        request_url = f"{self.host_url}/{path.lstrip('/')}"
         try:
             response = self.session.put(
                 request_url, headers=headers, json=data, auth=self.auth
@@ -102,7 +102,7 @@ class RequestAPI:
             dict: Response JSON data.
         """
         headers = {"X-Api-Key": self.api_key}
-        request_url = f"{self.host_url}{path}"
+        request_url = f"{self.host_url}/{path.lstrip('/')}"
         try:
             response = self.session.delete(
                 request_url, headers=headers, json=data, auth=self.auth
@@ -115,3 +115,4 @@ class RequestAPI:
         except ValueError:
             # Catch JSON decode error in case the response has no body
             return {}
+        
