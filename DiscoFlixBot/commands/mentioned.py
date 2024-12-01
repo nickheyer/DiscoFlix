@@ -28,6 +28,7 @@ class MentionedCommand(Command):
         bot_response = random.choice(general_responses)  # FALLBACK FOR THE MAJORITY THAT WONT USE THIS FEATURE
         try:
             token = getattr(ctx.config, 'openai_token', '')
+            model_name = getattr(ctx.config, 'openai_model_name', '')
             if len(token) > 0 and getattr(ctx.config, 'is_openai_enabled', False):
                 # CHECK MENTIONS, CONVERT TO STR USERS
                 for user in message.mentions:
@@ -40,7 +41,7 @@ class MentionedCommand(Command):
                 )
                     
                 chat_completion = await client.chat.completions.create(
-                    model="gpt-3.5-turbo",   #"gpt-4o-mini",
+                    model=model_name,   #"gpt-4o-mini",
                     messages=[
                         {"role": "system",
                          "content": f"""You are a fun and clever discord chatbot named {ctx.bot.client.user}, specializing in movies, games, and TV shows,

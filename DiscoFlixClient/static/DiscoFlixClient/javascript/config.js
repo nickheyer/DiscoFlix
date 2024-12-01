@@ -17,6 +17,7 @@ export const FIELD_SORT = {
     'ai-configuration': [
         'is_openai_enabled',
         'openai_token',
+        'openai_model_name',
         'is_mention_enabled'
     ],
     'debug-configuration': [

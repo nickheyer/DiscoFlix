@@ -12,8 +12,7 @@ class Configuration(models.Model):
     radarr_token = models.CharField("Radarr Token", max_length=255, null=True, default="")
     sonarr_url = models.CharField("Sonarr Host-Url", max_length=255, null=True, default="")
     sonarr_token = models.CharField("Sonarr Token", max_length=255, null=True, default="")
-    openai_token = models.CharField("OpenAI Token", max_length=255, null=True, default="")
-
+    
     session_timeout = models.IntegerField("Session Timeout", null=True, default=60)
     max_check_time = models.IntegerField("Monitoring Timeout (Seconds)", null=True, default=600)
     max_results = models.IntegerField("Max Search Results", null=True, default=0)
@@ -24,13 +23,18 @@ class Configuration(models.Model):
     is_radarr_enabled = models.BooleanField("Enable Radarr Requests", default=True)
     is_sonarr_enabled = models.BooleanField("Enable Sonarr Requests", default=True)
     is_trailers_enabled = models.BooleanField("Enable YouTube Trailers", default=True)
-    is_openai_enabled = models.BooleanField("Enable OpenAI Chatbot", default=False)
-    is_mention_enabled = models.BooleanField('Enable Talking to AI by Mentioning ("@bot") Your Bot User', default=False)
 
     is_tagging_enabled = models.BooleanField("Enable Tagging Content", default=False)
     tag_label = models.CharField("Tag Label", max_length=16, null=True, default="DF")
     radarr_tag_id = models.IntegerField("Radarr Tag ID", null=True, default=0)
     sonarr_tag_id = models.IntegerField("Sonarr Tag ID", null=True, default=0)
+    
+    # AI SPECIFIC CONFIGS
+    openai_token = models.CharField("OpenAI Token", max_length=255, null=True, default="")
+    openai_model_name = models.CharField("OpenAI Model Name", max_length=255, null=True, default="gpt-3.5-turbo")
+    is_openai_enabled = models.BooleanField("Enable OpenAI Chatbot", default=False)
+    is_mention_enabled = models.BooleanField('Enable Talking to AI by Mentioning ("@bot") Your Bot User', default=False)
+    
 
 class State(models.Model):
     discord_state = models.BooleanField(default=False)

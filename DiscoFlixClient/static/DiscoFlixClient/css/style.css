@@ -406,6 +406,40 @@ textarea {
   flex-direction: row;
 }
 
+.link-container {
+  padding: 1rem 0 0 0;
+  font-family: 'Inter', sans-serif;
+}
+
+.link-tag {
+  color: #7289da;
+  font-weight: bold;
+  text-decoration: none;
+  position: relative;
+  transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+.link-tag:hover {
+  color: #99aaff;
+  text-shadow: 0 0 6px #7289da, 0 0 12px #7289da;
+  text-decoration: none;
+}
+
+.link-tag::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 0;
+  height: 2px;
+  background-color: #7289da;
+  transition: width 0.3s ease;
+}
+
+.link-tag:hover::after {
+  width: 100%;
+}
+
 @media (max-width: 799px) {
   .container {
     width: 100% !important;
