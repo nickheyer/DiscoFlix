@@ -50,22 +50,23 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
-
     "django.middleware.csrf.CsrfViewMiddleware",
 
-    # UNCOMMENT OUT THE BELOW LINE TO DISABLE CSRF
+    # COMMENT OUT THE BELOW LINE TO ENABLE CSRF
     "DiscoFlixClient.middleware_custom.DisableCSRF",
-
-    
 
     # COMMENT OUT THE BELOW LINE IF YOU ARE SERVING STATIC FILES BEHIND REVERSE PROXY, IE: NGINX OR APACHE
     "whitenoise.middleware.WhiteNoiseMiddleware",
+    
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    
+    # COMMENT OUT THE BELOW LINE TO DISABLE USER LOGIN OPTION
+    'DiscoFlixClient.middleware_login.LoginRequiredMiddleware',
 ]
 
 ROOT_URLCONF = "DiscoFlix.urls"
@@ -145,6 +146,7 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 
+LOGOUT_REDIRECT_URL = '/'
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 

@@ -1,5 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
+from django.contrib.auth.views import LogoutView
 
 from DiscoFlixClient import views
 
@@ -15,5 +16,8 @@ router.register(r'users', views.UserViewSet)
 
 urlpatterns = [
     path("", views.index, name="index"),
-    path("api/", include(router.urls))
+    path("api/", include(router.urls)),
+    path('login/', views.login_view, name='login'),
+    path('logout/', LogoutView.as_view(), name='logout'),
+    path('disable-login/', views.disable_login_requirement, name='disable_login_requirement'),
 ]

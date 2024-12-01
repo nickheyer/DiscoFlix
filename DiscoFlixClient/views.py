@@ -1,9 +1,14 @@
 from rest_framework import viewsets, permissions, status, mixins
 from rest_framework.response import Response
-from django.shortcuts import render
+from django.http import JsonResponse
+from django.conf import settings
+from django.shortcuts import render, redirect
+from django.contrib.auth import login, authenticate
+from django.contrib.auth.forms import AuthenticationForm
 
 from DiscoFlixClient.utils import (
-    update_state_sync
+    update_state_sync,
+    update_config_sync
 )
 
 from DiscoFlixClient.permissions import AllowGETUnauthenticated
@@ -14,7 +19,24 @@ def index(request):
     update_state_sync({ 'host_url': request.get_host() })
     return render(request, "DiscoFlixClient/index.html")
 
+def login_view(request):
+    if request.method == "POST":
+        form = AuthenticationForm(data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            return redirect('index') # REDIR TO SPA INDEX
+    else:
+        form = AuthenticationForm()
+    return render(request, 'DiscoFlixClient/login.html', {'form': form}) # REDIR TO LOGIN PANEL
 
+def disable_login_requirement(request):
+    provided_key = request.POST.get('key')
+    if provided_key != settings.SECRET_KEY:
+        return JsonResponse({'error': 'Invalid key'}, status=403)
+    else:
+        update_config_sync({ "is_login_required": False })
+    return redirect('index') # REDIR TO SPA INDEX
 
 # ---------------- REST API --------------------
 
@@ -30,7 +52,14 @@ class ConfigurationViewSet(mixins.RetrieveModelMixin,
     serializer_class = serializers.ConfigurationSerializer
      
     def get_queryset(self):
-        return models.Configuration.objects.filter(id=models.Configuration.objects.first().id)
+        return models.Configuration.objects.all()
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        data = request.data
+        instance.is_login_required = data.get("is_login_required", instance.is_login_required)
+        instance.save()
+        return Response({"status": "updated"}, status=status.HTTP_200_OK)
 
 
 class StateViewSet(mixins.RetrieveModelMixin,

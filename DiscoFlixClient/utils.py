@@ -60,12 +60,18 @@ def get_config_dict():
     return model_to_dict(config)
 
 
-@database_sync_to_async
-def update_config(data):
+def validate_config_ctx(key):
+    valid = True
+    if key == 'is_login_required':
+        users_with_password = [user for user in User.objects.all() if user.has_usable_password()]
+        return len(users_with_password) > 0
+    return True
+
+def update_config_sync(data, bypass_validation=False):
     config = get_config_sync()
     changed = []
     for k, v in data.items():
-        if hasattr(config, k):
+        if hasattr(config, k) and (bypass_validation or validate_config_ctx(k)):
             attribute = getattr(config, k)
             if str(attribute) != str(v) and (attribute or v):
                 changed.append(k)
@@ -74,6 +80,10 @@ def update_config(data):
     config_dict = model_to_dict(config)
     config_dict["changed"] = changed
     return config_dict
+
+@database_sync_to_async
+def update_config(data, bypass_validation=False):
+    return update_config_sync(data, bypass_validation)
 
 
 def get_state_sync():

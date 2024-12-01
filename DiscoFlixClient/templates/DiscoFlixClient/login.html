@@ -1,0 +1,68 @@
+{% extends "base.html" %}  {% block head %}
+
+
+{% load static %}
+
+{% endblock %} {% block content %}
+  <div class="container">
+      <div style="margin:auto; width:100%; margin-top: 10px;">
+          <h1 class="name" >DiscoFlix</h1>
+          <p id="title-header" class="titles" style="text-align:center;" >"Your friendly neighborhood media-requesting, Radarr/Sonarr-interfacing, movie-and-tv-show-listing-bot for your media server."</p>
+      </div>
+
+      <div><br></div>
+    
+      <!-- USER LOGIN -->
+      <div style="margin-top: 15px; width: 100%">
+        <div class="card3" style="position: relative;">
+          <p class="status-bar" style="color:#966fd6;">Login</p>
+          <div class="user-auth-container">
+            <div class="mb-3 user-auth">
+              <form method="post" autocorrect="off" autocapitalize="off" spellcheck="false">
+                  {% csrf_token %}
+                  {{ form.as_p }}
+                  <button type="submit">Login</button>
+
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div><br></div>
+      <div class="text-center mt-2">
+        <button type="button" id="disable-login-button" class="btn-reset" data-bs-toggle="modal" 
+                data-bs-target="#disable-login-popover-content" title="Disable Login Requirement">
+          Locked Out?
+        </button>
+      </div>
+  </div>
+
+
+  <div class="modal fade" id="disable-login-popover-content" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="disable-login-popover-label" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content disable-login-modal">
+        <form method="post" action="{% url 'disable_login_requirement' %}" autocorrect="off" autocapitalize="off" spellcheck="false">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="disable-login-popover-label">Disable Login</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="key" class="form-label">Django Key</label>
+                <input type="text" id="key" name="key" class="form-control" placeholder="Enter Django Key" required>
+                <p class="key-note">
+                  Note: The Django key is found in your server's data directory or environment variables. Contact your administrator if unsure.
+              </p>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn btn-outline-primary">Disable</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+{% endblock %}

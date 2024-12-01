@@ -20,6 +20,9 @@ export const FIELD_SORT = {
         'openai_model_name',
         'is_mention_enabled'
     ],
+    'auth-configuration': [
+        'is_login_required'
+    ],
     'debug-configuration': [
         'is_verbose_logging',
         'is_debug'
@@ -70,7 +73,7 @@ export const ADDITIONAL_USER_SETTINGS = {
         DEFAULT: false
     },
     'password': {
-        VERBOSE: 'Database Access Password',
+        VERBOSE: 'User Auth Password',
         TYPE: 'PASSWORD',
         DEFAULT: ''
     }

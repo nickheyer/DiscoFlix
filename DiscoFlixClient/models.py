@@ -18,7 +18,8 @@ class Configuration(models.Model):
     max_results = models.IntegerField("Max Search Results", null=True, default=0)
     max_seasons_for_non_admin = models.IntegerField("Max Seasons For Non-Admin", null=True, default=0)
 
-    is_verbose_logging = models.BooleanField("Verbose logging in console", default=False)
+    is_login_required = models.BooleanField("Enable/Require User Login For WebUI", default=False)
+    is_verbose_logging = models.BooleanField("Verbose Logging In Console", default=False)
     is_debug = models.BooleanField("Send Debug Message On Error", default=False)
     is_radarr_enabled = models.BooleanField("Enable Radarr Requests", default=True)
     is_sonarr_enabled = models.BooleanField("Enable Sonarr Requests", default=True)
