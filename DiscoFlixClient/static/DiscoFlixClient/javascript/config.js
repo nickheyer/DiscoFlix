@@ -14,9 +14,10 @@ export const FIELD_SORT = {
         'prefix_keyword',
         'discord_token'
     ],
-    'openai-configuration': [
+    'ai-configuration': [
         'is_openai_enabled',
-        'openai_token'
+        'openai_token',
+        'is_mention_enabled'
     ],
     'debug-configuration': [
         'is_verbose_logging',

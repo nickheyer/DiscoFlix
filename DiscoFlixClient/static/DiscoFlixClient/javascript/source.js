@@ -357,7 +357,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
       } else {
         $(openaiStatus).html(`
           <div class="alert alert-success alert-dismissible fade show" role="alert" style='margin: 20px 20px 20px 0;'>
-            ✔ Connection Successful: Token is valid.
+            ✔ Connection Successful: Token is valid. Make sure mentions are enabled to speak with your AI.
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
           </div>
         `);

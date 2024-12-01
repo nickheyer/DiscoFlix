@@ -120,7 +120,9 @@ class DiscordBot:
         await self.emit(response_data)
 
     async def send_log(self, entry, num=100):
-        logs = await add_refresh_log(f"[BOT] {entry}", num)
+        new = f"[BOT] {entry}"
+        print(new)
+        logs = await add_refresh_log(new, num)
         await self.emit({"event": "bot_log_added", "data": {"log": logs}})
 
     async def get_unadded_users(self, users):

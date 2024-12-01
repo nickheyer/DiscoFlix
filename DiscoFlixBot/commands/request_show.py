@@ -21,5 +21,8 @@ class RequestShowCommand(Command):
         return await handler.process_request()
     
     async def reject(self, message, ctx):
-        await ctx.bot.change_presence("Adding Users...")
-        await handle_unregistered(message, ctx)
+        reason = getattr(ctx, 'rejection', 'Status 500 (Server Error)')
+        await ctx.bot.send_log(reason)
+        if reason == 'Failed to validate user request based on current permissions or state.':
+            await ctx.bot.change_presence("Adding Users...")
+            await handle_unregistered(message, ctx)

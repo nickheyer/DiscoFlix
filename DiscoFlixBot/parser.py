@@ -35,14 +35,20 @@ class MessageHandler:
           (self.__parse_slash, 'Slash command not allowed for this command usage.'),
           (self.__parse_args, 'Failed to parse command arguments. Arguments invalid.'),
         ]
+        
+        conversational_steps = [ # FOR NON-INVOKED BEHAVIOR, LIKE CONVERSATIONAL AI
+            self.__parse_conversation,
+            self.__parse_sender,
+            self.__parse_permissions,
+            self.__parse_conditions
+        ]
 
-        if self.__parse_bot_mentions():
-            result = self.__parse_permissions()
+        for i, step in enumerate(conversational_steps):
+            result = await step() if asyncio.iscoroutinefunction(step) else step()
+            if result and i + 1 == len(conversational_steps):
+                return True # IS CONVERSATION, PASSED CHECKS, RETURN TRUE
             if not result:
-                self.rejection = 'Failed to validate user request based on current permissions or state.'
-                return False
-            else:
-                return True
+                break # BREAK AND CONTINUE TO STANDARD COMMAND PARSER
 
         for step in req_parsing_steps:
             result = await step() if asyncio.iscoroutinefunction(step) else step()
@@ -72,15 +78,12 @@ class MessageHandler:
         self.split_message = self.message_content.strip().split()
         return len(self.split_message) > 1 and self.split_message[0] == prefix
 
-    def __parse_bot_mentions(self):
+    def __parse_conversation(self):
         client = self.bot.client.user
-        self.is_mentioned = client.mentioned_in(self.message) or client.name in self.message.content
+        self.is_mentioned = client.mentioned_in(self.message)
         if self.is_mentioned:
             self.command = CommandRegistry().get('mentioned')
-            self.sender = self.message.author
-            self.username = str(self.message.author)
-            self.is_bot = self.sender.bot
-            return not self.is_bot
+            return True
         return False
 
     def __parse_command(self):

@@ -25,6 +25,7 @@ class Configuration(models.Model):
     is_sonarr_enabled = models.BooleanField("Enable Sonarr Requests", default=True)
     is_trailers_enabled = models.BooleanField("Enable YouTube Trailers", default=True)
     is_openai_enabled = models.BooleanField("Enable OpenAI Chatbot", default=False)
+    is_mention_enabled = models.BooleanField('Enable Talking to AI by Mentioning ("@bot") Your Bot User', default=False)
 
     is_tagging_enabled = models.BooleanField("Enable Tagging Content", default=False)
     tag_label = models.CharField("Tag Label", max_length=16, null=True, default="DF")

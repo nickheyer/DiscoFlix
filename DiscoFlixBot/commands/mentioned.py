@@ -10,6 +10,7 @@ class MentionedCommand(Command):
         self.name = "mentioned"
         self.permissions = ["user", "developer"]
         self.description = "A fairly simple interface for openai. Great for recommending movies and tv shows."
+        self.conditions = ["is_mention_enabled"]
         self.aliases = ["mentioned"]
         self.slash_enabled = False
         self.invokable = False
