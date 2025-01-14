@@ -35,8 +35,8 @@ RUN set -ex \
     && apt-get autoremove -y \
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/* \
-    && find /usr/local/lib/python3.12 -name '__pycache__' -exec rm -r {} + \
-    && find /usr/local/lib/python3.12 -name '*.pyc' -delete
+    && find /usr/local/lib/python3.13 -name '__pycache__' -exec rm -r {} + \
+    && find /usr/local/lib/python3.13 -name '*.pyc' -delete
 
 EXPOSE 5454
 CMD ["sh", "./run.sh"]
