@@ -1,5 +1,5 @@
 # BASE
-FROM python:3.12-slim AS build
+FROM python:3.13-slim AS build
 
 ENV PIP_DEFAULT_TIMEOUT=100 \
     PYTHONUNBUFFERED=1 \
@@ -15,7 +15,7 @@ RUN pip install "poetry==$POETRY_VERSION" \
     && poetry export -f requirements.txt -o requirements.txt
 
 # PROD
-FROM python:3.12-slim AS prod
+FROM python:3.13-slim AS prod
 
 WORKDIR /app
 COPY . /app/
