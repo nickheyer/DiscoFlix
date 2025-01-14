@@ -12,3 +12,6 @@ node_modules
 .cache
 logs
 disco.db
+./node_modules/
+./logs/
+./prisma/

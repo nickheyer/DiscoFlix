@@ -5,9 +5,10 @@ description = ""
 authors = ["Nick Heyer <nick@heyer.app>"]
 license = "MIT"
 readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = ">=3.13,<4.0"
 asgiref = "3.8.1"
 channels = "4.1.0"
 discord-py = "2.4.0"
@@ -24,6 +25,7 @@ djangorestframework = "^3.15.2"
 drf-yasg = "^1.21.8"
 psutil = "^6.1.0"
 openai = "^1.55.2"
+audioop-lts = "^0.2.1"
 
 
 [tool.poetry.group.dev.dependencies]

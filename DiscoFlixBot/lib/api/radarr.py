@@ -590,6 +590,22 @@ class RadarrAPI(RequestAPI):
         res = self.request_post(path, data)
         return res
 
+    def force_search(self, id: int) -> dict:
+        """
+        Forces a search of a currently monitored title, existing or otherwise.
+
+        Args:
+            id (int): Radarr Id of the movie.
+
+        Returns:
+            dict: JSON response from the API.
+        """
+        path = f"{self.base}/command"
+
+        data = { "name": "MoviesSearch", "movieIds": [id] }
+        res = self.request_post(path, data)
+        return res
+
     # update
     def get_update(self):
         """Returns a list of recent updates to Radarr

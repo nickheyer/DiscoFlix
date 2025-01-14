@@ -25,6 +25,8 @@ class ContentSelectionView(discord.ui.View):
         self.approval_required = False
         self.trailer_button = None
         self.trailer_message = None
+        self.can_override = self.config.is_request_existing_enabled or self.config.can_request_existing
+        self.was_forced = False
 
     async def async_init(self):
         self.user_roles = await eval_user_roles(str(self.author))
@@ -63,6 +65,8 @@ class ContentSelectionView(discord.ui.View):
         await interaction.response.defer()
         if button.label == "Ask Admin":
             self.approval_required = True
+        elif button.label == "Force":
+            self.was_forced = True
         self.result = self.content_list[self.current_index]
         self.stop()
 
@@ -102,7 +106,6 @@ class ContentSelectionView(discord.ui.View):
                 break
 
     async def update_tag(self, tag_label='None'):
-        print(f'UPDATING TAG IN UI: {tag_label}')
         self.embed.insert_field_at(
                 index=0,
                 name='Tag',
@@ -183,6 +186,7 @@ class ContentSelectionView(discord.ui.View):
         seasons = content.get("seasonCount", None)
         if seasons:
             embed.insert_field_at(index=0, name="Seasons", value=seasons, inline=True)
+        
         if await requires_admin(self, seasons):
             await self.change_button_text("select", "Ask Admin")
         else:
@@ -206,12 +210,23 @@ class ContentSelectionView(discord.ui.View):
         )
         file_exists = bool(content.get("path", False))
         if file_exists:
-            embed.insert_field_at(
-                index=1,
-                name="Unavailable To Request",
-                value="Already exists on server.",
-            )
-        await self.change_button("select", file_exists)
+            if self.can_override:
+                await self.change_button_text("select", "Force")
+                embed.insert_field_at(
+                    index=0,
+                    inline=True,
+                    name="Requires Force Override",
+                    value=f"Content exists or is actively monitored.",
+                )
+            else:
+                await self.change_button("select", file_exists)
+                embed.insert_field_at(
+                    index=0,
+                    inline=True,
+                    name="Unavailable To Request",
+                    value="Content exists or is actively monitored.",
+                )
+
         await self.manage_trailer_button(
             self.config.is_trailers_enabled and content.get("youTubeTrailerId", False)
         )

@@ -29,6 +29,7 @@ class Configuration(models.Model):
     tag_label = models.CharField("Tag Label", max_length=16, null=True, default="DF")
     radarr_tag_id = models.IntegerField("Radarr Tag ID", null=True, default=0)
     sonarr_tag_id = models.IntegerField("Sonarr Tag ID", null=True, default=0)
+    is_request_existing_enabled = models.BooleanField("Allow Searching Monitored Content", default=False)
     
     # AI SPECIFIC CONFIGS
     openai_token = models.CharField("OpenAI Token", max_length=255, null=True, default="")
@@ -115,6 +116,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     max_results = models.IntegerField(default=0)
     max_seasons_for_non_admin = models.IntegerField(default=0)
     max_requests_in_day = models.IntegerField(default=0)
+    can_request_existing = models.BooleanField(default=False)
 
     objects = UserManager()
 

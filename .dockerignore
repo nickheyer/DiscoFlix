@@ -20,3 +20,6 @@ docs
 docker-compose.yml
 Dockerfile
 requirements.txt
+./node_modules/
+./logs/
+./prisma/

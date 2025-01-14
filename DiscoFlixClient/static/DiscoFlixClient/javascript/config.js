@@ -8,7 +8,8 @@ export const FIELD_SORT = {
         'sonarr_url',
         'sonarr_token',
         'is_tagging_enabled',
-        'tag_label'
+        'tag_label',
+        'is_request_existing_enabled'
     ],
     'discord-bot-configuration': [
         'prefix_keyword',
@@ -76,5 +77,10 @@ export const ADDITIONAL_USER_SETTINGS = {
         VERBOSE: 'User Auth Password',
         TYPE: 'PASSWORD',
         DEFAULT: ''
+    },
+    'can_request_existing': {
+        VERBOSE: 'Allow Requests For Monitored Content',
+        TYPE: 'BOOL',
+        DEFAULT: false
     }
 };

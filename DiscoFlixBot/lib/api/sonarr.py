@@ -271,6 +271,22 @@ class SonarrAPI(RequestAPI):
         res = self.request_put(path, data)
         return res
 
+    def force_search(self, id: int) -> dict:
+        """
+        Forces a search of a currently monitored series, existing or otherwise.
+
+        Args:
+            id (int): Sonarr Id of the series.
+
+        Returns:
+            dict: JSON response from the API.
+        """
+        path = f"{self.base}/command"
+
+        data = { "name": "SeriesSearch", "seriesId": [id] }
+        res = self.request_post(path, data)
+        return res
+    
     def del_series(self, seriesId, delFiles=False):
         """Delete the series with the given ID"""
         # File deletion does not work

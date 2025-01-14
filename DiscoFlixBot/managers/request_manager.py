@@ -74,6 +74,12 @@ class RequestHandler:
 
                 self.select_content = selector_fn
                 self.id_key = "tmdbId"
+                
+                def get_existing_id_fn(remote_id):
+                    return self.request_method.get_movie(None, remote_id)
+                
+                self.get_existing_id = get_existing_id_fn
+
             elif self.request_type == "show":
                 if not RequestHandler.sonarr_session:
                     self.request_method = SonarrAPI(
@@ -92,7 +98,14 @@ class RequestHandler:
 
                 self.select_content = selector_fn
                 self.id_key = "tvdbId"
+                
+                def get_existing_id_fn(remote_id):
+                    return self.request_method.get_series(None, f'?{self.id_key}={remote_id}')
+                
+                self.get_existing_id = get_existing_id_fn
+                
             self.get_root_dirs = self.request_method.get_root
+            self.force_search = self.request_method.force_search
         except Exception as e:
             self.request_method = None
         return self.request_method
@@ -146,6 +159,10 @@ class RequestHandler:
 
     async def _monitor_download(self):
         STATUS_MAP = {
+            "OVERRIDE": (
+                "Existing and/or monitored content requested",
+                "https://img.icons8.com/external-smashingstocks-glyph-smashing-stocks/66/null/external-new-email-mailing-smashingstocks-glyph-smashing-stocks.png",
+            ),
             "FAILED": (
                 "Request from server failed",
                 "https://img.icons8.com/emoji/48/null/cross-mark-emoji.png",
@@ -181,24 +198,52 @@ class RequestHandler:
         if not self.download_response:
             await self.view.update_status(*STATUS_MAP["FAILED"])
             return False
-        if not hasattr(self.config, "max_check_time") or self.config.max_check_time < 1:
+        
+        if self.view.was_forced:
+            await self.view.update_status(*STATUS_MAP["OVERRIDE"])
+        elif not hasattr(self.config, "max_check_time") or self.config.max_check_time < 1:
             await self.view.update_status(*STATUS_MAP["CHECK_SKIPPED"])
             return False
-        await self.view.update_status(*STATUS_MAP["ACKNOWLEDGED"])
+        else:
+            await self.view.update_status(*STATUS_MAP["ACKNOWLEDGED"])
+        
         # STARTING MONITORING
         current_time_waited = 0
         wait_interval = 10
         max_time_waited = self.config.max_check_time
         content_info = content_status = new_content_status = None
+        self.init_size =0
         while current_time_waited <= max_time_waited:
             await sleep(wait_interval)
             content_info = self.get_info(self.databaseId)
+            
+            if self.view.was_forced and self.init_size == 0:
+                self.init_size = content_info.get("sizeOnDisk", 0)
 
             # Perform checks here
             if self.request_type == "movie":
                 content_history = self.request_method.get_history_movie(self.databaseId)
                 last_entry = content_history[0] if len(content_history) > 0 else {}
-                if content_info.get("hasFile", False):
+                if self.view.was_forced:
+                    if (content_info.get("sizeOnDisk", 0) != self.init_size and
+                        self.init_size > 0 and
+                        content_info.get("hasFile", False)
+                    ):
+                        await self.view.update_status(*STATUS_MAP["SUCCESS"])
+                        await self._generate_success_message()
+
+                        self.request_object.status = True
+                        await save_instance(self.request_object)
+                        self.media.path = content_info.get("path", None)
+                        await save_instance(self.media)
+                        return True
+                    elif last_entry.get("eventType", None) == "grabbed":
+                        target_size = int(last_entry.get("data", {}).get("size", "0"))
+                        new_content_status = (
+                            f"Replacement File found - downloading ({round(target_size/(1024*1024), 2) if target_size != 0 else 0} MB)",
+                            "https://img.icons8.com/ios-filled/50/null/send-file.png",
+                        )
+                elif content_info.get("hasFile", False):
                     await self.view.update_status(*STATUS_MAP["SUCCESS"])
                     await self._generate_success_message()
 
@@ -297,16 +342,25 @@ class RequestHandler:
         if self.tag_id != -1:
             opt_kwargs['tag_id'] = self.tag_id
 
-        self.download_response = self.select_content(
-            self.remoteId, self.quality_profile, self.download_dir, **opt_kwargs
-        )
+        if self.view.was_forced:
+            existing_res = self.get_existing_id(self.remoteId)
+            if len(existing_res) == 0:
+                return False
+            existing_info = existing_res[0]
+            self.databaseId = existing_info.get('id', False)
+            self.download_response = self.force_search(self.databaseId)
+        else:
+            self.download_response = self.select_content(
+                self.remoteId, self.quality_profile, self.download_dir, **opt_kwargs
+            )
+            self.databaseId = self.download_response.get('id', False)
 
         if not self.download_response:
             return False
         await self.logger(
             f'Downloading {self.selected_content["title"]} to {self.download_dir}'
         )
-        self.databaseId = self.download_response.get('id', False)
+        
         self.monitor_outcome = await self._monitor_download()
         if not self.monitor_outcome:
             await self.logger(f'Download ({self.selected_content["title"]}) timed-out.')
