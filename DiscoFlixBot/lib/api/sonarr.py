@@ -283,7 +283,10 @@ class SonarrAPI(RequestAPI):
         """
         path = f"{self.base}/command"
 
-        data = { "name": "SeriesSearch", "seriesId": [id] }
+        data = {
+        "name": "SeriesSearch",
+        "seriesId": 795
+        }
         res = self.request_post(path, data)
         return res
     
