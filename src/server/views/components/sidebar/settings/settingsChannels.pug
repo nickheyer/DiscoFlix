@@ -1,8 +1,23 @@
 include settingsChannelsHeader
 
 .settingsChannelContainer
-  include settingsChannel
-  include settingsChannel
-  include settingsChannel
-  include settingsChannel
-  include settingsChannel
+  -
+    var settingsChannels = [
+      { name: 'Bot Configuration', type: 'discord' },
+      { name: 'Media Settings', type: 'media' },
+      { name: 'User Settings', type: 'user' },
+      { name: 'Server Settings', type: 'server' },
+      { name: 'Permission Settings', type: 'permissions' }
+    ];
+
+  each channel in settingsChannels
+    .channelViewOption(
+      hx-get=`/modal/settings/${channel.type}`
+      hx-target="#modals-here"
+      hx-trigger="click"
+      data-bs-toggle="modal"
+      data-bs-target="#modals-here"
+    )
+      .channelViewOptionInfo
+        include settingsChannelHashIcon
+        span= channel.name

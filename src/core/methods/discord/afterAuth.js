@@ -67,11 +67,11 @@ module.exports = {
       available: true
     };
 
-    await this.discordServer.upsert({
-      where: { server_id: server.id },
-      update: guildInfo,
-      create: guildInfo
-    });
+    await this.discordServer.upsert(
+      { server_id: server.id },
+      guildInfo,
+      guildInfo
+    );
 
     const activeServer = await this.state.getActiveServer();
     if (!activeServer) {
@@ -89,36 +89,32 @@ module.exports = {
     const createdChannels = [];
     for (const foundChannel of foundChannels) {
       const channelData = {
-        discord_server: server.id,
         channel_id: foundChannel.id,
         channel_name: foundChannel.name,
         channel_type: foundChannel.type,
-        isTextChannel: foundChannel.type === 0,
-        isVoiceChannel: foundChannel.type === 2,
-        isCategory: foundChannel.type === 4,
         position: foundChannel.rawPosition,
         parent_id: foundChannel.parentId || ''
       };
   
-      await this.discordChannel.upsert({
-        where: { channel_id: foundChannel.id },
-        update: channelData,
-        create: channelData
-      });
+      await this.discordChannel.upsert(
+        { channel_id: foundChannel.id },
+        { discord_server: server.id, ...channelData },
+        channelData
+      );
       createdChannels.push(channelData);
       visibleChannelIDs.push(foundChannel.id);
     }
 
-    await this.discordChannel.deleteMany({
-      where: {
+    await this.discordChannel.deleteMany(
+      {
         channel_id: {
           notIn: visibleChannelIDs
         },
         discord_server: server.id
       }
-    });
+    );
 
-    const discordServer = await this.discordServer.get({ server_id: server.id });
+    const discordServer = await this.discordServer.getComplete(server.id);
     const activeChannel = discordServer.active_channel_id;
     if (!activeChannel || !visibleChannelIDs.includes(activeChannel)) {
       const firstTextChannel = _.find(

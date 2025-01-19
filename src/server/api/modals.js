@@ -11,9 +11,41 @@ async function settingsModal(ctx) {
 
     switch (modalType) {
         case 'settings':
-            modalParams = Object.assign(modalParams, {
-
-            })
+            switch (modalName) {
+                case 'discord':
+                    const discordBot = await ctx.core.discordBot.get();
+                    modalParams = {
+                        title: 'Discord Settings',
+                        icon: 'discord',
+                        settings: discordBot,
+                        modalName
+                    };
+                    modalTemplate = `modals/${modalType}/readonly.pug`;
+                    break;
+                case 'media':
+                    const config = await ctx.core.configuration.get();
+                    modalParams = {
+                        title: 'Media Settings',
+                        icon: 'film',
+                        settings: config,
+                        modalName
+                    };
+                    modalTemplate = `modals/${modalType}/dynamic.pug`;
+                    break;
+                case 'user':
+                case 'permissions':
+                case 'server':
+                    modalTemplate = `modals/${modalType}/standard.pug`;
+                    modalParams = Object.assign(modalParams, {
+                        modalName,
+                        modalType,
+                        backwardTest: modalName.split('').reverse().join('')
+                    })
+                    break;
+                default:
+                    global.logger.debug('Unknown modal type, returning generic stub.')
+                    modalTemplate = 'modals/stub.pug';
+            }
             break;
         case 'bot':
             const state = await ctx.core.state.get();
@@ -29,6 +61,12 @@ async function settingsModal(ctx) {
             modalTemplate = 'modals/stub.pug';
     }
 
+    global.logger.debug({
+        modalTemplate,
+        modalType,
+        modalName,
+        modalParams
+    });
     return await ctx.compileView(modalTemplate, modalParams);
 }
 

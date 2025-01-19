@@ -1,44 +1,100 @@
-const _ = require('lodash');
+const BaseModel = require('./base');
 
-class DiscordMessage {
+class DiscordMessage extends BaseModel {
   constructor(core) {
-    this.core = core;
-    this.prisma = core.prisma;
-    this.logger = core.logger;
+    super(core, 'DiscordMessage');
   }
 
-  async create(...args) {
-    return this.prisma.discordMessage.create(...args);
+  // HELPERS
+  async getChannelMessages(channel_id, options = {}) {
+    const { include = {}, limit = 50, before = null } = options;
+    const defaultInclude = {
+      user: true,
+      ...include
+    };
+
+    const where = { channel_id };
+    if (before) {
+      where.created_at = { lt: before };
+    }
+
+    return this.getMany(
+      where,
+      defaultInclude,
+      { created_at: 'desc' },
+      { take: limit }
+    );
   }
 
-  async getOrCreate(data) {
-    return await this.upsert(data);
+  async getServerMessages(server_id, options = {}) {
+    const { include = {}, limit = 50 } = options;
+    return this.getMany(
+      { server_id },
+      include,
+      { created_at: 'desc' },
+      { take: limit }
+    );
   }
 
-  async upsert(data) {
-    return this.prisma.discordMessage.upsert(data);
+  async getUserMessages(user_id, options = {}) {
+    const { include = {}, limit = 50 } = options;
+    return this.getMany(
+      { user_id },
+      include,
+      { created_at: 'desc' },
+      { take: limit }
+    );
   }
 
-  async get(where = {}) {
-    return this.prisma.discordMessage.findFirst({ where });
+  async createMany(messages = []) {
+    this.logger.info(`Creating ${messages.length} messages in bulk`);
+    return this.transaction(
+      messages.map(msg => this.model.create({ data: msg }))
+    );
   }
 
-  async getMany(where = {}) {
-    return this.prisma.discordMessage.findMany({ where });
+  async editMessage(message_id, content) {
+    return this.update(
+      { message_id },
+      {
+        content,
+        updated_at: new Date()
+      }
+    );
   }
 
-  async update(where = {}, data = {}) {
-    this.logger.info('Updating DiscordMessage:', where);
-    return this.prisma.discordMessage.update({ where, data });
+  async searchMessages(query, options = {}) {
+    const { server_id, channel_id, user_id, limit = 50 } = options;
+    const where = {
+      content: { contains: query }
+    };
+
+    if (server_id) where.server_id = server_id;
+    if (channel_id) where.channel_id = channel_id;
+    if (user_id) where.user_id = user_id;
+
+    return this.getMany(
+      where,
+      { user: true },
+      { created_at: 'desc' },
+      { take: limit }
+    );
   }
 
-  async delete(where = {}) {
-    this.logger.warn('Deleting DiscordMessage:', where);
-    return this.prisma.discordMessage.delete({ where });
+  // CLEANUP
+  async deleteChannelMessages(channel_id) {
+    this.logger.warn('Deleting all messages for channel:', channel_id);
+    return this.deleteMany({ channel_id });
   }
 
-  async deleteMany(...args) {
-    return this.prisma.discordMessage.deleteMany(...args);
+  async deleteServerMessages(server_id) {
+    this.logger.warn('Deleting all messages for server:', server_id);
+    return this.deleteMany({ server_id });
+  }
+
+  async deleteUserMessages(user_id) {
+    this.logger.warn('Deleting all messages for user:', user_id);
+    return this.deleteMany({ user_id });
   }
 }
 

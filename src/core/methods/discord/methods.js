@@ -74,43 +74,33 @@ module.exports = {
     const bot = await this.discordBot.get();
     const isSelf = author.id === bot.bot_id;
 
-    let discordServer;
-    let discordChannel;
+    let server;
+    let channel;
 
     if (!isSelf) {
       // UPDATE UNREAD MESSAGE COUNT
-      discordServer = await this.discordServer.update(
+      server = await this.discordServer.update(
         { server_id: rawDiscMsg.guildId },
         { unread_message_count: { increment: isActiveChannel ? 0 : 1 } }
       );
 
-      discordChannel = await this.discordChannel.update(
+      channel = await this.discordChannel.update(
         { channel_id: rawDiscMsg.channelId },
         { unread_message_count: isActiveChannel ? 0 : { increment: 1 } }
       );
     } else {
       // FETCH SERVER WITHOUT UPDATE
-      discordServer = await this.discordServer.get({ server_id: rawDiscMsg.guildId });
-      discordChannel = await this.discordChannel.get({ channel_id: rawDiscMsg.channelId });
+      server = await this.discordServer.get({ server_id: rawDiscMsg.guildId });
+      channel = await this.discordChannel.get({ channel_id: rawDiscMsg.channelId });
     }
-
     const avatarUrl = author.displayAvatarURL();
     const userAccent = (author.hexAccentColor || 'ffffff').replace('#', '');
     const isClient = author.id === bot.bot_id;
 
     // UPSERT USER DATA
-    await this.user.getOrCreate({
-      where: { id: author.id },
-      update: {
-        username: author.username,
-        display_name: author.displayName,
-        accent_color: userAccent,
-        avatar_url: avatarUrl,
-        discord_servers: {
-          connect: { server_id: discordServer.server_id }
-        },
-      },
-      create: {
+    await this.user.getOrCreate(
+      { id: author.id },
+      {
         id: author.id,
         is_bot: author.bot,
         is_client: isClient,
@@ -119,28 +109,26 @@ module.exports = {
         accent_color: userAccent,
         avatar_url: avatarUrl,
         discord_servers: {
-          connect: { server_id: discordServer.server_id }
+          connect: { server_id: server.server_id }
         },
-      }
-    });
+      });
 
     // UPSERT MESSAGE DATA
-    await this.discordMessage.upsert({
-      where: { message_id: rawDiscMsg.id },
-      update: {
+    await this.discordMessage.upsert(
+      { message_id: rawDiscMsg.id },
+      {
         content: rawDiscMsg.content,
         user: { connect: { id: author.id } },
-        channel: { connect: { channel_id: discordChannel.channel_id } },
-        server: { connect: { server_id: discordServer.server_id } }
+        channel: { connect: { channel_id: channel.channel_id } },
+        server: { connect: { server_id: server.server_id } }
       },
-      create: {
+      {
         message_id: rawDiscMsg.id,
-        server: { connect: { server_id: discordServer.server_id } },
-        channel: { connect: { channel_id: discordChannel.channel_id } },
+        server: { connect: { server_id: server.server_id } },
+        channel: { connect: { channel_id: channel.channel_id } },
         user: { connect: { id: author.id } },
         content: rawDiscMsg.content
-      }
-    });
+      });
 
     // DETERMINE IF WE SHOULD EMIT CURRENT MESSAGE SHARD
     if (isActiveChannel) {
@@ -182,10 +170,7 @@ module.exports = {
     }
 
     if (!active_channel_id) {
-      const activeServer = await this.discordServer.get(
-        { server_id: state.active_server_id },
-        { channels: true }
-      );
+      const activeServer = await this.state.getActiveServer();
 
       active_channel_id = activeServer.active_channel_id;
       if (!active_channel_id) {
@@ -200,10 +185,7 @@ module.exports = {
     );
 
     // UPDATE UNREAD MESSAGES FOR SERVER
-    const server = await this.discordServer.get(
-      { server_id: state.active_server_id },
-      { channels: true }
-    );
+    const server = await this.discordServer.getWithChannels(state.active_server_id);
 
     const unreadServerMsgCount = server.channels.reduce(
       (total, channel) => total + channel.unread_message_count,

@@ -1,60 +1,146 @@
-const _ = require('lodash');
+const BaseModel = require('./base');
 
-class DiscordServer {
+class DiscordServer extends BaseModel {
   constructor(core) {
-    this.core = core;
-    this.prisma = core.prisma;
-    this.logger = core.logger;
+    super(core, 'DiscordServer');
   }
 
-  async create(...args) {
-    return this.prisma.discordServer.create(...args);
-  }
-
-  async getOrCreate(data) {
-    const srv = this.get(data);
-    if (!srv) {
-      return await this.create({ data });
-    }
-    return srv;
-  }
-
-  async upsert(...args) {
-    return this.prisma.discordServer.upsert(...args);
-  }
-
-  async get(where = {}, include = {}) {
-    return this.prisma.discordServer.findFirst({ where, include });
-  }
-
-  async getMany(where = {}) {
-    return this.prisma.discordServer.findMany({ where });
-  }
-
-  async getSorted(where = {}) {
-    this.logger.info('Getting sorted DiscordServers');
-    return this.prisma.discordServer.findMany({
-      where,
-      orderBy: { sort_position: 'asc' }
+  // HELPERS
+  async getById(server_id) {
+    return this.model.findFirst({
+      where: { server_id }
     });
   }
 
-  async update(where = {}, data = {}) {
-    return this.prisma.discordServer.update({ where, data });
+  async getSorted(where = {}, include = {}) {
+    return this.getMany(
+      where,
+      include,
+      { sort_position: 'asc' }
+    );
   }
 
-  async reorder(newSortPositions = []) {
-    const updateQueries = newSortPositions.map((server_id, index) => 
-      this.prisma.discordServer.update({
+  async getWithChannels(server_id) {
+    return this.model.findFirst({
+      where: { server_id },
+      include: { 
+        channels: {
+          orderBy: { position: 'asc' }
+        }
+      }
+    });
+  }
+
+  async getWithUsers(server_id) {
+    return this.model.findFirst({
+      where: { server_id },
+      include: { users: true }
+    });
+  }
+
+  async getComplete(server_id) {
+    return this.model.findFirst({
+      where: { server_id },
+      include: {
+        channels: {
+          orderBy: { position: 'asc' }
+        },
+        users: true,
+        messages: {
+          take: 50,
+          orderBy: { created_at: 'desc' },
+          include: { user: true }
+        }
+      }
+    });
+  }
+
+  // USER STUFF
+  async addUser(server_id, userId) {
+    return this.model.update(
+      { server_id },
+      {
+        users: {
+          connect: { id: userId }
+        }
+      }
+    );
+  }
+
+  async removeUser(server_id, userId) {
+    return this.update(
+      { server_id },
+      {
+        users: {
+          disconnect: { id: userId }
+        }
+      }
+    );
+  }
+
+  // CHANNEL STUFF
+  async setActiveChannel(server_id, channel_id) {
+    return this.update(
+      { server_id },
+      { active_channel_id: channel_id }
+    );
+  }
+
+
+  async getActiveChannel(server_id) {
+    let self = this.getById(server_id);
+    if (!self || !self.active_channel_id) {
+      self = this.getWithChannels(server_id);
+      return this.setActiveChannel(server_id, self.channels[0]?.channel_id || null)
+    }
+  }
+
+  // SORTING
+  async reorder(serverIds = []) {
+    const updates = serverIds.map((server_id, index) => 
+      this.model.update({
         where: { server_id },
         data: { sort_position: index }
       })
     );
-    return this.prisma.$transaction(updateQueries);
+    return this.transaction(updates);
   }
 
-  async deleteMany(where = {}) {
-    return this.prisma.discordServer.deleteMany({ where });
+  // UNREAD STATE
+  async incrementUnread(server_id) {
+    const server = await this.findFirst({ server_id });
+    return this.update(
+      { server_id },
+      { unread_message_count: (server.unread_message_count || 0) + 1 }
+    );
+  }
+
+  async markAsRead(server_id) {
+    return this.update(
+      { server_id },
+      { unread_message_count: 0 }
+    );
+  }
+
+  // AVAILABILITY
+  async setAvailable(server_id, available = true) {
+    return this.update(
+      { server_id },
+      { available }
+    );
+  }
+
+  // CLEANUP
+  async deleteWithRelated(server_id) {
+    await this.prisma.discordMessage.deleteMany({
+      where: { server_id } // DELETE ALL MESSAGES
+    });
+    
+    await this.prisma.discordServerChannel.deleteMany({
+      where: { discord_server: server_id } // DELETE ALL CHANNELS
+    });
+    
+    return this.delete({ server_id });
   }
 }
 

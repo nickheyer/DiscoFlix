@@ -1,43 +1,47 @@
-// PRISMA GENERATOR
-
 generator client {
   provider = "prisma-client-js"
 }
 
-// DATABASE INFORMATION
-
+// DB INFORMATION
 datasource db {
   provider = "sqlite"
   url      = "file:./disco.db"
 }
 
-// MODEL DEFINITIONS
-
+// MODELS
 model Configuration {
-  id                        Int     @id @default(autoincrement())
-  media_server_name         String? @default("The Server")
-  prefix_keyword            String? @default("!df")
+  id                        String   @id @default(cuid())
+  media_server_name         String   @default("The Server")
+  prefix_keyword            String   @default("!df")
   discord_token             String?
   radarr_url                String?
   radarr_token              String?
   sonarr_url                String?
   sonarr_token              String?
-  session_timeout           Int?    @default(60)
-  max_check_time            Int?    @default(600)
-  max_results               Int?    @default(0)
-  max_seasons_for_non_admin Int?    @default(0)
-  is_debug                  Boolean @default(false)
-  is_radarr_enabled         Boolean @default(true)
-  is_sonarr_enabled         Boolean @default(true)
-  is_trailers_enabled       Boolean @default(true)
+  session_timeout           Int      @default(60)
+  max_check_time            Int      @default(600)
+  max_results               Int      @default(0)
+  max_seasons_for_non_admin Int      @default(0)
+  is_debug                  Boolean  @default(false)
+  is_radarr_enabled         Boolean  @default(true)
+  is_sonarr_enabled         Boolean  @default(true)
+  is_trailers_enabled       Boolean  @default(true)
+  created_at                DateTime @default(now())
+  updated_at                DateTime @updatedAt
+
+  @@map("configuration")
 }
 
 model State {
-  id                Int            @id @default(autoincrement())
+  id                String         @id @default(cuid())
   discord_state     Boolean        @default(false)
   sidebar_exp_state Boolean        @default(true)
   active_server_id  String?        @unique
+  created_at        DateTime       @default(now())
+  updated_at        DateTime       @updatedAt
   activeServer      DiscordServer? @relation(fields: [active_server_id], references: [server_id], onDelete: SetNull)
+
+  @@map("state")
 }
 
 model EventLog {
@@ -45,15 +49,23 @@ model EventLog {
   timestamp DateTime @default(now())
   level     String
   message   String
+  metadata  String?
+
+  @@index([timestamp])
+  @@map("event_logs")
 }
 
 model DiscordBot {
-  id                Int     @id @default(autoincrement())
-  bot_id            String? @default("0")
-  bot_username      String? @default("Unavailable")
-  bot_discriminator String? @default("0000")
+  id                String   @id @default(cuid())
+  bot_id            String   @default("0")
+  bot_username      String   @default("Unavailable")
+  bot_discriminator String   @default("0000")
   bot_avatar_url    String?
   bot_invite_link   String?
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  @@map("discord_bots")
 }
 
 model DiscordServer {
@@ -64,11 +76,16 @@ model DiscordServer {
   sort_position        Int?                   @default(-1)
   active_channel_id    String?
   available            Boolean?               @default(true)
+  created_at           DateTime               @default(now())
+  updated_at           DateTime               @updatedAt
   users                User[]                 @relation("UserDiscordServers")
   requests             MediaRequest[]         @relation("DiscordServerRequests")
   channels             DiscordServerChannel[]
   messages             DiscordMessage[]
   state                State?
+
+  @@index([sort_position])
+  @@map("discord_servers")
 }
 
 model DiscordServerChannel {
@@ -76,38 +93,44 @@ model DiscordServerChannel {
   channel_name         String?          @default("TBD")
   position             Int?             @default(-1)
   discord_server       String
-  channel_type         Int              @default(0) // 0: Text, 2: Voice, 4: Category
+  channel_type         Int              @default(0)
   isTextChannel        Boolean          @default(false)
   isVoiceChannel       Boolean          @default(false)
   isCategory           Boolean          @default(false)
   parent_id            String           @default("")
-  unread_message_count Int?             @default(0)
+  unread_message_count Int              @default(0)
+  created_at           DateTime         @default(now())
+  updated_at           DateTime         @updatedAt
   server               DiscordServer    @relation(fields: [discord_server], references: [server_id], onDelete: Cascade)
   messages             DiscordMessage[]
 
   @@index([discord_server])
+  @@index([parent_id])
+  @@index([position])
+  @@map("discord_channels")
 }
 
 model DiscordMessage {
-  message_id String @id @default(uuid())
-  server_id  String @default(uuid())
-  channel_id String @default(uuid())
-
+  message_id String               @id @default(uuid())
+  server_id  String
+  channel_id String
   user_id    String
   content    String
-  created_at DateTime @default(now())
-
-  server  DiscordServer        @relation(fields: [server_id], references: [server_id], onDelete: Cascade)
-  channel DiscordServerChannel @relation(fields: [channel_id], references: [channel_id], onDelete: Cascade)
-  user    User                 @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  created_at DateTime             @default(now())
+  updated_at DateTime             @updatedAt
+  server     DiscordServer        @relation(fields: [server_id], references: [server_id], onDelete: Cascade)
+  channel    DiscordServerChannel @relation(fields: [channel_id], references: [channel_id], onDelete: Cascade)
+  user       User                 @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@index([server_id])
   @@index([channel_id])
   @@index([user_id])
+  @@index([created_at])
+  @@map("discord_messages")
 }
 
 model Media {
-  id           Int            @id @default(autoincrement())
+  id           String         @id @default(cuid())
   title        String?
   overview     String?
   poster_url   String?
@@ -120,38 +143,45 @@ model Media {
   network      String?
   air_time     String?
   tvdb_id      String?
-  imdb_id      String?
+  imdb_id      String?        @unique
   first_aired  String?
   series_type  String?
   in_theaters  String?
   website_url  String?
   trailer_url  String?
-  requests     MediaRequest[] @relation("MediaRequests")
+  created_at   DateTime       @default(now())
+  updated_at   DateTime       @updatedAt
+  requests     MediaRequest[]
+
+  @@index([imdb_id])
+  @@map("media")
 }
 
 model MediaRequest {
-  id                Int           @id @default(autoincrement())
-  created           DateTime      @default(now())
+  id                String        @id @default(cuid())
+  created_at        DateTime      @default(now())
+  updated_at        DateTime      @updatedAt
   made_in           DiscordServer @relation("DiscordServerRequests", fields: [madeInId], references: [server_id])
   madeInId          String
-  media             Media         @relation("MediaRequests", fields: [mediaId], references: [id])
-  mediaId           Int
+  media             Media         @relation(fields: [mediaId], references: [id])
+  mediaId           String
   orig_message      String?
   orig_parsed_title String?
   orig_parsed_type  String?
   status            Boolean?
   users             User[]        @relation("UserMediaRequests")
+
+  @@index([madeInId])
+  @@index([mediaId])
+  @@map("media_requests")
 }
 
 model User {
   id                        String           @id @default(uuid())
-  added                     DateTime         @default(now())
   username                  String           @default("DiscordUser")
   display_name              String           @default("ADiscordUser")
   accent_color              String           @default("ffffff")
   avatar_url                String           @default("https://cdn.discordapp.com/embed/avatars/3.png")
-  discord_servers           DiscordServer[]  @relation("UserDiscordServers")
-  requests                  MediaRequest[]   @relation("UserMediaRequests")
   is_superuser              Boolean          @default(false)
   is_staff                  Boolean          @default(false)
   is_active                 Boolean          @default(true)
@@ -162,5 +192,12 @@ model User {
   max_results               Int              @default(0)
   max_seasons_for_non_admin Int              @default(0)
   max_requests_in_day       Int              @default(0)
+  created_at                DateTime         @default(now())
+  updated_at                DateTime         @updatedAt
+  discord_servers           DiscordServer[]  @relation("UserDiscordServers")
+  requests                  MediaRequest[]   @relation("UserMediaRequests")
   messages                  DiscordMessage[]
+
+  @@index([username])
+  @@map("users")
 }

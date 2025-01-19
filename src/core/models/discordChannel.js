@@ -1,34 +1,67 @@
-const _ = require('lodash');
+const BaseModel = require('./base');
 
-class DiscordServerChannel {
+class DiscordServerChannel extends BaseModel {
   constructor(core) {
-    this.core = core;
-    this.prisma = core.prisma;
-    this.logger = core.logger;
+    super(core, 'DiscordServerChannel');
   }
 
-  async create(...args) {
-    return this.prisma.discordServerChannel.create(...args);
+  async create(data = {}, include = {}) {
+    const channelType = data.channel_type || 0;
+    data.isTextChannel = channelType === 0;
+    data.isVoiceChannel = channelType === 2;
+    data.isCategory = channelType === 4;
+    
+    return super.create(data, include);
   }
 
-  async getOrCreate(data) {
-    const ch = this.get(data);
-    if (!ch) {
-      return await this.create({ data });
-    }
-    return ch;
+  async upsert(where = {}, create = {}, update = {}, include = {}) {
+    const channelType = create.channel_type || 0;
+    create.isTextChannel = channelType === 0;
+    create.isVoiceChannel = channelType === 2;
+    create.isCategory = channelType === 4;
+    
+    return super.upsert(where, create, update, include);
   }
 
-  async upsert(...args) {
-    return this.prisma.discordServerChannel.upsert(...args);
+  async getServerChannels(discord_server, include = {}) {
+    return this.getMany(
+      { discord_server },
+      include,
+      { position: 'asc' }
+    );
   }
 
-  async get(where = {}) {
-    return this.prisma.discordServerChannel.findFirst({ where });
+  async getCategories(discord_server) {
+    return this.getMany(
+      { 
+        discord_server,
+        isCategory: true
+      },
+      {},
+      { position: 'asc' }
+    );
   }
 
-  async getMany(where = {}) {
-    return this.prisma.discordServerChannel.findMany({ where });
+  async getTextChannels(discord_server) {
+    return this.getMany(
+      { 
+        discord_server,
+        isTextChannel: true
+      },
+      {},
+      { position: 'asc' }
+    );
+  }
+
+  async getVoiceChannels(discord_server) {
+    return this.getMany(
+      { 
+        discord_server,
+        isVoiceChannel: true
+      },
+      {},
+      { position: 'asc' }
+    );
   }
 
   async getMessages(channelId) {
@@ -40,18 +73,51 @@ class DiscordServerChannel {
     });
   }
 
-  async update(where = {}, data = {}) {
-    this.logger.info('Updating DiscordServerChannel:', where);
-    return this.prisma.discordServerChannel.update({ where, data });
+  async markAsRead(channel_id) {
+    return this.update(
+      { channel_id },
+      { unread_message_count: 0 }
+    );
   }
 
-  async delete(where = {}) {
-    this.logger.warn('Deleting DiscordServerChannel:', where);
-    return this.prisma.discordServerChannel.delete({ where });
+  async getById(channel_id) {
+    return this.findFirst({ channel_id });
   }
 
-  async deleteMany(...args) {
-    return this.prisma.discordServerChannel.deleteMany(...args);
+  async incrementUnread(channel_id) {
+    const channel = await this.getById(channel_id);
+    return this.update(
+      { channel_id },
+      { unread_message_count: (channel.unread_message_count || 0) + 1 }
+    );
+  }
+
+  // UI STUFF
+  async reorder(channels = []) {
+    const updates = channels.map((channel_id, position) => 
+      this.model.update({ where: { channel_id }, data: { position }})
+    );
+    return this.transaction(updates);
+  }
+
+  async setParent(channel_id, parent_id) {
+    return this.update(
+      { channel_id },
+      { parent_id }
+    );
+  }
+
+  async getChildChannels(parent_id, discord_server) {
+    return this.getMany(
+      { parent_id, discord_server },
+      {},
+      { position: 'asc' }
+    );
+  }
+
+  async deleteServerChannels(discord_server) {
+    this.logger.warn('Deleting all channels for server:', discord_server);
+    return this.deleteMany({ discord_server });
   }
 }
 

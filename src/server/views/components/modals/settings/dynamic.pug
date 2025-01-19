@@ -1,0 +1,31 @@
+.modal-dialog.modal-dialog-centered
+  .modal-content
+    .modal-header
+      h5.modal-title= title
+      button.modal-close-button(type='button' data-bs-dismiss='modal') ×
+    .modal-body
+      form(hx-post=`/api/settings/${modalName}/save` hx-target='this')
+        each value, key in settings
+          if typeof value === 'boolean'
+            .settings-switch-wrapper
+              span.settings-switch-label= key.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+              label.settings-switch
+                input(
+                  type='checkbox'
+                  name=key
+                  checked=value
+                )
+                span.settings-slider
+          else
+            .settings-field
+              label= key.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+              input.settings-input(
+                type=typeof value === 'number' ? 'number' : key.includes('token') || key.includes('password') ? 'password' : 'text'
+                name=key
+                value=value
+                min=typeof value === 'number' ? '0' : null
+              )
+    .modal-footer
+      button#modal-cancel-button.modal-button(type='button' data-bs-dismiss='modal') Cancel
+      button.modal-button(type='submit') Save Changes
+      

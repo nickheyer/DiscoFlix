@@ -76,16 +76,10 @@ module.exports = {
     if (!serverID) {
       activeServer = await this.state.getActiveServer();
       if (activeServer) {
-        activeServer = await this.discordServer.get(
-          { server_id: activeServer.server_id },
-          { channels: true }
-        );
+        activeServer = await this.discordServer.getWithChannels(activeServer.server_id);
       }
     } else {
-      activeServer = await this.discordServer.get(
-        { server_id: serverID },
-        { channels: true }
-      );
+      activeServer = await this.discordServer.getWithChannels(serverID);
     }
 
     const currentChannelView = _.get(activeServer, 'active_channel_id', null);
@@ -119,10 +113,7 @@ module.exports = {
     let activeServer = await this.state.getActiveServer();
     let activeChannel = null;
     if (activeServer) {
-      activeServer = await this.discordServer.get(
-        { server_id: activeServer.server_id },
-        { channels: true }
-      );
+      activeServer = await this.discordServer.getWithChannels(activeServer.server_id);
       const currentChannelView = _.get(activeServer, 'active_channel_id', null);
       activeChannel = _.find(activeServer.channels, ['channel_id', currentChannelView]);
       channels = await this.createActiveChannels(activeServer.channels, currentChannelView);

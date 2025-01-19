@@ -1,46 +1,67 @@
-class State {
+const BaseModel = require('./base');
+
+class State extends BaseModel {
   constructor(core) {
-    this.core = core;
-    this.prisma = core.prisma;
-    this.logger = core.logger;
+    super(core, 'State');
+    this.defaults = {
+      discord_state: false,
+      sidebar_exp_state: true,
+      active_server_id: null
+    };
   }
 
-  async get(options = {}) {
-    return await this.prisma.state.findFirst(options) ||
-    await this.prisma.state.create();
+  async get(include = {}) {
+    const defaultInclude = {
+      activeServer: Boolean(include?.activeServer)
+    };
+
+    return this.getSingleton(this.defaults, defaultInclude);
   }
 
-  async update(fields = {}) {
-    this.logger.debug('Updating Prisma State: ', fields);
-    return await this.prisma.state.update({
-      where: { id: 1 },
-      data: fields,
+  async update(fields = {}, include = {}) {
+    this.logger.debug('Updating State:', fields);
+    const current = await this.get();
+    return this.model.update({
+        where: { id: current.id },
+        data: fields,
+        include,
+    }).catch(err => {
+        this.logger.error(`Error updating ${this.modelName}:`, err);
+        throw err;
     });
+}
+
+  // HELPERS
+  async toggleDiscordState() {
+    const state = await this.get();
+    return this.update({ discord_state: !state.discord_state });
+  }
+
+  async toggleSidebar() {
+    const state = await this.get();
+    return this.update({ sidebar_exp_state: !state.sidebar_exp_state });
+  }
+
+  async reset() {
+    return this.update(this.defaults);
   }
 
   async getActiveServer(state = null) {
     if (!state) {
-
-      // FORCE A DEPTH OF 2 QUERY
-      state = await this.get({
-        include: { activeServer: true }
-      });
+      state = await this.get({ activeServer: true });
     }
     return state.activeServer;
   }
 
   async changeActive(active_server_id = null) {
     if (!active_server_id) {
-      const firstServer = await this.discordServer.findFirst();
-      active_server_id = firstServer ? firstServer.server_id : null;
+      const firstServer = await this.prisma.discordServer.findFirst({
+        orderBy: { sort_position: 'asc' }
+      });
+      active_server_id = firstServer?.server_id ?? null;
     }
-  
-    const updatedState = await this.prisma.state.update({
-      where: { id: 1 },
-      data: { active_server_id },
-    });
-  
-    return updatedState;
+    
+    return this.update({ active_server_id });
   }
 }
 

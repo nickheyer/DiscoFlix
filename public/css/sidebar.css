@@ -21,7 +21,26 @@
   width: fit-content;
   display: flex;
   flex-direction: column;
-  height: inherit
+  height: 100%;
+  overflow: hidden;
+}
+
+.serverBubbles.sortable {
+  scrollbar-width: none;
+  overflow-y: scroll;
+  overflow-x: clip;
+  border-radius: 10px;
+}
+
+.serverBubbles.sortable:has(> *:last-child:nth-last-child(n+5)) {
+  margin-bottom: 15px;
+}
+
+.invite {
+  color: var(--green) !important;
+  font-size: 33px;
+  font-weight: 200;
+  margin-bottom: 0;
 }
 
 .homeButton {

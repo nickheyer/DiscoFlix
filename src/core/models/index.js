@@ -1,21 +1,46 @@
 const prismaMW = require('./middleware.js');
-const State = require('./state');
-const Configuration = require('./configuration');
-const DiscordServer = require('./discordServer');
-const DiscordServerChannel = require('./discordChannel');
-const DiscordBot = require('./discordBot');
-const DiscordMessage = require('./discordMessage');
-const User = require('./user');
 
+const MODELS = {
+  state: require('./state'),
+  configuration: require('./configuration'),
+  discordServer: require('./discordServer'),
+  discordChannel: require('./discordChannel'),
+  discordBot: require('./discordBot'),
+  discordMessage: require('./discordMessage'),
+  user: require('./user'),
+  media: require('./media'),
+  mediaRequest: require('./mediaRequest')
+};
 
 module.exports = (core) => {
-  prismaMW(core);
-  core.state = new State(core);
-  core.configuration = new Configuration(core);
-  core.discordServer = new DiscordServer(core);
-  core.discordChannel = new DiscordServerChannel(core);
-  core.discordBot = new DiscordBot(core);
-  core.discordMessage = new DiscordMessage(core);
-  core.user = new User(core);
-  core.logger.debug('Models bound:', Object.keys(core));
-}
+  try {
+    // INIT MW
+    prismaMW(core);
+    core.logger.info('Prisma middleware initialized');
+
+    // INIT MODELS
+    for (const [key, Model] of Object.entries(MODELS)) {
+      core[key] = new Model(core);
+      core.logger.debug(`Initialized model: ${key}`);
+    }
+
+    // LOG INIT STATE
+    const boundModels = Object.keys(MODELS);
+    core.logger.info('Models initialization complete', {
+      count: boundModels.length,
+      models: boundModels
+    });
+
+    // VERIFY INIT
+    const requiredModels = ['state', 'configuration', 'user'];
+    for (const model of requiredModels) {
+      if (!core[model]) {
+        throw new Error(`Critical model not initialized: ${model}`);
+      }
+    }
+
+  } catch (error) {
+    core.logger.error('Failed to initialize models:', error);
+    throw error;
+  }
+};
