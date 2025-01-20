@@ -1,172 +1,235 @@
 const _ = require('lodash');
 
-
+// GENERATE BOT INVITE LINK
 function genInvite(client) {
-  return client.generateInvite({ scopes: ['bot'], permissions: ['1689934407138496']});
+  return client.generateInvite({ scopes: ['bot'], permissions: ['1689934407138496'] });
 }
 
-
 module.exports = {
-
-  // PARSES CHANNELS/GUILD ATTRIBUTES OF ALL CONNECTED GUILDS (SERVERS)
+  // SYNC ALL SERVERS AND CHANNELS
   async refreshAllDiscordServers() {
-    const foundIDs = [];
-    const foundPartialServers = await this.client.guilds.fetch();
-    const foundServers = await Promise.all(foundPartialServers.map(part => part.fetch()));
-    for (const foundServer of foundServers) {
-      await this.upsertDiscordServer(foundServer);
-      await this.fetchAndUpsertChannels(foundServer);
-      foundIDs.push(foundServer.id);
+    try {
+      const foundPartialServers = await this.client.guilds.fetch();
+      const foundServers = await Promise.all(foundPartialServers.map(part => part.fetch()));
+      const foundIDs = await this.batchUpsertServers(foundServers);
+      await this.syncMissingServers(foundIDs);
+      return await this.discordServer.getSorted();
+    } catch (error) {
+      logger.error('Failed to refresh all Discord servers:', error);
+      throw error;
     }
-    await this.syncMissingServers(foundIDs);
-    return await this.discordServer.getSorted();
   },
 
-  // PARSES CHANNELS/GUILD ATTRIBUTES OF SINGLE (DEF) GUILD (SERVER) FROM OBJECT(S)
+  // SYNC SPECIFIC SERVER OR ALL IF NONE PROVIDED
   async refreshDiscordServers(fetchedServer) {
-    if (!fetchedServer) {
+    try {
+      if (fetchedServer) {
+        await this.batchUpsertServers([fetchedServer]);
+        return [fetchedServer.id];
+      }
+      
       const fetchedServers = await this.client.guilds.fetch();
       const foundServers = await Promise.all(fetchedServers.map(part => part.fetch()));
-      const foundIDs = [];
-      for (const foundServer of foundServers) {
-        await this.upsertDiscordServer(foundServer);
-        await this.fetchAndUpsertChannels(foundServer);
-        foundIDs.push(foundServer.id);
-      }
+      const foundIDs = await this.batchUpsertServers(foundServers);
       await this.syncMissingServers(foundIDs);
       return foundIDs;
-    } else {
-      await this.upsertDiscordServer(fetchedServer);
-      await this.fetchAndUpsertChannels(fetchedServer);
+    } catch (error) {
+      logger.error('Failed to refresh Discord servers:', error);
+      throw error;
     }
   },
 
-  async syncMissingServers(availableServerIDs) {
-    const unavailable = [];
-    const existingServers = await this.discordServer.getMany();
-    for (let i = 0; i < existingServers.length; i++) {
-      const existing = existingServers[i];
-      if (existing.available && !availableServerIDs.includes(existing.server_id)) {
-        await this.discordServer.update(
-          { server_id: existing.server_id },
-          { available: false }
-        );
-        unavailable.push(existing.server_id);
-        logger.warn(`Server currently not available or visible, marking unavailable: `, existing);
-      }
-    }
-    return unavailable;
-  },
+  // BATCH UPSERT SERVERS/CHANNELS
+  async batchUpsertServers(servers) {
+    const serverOps = [];
+    const channelOps = [];
+    const foundIDs = [];
 
-  async upsertDiscordServer(server) {
-    const guildInfo = {
-      server_id: server.id,
-      server_name: server.name,
-      server_avatar_url: server.iconURL(),
-      sort_position: 0,
-      available: true
-    };
-
-    await this.discordServer.upsert(
-      { server_id: server.id },
-      guildInfo,
-      guildInfo
-    );
-
-    const activeServer = await this.state.getActiveServer();
-    if (!activeServer) {
-      logger.info(`No active server detected, setting active to:  ${server.id}`);
-      await this.state.changeActive(server.id);
-    }
-  
-    logger.debug('Fetched Discord Server:', guildInfo);
-  },
-
-  async fetchAndUpsertChannels(server) {
-    const foundPartialChannels = await server.channels.fetch();
-    const foundChannels = await Promise.all(foundPartialChannels.map(part => part.fetch()));
-    const visibleChannelIDs = [];
-    const createdChannels = [];
-    for (const foundChannel of foundChannels) {
-      const channelData = {
-        channel_id: foundChannel.id,
-        channel_name: foundChannel.name,
-        channel_type: foundChannel.type,
-        position: foundChannel.rawPosition,
-        parent_id: foundChannel.parentId || ''
+    for (const server of servers) {
+      foundIDs.push(server.id);
+      
+      const guildInfo = {
+        server_name: server.name,
+        server_avatar_url: server.iconURL(),
+        sort_position: 0,
+        available: true
       };
-  
-      await this.discordChannel.upsert(
-        { channel_id: foundChannel.id },
-        { discord_server: server.id, ...channelData },
-        channelData
+
+      serverOps.push(
+        this.discordServer.upsert(
+          { server_id: server.id },
+          { server_id: server.id, ...guildInfo },
+          guildInfo
+        )
       );
-      createdChannels.push(channelData);
-      visibleChannelIDs.push(foundChannel.id);
+
+      const channels = await server.channels.fetch();
+      const channelData = await this.prepareChannelBatch(server, channels);
+      channelOps.push(...channelData.ops);
+      
+      // ACTIVE CHANNEL SELECT
+      await this.ensureActiveChannel(server.id, channelData.validChannelIds);
     }
 
-    await this.discordChannel.deleteMany(
-      {
-        channel_id: {
-          notIn: visibleChannelIDs
-        },
+    await Promise.all([...serverOps, ...channelOps]);
+    
+    // ENSURE ACTIVE SERVER EXISTS
+    await this.ensureActiveServer(foundIDs[0]);
+    
+    return foundIDs;
+  },
+
+  // PREP CHANNEL BATCHES
+  async prepareChannelBatch(server, channels) {
+    const validChannelIds = [];
+    const ops = [];
+
+    for (const [, channel] of channels) {
+      const channelData = {
+        channel_name: channel.name,
+        channel_type: channel.type,
+        position: channel.rawPosition,
+        parent_id: channel.parentId || ''
+      };
+
+      validChannelIds.push(channel.id);
+      ops.push(
+        this.discordChannel.upsert(
+          { channel_id: channel.id },
+          { channel_id: channel.id, discord_server: server.id, ...channelData },
+          channelData
+        )
+      );
+    }
+
+    // BATCH DELETE INVALID CHANNELS
+    ops.push(
+      this.discordChannel.deleteMany({
+        channel_id: { notIn: validChannelIds },
         discord_server: server.id
-      }
+      })
     );
 
-    const discordServer = await this.discordServer.getComplete(server.id);
+    return { ops, validChannelIds };
+  },
+
+  // ENSURE VALID ACTIVE CHANNEL
+  async ensureActiveChannel(serverId, validChannelIds) {
+    const discordServer = await this.discordServer.getComplete(serverId);
     const activeChannel = discordServer.active_channel_id;
-    if (!activeChannel || !visibleChannelIDs.includes(activeChannel)) {
+
+    if (!activeChannel || !validChannelIds.includes(activeChannel)) {
+      const channels = await this.discordChannel.getMany({ discord_server: serverId });
       const firstTextChannel = _.find(
-        createdChannels,
+        channels,
         (ch) => ch.isTextChannel && ch.parent_id && ch.position === 0
       );
-      await this.discordServer.update(
-        { server_id: discordServer.server_id },
-        { active_channel_id: firstTextChannel ? firstTextChannel.channel_id : null }
-      );
+
+      if (firstTextChannel) {
+        await this.discordServer.update(
+          { server_id: serverId },
+          { active_channel_id: firstTextChannel.channel_id }
+        );
+      }
     }
   },
 
+  // ENSURE ACTIVE SERVER EXISTS
+  async ensureActiveServer(defaultServerId) {
+    const activeServer = await this.state.getActiveServer();
+    if (!activeServer) {
+      logger.info(`No active server detected, setting active to: ${defaultServerId}`);
+      await this.state.changeActive(defaultServerId);
+    }
+  },
+
+  // MARK UNAVAILABLE
+  async syncMissingServers(availableServerIDs) {
+    try {
+      const existingServers = await this.discordServer.getMany();
+      const unavailableServers = existingServers.filter(
+        server => server.available && !availableServerIDs.includes(server.server_id)
+      );
+
+      if (unavailableServers.length > 0) {
+        await Promise.all(
+          unavailableServers.map(server =>
+            this.discordServer.update(
+              { server_id: server.server_id },
+              { available: false }
+            )
+          )
+        );
+
+        unavailableServers.forEach(server => {
+          logger.warn('Server currently not available or visible:', server);
+        });
+      }
+
+      return unavailableServers.map(server => server.server_id);
+    } catch (error) {
+      logger.error('Failed to sync missing servers:', error);
+      throw error;
+    }
+  },
+
+  // UPDATE BOT INFO
   async refreshBotInfo(powerOn) {
-    const inviteLink = genInvite(this.client);
-    const botClient = this.client.user;
-    const clientID = botClient.id;
-    const clientName = botClient.displayName;
-    const clientDiscrim = botClient.discriminator;
-    const clientAvatar = botClient.displayAvatarURL();
-    const discordBot = await this.discordBot.update({
-      bot_id: clientID,
-      bot_username: clientName,
-      bot_discriminator: clientDiscrim,
-      bot_invite_link: inviteLink,
-      bot_avatar_url: clientAvatar
-    })
-    await this.updatePowerState(powerOn, discordBot)
+    try {
+      const botClient = this.client.user;
+      const discordBot = await this.discordBot.update({
+        bot_id: botClient.id,
+        bot_username: botClient.displayName,
+        bot_discriminator: botClient.discriminator,
+        bot_invite_link: genInvite(this.client),
+        bot_avatar_url: botClient.displayAvatarURL()
+      });
+      await this.updatePowerState(powerOn, discordBot);
+    } catch (error) {
+      logger.error('Failed to refresh bot info:', error);
+      throw error;
+    }
   },
 
+  // UPDATE INVITE LINK
   async setInviteLink() {
-    const inviteLink = genInvite(this.client);
-    return await this.discordBot.update({ bot_invite_link: inviteLink });
+    try {
+      return await this.discordBot.update({
+        bot_invite_link: genInvite(this.client)
+      });
+    } catch (error) {
+      logger.error('Failed to set invite link:', error);
+      throw error;
+    }
   },
 
+  // UPDATE UI AFTER SERVER SORT
   async updateServerSortOrder() {
-    const serverRows = await this.refreshAllDiscordServers();
-    const servers = await this.getServerTemplateObj(serverRows);
-    const discordBot = await this.discordBot.get();
-    const state = await this.state.get();
-    await this.emitCompiled([
-      'sidebar/servers/serverSortableContainer.pug',
-      'sidebar/servers/serverBannerLabel.pug',
-      'sidebar/channels/chatChannels.pug',
-      'chat/messageChannelHeader.pug',
-      'chat/chatBar.pug',
-      'modals/bot/power.pug'
-    ], {
-      servers,
-      discordBot,
-      state,
-      loading: false
-    });
-  },
+    try {
+      const [serverRows, discordBot, state] = await Promise.all([
+        this.refreshAllDiscordServers(),
+        this.discordBot.get(),
+        this.state.get()
+      ]);
+
+      const servers = await this.getServerTemplateObj(serverRows);
+
+      await this.emitCompiled([
+        'sidebar/servers/serverSortableContainer.pug',
+        'sidebar/servers/serverBannerLabel.pug',
+        'sidebar/channels/chatChannels.pug',
+        'chat/messageChannelHeader.pug',
+        'chat/chatBar.pug',
+        'modals/bot/power.pug'
+      ], {
+        servers,
+        discordBot,
+        state,
+        loading: false
+      });
+    } catch (error) {
+      logger.error('Failed to update server sort order:', error);
+      throw error;
+    }
+  }
 };
