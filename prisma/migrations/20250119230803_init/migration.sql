@@ -55,12 +55,12 @@ CREATE TABLE "discord_bots" (
 -- CreateTable
 CREATE TABLE "discord_servers" (
     "server_id" TEXT NOT NULL PRIMARY KEY,
-    "unread_message_count" INTEGER NOT NULL DEFAULT 0,
-    "server_name" TEXT NOT NULL DEFAULT 'TBD',
+    "unread_message_count" INTEGER DEFAULT 0,
+    "server_name" TEXT DEFAULT 'TBD',
     "server_avatar_url" TEXT,
-    "sort_position" INTEGER NOT NULL DEFAULT -1,
+    "sort_position" INTEGER DEFAULT -1,
     "active_channel_id" TEXT,
-    "available" BOOLEAN NOT NULL DEFAULT true,
+    "available" BOOLEAN DEFAULT true,
     "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" DATETIME NOT NULL
 );
@@ -68,8 +68,8 @@ CREATE TABLE "discord_servers" (
 -- CreateTable
 CREATE TABLE "discord_channels" (
     "channel_id" TEXT NOT NULL PRIMARY KEY,
-    "channel_name" TEXT NOT NULL DEFAULT 'TBD',
-    "position" INTEGER NOT NULL DEFAULT -1,
+    "channel_name" TEXT DEFAULT 'TBD',
+    "position" INTEGER DEFAULT -1,
     "discord_server" TEXT NOT NULL,
     "channel_type" INTEGER NOT NULL DEFAULT 0,
     "isTextChannel" BOOLEAN NOT NULL DEFAULT false,

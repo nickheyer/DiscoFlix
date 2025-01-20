@@ -54,88 +54,100 @@ module.exports = {
   },
 
   async logMessageToInterface(rawDiscMsg) {
-
-    // CONFIRM CHANNEL EXISTS FIRST
-    const targetChannel = await this.discordChannel.get({
-      channel_id: rawDiscMsg.channelId
-    });
+    const author = await rawDiscMsg.author.fetch(true);
+    const avatarUrl = author.displayAvatarURL();
+    const userAccent = (author.hexAccentColor || 'ffffff').replace('#', '');
+    const targetChannel = await this.discordChannel.getById(rawDiscMsg.channelId);
 
     if (!targetChannel) {
       await this.refreshDiscordServers();
       await this.updateServerSortOrder();
     }
 
-    // FETCH MESSAGE AUTHOR, UPSERT AS USER
-    const author = await rawDiscMsg.author.fetch(true);
-
-    const activeServer = await this.state.getActiveServer();
-    const isActiveChannel = activeServer.active_channel_id === rawDiscMsg.channelId;
-
-    const bot = await this.discordBot.get();
-    const isSelf = author.id === bot.bot_id;
-
-    let server;
-    let channel;
-
-    if (!isSelf) {
-      // UPDATE UNREAD MESSAGE COUNT
-      server = await this.discordServer.update(
-        { server_id: rawDiscMsg.guildId },
-        { unread_message_count: { increment: isActiveChannel ? 0 : 1 } }
-      );
-
-      channel = await this.discordChannel.update(
-        { channel_id: rawDiscMsg.channelId },
-        { unread_message_count: isActiveChannel ? 0 : { increment: 1 } }
-      );
-    } else {
-      // FETCH SERVER WITHOUT UPDATE
-      server = await this.discordServer.get({ server_id: rawDiscMsg.guildId });
-      channel = await this.discordChannel.get({ channel_id: rawDiscMsg.channelId });
-    }
-    const avatarUrl = author.displayAvatarURL();
-    const userAccent = (author.hexAccentColor || 'ffffff').replace('#', '');
-    const isClient = author.id === bot.bot_id;
-
-    // UPSERT USER DATA
-    await this.user.getOrCreate(
-      { id: author.id },
-      {
-        id: author.id,
-        is_bot: author.bot,
-        is_client: isClient,
-        username: author.username,
-        display_name: author.displayName,
-        accent_color: userAccent,
-        avatar_url: avatarUrl,
-        discord_servers: {
-          connect: { server_id: server.server_id }
+    // ONLY DB OPS HERE, EASY TO MESS UP
+    const txRes = await this.prisma.$transaction(async (tx) => {
+      const bot = await tx.discordBot.findFirst();
+      const { activeServer } = await tx.state.findFirst({
+        include: { activeServer: true }
+      });
+  
+      const isSelf = author.id === bot.bot_id;
+      const isActiveChannel = activeServer.active_channel_id === rawDiscMsg.channelId;
+  
+      // UPDATE SERVER
+      const server = await tx.discordServer.update({
+        where: { server_id: rawDiscMsg.guildId },
+        data: {
+          unread_message_count: {
+            increment: (!isSelf && !isActiveChannel) ? 1 : 0
+          }
+        }
+      });
+  
+      // UPDATE CHANNEL
+      const channel = await tx.discordServerChannel.update({
+        where: { channel_id: rawDiscMsg.channelId },
+        data: {
+          unread_message_count: {
+            increment: (!isSelf && !isActiveChannel) ? 1 : 0
+          }
+        }
+      });
+  
+      // UPSERT USER
+      await tx.user.upsert({
+        where: { id: author.id },
+        create: {
+          id: author.id,
+          is_bot: author.bot,
+          is_client: isSelf,
+          username: author.username,
+          display_name: author.displayName,
+          accent_color: userAccent,
+          avatar_url: avatarUrl,
+          discord_servers: {
+            connect: { server_id: server.server_id }
+          }
         },
+        update: {
+          username: author.username,
+          display_name: author.displayName,
+          accent_color: userAccent,
+          avatar_url: avatarUrl,
+          discord_servers: {
+            connect: { server_id: server.server_id }
+          }
+        }
       });
-
-    // UPSERT MESSAGE DATA
-    await this.discordMessage.upsert(
-      { message_id: rawDiscMsg.id },
-      {
-        content: rawDiscMsg.content,
-        user: { connect: { id: author.id } },
-        channel: { connect: { channel_id: channel.channel_id } },
-        server: { connect: { server_id: server.server_id } }
-      },
-      {
-        message_id: rawDiscMsg.id,
-        server: { connect: { server_id: server.server_id } },
-        channel: { connect: { channel_id: channel.channel_id } },
-        user: { connect: { id: author.id } },
-        content: rawDiscMsg.content
+  
+      // UPSERT MESSAGE
+      await tx.discordMessage.upsert({
+        where: { message_id: rawDiscMsg.id },
+        create: {
+          message_id: rawDiscMsg.id,
+          content: rawDiscMsg.content,
+          user: { connect: { id: author.id } },
+          channel: { connect: { channel_id: channel.channel_id } },
+          server: { connect: { server_id: server.server_id } }
+        },
+        update: {
+          content: rawDiscMsg.content,
+          user: { connect: { id: author.id } },
+          channel: { connect: { channel_id: channel.channel_id } },
+          server: { connect: { server_id: server.server_id } }
+        }
       });
+      return { isActiveChannel, isSelf };
+    });
+  
+    
 
-    // DETERMINE IF WE SHOULD EMIT CURRENT MESSAGE SHARD
-    if (isActiveChannel) {
+    // UI UPDATES OUTSIDE TRANSACTION
+    if (txRes.isActiveChannel) {
       await this.emitMessage({
-        username: `${author.displayName}`,
-        isBot: !!(author.bot),
-        isClient,
+        username: author.displayName,
+        isBot: !!author.bot,
+        isClient: txRes.isSelf,
         timeStamp: this.formatTimestamp(rawDiscMsg.createdAt),
         avatarUrl,
         messageText: rawDiscMsg.content,
