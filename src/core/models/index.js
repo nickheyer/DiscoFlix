@@ -1,5 +1,3 @@
-const prismaMW = require('./middleware.js');
-
 const MODELS = {
   state: require('./state'),
   configuration: require('./configuration'),
@@ -14,10 +12,6 @@ const MODELS = {
 
 module.exports = (core) => {
   try {
-    // INIT MW
-    prismaMW(core);
-    core.logger.info('Prisma middleware initialized');
-
     // INIT MODELS
     for (const [key, Model] of Object.entries(MODELS)) {
       core[key] = new Model(core);

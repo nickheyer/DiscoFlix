@@ -3,11 +3,13 @@ include settingsChannelsHeader
 .settingsChannelContainer
   -
     var settingsChannels = [
-      { name: 'Bot Configuration', type: 'discord' },
-      { name: 'Media Settings', type: 'media' },
+      
+      { name: 'General', type: 'configuration' },
+      { name: 'Bot Configuration', type: 'discordBot' },
+      { name: 'App State', type: 'state' },
       { name: 'User Settings', type: 'user' },
-      { name: 'Server Settings', type: 'server' },
-      { name: 'Permission Settings', type: 'permissions' }
+      { name: 'Server Settings', type: 'discordServer' },
+      { name: 'Channel Settings', type: 'discordChannel' },
     ];
 
   each channel in settingsChannels

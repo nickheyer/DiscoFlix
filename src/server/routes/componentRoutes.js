@@ -13,7 +13,9 @@ const {
 } = require('../api/userControls');
 
 const {
-  settingsModal
+  renderModal,
+  getSettingsPage,
+  saveSettings
 } = require('../api/modals');
 
 const router = new Router();
@@ -24,7 +26,9 @@ router.get('/toggle-power', toggleAppState);
 router.get('/toggle-settings/:action', toggleSettings);
 router.get('/change-active-server/:id', changeActiveServers);
 router.get('/change-active-channel/:id', changeActiveChannel);
-router.get('/modal/:type/:modal', settingsModal);
+router.get('/modal/:type/:modal', renderModal);
+router.get('/settings/:type/page/:page', getSettingsPage);
+router.post('/settings/:type/save{/:id}', saveSettings);
 router.post('/server-sort', changeServerSortOrder);
 
 module.exports = router;

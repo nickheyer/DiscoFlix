@@ -1,0 +1,26 @@
+mixin SelectBox(name, options, isDisabled, attrs)
+  - const selectedOption = options.find(opt => opt.checked)
+  .select-box(
+    class=isDisabled ? 'disabled' : ''
+    tabindex="0"
+    role="combobox"
+    aria-haspopup="listbox"
+  )
+    .select-box__current
+      p.select-box__input-text #{selectedOption.name}
+      svg.select-box__icon(viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg")
+        path(d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
+    
+    ul.select-box__list(role="listbox")
+      each option in options
+        li
+          a.select-box__option(
+            role="option"
+            aria-selected=option.checked
+            hx-get=`${attrs['hx-get']}?page-size=${option.value}`
+            hx-trigger=attrs['hx-trigger']
+            hx-swap=attrs['hx-swap']
+            hx-target=attrs['hx-target']
+            class=option.checked ? 'selected' : ''
+            disabled=option.disabled
+          ) #{option.name}

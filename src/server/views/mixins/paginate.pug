@@ -1,0 +1,35 @@
+include selectBox
+
+mixin paginate(type, currentPage, totalRecords, perPage)
+  - const VALID_PAGE_SIZES = [5, 10, 25, 50, 100]
+  - const safePerPage = VALID_PAGE_SIZES.includes(Number(perPage)) ? Number(perPage) : 5
+  - const maxPage = Math.ceil(totalRecords / safePerPage)
+  - const safePage = Math.min(Math.max(1, currentPage), maxPage)
+  - const startRecord = ((safePage - 1) * safePerPage) + 1
+  - const endRecord = Math.min(safePage * safePerPage, totalRecords)
+  
+  .records-pagination
+    if totalRecords > (safePage * safePerPage)
+      button.button.button-secondary(
+        hx-get=`/settings/${type}/page/${safePage + 1}?page-size=${safePerPage}`
+        hx-target='#records-container'
+        hx-swap='innerHTML'
+      ) Load More
+
+    if totalRecords !== 0
+      .pagination-info Showing #{startRecord} - #{endRecord} of #{totalRecords} records
+    else 
+      .pagination-info No records found
+
+    +SelectBox('page-size', [
+      {name: '5 per page', value: 5, checked: perPage === 5 || !perPage },
+      {name: '10 per page', value: 10, disabled: (totalRecords < 10), checked: perPage === 10 }, 
+      {name: '25 per page', value: 25, disabled: (totalRecords < 25), checked: perPage === 25 }, 
+      {name: '50 per page', value: 50, disabled: (totalRecords < 50), checked: perPage === 50 }, 
+      {name: '100 per page', value: 100, disabled: (totalRecords < 100), checked: perPage === 100 }
+    ], totalRecords < 5, {
+      'hx-get': `/settings/${type}/page/1`,
+      'hx-target': '#records-container',
+      'hx-swap': 'innerHTML',
+      'hx-trigger': 'click'
+    })

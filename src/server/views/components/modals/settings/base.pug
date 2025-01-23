@@ -1,0 +1,26 @@
+.modal-dialog.modal-dialog-centered.modal-dialog-scrollable.modal-lg
+  .modal-content
+    .modal-header
+      h5.modal-title
+        = title
+        if readonly
+          span.badge.ms-2.bg-secondary.small Read Only
+      button.modal-close-button(type='button' data-bs-dismiss='modal' aria-label='Close') ×
+    
+    //- NOTIFICATION CONTAINER
+    #notification
+    
+    .modal-body
+      #records-container.settings-records-container
+        include _records
+
+    .modal-footer
+      button.modal-button.button-secondary(type='button' data-bs-dismiss='modal')= readonly ? 'Close' : 'Cancel'
+      if !readonly
+        button.modal-button.button-primary(
+          type='button'
+          hx-trigger='click'
+          hx-target='closest form'
+          hx-include='#pagination-state'
+          hx-submit
+        ) Save Changes

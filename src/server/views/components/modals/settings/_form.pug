@@ -1,0 +1,34 @@
+mixin field(field, fieldKey, recordId, readonly)
+  - const fieldId = `${recordId || ''}-${fieldKey}`
+  .settings-field(class=field.type)
+    label.settings-label(for=!readonly && fieldId)
+      = field.label
+      if !readonly && field.required
+        span.text-danger *
+    
+    if field.description
+      .settings-description= field.description
+    
+    if field.type === 'boolean'
+      .settings-switch-wrapper
+        label.settings-switch
+          input(
+            type='checkbox'
+            name=!readonly && fieldKey
+            id=!readonly && fieldId
+            checked=field.value
+            disabled=readonly || field.readonly
+          )
+          span.settings-slider(class=(readonly || field.readonly) ? 'readonly' : '')
+    else
+      input.settings-input(
+        type=field.type === 'number' ? 'number' : field.sensitive ? 'password' : 'text'
+        name=!readonly && fieldKey
+        id=!readonly && fieldId
+        value=field.value || false
+        min=field.min
+        max=field.max
+        readonly=readonly || field.readonly
+        disabled=readonly || field.readonly
+        class=(readonly || field.readonly) ? 'readonly' : ''
+      )
