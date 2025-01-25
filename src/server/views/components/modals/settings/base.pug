@@ -1,3 +1,4 @@
+include ../../../mixins/search
 .modal-dialog.modal-dialog-centered.modal-dialog-scrollable.modal-lg
   .modal-content
     .modal-header
@@ -7,20 +8,16 @@
           span.badge.ms-2.bg-secondary.small Read Only
       button.modal-close-button(type='button' data-bs-dismiss='modal' aria-label='Close') ×
     
-    //- NOTIFICATION CONTAINER
-    #notification
+    .alert#notification(hx-swap-oob="true")
     
     .modal-body
+      if !isSingleton
+        +SearchBar(type)
       #records-container.settings-records-container
         include _records
 
-    .modal-footer
-      button.modal-button.button-secondary(type='button' data-bs-dismiss='modal')= readonly ? 'Close' : 'Cancel'
-      if !readonly
-        button.modal-button.button-primary(
-          type='button'
-          hx-trigger='click'
-          hx-target='closest form'
-          hx-include='#pagination-state'
-          hx-submit
-        ) Save Changes
+    .modal-footer.d-block
+      .d-flex.justify-content-end
+        #status-message
+        button.modal-button.button-secondary(type='button' data-bs-dismiss='modal')= 'Close'
+

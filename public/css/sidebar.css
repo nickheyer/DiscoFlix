@@ -275,31 +275,20 @@
   }
 }
 
-
-
-
-
-
-
-
-/* The space between server banner and user info */
 .channelViewContainer {
   background-color: var(--secondary);
   display: flex;
   flex-direction: column;
-  padding: 0px 9.5px 0px 16px;
+  padding: 0px 8px 0px 8px;
   transition: opacity 0.2s ease 0s;
 }
 
-
-
-/* The container for the channel-row containing name and config buttons */
 .channelViewOption {
   display: flex;
   align-items: center;
   justify-content: space-between;
   cursor: pointer;
-  padding: 8px 3px;
+  padding: 8px 5px;
   border-radius: 5px;
   background-color: transparent;
   transition: background-color 0.2s;
@@ -323,8 +312,6 @@
     .channelViewOptionConfig {
       transition: 0.7ms;
       visibility: visible !important;
-      position: absolute;
-      right: 15px;
     }
   }
 
@@ -336,6 +323,7 @@
   .channelViewOptionConfig {
     transition: 0.7ms;
     visibility: hidden;
+    transform: translateY(2px);
   }
 }
 
@@ -353,8 +341,6 @@
   transition: all .2s ease;
 }
 
-
-/* Contains channel name/type */
 .channelViewOptionInfo {
   display: flex;
   -moz-box-align: center;
@@ -372,10 +358,9 @@
   color: var(--white);
 }
 
-/* Contains channel config buttons */
 .channelViewOptionConfig svg {
-  width: 16px;
-  height: 16px;
+  width: 22px;
+  height: 22px;
   color: var(--symbol);
   cursor: pointer;
   transition: color 0.2s ease 0s;
@@ -384,7 +369,6 @@
   margin-left: 4px;
 }
 
-/* The header above a group of channels */
 .channelViewHeader {
   display: flex;
   align-items: center;

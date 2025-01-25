@@ -1,3 +1,5 @@
+const _ = require('lodash');
+
 const PAGINATION_CONFIG = {
     DEFAULT_PAGE_SIZE: 5,
     DEFAULT_PAGE: 1,
@@ -14,76 +16,70 @@ function getCurrentPage(page) {
     return !isNaN(pageNum) && pageNum > 0 ? pageNum : PAGINATION_CONFIG.DEFAULT_PAGE;
 }
 
-async function getSettingsPage(ctx) {
-    const { type: modelName, page } = ctx.params;
-    const model = ctx.core[modelName];
-    
-    if (!model) {
-        ctx.status = 404;
-        return;
-    }
+async function getPaginatedData(model, currentPage, perPage, where = {}) {
+    const skip = (currentPage - 1) * perPage;
+    const [data, totalRecords] = await Promise.all([
+        model.getPages(where, {}, {}, skip, perPage),
+        model.getModelType() === 'singleton' ? 1 : model.model.count({ where })
+    ]);
 
-    const perPage = getSafePageSize(ctx.query['page-size']);
-    let currentPage = Number(page) || 1;
-    
-    const totalRecords = await model.model.count();
     const maxPage = Math.ceil(totalRecords / perPage);
     currentPage = Math.min(Math.max(1, currentPage), maxPage);
 
-    const skip = (currentPage - 1) * perPage;
-    const data = await model.getPages({}, {}, {}, skip, perPage);
+    return { data, totalRecords, currentPage };
+}
 
-    return await ctx.compileView('modals/settings/_records.pug', {
-        type: modelName,
+async function renderRecordsView(ctx, model, records, currentPage, perPage, totalRecords, searchQuery = null, notify = false) {
+    return ctx.compileView(['modals/settings/_records.pug', 'modals/extra/notification.pug'], {
+        type: _.lowerFirst(model.modelName),
         readonly: model.isModelReadonly(),
-        isSingleton: false,
-        records: data || [],
-        pg: { currentPage, perPage, totalRecords }
+        isSingleton: model.getModelType() === 'singleton',
+        records,
+        pg: { currentPage, perPage, totalRecords },
+        ...(notify && {message: 'Changes saved'}),
+        ...(searchQuery && { searchQuery })
     });
+}
+
+async function getSettingsPage(ctx) {
+    const { type: modelName, page } = ctx.params;
+    const model = ctx.core[modelName];
+    if (!model) return ctx.status = 404;
+
+    const perPage = getSafePageSize(ctx.query['page-size']);
+    const { data, totalRecords, currentPage } = await getPaginatedData(model, Number(page) || 1, perPage);
+
+    return renderRecordsView(ctx, model, data, currentPage, perPage, totalRecords);
 }
 
 async function saveSettings(ctx) {
     const { type: modelName, id } = ctx.params;
     const model = ctx.core[modelName];
-    
-    if (!model || model.isModelReadonly()) {
-        ctx.status = model ? 403 : 404;
-        return;
-    }
-
-    let perPage = getSafePageSize(ctx.query['page-size']);
-    let currentPage = Number(ctx.query['current-page']) || 1;
-
-    if (!ctx.query['page-size']) {
-        perPage = getSafePageSize(ctx.request.body['page-size']);
-        currentPage = Number(ctx.request.body['current-page']) || 1;
-    }
-
-    const modelData = { ...ctx.request.body };
-    delete modelData['current-page'];
-    delete modelData['page-size'];
+    if (!model || model.isModelReadonly()) return ctx.status = model ? 403 : 404;
 
     try {
-        const savedData = id ? 
-            await model.safeUpdateOne(id, modelData) :
-            await model.safeUpsertOne(modelData);
+        const perPage = getSafePageSize(ctx.query['page-size'] || ctx.request.body['page-size']);
+        const currentPage = getCurrentPage(ctx.query['current-page'] || ctx.request.body['current-page']);
 
-        const [formData, totalRecords] = await Promise.all([
-            model.getPages({}, {}, {}, (currentPage - 1) * perPage, perPage),
-            model.model.count()
-        ]);
+        const modalData = { ...ctx.request.body };
+        delete modalData['current-page'];
+        delete modalData['page-size'];
 
-        const maxPage = Math.ceil(totalRecords / perPage);
-        currentPage = Math.min(Math.max(1, currentPage), maxPage);
+        const savedData = await (id ?
+            model.safeUpdateOne(id, modalData) :
+            model.safeUpsertOne(modalData)
+        );
 
-        return await ctx.compileView('modals/settings/_records.pug', {
-            type: modelName,
-            readonly: model.isModelReadonly(),
-            isSingleton: model.getModelType() === 'singleton',
-            records: model.getModelType() === 'singleton' ? [{ id: savedData.id, fields: formData }] : formData,
-            pg: { currentPage, perPage, totalRecords }
-        });
 
+        let { data: formData, totalRecords } = await getPaginatedData(model, currentPage, perPage);
+
+        if (model.getModelType() === 'singleton') {
+            formData = [{ id: savedData.id, fields: formData }];
+        }
+
+        global.logger.debug({ formData });
+
+        return renderRecordsView(ctx, model, formData, currentPage, perPage, totalRecords, null, true);
     } catch (err) {
         ctx.core.logger.error('SETTINGS SAVE FAILED:', err);
         ctx.status = 400;
@@ -93,36 +89,29 @@ async function saveSettings(ctx) {
 
 async function renderModal(ctx) {
     const { type: modalType, modal: modalName } = ctx.params;
-    const modalParams = {};
     let modalTemplate = `modals/${modalType}/${modalName}.pug`;
+    const modalParams = {};
 
     if (modalType === 'settings') {
         const model = ctx.core[modalName];
         if (!model) {
             global.logger.warn(`MODEL ${modalName} NOT FOUND`);
-            return await ctx.compileView('modals/stub.pug');
+            return ctx.compileView('modals/stub.pug');
         }
 
-        const modelType = model.getModelType();
-        const pkName = model.getPrimaryKeyName();
-        const isSingleton = modelType === 'singleton';
         const perPage = getSafePageSize(ctx.query['page-size']);
-        const currentPage = getCurrentPage(null, ctx.query['current-page']);
-        
-        const [data, totalRecords] = await Promise.all([
-            model.getPages({}, {}, {}, currentPage, perPage),
-            isSingleton ? 1 : model.model.count()
-        ]);
+        const currentPage = getCurrentPage(ctx.query['current-page']);
+        const { data, totalRecords } = await getPaginatedData(model, currentPage, perPage);
 
         Object.assign(modalParams, {
             title: model.getModelDescription() || `${modalName} Settings`,
             type: modalName,
             readonly: model.isModelReadonly(),
-            records: isSingleton ? [{ id: data[pkName]?.value || null, fields: data }] : data,
-            isSingleton,
+            records: model.getModelType() === 'singleton' ? 
+                [{ id: data[model.getPrimaryKeyName()]?.value || null, fields: data }] : data,
+            isSingleton: model.getModelType() === 'singleton',
             pg: { currentPage, perPage, totalRecords }
         });
-
         modalTemplate = 'modals/settings/base.pug';
     
     } else if (modalType === 'bot') {
@@ -130,20 +119,51 @@ async function renderModal(ctx) {
             ctx.core.state.get(),
             ctx.core.discordBot.get()
         ]);
-
-        Object.assign(modalParams, {
-            discordBot,
-            state,
-            loading: false
-        });
+        Object.assign(modalParams, { discordBot, state, loading: false });
     }
 
-    return await ctx.compileView(modalTemplate, modalParams);
+    return ctx.compileView(modalTemplate, modalParams);
+}
+
+async function searchSettings(ctx) {
+    const { type: modelName } = ctx.params;
+    const model = ctx.core[modelName];
+    if (!model) return ctx.status = 404;
+
+    const searchQuery = ctx.request.query.search || '';
+    const perPage = getSafePageSize(ctx.query['page-size']);
+    const currentPage = getCurrentPage(ctx.query['current-page']);
+    const { where } = await model.searchFields(searchQuery);
+
+    const { data, totalRecords } = await getPaginatedData(model, currentPage, perPage, where);
+    
+    return renderRecordsView(ctx, model, data, currentPage, perPage, totalRecords, searchQuery);
+}
+
+async function deleteRecord(ctx) {
+    const { type: modelName, id } = ctx.params;
+    const model = ctx.core[modelName];
+    if (!model) return ctx.status = 404;
+
+    try {
+        await model.safeDelete(id);
+        const perPage = getSafePageSize(ctx.query['page-size']);
+        const currentPage = getCurrentPage(ctx.query['current-page']);
+        const { data, totalRecords } = await getPaginatedData(model, currentPage, perPage);
+
+        return renderRecordsView(ctx, model, data, currentPage, perPage, totalRecords);
+    } catch (err) {
+        ctx.core.logger.error('RECORD DELETE FAILED:', err);
+        ctx.status = 400;
+        ctx.body = { error: err.message };
+    }
 }
 
 module.exports = {
     renderModal,
     getSettingsPage,
     saveSettings,
+    searchSettings,
+    deleteRecord,
     PAGINATION_CONFIG
 };

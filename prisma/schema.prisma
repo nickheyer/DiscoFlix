@@ -27,7 +27,7 @@ model Configuration {
   is_sonarr_enabled         Boolean  @default(true)
   is_trailers_enabled       Boolean  @default(true)
   created_at                DateTime @default(now())
-  updated_at                DateTime @updatedAt
+  updated_at                DateTime @updatedAt @default(now())
 
   @@map("configuration")
 }
@@ -38,7 +38,7 @@ model State {
   sidebar_exp_state Boolean        @default(true)
   active_server_id  String?        @unique
   created_at        DateTime       @default(now())
-  updated_at        DateTime       @updatedAt
+  updated_at        DateTime       @updatedAt @default(now())
   activeServer      DiscordServer? @relation(fields: [active_server_id], references: [server_id], onDelete: SetNull)
 
   @@map("state")
@@ -63,7 +63,7 @@ model DiscordBot {
   bot_avatar_url    String?
   bot_invite_link   String?
   created_at        DateTime @default(now())
-  updated_at        DateTime @updatedAt
+  updated_at        DateTime @updatedAt @default(now())
 
   @@map("discord_bots")
 }
@@ -77,7 +77,7 @@ model DiscordServer {
   active_channel_id    String?
   available            Boolean?               @default(true)
   created_at           DateTime               @default(now())
-  updated_at           DateTime               @updatedAt
+  updated_at           DateTime               @updatedAt @default(now())
   users                User[]                 @relation("UserDiscordServers")
   requests             MediaRequest[]         @relation("DiscordServerRequests")
   channels             DiscordServerChannel[]
@@ -100,7 +100,7 @@ model DiscordServerChannel {
   parent_id            String           @default("")
   unread_message_count Int              @default(0)
   created_at           DateTime         @default(now())
-  updated_at           DateTime         @updatedAt
+  updated_at           DateTime         @updatedAt @default(now())
   server               DiscordServer    @relation(fields: [discord_server], references: [server_id], onDelete: Cascade)
   messages             DiscordMessage[]
 
@@ -117,7 +117,7 @@ model DiscordMessage {
   user_id    String
   content    String
   created_at DateTime             @default(now())
-  updated_at DateTime             @updatedAt
+  updated_at DateTime             @updatedAt @default(now())
   server     DiscordServer        @relation(fields: [server_id], references: [server_id], onDelete: Cascade)
   channel    DiscordServerChannel @relation(fields: [channel_id], references: [channel_id], onDelete: Cascade)
   user       User                 @relation(fields: [user_id], references: [id], onDelete: Cascade)
@@ -150,7 +150,7 @@ model Media {
   website_url  String?
   trailer_url  String?
   created_at   DateTime       @default(now())
-  updated_at   DateTime       @updatedAt
+  updated_at   DateTime       @updatedAt @default(now())
   requests     MediaRequest[]
 
   @@index([imdb_id])
@@ -160,7 +160,7 @@ model Media {
 model MediaRequest {
   id                String        @id @default(cuid())
   created_at        DateTime      @default(now())
-  updated_at        DateTime      @updatedAt
+  updated_at        DateTime      @updatedAt @default(now())
   made_in           DiscordServer @relation("DiscordServerRequests", fields: [madeInId], references: [server_id])
   madeInId          String
   media             Media         @relation(fields: [mediaId], references: [id])
@@ -193,7 +193,7 @@ model User {
   max_seasons_for_non_admin Int              @default(0)
   max_requests_in_day       Int              @default(0)
   created_at                DateTime         @default(now())
-  updated_at                DateTime         @updatedAt
+  updated_at                DateTime         @updatedAt @default(now())
   discord_servers           DiscordServer[]  @relation("UserDiscordServers")
   requests                  MediaRequest[]   @relation("UserMediaRequests")
   messages                  DiscordMessage[]

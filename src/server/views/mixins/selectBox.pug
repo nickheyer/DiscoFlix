@@ -2,25 +2,34 @@ mixin SelectBox(name, options, isDisabled, attrs)
   - const selectedOption = options.find(opt => opt.checked)
   .select-box(
     class=isDisabled ? 'disabled' : ''
-    tabindex="0"
+    tabindex=isDisabled ? '-1' : '0'
     role="combobox"
     aria-haspopup="listbox"
+    aria-disabled=isDisabled
   )
     .select-box__current
       p.select-box__input-text #{selectedOption.name}
       svg.select-box__icon(viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg")
         path(d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
     
-    ul.select-box__list(role="listbox")
+    ul.select-box__list(
+      role="listbox"
+      aria-hidden=isDisabled
+    )
       each option in options
         li
           a.select-box__option(
             role="option"
             aria-selected=option.checked
-            hx-get=`${attrs['hx-get']}?page-size=${option.value}`
-            hx-trigger=attrs['hx-trigger']
-            hx-swap=attrs['hx-swap']
-            hx-target=attrs['hx-target']
-            class=option.checked ? 'selected' : ''
-            disabled=option.disabled
+            class=[
+              option.checked ? 'selected' : '',
+              (option.disabled || isDisabled) ? 'disabled' : ''
+            ]
+            data-hx-get=!isDisabled && !option.disabled ? `${attrs['hx-get']}?page-size=${option.value}` : null
+            data-hx-trigger=!isDisabled && !option.disabled ? attrs['hx-trigger'] : null
+            data-hx-swap=!isDisabled && !option.disabled ? attrs['hx-swap'] : null
+            data-hx-target=!isDisabled && !option.disabled ? attrs['hx-target'] : null
+            aria-disabled=(option.disabled || isDisabled)
+            disabled=(option.disabled || isDisabled)
+            onclick=`return ${!(option.disabled || isDisabled)};`
           ) #{option.name}

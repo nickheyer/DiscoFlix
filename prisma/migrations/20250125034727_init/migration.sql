@@ -17,7 +17,7 @@ CREATE TABLE "configuration" (
     "is_sonarr_enabled" BOOLEAN NOT NULL DEFAULT true,
     "is_trailers_enabled" BOOLEAN NOT NULL DEFAULT true,
     "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" DATETIME NOT NULL
+    "updated_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- CreateTable
@@ -27,7 +27,7 @@ CREATE TABLE "state" (
     "sidebar_exp_state" BOOLEAN NOT NULL DEFAULT true,
     "active_server_id" TEXT,
     "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" DATETIME NOT NULL,
+    "updated_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "state_active_server_id_fkey" FOREIGN KEY ("active_server_id") REFERENCES "discord_servers" ("server_id") ON DELETE SET NULL ON UPDATE CASCADE
 );
 
@@ -49,7 +49,7 @@ CREATE TABLE "discord_bots" (
     "bot_avatar_url" TEXT,
     "bot_invite_link" TEXT,
     "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" DATETIME NOT NULL
+    "updated_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- CreateTable
@@ -62,7 +62,7 @@ CREATE TABLE "discord_servers" (
     "active_channel_id" TEXT,
     "available" BOOLEAN DEFAULT true,
     "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" DATETIME NOT NULL
+    "updated_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- CreateTable
@@ -78,7 +78,7 @@ CREATE TABLE "discord_channels" (
     "parent_id" TEXT NOT NULL DEFAULT '',
     "unread_message_count" INTEGER NOT NULL DEFAULT 0,
     "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" DATETIME NOT NULL,
+    "updated_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "discord_channels_discord_server_fkey" FOREIGN KEY ("discord_server") REFERENCES "discord_servers" ("server_id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
@@ -90,7 +90,7 @@ CREATE TABLE "discord_messages" (
     "user_id" TEXT NOT NULL,
     "content" TEXT NOT NULL,
     "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" DATETIME NOT NULL,
+    "updated_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "discord_messages_server_id_fkey" FOREIGN KEY ("server_id") REFERENCES "discord_servers" ("server_id") ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT "discord_messages_channel_id_fkey" FOREIGN KEY ("channel_id") REFERENCES "discord_channels" ("channel_id") ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT "discord_messages_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE ON UPDATE CASCADE
@@ -118,14 +118,14 @@ CREATE TABLE "media" (
     "website_url" TEXT,
     "trailer_url" TEXT,
     "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" DATETIME NOT NULL
+    "updated_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- CreateTable
 CREATE TABLE "media_requests" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" DATETIME NOT NULL,
+    "updated_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "madeInId" TEXT NOT NULL,
     "mediaId" TEXT NOT NULL,
     "orig_message" TEXT,
@@ -154,7 +154,7 @@ CREATE TABLE "users" (
     "max_seasons_for_non_admin" INTEGER NOT NULL DEFAULT 0,
     "max_requests_in_day" INTEGER NOT NULL DEFAULT 0,
     "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" DATETIME NOT NULL
+    "updated_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- CreateTable

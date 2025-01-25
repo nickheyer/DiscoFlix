@@ -15,7 +15,9 @@ const {
 const {
   renderModal,
   getSettingsPage,
-  saveSettings
+  saveSettings,
+  searchSettings,
+  deleteRecord
 } = require('../api/modals');
 
 const router = new Router();
@@ -29,6 +31,8 @@ router.get('/change-active-channel/:id', changeActiveChannel);
 router.get('/modal/:type/:modal', renderModal);
 router.get('/settings/:type/page/:page', getSettingsPage);
 router.post('/settings/:type/save{/:id}', saveSettings);
+router.get('/settings/:type/search', searchSettings);
+router.delete('/settings/:type/delete/:id', deleteRecord);
 router.post('/server-sort', changeServerSortOrder);
 
 module.exports = router;
