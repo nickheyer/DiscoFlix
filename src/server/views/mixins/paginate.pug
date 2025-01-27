@@ -1,6 +1,6 @@
 include selectBox
 
-mixin paginate(type, currentPage, totalRecords, perPage)
+mixin paginate(type, currentPage, totalRecords, perPage, search)
   - const VALID_PAGE_SIZES = [5, 10, 25, 50, 100]
   - const safePerPage = VALID_PAGE_SIZES.includes(Number(perPage)) ? Number(perPage) : 5
   - const maxPage = Math.ceil(totalRecords / safePerPage)
@@ -14,11 +14,12 @@ mixin paginate(type, currentPage, totalRecords, perPage)
         hx-get=`/settings/${type}/page/${safePage + 1}?page-size=${safePerPage}`
         hx-target='#records-container'
         hx-swap='innerHTML'
+        hx-include='#search-bar'
       ) Load More
 
     if totalRecords !== 0
       .pagination-info Showing #{startRecord} - #{endRecord} of #{totalRecords} records
-    else 
+    else
       .pagination-info No records found
 
     +SelectBox('page-size', [

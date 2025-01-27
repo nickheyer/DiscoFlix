@@ -3,9 +3,10 @@ include ../../../mixins/paginate
 
 - const paginationData = { type, currentPage: pg.currentPage, totalRecords: pg.totalRecords, perPage: pg.perPage }
 
-form#pagination-state
+form#state-management
   input(type="hidden" name="current-page" value=paginationData.currentPage)
   input(type="hidden" name="page-size" value=paginationData.perPage)
+  input(type="hidden" name="search" value=searchQuery || '')
 
 if !isSingleton
   +paginate(paginationData.type, paginationData.currentPage, paginationData.totalRecords, paginationData.perPage)
@@ -18,6 +19,7 @@ if records && records.length > 0
         hx-target='#records-container'
         hx-swap='innerHTML'
         hx-trigger=!readonly && 'change, submit'
+        hx-include="#search-input, #state-management [name='current-page'], #state-management [name='page-size']"
     )
       if !isSingleton
         .record-header
@@ -29,7 +31,7 @@ if records && records.length > 0
                 hx-post=`/settings/${type}/save`
                 hx-target='#records-container'
                 hx-swap='innerHTML'
-                hx-include="#pagination-state"
+                hx-include="#search-input, #state-management [name='current-page'], #state-management [name='page-size']"
                 hx-sync="closest form:abort"
                 hx-boost='true'
               )
@@ -41,7 +43,7 @@ if records && records.length > 0
                 hx-delete=`/settings/${type}/delete/${record.id}`
                 hx-target='#records-container'
                 hx-swap='innerHTML'
-                hx-include="#pagination-state"
+                hx-include="#search-input, #state-management [name='current-page'], #state-management [name='page-size']"
               )
                 svg.record-delete-icon(viewBox="0 0 24 24" fill="none")
                   path(d="M19 7L18.1327 19.1425C18.0579 20.1891 17.187 21 16.1378 21H7.86224C6.81296 21 5.94208 20.1891 5.86732 19.1425L5 7M10 11V17M14 11V17M15 7V4C15 3.44772 14.5523 3 14 3H10C9.44772 3 9 3.44772 9 4V7M4 7H20" stroke="currentColor" stroke-width="2" stroke-linecap="round")
@@ -57,12 +59,13 @@ else if !readonly
       svg(width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg")
         path(d="M3 6.2C3 5.07989 3 4.51984 3.21799 4.09202C3.40973 3.71569 3.71569 3.40973 4.09202 3.21799C4.51984 3 5.07989 3 6.2 3H17.8C18.9201 3 19.4802 3 19.908 3.21799C20.2843 3.40973 20.5903 3.71569 20.782 4.09202C21 4.51984 21 5.07989 21 6.2V17.8C21 18.9201 21 19.4802 20.782 19.908C20.5903 20.2843 20.2843 20.5903 19.908 20.782C19.4802 21 18.9201 21 17.8 21H6.2C5.07989 21 4.51984 21 4.09202 20.782C3.71569 20.5903 3.40973 20.2843 3.21799 19.908C3 19.4802 3 18.9201 3 17.8V6.2Z" stroke="#72767d" stroke-width="2")
         path(d="M12 8V16M8 12H16" stroke="#72767d" stroke-width="2" stroke-linecap="round")
-    .empty-state-text No records found
-    button.empty-state-button.button-primary(
-      hx-post=`/settings/${type}/save`
-      hx-target='#records-container'
-      hx-swap='innerHTML'
-    ) Create New
+    .empty-state-text= searchQuery ? `No records found matching "${searchQuery}"` : 'No records found'
+    if !searchQuery
+      button.empty-state-button.button-primary(
+        hx-post=`/settings/${type}/save`
+        hx-target='#records-container'
+        hx-swap='innerHTML'
+      ) Create New
 
 else
   .empty-state

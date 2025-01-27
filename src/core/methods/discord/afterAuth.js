@@ -113,36 +113,6 @@ module.exports = {
     return { ops, validChannelIds };
   },
 
-  // ENSURE VALID ACTIVE CHANNEL
-  async ensureActiveChannel(serverId, validChannelIds) {
-    const discordServer = await this.discordServer.getComplete(serverId);
-    const activeChannel = discordServer.active_channel_id;
-
-    if (!activeChannel || !validChannelIds.includes(activeChannel)) {
-      const channels = await this.discordChannel.getMany({ discord_server: serverId });
-      const firstTextChannel = _.find(
-        channels,
-        (ch) => ch.isTextChannel && ch.parent_id && ch.position === 0
-      );
-
-      if (firstTextChannel) {
-        await this.discordServer.update(
-          { server_id: serverId },
-          { active_channel_id: firstTextChannel.channel_id }
-        );
-      }
-    }
-  },
-
-  // ENSURE ACTIVE SERVER EXISTS
-  async ensureActiveServer(defaultServerId) {
-    const activeServer = await this.state.getActiveServer();
-    if (!activeServer) {
-      logger.info(`No active server detected, setting active to: ${defaultServerId}`);
-      await this.state.changeActive(defaultServerId);
-    }
-  },
-
   // MARK UNAVAILABLE
   async syncMissingServers(availableServerIDs) {
     try {

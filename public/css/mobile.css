@@ -1,6 +1,4 @@
-
-
-/* While using average sized mobile device */
+/* STYLING FOR MOBILE */
 
 @media(max-width:768px){
   #serverSideBar.expanded {

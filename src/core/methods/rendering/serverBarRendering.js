@@ -28,38 +28,28 @@ module.exports = {
 
   async createActiveChannels(channels, currentChannelID = null) {
     const sortedChannels = _.sortBy(channels, ['parent_id', 'position']);
-  
-    // ORG BY CATEGORY
     const categoriesWithTextChannels = sortedChannels.reduce((acc, channel) => {
       if (channel.isCategory) {
-        // INIT CATEGORY-CHANNELS AS ARRAY
         acc[channel.channel_id] = {
           category: channel,
           channels: []
         };
       } else if (channel.isTextChannel && channel.parent_id && acc[channel.parent_id]) {
-        // ADD CHANNEL TO PARENT
         acc[channel.parent_id].channels.push(channel);
       }
       return acc;
     }, {});
-  
-    // FILTER OUT INVALID/EMPTY CATEGORIES
+
     const validCategories = _.filter(_.values(categoriesWithTextChannels), (ch) => !_.isEmpty(ch.channels));
   
     const channelElems = [];
     for (const { category, channels } of validCategories) {
-      // COMPILE HEADER/CATEGORY FIRST
       const categoryHTML = await this.compile([
         'sidebar/channels/chatChannelsHeader.pug'
       ], category);
       channelElems.push(categoryHTML);
   
-      // COMPILE CHANNELS UNDER HEADER
       for (const channel of channels) {
-        if (!currentChannelID) {
-          currentChannelID = channel.channel_id;
-        }
         channel.isActiveChannel = channel.channel_id === currentChannelID;
         const channelHTML = await this.compile([
           'sidebar/channels/chatChannel.pug'
@@ -73,19 +63,26 @@ module.exports = {
   async getOneServerTemplate(serverID) {
     let activeServer;
     let channels = [];
+
     if (!serverID) {
       activeServer = await this.state.getActiveServer();
       if (activeServer) {
-        activeServer = await this.discordServer.getWithChannels(activeServer.server_id);
+        activeServer = await this.discordServer.getComplete(activeServer.server_id);
       }
     } else {
-      activeServer = await this.discordServer.getWithChannels(serverID);
+      activeServer = await this.discordServer.getComplete(serverID);
     }
 
-    const currentChannelView = _.get(activeServer, 'active_channel_id', null);
-    
-    if (activeServer && activeServer.channels) {
-      const activeChannel = _.find(activeServer.channels, ['channel_id', currentChannelView])
+    if (activeServer?.channels) {
+      const validChannelIds = activeServer.channels
+        .filter(ch => ch.isTextChannel)
+        .map(ch => ch.channel_id);
+
+      await this.ensureActiveChannel(activeServer.server_id, validChannelIds);
+      activeServer = await this.discordServer.getComplete(activeServer.server_id);
+      
+      const currentChannelView = activeServer.active_channel_id;
+      const activeChannel = _.find(activeServer.channels, ['channel_id', currentChannelView]);
       channels = await this.createActiveChannels(activeServer.channels, currentChannelView);
   
       return {
@@ -93,15 +90,13 @@ module.exports = {
         channels,
         activeChannel
       };
-    } else {
-
-      return {
-        activeServer: {},
-        channels: [],
-        activeChannel: {}
-      }
     }
 
+    return {
+      activeServer: {},
+      channels: [],
+      activeChannel: {}
+    };
   },
 
   async getServerTemplateObj(serverRows = [], state = null) {
@@ -109,14 +104,29 @@ module.exports = {
       serverRows = await this.discordServer.getSorted();
     }
 
+    if (!_.isEmpty(serverRows)) {
+      await this.ensureActiveServer(serverRows[0].server_id);
+    }
+
     let channels = [];
     let activeServer = await this.state.getActiveServer();
     let activeChannel = null;
+
     if (activeServer) {
-      activeServer = await this.discordServer.getWithChannels(activeServer.server_id);
-      const currentChannelView = _.get(activeServer, 'active_channel_id', null);
-      activeChannel = _.find(activeServer.channels, ['channel_id', currentChannelView]);
-      channels = await this.createActiveChannels(activeServer.channels, currentChannelView);
+      activeServer = await this.discordServer.getComplete(activeServer.server_id);
+      
+      if (activeServer?.channels) {
+        const validChannelIds = activeServer.channels
+          .filter(ch => ch.isTextChannel)
+          .map(ch => ch.channel_id);
+          
+        await this.ensureActiveChannel(activeServer.server_id, validChannelIds);
+        activeServer = await this.discordServer.getComplete(activeServer.server_id);
+        
+        const currentChannelView = activeServer.active_channel_id;
+        activeChannel = _.find(activeServer.channels, ['channel_id', currentChannelView]);
+        channels = await this.createActiveChannels(activeServer.channels, currentChannelView);
+      }
     }
 
     const serverBubbles = await this.createServerBubbles(
@@ -132,6 +142,33 @@ module.exports = {
       channels,
       activeChannel
     };
-  }
+  },
 
+  async ensureActiveChannel(serverId, validChannelIds) {
+    const discordServer = await this.discordServer.getComplete(serverId);
+    const activeChannel = discordServer.active_channel_id;
+
+    if (!activeChannel || !validChannelIds.includes(activeChannel)) {
+      const channels = await this.discordChannel.getMany({ discord_server: serverId });
+      const firstTextChannel = _.find(
+        channels,
+        (ch) => ch.isTextChannel && ch.parent_id && ch.position === 0
+      );
+
+      if (firstTextChannel) {
+        await this.discordServer.update(
+          { server_id: serverId },
+          { active_channel_id: firstTextChannel.channel_id }
+        );
+      }
+    }
+  },
+
+  async ensureActiveServer(defaultServerId) {
+    const activeServer = await this.state.getActiveServer();
+    if (!activeServer) {
+      logger.info(`No active server detected, setting active to: ${defaultServerId}`);
+      await this.state.changeActive(defaultServerId);
+    }
+  },
 };

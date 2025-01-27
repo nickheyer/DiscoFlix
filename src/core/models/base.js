@@ -46,6 +46,7 @@ class BaseModel {
             const fieldMeta = this.metadata.fields[field];
             if (fieldMeta?.type === 'image' && fieldMeta.cacheFolder && value) {
                 const cachedPath = await cacheImage(value, id, fieldMeta.cacheFolder, this.logger);
+                this.logger.info(`Saving ${this.modelName} : ${fieldMeta.label} to ${cachedPath}`);
                 if (cachedPath) processed[field] = cachedPath;
             }
         }

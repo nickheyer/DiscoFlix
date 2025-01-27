@@ -1,4 +1,4 @@
-/* Contains styling for the nav bar and server buttons */
+/* NAV BAR AND SERVER BUTTONS */
 
 .servers {
   order: 1;
@@ -17,6 +17,7 @@
 }
 
 .serverBtnGroup {
+  align-items: center;
   position: absolute;
   width: fit-content;
   display: flex;
@@ -26,6 +27,7 @@
 }
 
 .serverBubbles.sortable {
+  padding-inline: 5px;
   scrollbar-width: none;
   overflow-y: scroll;
   overflow-x: clip;

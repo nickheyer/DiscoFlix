@@ -1,31 +1,56 @@
 const _ = require("lodash");
 
 async function toggleSidebarState(ctx) {
-  const state = await ctx.core.state.get();
-  const servers = await ctx.core.getServerTemplateObj(null, state);
-  state['sidebar_exp_state'] = !state['sidebar_exp_state'];
-  await ctx.core.state.update(state);
-  const discordBot = await ctx.core.discordBot.get();
-  await ctx.compileView('sidebar/sidebarLayout.pug', { state, servers, discordBot });
+  try {
+    const currentState = await ctx.core.state.get();
+    const state = await ctx.core.state.update({
+      sidebar_exp_state: !currentState.sidebar_exp_state 
+    });
+    
+    const [servers, discordBot] = await Promise.all([
+      ctx.core.getServerTemplateObj(null, state),
+      ctx.core.discordBot.get()
+    ]);
+    await ctx.compileView('sidebar/sidebarLayout.pug', { state, servers, discordBot });
+  } catch (err) {
+    if (err.code === 'P2002') { // PRISMA CONSTRAINT CODE
+      return toggleSidebarState(ctx);
+    } else {
+      global.logger.error('TOGGLE_SIDEBAR_FAILED:', err);
+      ctx.status = 500;
+      return { error: 'Failed to toggle sidebar' };
+    }
+  }
 }
 
 async function changeActiveServers(ctx) {
-  const active_server_id = `${ctx.params.id}`;
-  const state = await ctx.core.state.update({ active_server_id });
-  const msgObjects = await ctx.core.updateMessages(null, state);
-  const messages = await ctx.core.compileMessages(msgObjects);
-  const servers = await ctx.core.getServerTemplateObj(null, state);
-  const discordBot = await ctx.core.discordBot.get();
-  const eomStamp = _.get(_.last(msgObjects), 'created_at');
-  await ctx.compileView([
-    'sidebar/servers/serverSortableContainer.pug',
-    'sidebar/servers/serverBannerContainer.pug',
-    'sidebar/userControls/settingsButton.pug',
-    'sidebar/channels/channelsLayout.pug',
-    'chat/messageChannelHeader.pug',
-    'chat/chatBar.pug',
-    'chat/messageContainer.pug',
-  ], { servers, discordBot, messages, eomStamp, state });
+  try {
+    const active_server_id = ctx.params.id;
+    const state = await ctx.core.state.update({ active_server_id });
+    
+    const [msgObjects, servers, discordBot] = await Promise.all([
+      ctx.core.updateMessages(null, state),
+      ctx.core.getServerTemplateObj(null, state),
+      ctx.core.discordBot.get()
+    ]);
+
+    const messages = await ctx.core.compileMessages(msgObjects);
+    const eomStamp = _.get(_.last(msgObjects), 'created_at');
+
+    await ctx.compileView([
+      'sidebar/servers/serverSortableContainer.pug',
+      'sidebar/servers/serverBannerContainer.pug',
+      'sidebar/userControls/settingsButton.pug',
+      'sidebar/channels/channelsLayout.pug',
+      'chat/messageChannelHeader.pug',
+      'chat/chatBar.pug',
+      'chat/messageContainer.pug',
+    ], { servers, discordBot, messages, eomStamp, state });
+  } catch (err) {
+    global.logger.error('CHANGE_SERVER_FAILED:', err);
+    ctx.status = 500;
+    return { error: 'Failed to change server' };
+  }
 }
 
 async function changeServerSortOrder(ctx) {

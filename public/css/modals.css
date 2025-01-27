@@ -1,4 +1,4 @@
-/* Styling for basically all our modals, dynamic and static */
+/* STYLING FOR ALL THE MODALS */
 
 /* BASE MODAL */
 .modal-overlay {
@@ -72,9 +72,10 @@
 .modal-footer {
   padding: 16px 24px;
   border-top: 1px solid #202225;
-  display: flex;
+  display: flex !important;
+  align-items: center !important;
   justify-content: flex-end;
-  gap: 8px;
+  gap: 12px;
 }
 
 .modal-button {
@@ -191,13 +192,13 @@
   width: 18px;
   left: 3px;
   bottom: 3px;
-  background-color: #fff;
+  background-color: var(--dark-bg);
   border-radius: 50%;
   transition: .2s;
 }
 
 .settings-switch input:checked + .settings-slider {
-  background-color: #3ba55c;
+  background-color: var(--blurple);
 }
 
 .settings-switch input:checked + .settings-slider:before {

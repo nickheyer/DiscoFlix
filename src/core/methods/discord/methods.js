@@ -185,14 +185,12 @@ module.exports = {
       const activeServer = await this.state.getActiveServer();
 
       active_channel_id = activeServer.active_channel_id;
-      console.log(`THE FUCKING ACTIVE CHANNEL ID: ${active_channel_id}`);
       if (!active_channel_id) {
         return [];
       }
     }
 
     // UPDATE UNREAD MESSAGES FOR CHANNEL
-    console.log(`LOOKING FOR THE CHANNEL MATCHING ID: ${active_channel_id}`);
     await this.discordChannel.update(
       { channel_id: active_channel_id },
       { unread_message_count: 0 }

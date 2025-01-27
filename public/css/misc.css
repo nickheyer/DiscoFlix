@@ -1,3 +1,5 @@
+/* EVERYTHING ELSE - ANIMATIONS, ALERTS, WHATEVER I COULDNT FIND A FILE FOR */
+
 .loading-bar {
   z-index: 9999;
   opacity: 0;
@@ -55,30 +57,48 @@
   display: block;
 }
 
-#notification {
-  position: fixed;
-  top: 1rem;
-  right: 1rem;
-  z-index: 1050;
-}
-
 .alert {
   max-width: 300px;
 }
 
-.status-message {
-  margin-bottom: 1rem;
-  transition: opacity 0.3s ease;
+.notification-container {
+  margin-right: auto;
+  min-width: 200px;
+  min-height: 38px;
+  visibility: hidden;
 }
 
-.status-message.fade {
+.notification {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #2f3136;
+  border-radius: 4px;
+  border: 1px solid #404449;
   opacity: 0;
+  transform: translateX(-10px);
+  transition: all 0.2s ease;
+  visibility: hidden;
 }
 
-.status-message.show {
+.notification.show {
   opacity: 1;
+  transform: translateX(0);
+  visibility: visible;
 }
 
+.notification-icon {
+  width: 16px;
+  height: 16px;
+  color: #00b341;
+}
+
+.notification-message {
+  font-size: 14px;
+  color: #dcddde;
+  font-weight: 500;
+}
 
 /* CUSTOM SELECT STYLING */
 .select-box {

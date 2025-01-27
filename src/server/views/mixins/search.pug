@@ -1,14 +1,18 @@
 mixin SearchBar(type, disabled=false)
   .search-bar
-    input.search-input(
+    input#search-input.search-input(
       type="text" 
       name="search"
       placeholder="Search..."
+      value=searchQuery
       hx-get=`/settings/${type}/search`
       hx-target="#records-container"
       hx-trigger="keyup delay:400ms"
-      hx-include="this"
+      hx-include="this, #state-management [name='current-page'], #state-management [name='page-size']"
       hx-indicator=".search-indicator"
+      _=`on htmx:afterOnLoad 
+         if #state-management[name='search']
+           set my.value to #state-management[name='search'].value`
       disabled=disabled
     )
     svg.search-icon(xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none")

@@ -97,7 +97,7 @@ const MODELS_META = {
             server_name: { type: FIELD_TYPES.STRING, label: "Server Name", description: "Discord server name", searchable: true },
             server_avatar_url: { 
                 type: FIELD_TYPES.IMAGE, 
-                label: "Avatar URL", 
+                label: "Server Avatar URL", 
                 description: "Server icon image",
                 cacheFolder: 'discord_server_images'
             },

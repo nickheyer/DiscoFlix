@@ -1,4 +1,6 @@
 include ../../../mixins/search
+include ../../../mixins/notification
+
 .modal-dialog.modal-dialog-centered.modal-dialog-scrollable.modal-lg
   .modal-content
     .modal-header
@@ -8,7 +10,7 @@ include ../../../mixins/search
           span.badge.ms-2.bg-secondary.small Read Only
       button.modal-close-button(type='button' data-bs-dismiss='modal' aria-label='Close') ×
     
-    .alert#notification(hx-swap-oob="true")
+    
     
     .modal-body
       if !isSingleton
@@ -16,8 +18,6 @@ include ../../../mixins/search
       #records-container.settings-records-container
         include _records
 
-    .modal-footer.d-block
-      .d-flex.justify-content-end
-        #status-message
-        button.modal-button.button-secondary(type='button' data-bs-dismiss='modal')= 'Close'
-
+    .modal-footer
+      +Notification
+      button.modal-button.button-secondary(type='button' data-bs-dismiss='modal') Close
