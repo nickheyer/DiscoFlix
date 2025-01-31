@@ -285,7 +285,7 @@ class SonarrAPI(RequestAPI):
 
         data = {
         "name": "SeriesSearch",
-        "seriesId": 795
+        "seriesId": id
         }
         res = self.request_post(path, data)
         return res
@@ -495,7 +495,6 @@ class SonarrAPI(RequestAPI):
         """
         path = f"{self.base}/tag"
         res = self.request_get(path)
-        print(f'TAGS FOUND: {res}')
         return res
 
     def get_id_for_tag_name(self, tag_name):
@@ -511,7 +510,6 @@ class SonarrAPI(RequestAPI):
 
         """
         res = self.get_tags()
-        print(f'AVAILABLE TAGS: {res}')
         for x in res:
             if tag_name.lower() in x.get('label', ''):
                 return x.get('id', -1)

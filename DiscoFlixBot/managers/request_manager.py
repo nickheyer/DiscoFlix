@@ -100,7 +100,7 @@ class RequestHandler:
                 self.id_key = "tvdbId"
                 
                 def get_existing_id_fn(remote_id):
-                    return self.request_method.get_series(None, f'?{self.id_key}={remote_id}')
+                    return self.request_method.get_series(f'?{self.id_key}={remote_id}')
                 
                 self.get_existing_id = get_existing_id_fn
                 
@@ -220,7 +220,6 @@ class RequestHandler:
             if self.view.was_forced and self.init_size == 0:
                 self.init_size = content_info.get("sizeOnDisk", 0)
 
-            # Perform checks here
             if self.request_type == "movie":
                 content_history = self.request_method.get_history_movie(self.databaseId)
                 last_entry = content_history[0] if len(content_history) > 0 else {}

@@ -447,7 +447,6 @@ class RadarrAPI(RequestAPI):
 
         """
         res = self.get_tags()
-        print(f'Available tags: {res}')
         for x in res:
             if tag_name.lower() in x.get('label', ''):
                 return x.get('id', -1)

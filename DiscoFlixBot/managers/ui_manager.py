@@ -25,7 +25,7 @@ class ContentSelectionView(discord.ui.View):
         self.approval_required = False
         self.trailer_button = None
         self.trailer_message = None
-        self.can_override = self.config.is_request_existing_enabled or self.config.can_request_existing
+        self.can_override = getattr(self.config, 'is_request_existing_enabled', False)
         self.was_forced = False
 
     async def async_init(self):
@@ -209,17 +209,17 @@ class ContentSelectionView(discord.ui.View):
             "next", self.current_index == len(self.content_list) - 1
         )
         file_exists = bool(content.get("path", False))
-        if file_exists:
-            if self.can_override:
-                await self.change_button_text("select", "Force")
-                embed.insert_field_at(
-                    index=0,
-                    inline=True,
-                    name="Requires Force Override",
-                    value=f"Content exists or is actively monitored.",
-                )
-            else:
-                await self.change_button("select", file_exists)
+        if file_exists and self.can_override:
+            await self.change_button_text("select", "Force")
+            embed.insert_field_at(
+                index=0,
+                inline=True,
+                name="Requires Force Override",
+                value=f"Content exists or is actively monitored.",
+            )
+        else:
+            await self.change_button("select", file_exists)
+            if file_exists:
                 embed.insert_field_at(
                     index=0,
                     inline=True,

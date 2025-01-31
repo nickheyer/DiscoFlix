@@ -116,7 +116,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     max_results = models.IntegerField(default=0)
     max_seasons_for_non_admin = models.IntegerField(default=0)
     max_requests_in_day = models.IntegerField(default=0)
-    can_request_existing = models.BooleanField(default=False)
+    is_request_existing_enabled = models.BooleanField(default=False)
 
     objects = UserManager()
 

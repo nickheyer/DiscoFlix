@@ -296,6 +296,14 @@ def edit_user(info):
     user = User.objects.filter(id=info.get("id", "-1")).first()
     if not user:
         return False
+    
+    user_specific_settings = info.get('is_additional_settings', getattr(user, 'is_additional_settings', False))
+    if not user_specific_settings:
+        config = get_config_sync()
+        keys_to_remove = [k for k in info if hasattr(config, k)]
+        
+        for k in keys_to_remove:
+            del info[k]
 
     for k, v in info.items():
         if k in ["id", "servers", "added", "requests"]:
@@ -377,6 +385,11 @@ def get_user_settings(user):
             "is_additional_settings",
         ],
     )
+    
+    user_specific_settings = getattr(user, "is_additional_settings", False)
+    if not user_specific_settings:
+        config = get_config_sync()
+        user_settings = {k: v for k, v in user_settings.items() if not hasattr(config, k)}
     return user_settings
 
 
@@ -398,9 +411,20 @@ def edit_user_from_dict(data):
     user.username = username
     changes_made = []
 
+    # PURGE LOCAL USER SETTINGS IF GLOBAL CONFIG OVERRIDES
+    user_specific_settings = data.get('is_additional_settings', getattr(user, 'is_additional_settings', False))
+
+    if not user_specific_settings:
+        config = get_config_sync()
+        keys_to_remove = [k for k in data if hasattr(config, k)]
+        
+        for k in keys_to_remove:
+            del data[k]
+                
     for k, v in data.items():
         if hasattr(user, k):
             data_in_model = getattr(user, k)
+            
             if data_in_model != type(data_in_model)(v):
                 changes_made.append(k)
             if k not in ["id", "discord_servers", "added", "requests", "username"]:

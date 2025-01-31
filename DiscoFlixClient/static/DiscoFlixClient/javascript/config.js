@@ -78,7 +78,7 @@ export const ADDITIONAL_USER_SETTINGS = {
         TYPE: 'PASSWORD',
         DEFAULT: ''
     },
-    'can_request_existing': {
+    'is_request_existing_enabled': {
         VERBOSE: 'Allow Requests For Monitored Content',
         TYPE: 'BOOL',
         DEFAULT: false
