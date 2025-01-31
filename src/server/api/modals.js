@@ -141,7 +141,7 @@ async function saveSettings(ctx) {
             model.safeUpsertOne(modalData)
         );
 
-        const { data: formData, totalRecords, currentPage: safePage } = 
+        let { data: formData, totalRecords, currentPage: safePage } = 
             await getPaginatedData(model, currentPage, perPage, searchQuery);
 
         if (model.getModelType() === 'singleton') {

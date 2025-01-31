@@ -136,6 +136,27 @@ class BaseModel {
         return record || this.create(defaultData, include);
     }
 
+    async updateSingleton(data = {}) {
+        if (this.getModelType() !== MODEL_TYPES.SINGLETON) {
+            throw new Error('NOT_SINGLETON');
+        }
+
+        const record = await this.model.findFirst();
+        if (!record) {
+            this.create({
+                ...this.defaultData,
+                ...data
+            }, include);
+        } else {
+            const pkName = this.getPrimaryKeyName();
+            const pk = record[pkName];
+            return this.safeUpdateOne(pk, {
+                ...record,
+                ...data
+            });
+        }
+    }
+
     // SAFE OPS
     async safeUpdateOne(pk, data) {
         const pkName = this.getPrimaryKeyName();

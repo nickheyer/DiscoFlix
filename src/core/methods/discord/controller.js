@@ -6,7 +6,11 @@ module.exports = {
     try {
       if (initBotState) {
         this.logger.info('Attempting to autostart Bot');
-        await this.startBot();
+        if (await this.startBot()) {
+          this.logger.info('Bot was started');
+        } else {
+          throw new Error('Bot was unable to start');
+        }
       }
     } catch (err) {
       await this.state.update({ 'discord_state': false });
@@ -14,21 +18,35 @@ module.exports = {
     }
   },
 
-  async startBot(token = process.env.DEV_TOKEN) {
-    if (!token) {
-      const config = await this.configuration.get();
-      token = config.discord_token;
-      if (!token) {
-        this.logger.warn('Discord bot token is required.');
-        return;
+  // ATTEMPT TO USE ALL THREE AVAILABLE TOKEN PROVIDERS
+  async startBot(token) {
+    try {
+      if (!token) { // TOKEN ARG
+        const config = await this.configuration.get();
+        token = config.discord_token; // TOKEN CONFIGURATION
+        if (!token) {
+          token = process.env.DEV_TOKEN; // TOKEN ENV
+          if (token) {
+            await this.configuration.updateTokens({
+              discord: token // UPDATE CONFIGURATION DB IF TOKEN IN ENV
+            });
+          } else {
+            throw new Error('Discord bot token is required.');
+          }
+        }
       }
+      if (!this.client.isReady()) {
+        await this.client.login(token);
+        this.logger.info('Bot successfully logged in and state updated');
+      } else {
+        throw new Error('Attempting to login with already logged in bot!');
+      }
+    } catch (startErr) {
+      this.logger.error(startErr.message || startErr);
+      await this.updatePowerState(false);
+      return false;
     }
-    if (!this.client.isReady()) {
-      await this.client.login(token);
-      this.logger.info('Bot successfully logged in and state updated');
-    } else {
-      this.logger.warn('Attempting to login with already logged in bot!');
-    }
+    return true;
   },
 
   async stopBot() {
