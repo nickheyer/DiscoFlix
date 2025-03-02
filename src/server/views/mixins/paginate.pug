@@ -24,10 +24,10 @@ mixin paginate(type, currentPage, totalRecords, perPage, search)
 
     +SelectBox('page-size', [
       {name: '5 per page', value: 5, checked: perPage === 5 || !perPage },
-      {name: '10 per page', value: 10, disabled: (totalRecords < 10), checked: perPage === 10 }, 
-      {name: '25 per page', value: 25, disabled: (totalRecords < 25), checked: perPage === 25 }, 
-      {name: '50 per page', value: 50, disabled: (totalRecords < 50), checked: perPage === 50 }, 
-      {name: '100 per page', value: 100, disabled: (totalRecords < 100), checked: perPage === 100 }
+      {name: '10 per page', value: 10, disabled: (totalRecords <= 5), checked: perPage === 10 }, 
+      {name: '25 per page', value: 25, disabled: (totalRecords <= 10), checked: perPage === 25 }, 
+      {name: '50 per page', value: 50, disabled: (totalRecords <= 25), checked: perPage === 50 }, 
+      {name: '100 per page', value: 100, disabled: (totalRecords <= 50), checked: perPage === 100 }
     ], totalRecords < 5, {
       'hx-get': `/settings/${type}/page/1`,
       'hx-target': '#records-container',

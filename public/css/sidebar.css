@@ -172,7 +172,7 @@
   }
 
   .channelViewContainer {
-    overflow: auto !important;
+    overflow-y: scroll !important;
     height: calc(100% - 136px) !important
   }
 }
@@ -281,7 +281,7 @@
   background-color: var(--secondary);
   display: flex;
   flex-direction: column;
-  padding: 0px 8px 0px 8px;
+  padding-left: 8px;
   transition: opacity 0.2s ease 0s;
 }
 
@@ -367,6 +367,11 @@
   cursor: pointer;
   transition: color 0.2s ease 0s;
 }
+
+svg.noInter {
+  cursor: unset !important;
+}
+
 .channelViewOptionConfig svg:last-child {
   margin-left: 4px;
 }

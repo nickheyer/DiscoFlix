@@ -1,8 +1,14 @@
-// SERVER POWER BUTTON - STATELESS
+// SERVER POWER BUTTON - STATEFUL
 div.serverPowerIcon#serverPowerToggle(
-  hx-get="/toggle-power"
-  data-confirm=`Turn web server off?`
-  aria-label=`Turn web server off`
+  hx-get="/modal/bot/server"
+  hx-target="#modals-here"
+  hx-trigger="click"
+
+  hx-swap-oob="outerHTML"
+  data-bs-toggle="modal"
+  data-bs-target="#modals-here"
+
+  aria-label=`Turn Server off`
   data-cooltipz-dir='top'
 )
   svg(aria-hidden="false" viewBox="0 0 16 16")

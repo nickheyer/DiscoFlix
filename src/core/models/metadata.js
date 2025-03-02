@@ -115,6 +115,7 @@ const MODELS_META = {
     },
     DiscordServerChannel: {
         type: MODEL_TYPES.ENTITY,
+        alias: 'discordChannel',
         description: "Discord channel information",
         readonly: true,
         fields: {

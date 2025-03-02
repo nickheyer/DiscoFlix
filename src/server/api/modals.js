@@ -51,16 +51,22 @@ async function getPaginatedData(model, currentPage, perPage, searchQuery = '') {
     };
 }
 
-async function renderRecordsView(ctx, model, records, currentPage, perPage, totalRecords, searchQuery = null, message) {
-    return ctx.compileView(['modals/settings/_records.pug', 'extra/notification.pug'], {
-        type: _.lowerFirst(model.modelName),
+async function renderRecordsView(ctx, model, records, currentPage, perPage, totalRecords, searchQuery = null, message = null, fullRender = null) {
+    const templatesToRender = ['modals/settings/_records.pug', 'extra/notification.pug'];
+    const templateParams = {
+        title: model.getModelDescription() || `${model.modelName} Settings`,
+        type: _.lowerFirst(model?.metadata?.alias || model.modelName),
         readonly: model.isModelReadonly(),
         isSingleton: model.getModelType() === 'singleton',
         records,
         pg: { currentPage, perPage, totalRecords },
         searchQuery,
         ...(message && { message })
-    });
+    };
+    if (fullRender) {
+        templatesToRender.unshift('modals/settings/base.pug');
+    }
+    return ctx.compileView(templatesToRender, templateParams);
 }
 
 // CONTROLLER FUNCTIONS
@@ -108,6 +114,7 @@ async function renderModal(ctx) {
 
 async function getSettingsPage(ctx) {
     const { type: modelName, page } = ctx.params;
+    console.log(`INCOMING MODEL NAME/TYPE: ${modelName}`);
     const model = ctx.core[modelName];
     if (!model) return ctx.status = 404;
 
@@ -164,13 +171,14 @@ async function searchSettings(ctx) {
     if (!model) return ctx.status = 404;
 
     const searchQuery = getSearchQuery(ctx);
-    const perPage = getSafePageSize(ctx.query['page-size']);
-    const currentPage = getCurrentPage(ctx.query['current-page']);
+    const perPage = getSafePageSize(ctx?.query?.['page-size']);
+    const currentPage = getCurrentPage(ctx?.query?.['current-page']);
+    const includeModal = !!(ctx?.query?.['as-modal']);
 
     const { data, totalRecords, currentPage: safePage } = 
         await getPaginatedData(model, currentPage, perPage, searchQuery);
     
-    return renderRecordsView(ctx, model, data, safePage, perPage, totalRecords, searchQuery);
+    return renderRecordsView(ctx, model, data, safePage, perPage, totalRecords, searchQuery, null, includeModal);
 }
 
 async function deleteRecord(ctx) {
