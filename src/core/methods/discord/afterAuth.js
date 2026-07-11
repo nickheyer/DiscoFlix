@@ -1,5 +1,3 @@
-const _ = require('lodash');
-
 // GENERATE BOT INVITE LINK
 function genInvite(client) {
   return client.generateInvite({ scopes: ['bot'], permissions: ['1689934407138496'] });
@@ -9,13 +7,13 @@ module.exports = {
   // SYNC ALL SERVERS AND CHANNELS
   async refreshAllDiscordServers() {
     try {
-      const foundPartialServers = await this.client.guilds.fetch();
+      const foundPartialServers = await this.core.client.guilds.fetch();
       const foundServers = await Promise.all(foundPartialServers.map(part => part.fetch()));
       const foundIDs = await this.batchUpsertServers(foundServers);
       await this.syncMissingServers(foundIDs);
-      return await this.discordServer.getSorted();
+      return await this.core.models.discordServer.getSorted();
     } catch (error) {
-      logger.error('Failed to refresh all Discord servers:', error);
+      this.logger.error('Failed to refresh all Discord servers:', error);
       throw error;
     }
   },
@@ -27,14 +25,14 @@ module.exports = {
         await this.batchUpsertServers([fetchedServer]);
         return [fetchedServer.id];
       }
-      
-      const fetchedServers = await this.client.guilds.fetch();
+
+      const fetchedServers = await this.core.client.guilds.fetch();
       const foundServers = await Promise.all(fetchedServers.map(part => part.fetch()));
       const foundIDs = await this.batchUpsertServers(foundServers);
       await this.syncMissingServers(foundIDs);
       return foundIDs;
     } catch (error) {
-      logger.error('Failed to refresh Discord servers:', error);
+      this.logger.error('Failed to refresh Discord servers:', error);
       throw error;
     }
   },
@@ -47,18 +45,19 @@ module.exports = {
 
     for (const server of servers) {
       foundIDs.push(server.id);
-      
+
+      // UPDATE MUST STAY PARTIAL: sort_position/unread/active_channel ARE
+      // UI-OWNED STATE AND MUST SURVIVE RE-SYNCS
       const guildInfo = {
         server_name: server.name,
         server_avatar_url: server.iconURL(),
-        sort_position: 0,
         available: true
       };
 
       serverOps.push(
-        this.discordServer.upsert(
+        this.core.models.discordServer.upsert(
           { server_id: server.id },
-          { server_id: server.id, ...guildInfo },
+          { server_id: server.id, sort_position: 0, ...guildInfo },
           guildInfo
         )
       );
@@ -66,16 +65,16 @@ module.exports = {
       const channels = await server.channels.fetch();
       const channelData = await this.prepareChannelBatch(server, channels);
       channelOps.push(...channelData.ops);
-      
+
       // ACTIVE CHANNEL SELECT
-      await this.ensureActiveChannel(server.id, channelData.validChannelIds);
+      await this.core.render.ensureActiveChannel(server.id, channelData.validChannelIds);
     }
 
     await Promise.all([...serverOps, ...channelOps]);
-    
+
     // ENSURE ACTIVE SERVER EXISTS
-    await this.ensureActiveServer(foundIDs[0]);
-    
+    await this.core.render.ensureActiveServer(foundIDs[0]);
+
     return foundIDs;
   },
 
@@ -94,7 +93,7 @@ module.exports = {
 
       validChannelIds.push(channel.id);
       ops.push(
-        this.discordChannel.upsert(
+        this.core.models.discordChannel.upsert(
           { channel_id: channel.id },
           { channel_id: channel.id, discord_server: server.id, ...channelData },
           channelData
@@ -104,7 +103,7 @@ module.exports = {
 
     // BATCH DELETE INVALID CHANNELS
     ops.push(
-      this.discordChannel.deleteMany({
+      this.core.models.discordChannel.deleteMany({
         channel_id: { notIn: validChannelIds },
         discord_server: server.id
       })
@@ -116,7 +115,7 @@ module.exports = {
   // MARK UNAVAILABLE
   async syncMissingServers(availableServerIDs) {
     try {
-      const existingServers = await this.discordServer.getMany();
+      const existingServers = await this.core.models.discordServer.getMany();
       const unavailableServers = existingServers.filter(
         server => server.available && !availableServerIDs.includes(server.server_id)
       );
@@ -124,7 +123,7 @@ module.exports = {
       if (unavailableServers.length > 0) {
         await Promise.all(
           unavailableServers.map(server =>
-            this.discordServer.update(
+            this.core.models.discordServer.update(
               { server_id: server.server_id },
               { available: false }
             )
@@ -132,13 +131,13 @@ module.exports = {
         );
 
         unavailableServers.forEach(server => {
-          logger.warn('Server currently not available or visible:', server);
+          this.logger.warn('Server currently not available or visible:', server);
         });
       }
 
       return unavailableServers.map(server => server.server_id);
     } catch (error) {
-      logger.error('Failed to sync missing servers:', error);
+      this.logger.error('Failed to sync missing servers:', error);
       throw error;
     }
   },
@@ -146,17 +145,17 @@ module.exports = {
   // UPDATE BOT INFO
   async refreshBotInfo(powerOn) {
     try {
-      const botClient = this.client.user;
-      const discordBot = await this.discordBot.update({
+      const botClient = this.core.client.user;
+      const discordBot = await this.core.models.discordBot.update({
         bot_id: botClient.id,
         bot_username: botClient.displayName,
         bot_discriminator: botClient.discriminator,
-        bot_invite_link: genInvite(this.client),
+        bot_invite_link: genInvite(this.core.client),
         bot_avatar_url: botClient.displayAvatarURL()
       });
       await this.updatePowerState(powerOn, discordBot);
     } catch (error) {
-      logger.error('Failed to refresh bot info:', error);
+      this.logger.error('Failed to refresh bot info:', error);
       throw error;
     }
   },
@@ -164,11 +163,11 @@ module.exports = {
   // UPDATE INVITE LINK
   async setInviteLink() {
     try {
-      return await this.discordBot.update({
-        bot_invite_link: genInvite(this.client)
+      return await this.core.models.discordBot.update({
+        bot_invite_link: genInvite(this.core.client)
       });
     } catch (error) {
-      logger.error('Failed to set invite link:', error);
+      this.logger.error('Failed to set invite link:', error);
       throw error;
     }
   },
@@ -178,13 +177,13 @@ module.exports = {
     try {
       const [serverRows, discordBot, state] = await Promise.all([
         this.refreshAllDiscordServers(),
-        this.discordBot.get(),
-        this.state.get()
+        this.core.models.discordBot.get(),
+        this.core.models.state.get()
       ]);
 
-      const servers = await this.getServerTemplateObj(serverRows);
+      const servers = await this.core.render.getServerTemplateObj(serverRows);
 
-      await this.emitCompiled([
+      await this.core.sockets.emitCompiled([
         'sidebar/servers/serverSortableContainer.pug',
         'sidebar/servers/serverBannerLabel.pug',
         'sidebar/channels/chatChannels.pug',
@@ -198,7 +197,7 @@ module.exports = {
         loading: false
       });
     } catch (error) {
-      logger.error('Failed to update server sort order:', error);
+      this.logger.error('Failed to update server sort order:', error);
       throw error;
     }
   }

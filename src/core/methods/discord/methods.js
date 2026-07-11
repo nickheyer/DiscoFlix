@@ -2,11 +2,11 @@ const _ = require('lodash');
 
 module.exports = {
   async updatePowerState(powerOn, discordBotInst = null) {
-    const discordBot = discordBotInst || await this.discordBot.get();
-    logger.debug('Changing Discord Bot Power State:', discordBot);
+    const discordBot = discordBotInst || await this.core.models.discordBot.get();
+    this.logger.debug('Changing Discord Bot Power State:', discordBot);
 
-    const state = await this.state.update({ discord_state: powerOn });
-    await this.emitCompiled([
+    const state = await this.core.models.state.update({ discord_state: powerOn });
+    await this.core.sockets.emitCompiled([
       'sidebar/userControls/userControlsLayout.pug',
       'sidebar/servers/addServerButton.pug',
     ], {
@@ -16,7 +16,7 @@ module.exports = {
   },
 
   async getInviteLink() {
-    const discordBot = await this.discordBot.get();
+    const discordBot = await this.core.models.discordBot.get();
     return discordBot.bot_invite_link;
   },
 
@@ -42,7 +42,7 @@ module.exports = {
     messageText,
     accentColor
   }) {
-    await this.emitCompiled(['chat/discordMessage.pug'], {
+    await this.core.sockets.emitCompiled(['chat/discordMessage.pug'], {
       username,
       isBot,
       isClient,
@@ -54,26 +54,33 @@ module.exports = {
   },
 
   async logMessageToInterface(rawDiscMsg) {
+    if (!rawDiscMsg.guildId) return; // DMS NOT SUPPORTED (YET)
+
     const author = await rawDiscMsg.author.fetch(true);
     const avatarUrl = author.displayAvatarURL();
     const userAccent = (author.hexAccentColor || 'ffffff').replace('#', '');
-    const targetChannel = await this.discordChannel.getById(rawDiscMsg.channelId);
+    let targetChannel = await this.core.models.discordChannel.getById(rawDiscMsg.channelId);
 
     if (!targetChannel) {
       await this.refreshDiscordServers();
       await this.updateServerSortOrder();
+      targetChannel = await this.core.models.discordChannel.getById(rawDiscMsg.channelId);
+      if (!targetChannel) {
+        this.logger.warn(`Message received for unknown channel ${rawDiscMsg.channelId}, skipping`);
+        return;
+      }
     }
 
     // ONLY DB OPS HERE, EASY TO MESS UP
-    const txRes = await this.prisma.$transaction(async (tx) => {
+    const txRes = await this.core.prisma.$transaction(async (tx) => {
       const bot = await tx.discordBot.findFirst();
       const { activeServer } = await tx.state.findFirst({
         include: { activeServer: true }
       });
-  
+
       const isSelf = author.id === bot.bot_id;
-      const isActiveChannel = activeServer.active_channel_id === rawDiscMsg.channelId;
-  
+      const isActiveChannel = activeServer?.active_channel_id === rawDiscMsg.channelId;
+
       // UPDATE SERVER
       const server = await tx.discordServer.update({
         where: { server_id: rawDiscMsg.guildId },
@@ -83,7 +90,7 @@ module.exports = {
           }
         }
       });
-  
+
       // UPDATE CHANNEL
       const channel = await tx.discordServerChannel.update({
         where: { channel_id: rawDiscMsg.channelId },
@@ -93,7 +100,7 @@ module.exports = {
           }
         }
       });
-  
+
       // UPSERT USER
       await tx.user.upsert({
         where: { id: author.id },
@@ -119,7 +126,7 @@ module.exports = {
           }
         }
       });
-  
+
       // UPSERT MESSAGE
       await tx.discordMessage.upsert({
         where: { message_id: rawDiscMsg.id },
@@ -139,8 +146,6 @@ module.exports = {
       });
       return { isActiveChannel, isSelf };
     });
-  
-    
 
     // UI UPDATES OUTSIDE TRANSACTION
     if (txRes.isActiveChannel) {
@@ -154,8 +159,8 @@ module.exports = {
         accentColor: userAccent
       });
     } else {
-      const servers = await this.getServerTemplateObj();
-      await this.emitCompiled([
+      const servers = await this.core.render.getServerTemplateObj();
+      await this.core.sockets.emitCompiled([
         'sidebar/servers/serverSortableContainer.pug',
         'sidebar/channels/chatChannels.pug'
       ], { servers });
@@ -166,7 +171,7 @@ module.exports = {
     const compiledMessages = [];
     for (const message of messages) {
       message.created_at = this.formatTimestamp(message.created_at);
-      const compiledMessage = await this.compile('chat/discordMessageShard.pug', message);
+      const compiledMessage = await this.core.render.compile('chat/discordMessageShard.pug', message);
       compiledMessages.push(compiledMessage);
     }
     return compiledMessages;
@@ -174,7 +179,7 @@ module.exports = {
 
   async updateMessages(active_channel_id, state = null) {
     if (!state) {
-      state = await this.state.get();
+      state = await this.core.models.state.get();
     }
 
     if (!state.active_server_id) {
@@ -182,7 +187,7 @@ module.exports = {
     }
 
     if (!active_channel_id) {
-      const activeServer = await this.state.getActiveServer();
+      const activeServer = await this.core.models.state.getActiveServer();
 
       active_channel_id = activeServer.active_channel_id;
       if (!active_channel_id) {
@@ -191,43 +196,44 @@ module.exports = {
     }
 
     // UPDATE UNREAD MESSAGES FOR CHANNEL
-    await this.discordChannel.update(
+    await this.core.models.discordChannel.update(
       { channel_id: active_channel_id },
       { unread_message_count: 0 }
     );
 
     // UPDATE UNREAD MESSAGES FOR SERVER
-    const server = await this.discordServer.getWithChannels(state.active_server_id);
+    const server = await this.core.models.discordServer.getWithChannels(state.active_server_id);
 
     const unreadServerMsgCount = server.channels.reduce(
       (total, channel) => total + channel.unread_message_count,
       0
     );
 
-    await this.discordServer.update(
+    await this.core.models.discordServer.update(
       { server_id: state.active_server_id },
       { active_channel_id, unread_message_count: unreadServerMsgCount }
     );
 
     // GET ALL MESSAGES TO BE DISPLAYED
-    const messages = await this.discordChannel.getMessages(active_channel_id);
-    logger.info(`Rendering ${messages.length} messages to UI`);
+    const messages = await this.core.models.discordChannel.getMessages(active_channel_id);
+    this.logger.info(`Rendering ${messages.length} messages to UI`);
 
     return messages;
   },
 
   // EMITS A TEMPLATE OF AN UPDATED GUILD/SERVER/CHANNELS/ETC
-  async refreshUI(messageObjects = []) {
-    if (_.isEmpty(messageObjects)) {
+  // `null` = "fetch for me"; `[]` IS A VALID RESULT (EMPTY CHANNEL), DON'T REFETCH
+  async refreshUI(messageObjects = null) {
+    if (messageObjects === null) {
       messageObjects = await this.updateMessages();
     }
     const messages = await this.compileMessages(messageObjects);
     const eomStamp = _.get(_.last(messageObjects), 'created_at');
 
-    const discordBot = await this.discordBot.get();
-    const servers = await this.getServerTemplateObj();
+    const discordBot = await this.core.models.discordBot.get();
+    const servers = await this.core.render.getServerTemplateObj();
 
-    await this.emitCompiled([
+    await this.core.sockets.emitCompiled([
       'sidebar/servers/serverSortableContainer.pug',
       'sidebar/servers/serverBannerLabel.pug',
       'sidebar/channels/chatChannels.pug',

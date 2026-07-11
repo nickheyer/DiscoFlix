@@ -1,7 +1,7 @@
 module.exports = {
   async autoStartBot() {
     this.logger.info('Autostarting Bot');
-    const currentState = await this.state.get();
+    const currentState = await this.core.models.state.get();
     const initBotState = currentState['discord_state'];
     try {
       if (initBotState) {
@@ -13,7 +13,7 @@ module.exports = {
         }
       }
     } catch (err) {
-      await this.state.update({ 'discord_state': false });
+      await this.core.models.state.update({ 'discord_state': false });
       this.logger.error(`Error in autoStartBot: ${err}`);
     }
   },
@@ -22,12 +22,12 @@ module.exports = {
   async startBot(token) {
     try {
       if (!token) { // TOKEN ARG
-        const config = await this.configuration.get();
+        const config = await this.core.models.configuration.get();
         token = config.discord_token; // TOKEN CONFIGURATION
         if (!token) {
           token = process.env.DEV_TOKEN; // TOKEN ENV
           if (token) {
-            await this.configuration.updateTokens({
+            await this.core.models.configuration.updateTokens({
               discord: token // UPDATE CONFIGURATION DB IF TOKEN IN ENV
             });
           } else {
@@ -35,8 +35,8 @@ module.exports = {
           }
         }
       }
-      if (!this.client.isReady()) {
-        await this.client.login(token);
+      if (!this.core.client.isReady()) {
+        await this.core.client.login(token);
         this.logger.info('Bot successfully logged in and state updated');
       } else {
         throw new Error('Attempting to login with already logged in bot!');
@@ -51,9 +51,9 @@ module.exports = {
 
   async stopBot() {
     await this.updatePowerState(false);
-    if (this.client && this.client.isReady()) {
-      await this.client.destroy();
-      this._client = null;
+    if (this.core.client && this.core.client.isReady()) {
+      await this.core.client.destroy();
+      this.core.resetClient();
       this.logger.info('Bot has been stopped.');
       return true;
     } else {

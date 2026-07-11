@@ -5,8 +5,8 @@ module.exports = {
 	once: false,
 	async execute(client) {
     const core = client.core;
-    await core.refreshBotInfo(true);
-    await core.updateServerSortOrder();
-    global.logger.info(`Logged in as ${client.user.tag}!`);
+    await core.discord.refreshBotInfo(true);
+    await core.discord.updateServerSortOrder();
+    core.logger.info(`Logged in as ${client.user.tag}!`);
 	},
 };

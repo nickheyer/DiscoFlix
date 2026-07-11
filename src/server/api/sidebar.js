@@ -2,21 +2,21 @@ const _ = require("lodash");
 
 async function toggleSidebarState(ctx) {
   try {
-    const currentState = await ctx.core.state.get();
-    const state = await ctx.core.state.update({
-      sidebar_exp_state: !currentState.sidebar_exp_state 
+    const currentState = await ctx.core.models.state.get();
+    const state = await ctx.core.models.state.update({
+      sidebar_exp_state: !currentState.sidebar_exp_state
     });
-    
+
     const [servers, discordBot] = await Promise.all([
-      ctx.core.getServerTemplateObj(null, state),
-      ctx.core.discordBot.get()
+      ctx.core.render.getServerTemplateObj(null, state),
+      ctx.core.models.discordBot.get()
     ]);
     await ctx.compileView('sidebar/sidebarLayout.pug', { state, servers, discordBot });
   } catch (err) {
     if (err.code === 'P2002') { // PRISMA CONSTRAINT CODE
       return toggleSidebarState(ctx);
     } else {
-      global.logger.error('TOGGLE_SIDEBAR_FAILED:', err);
+      ctx.core.logger.error('TOGGLE_SIDEBAR_FAILED:', err);
       ctx.status = 500;
       return { error: 'Failed to toggle sidebar' };
     }
@@ -26,15 +26,15 @@ async function toggleSidebarState(ctx) {
 async function changeActiveServers(ctx) {
   try {
     const active_server_id = ctx.params.id;
-    const state = await ctx.core.state.update({ active_server_id });
-    
+    const state = await ctx.core.models.state.update({ active_server_id });
+
     const [msgObjects, servers, discordBot] = await Promise.all([
-      ctx.core.updateMessages(null, state),
-      ctx.core.getServerTemplateObj(null, state),
-      ctx.core.discordBot.get()
+      ctx.core.discord.updateMessages(null, state),
+      ctx.core.render.getServerTemplateObj(null, state),
+      ctx.core.models.discordBot.get()
     ]);
 
-    const messages = await ctx.core.compileMessages(msgObjects);
+    const messages = await ctx.core.discord.compileMessages(msgObjects);
     const eomStamp = _.get(_.last(msgObjects), 'created_at');
 
     await ctx.compileView([
@@ -47,30 +47,29 @@ async function changeActiveServers(ctx) {
       'chat/messageContainer.pug',
     ], { servers, discordBot, messages, eomStamp, state });
   } catch (err) {
-    global.logger.error('CHANGE_SERVER_FAILED:', err);
+    ctx.core.logger.error('CHANGE_SERVER_FAILED:', err);
     ctx.status = 500;
     return { error: 'Failed to change server' };
   }
 }
 
 async function changeServerSortOrder(ctx) {
-  const newSortOrder = await ctx.core.discordServer.reorder(ctx.request.body.item);
-  const servers = await ctx.core.getServerTemplateObj(newSortOrder);
+  const newSortOrder = await ctx.core.models.discordServer.reorder(ctx.request.body.item);
+  const servers = await ctx.core.render.getServerTemplateObj(newSortOrder);
   await ctx.compileView([
     'sidebar/servers/serverSortableContainer.pug'
   ], { servers });
 }
 
 async function changeActiveChannel(ctx) {
-  const state = await ctx.core.state.get();
+  const state = await ctx.core.models.state.get();
   const active_channel_id = `${ctx.params.id}`;
-  const messages = await ctx.core.updateMessages(active_channel_id, state);
-  await ctx.core.refreshUI(messages);
+  const messages = await ctx.core.discord.updateMessages(active_channel_id, state);
+  await ctx.core.discord.refreshUI(messages);
   await ctx.deferToWS();
 }
 
 async function toggleSettings(ctx) {
-  global.logger.debug(ctx.params)
   const action = ctx.params.action;
   if (action === 'open') {
     await ctx.compileView([
@@ -80,9 +79,9 @@ async function toggleSettings(ctx) {
       'sidebar/userControls/settingsButtonOpened.pug'
     ], { settingsToggled: true });
   } else {
-    const state = await ctx.core.state.get();
-    const servers = await ctx.core.getServerTemplateObj(null, state);
-    const discordBot = await ctx.core.discordBot.get();
+    const state = await ctx.core.models.state.get();
+    const servers = await ctx.core.render.getServerTemplateObj(null, state);
+    const discordBot = await ctx.core.models.discordBot.get();
     await ctx.compileView('sidebar/sidebarLayout.pug', { state, servers, discordBot });
   }
 

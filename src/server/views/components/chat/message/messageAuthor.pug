@@ -3,10 +3,10 @@
   b.chatAuthorUsername(style=`color: ${accentColor || whiteHex}`)
     if (username)
       if (username.length > 16)
-        | !{username.substr(0, 16) + '...'}
+        = username.substr(0, 16) + '...'
       else
-        | !{username}
-    else 
+        = username
+    else
       | Unavailable
   .chatMessageTag #{isBot ? "APP" : "USER"}
   .chatMessageDate #{timeStamp || "Time Unavailable"}

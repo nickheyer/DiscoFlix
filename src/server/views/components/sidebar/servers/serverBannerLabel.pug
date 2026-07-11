@@ -5,8 +5,8 @@ h4.guildSelectorName#guildNameBanner(
   if (servers && (servers.activeServer && servers.activeServer.server_name))
     - var serverName=servers.activeServer.server_name
     if (serverName.length > 21)
-      | !{serverName.substr(0, 21) + '...'}
+      = serverName.substr(0, 21) + '...'
     else
-      | !{serverName}
+      = serverName
   else if (settingsToggled)
     | Settings

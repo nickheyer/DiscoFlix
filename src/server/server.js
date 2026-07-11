@@ -1,4 +1,5 @@
-const { app, server } = require('../core/CoreService');
+const core = require('../core/CoreService');
+const { app, server } = core;
 const serve = require('koa-static');
 const bodyParser = require('koa-bodyparser');
 const errorHandler = require('./middlewares/errorHandler');
@@ -30,5 +31,5 @@ app.use(routes.routes()).use(routes.allowedMethods());
 // Start the server
 const port = process.env.PORT || 4000;
 server.listen(port, () => {
-  global.logger.silly(`Server listening on http://0.0.0.0:${port}`);
+  core.logger.silly(`Server listening on http://0.0.0.0:${port}`);
 });

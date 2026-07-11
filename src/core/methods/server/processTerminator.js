@@ -1,18 +1,16 @@
 const { createHttpTerminator } = require('http-terminator');
-const logger = global.logger;
-
 
 module.exports = {
   async uncaughtShutdown(signal, e) {
-    logger.error(`Uncaught exception encountered\n...CHECK LOGS.`, signal, e);
+    this.logger.error(`Uncaught exception encountered\n...CHECK LOGS.`, signal, e);
     console.trace(signal, e);
   },
   async shutdownServer(signal, e) {
-    logger.silly(`Received ${signal}\n${e}\n...Shutting down gracefully.`);
+    this.logger.silly(`Received ${signal}\n${e}\n...Shutting down gracefully.`);
     try {
-      const serverTerminator = createHttpTerminator({ server: this.server }).terminate();
+      await createHttpTerminator({ server: this.core.server }).terminate();
     } catch (error) {
-      logger.error('Failed to terminate server:', error);
+      this.logger.error('Failed to terminate server:', error);
     }
     process.exit();
   }

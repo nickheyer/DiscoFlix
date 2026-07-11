@@ -76,9 +76,9 @@ async function renderModal(ctx) {
     const modalParams = {};
 
     if (modalType === 'settings') {
-        const model = ctx.core[modalName];
+        const model = ctx.core.models[modalName];
         if (!model) {
-            global.logger.warn(`MODEL ${modalName} NOT FOUND`);
+            ctx.core.logger.warn(`MODEL ${modalName} NOT FOUND`);
             return ctx.compileView('modals/stub.pug');
         }
 
@@ -103,8 +103,8 @@ async function renderModal(ctx) {
     
     } else if (modalType === 'bot') {
         const [state, discordBot] = await Promise.all([
-            ctx.core.state.get(),
-            ctx.core.discordBot.get()
+            ctx.core.models.state.get(),
+            ctx.core.models.discordBot.get()
         ]);
         Object.assign(modalParams, { discordBot, state, loading: false });
     }
@@ -114,8 +114,7 @@ async function renderModal(ctx) {
 
 async function getSettingsPage(ctx) {
     const { type: modelName, page } = ctx.params;
-    console.log(`INCOMING MODEL NAME/TYPE: ${modelName}`);
-    const model = ctx.core[modelName];
+    const model = ctx.core.models[modelName];
     if (!model) return ctx.status = 404;
 
     const perPage = getSafePageSize(ctx.query['page-size']);
@@ -130,7 +129,7 @@ async function getSettingsPage(ctx) {
 
 async function saveSettings(ctx) {
     const { type: modelName, id } = ctx.params;
-    const model = ctx.core[modelName];
+    const model = ctx.core.models[modelName];
     if (!model || model.isModelReadonly()) return ctx.status = model ? 403 : 404;
 
     try {
@@ -155,8 +154,6 @@ async function saveSettings(ctx) {
             formData = [{ id: savedData.id, fields: formData }];
         }
 
-        global.logger.debug({ formData });
-
         return renderRecordsView(ctx, model, formData, safePage, perPage, totalRecords, searchQuery, 'Changes Saved');
     } catch (err) {
         ctx.core.logger.error('SETTINGS SAVE FAILED:', err);
@@ -167,7 +164,7 @@ async function saveSettings(ctx) {
 
 async function searchSettings(ctx) {
     const { type: modelName } = ctx.params;
-    const model = ctx.core[modelName];
+    const model = ctx.core.models[modelName];
     if (!model) return ctx.status = 404;
 
     const searchQuery = getSearchQuery(ctx);
@@ -183,7 +180,7 @@ async function searchSettings(ctx) {
 
 async function deleteRecord(ctx) {
     const { type: modelName, id } = ctx.params;
-    const model = ctx.core[modelName];
+    const model = ctx.core.models[modelName];
     if (!model) return ctx.status = 404;
 
     try {

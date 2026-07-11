@@ -10,16 +10,20 @@ const MODELS = {
   mediaRequest: require('./mediaRequest')
 };
 
+// MODEL REGISTRY, EXPOSED AS core.models. KEYS DOUBLE AS THE URL-ADDRESSABLE
+// MODEL NAMES FOR THE DYNAMIC SETTINGS MODALS (SEE src/server/api/modals.js).
 module.exports = (core) => {
+  const models = {};
+
   try {
     // INIT MODELS
     for (const [key, Model] of Object.entries(MODELS)) {
-      core[key] = new Model(core);
+      models[key] = new Model(core);
       core.logger.debug(`Initialized model: ${key}`);
     }
 
     // LOG INIT STATE
-    const boundModels = Object.keys(MODELS);
+    const boundModels = Object.keys(models);
     core.logger.info('Models initialization complete', {
       count: boundModels.length,
       models: boundModels
@@ -28,13 +32,14 @@ module.exports = (core) => {
     // VERIFY INIT
     const requiredModels = ['state', 'configuration', 'user'];
     for (const model of requiredModels) {
-      if (!core[model]) {
+      if (!models[model]) {
         throw new Error(`Critical model not initialized: ${model}`);
       }
     }
-
   } catch (error) {
     core.logger.error('Failed to initialize models:', error);
     throw error;
   }
+
+  return models;
 };

@@ -23,7 +23,7 @@ class Configuration extends BaseModel {
 
   async update(fields = {}, include = {}) {
     this.logger.info('Updating configuration:', fields);
-    return this.base.updateSingleton(fields, include)
+    return this.updateSingleton(fields, include)
       .then(config => {
         this.logger.info('Configuration updated successfully');
         return config;

@@ -1,9 +1,9 @@
 span
   if (channel_name)
     if (channel_name.length > 17)
-      | !{channel_name.substr(0, 17) + '...'}
+      = channel_name.substr(0, 17) + '...'
     else
-      | !{channel_name}
+      = channel_name
   else
     | NULL-CHANNEL-NAME
   

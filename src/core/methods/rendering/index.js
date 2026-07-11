@@ -1,5 +1,7 @@
-module.exports = {
-  ...require('./serverBarRendering'),
-  ...require('./templateCompiler')
-};
+const createNamespace = require('../namespace');
 
+module.exports = (core) => createNamespace(
+  core,
+  require('./templateCompiler'),
+  require('./serverBarRendering')
+);

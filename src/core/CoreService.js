@@ -4,7 +4,18 @@ const { PrismaClient } = require('@prisma/client');
 const http = require('http');
 const WebSocket = require('ws');
 
-
+/**
+ * Application spine. A singleton that everything hangs off of:
+ *
+ * - `core.models.*`  — Prisma-backed model wrappers (src/core/models). Keys are
+ *                      URL-addressable by the dynamic settings modals.
+ * - `core.discord.*` — bot lifecycle + guild/channel/message sync (src/core/methods/discord)
+ * - `core.render.*`  — pug compilation + view-model builders (src/core/methods/rendering)
+ * - `core.sockets.*` — browser websocket registry + broadcasting (src/core/methods/websocket)
+ * - `core.system.*`  — process/server shutdown (src/core/methods/server)
+ *
+ * Lazy getters: `client` (discord.js), `app` (koa), `server` (http), `prisma`, `wss`.
+ */
 class CoreService {
   static _instance;
 
@@ -13,16 +24,19 @@ class CoreService {
       return CoreService._instance;
     }
     CoreService._instance = this;
-    this._bindLogging();
     this._prisma = null;
     this._app = null;
     this._server = null;
     this._client = null;
     this._wss = null;
-    this._connections = new Map();
-    this._bindModels();
-    this._bindMethods();
-    this._bindSockets();
+
+    this.logger = require('../../logging')();
+    this.models = require('./models')(this);
+    this.render = require('./methods/rendering')(this);
+    this.sockets = require('./methods/websocket')(this);
+    this.discord = require('./methods/discord')(this);
+    this.system = require('./methods/server')(this);
+    require('./wsroutes')(this);
     this._initDiscordClient();
   }
 
@@ -40,7 +54,12 @@ class CoreService {
     }
     return this._client;
   }
-  
+
+  // DISCARDS THE CURRENT DISCORD CLIENT SO THE NEXT `core.client` REBUILDS IT
+  resetClient() {
+    this._client = null;
+  }
+
   get app() {
     if (!this._app) {
       this.logger.info('Attaching Koa to core-service');
@@ -53,11 +72,11 @@ class CoreService {
     if (!this._server) {
       this.logger.info('Attaching Http Server to core-service');
       this._server = http.createServer(this.app.callback());
-    
+
       // SETTING EVENT HANDLERS FOR ON SHUTDOWN
-      process.on('SIGINT', (e) => this.shutdownServer('SIGNINT', e));
-      process.on('SIGTERM', (e) => this.shutdownServer('SIGTERM', e,));
-      process.on('uncaughtException', (e) => this.uncaughtShutdown('uncaughtException', e));
+      process.on('SIGINT', (e) => this.system.shutdownServer('SIGINT', e));
+      process.on('SIGTERM', (e) => this.system.shutdownServer('SIGTERM', e));
+      process.on('uncaughtException', (e) => this.system.uncaughtShutdown('uncaughtException', e));
     }
     return this._server;
   }
@@ -77,10 +96,6 @@ class CoreService {
     return this._wss;
   }
 
-  get connections() {
-    return this._connections;
-  }
-  
   _createKoaApp() {
     const app = new Koa();
     app.use(async (ctx, next) => {
@@ -89,31 +104,13 @@ class CoreService {
     });
     return app;
   }
-  
+
   _initDiscordClient() {
     this.logger.info('Initializing Discord Bot');
     const clientInstance = this.client;
-    this.autoStartBot();
+    this.discord.autoStartBot();
     return clientInstance;
   }
-
-  _bindModels() {
-    require('./models')(this);
-  }
-
-  _bindMethods() {
-    require('./methods')(this);
-  }
-
-  _bindLogging() {
-    this.logger = require('../../logging')({ prisma: this.prisma });
-    this.logger.silly('Logging Initialized');
-  }
-
-  _bindSockets() {
-    require('./wsroutes')(this);
-  }
-
 }
 
 module.exports = CoreService.instance;

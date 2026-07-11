@@ -1,3 +1,6 @@
-module.exports = {
-  ...require('./processTerminator.js')
-};
+const createNamespace = require('../namespace');
+
+module.exports = (core) => createNamespace(
+  core,
+  require('./processTerminator.js')
+);

@@ -64,13 +64,17 @@ class DiscordServerChannel extends BaseModel {
     );
   }
 
-  async getMessages(channelId) {
-    return this.prisma.discordMessage.findMany({
+  async getMessages(channelId, limit = 100) {
+    // NEWEST N MESSAGES, RETURNED OLDEST-FIRST FOR DISPLAY
+    const messages = await this.prisma.discordMessage.findMany({
       where: { channel_id: channelId },
       include: {
         user: true,  // INCLUDE USER DETAILS
-      }
+      },
+      orderBy: { created_at: 'desc' },
+      take: limit
     });
+    return messages.reverse();
   }
 
   async markAsRead(channel_id) {

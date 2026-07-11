@@ -64,46 +64,47 @@ class BaseModel {
             .catch(this._handleError('findFirst'));
     }
 
-    async getMany(where = {}, include = {}, orderBy = {}, select = null) {
-        return this.model.findMany({ where, include, orderBy, ...(select && { select }) })
-            .catch(this._handleError('getMany'));
+    async getMany(where = {}, include = {}, orderBy = {}, options = {}) {
+        const { select = null, take, skip } = options;
+        return this.model.findMany({
+            where,
+            include,
+            orderBy,
+            ...(select && { select }),
+            ...(take !== undefined && { take }),
+            ...(skip !== undefined && { skip })
+        }).catch(this._handleError('getMany'));
     }
 
     async update(where = {}, data = {}, include = {}) {
         const pkName = this.getPrimaryKeyName();
         if (!where[pkName]) throw new Error('PRIMARY_KEY_REQUIRED');
 
-        const sanitizedData = this._sanitizeData(data);
         const exists = await this.model.findFirst({ where });
         if (!exists) throw new Error('RECORD_NOT_FOUND');
 
-        return this.model.update({ where, data: { ...where, ...data}, include })
+        return this.model.update({ where, data, include })
             .catch(this._handleError('update'));
     }
 
+    // NOTE: `update` MUST STAY PARTIAL — DO NOT RUN IT THROUGH _sanitizeData,
+    // WHICH RESETS EVERY ABSENT FIELD (FORM SEMANTICS, SEE _sanitizeData)
     async upsert(where = {}, create = {}, update = {}, include = {}) {
-        const sanitizedUpdate = this._sanitizeData(update);
         const pkName = this.getPrimaryKeyName();
-        
+
         if (!where[pkName]) {
             return this.model.create({
                 data: create,
                 include
-            }).catch(err => {
-                this.logger.error(`Error creating ${this.modelName}:`, err);
-                throw err;
-            });
+            }).catch(this._handleError('upsert'));
         }
-     
+
         return this.model.upsert({
             where,
-            create: create,
-            update: {...sanitizedUpdate, ...create},
+            create,
+            update,
             include,
-        }).catch(err => {
-            this.logger.error(`Error upserting ${this.modelName}:`, err); 
-            throw err;
-        });
+        }).catch(this._handleError('upsert'));
      }
 
     async delete(where = {}) {
@@ -136,25 +137,21 @@ class BaseModel {
         return record || this.create(defaultData, include);
     }
 
-    async updateSingleton(data = {}) {
+    async updateSingleton(data = {}, include = {}) {
         if (this.getModelType() !== MODEL_TYPES.SINGLETON) {
             throw new Error('NOT_SINGLETON');
         }
 
         const record = await this.model.findFirst();
         if (!record) {
-            this.create({
-                ...this.defaultData,
-                ...data
-            }, include);
-        } else {
-            const pkName = this.getPrimaryKeyName();
-            const pk = record[pkName];
-            return this.safeUpdateOne(pk, {
-                ...record,
-                ...data
-            });
+            return this.create({ ...(this.defaults || {}), ...data }, include);
         }
+
+        const pkName = this.getPrimaryKeyName();
+        return this.model.update({
+            where: { [pkName]: record[pkName] },
+            data
+        }).catch(this._handleError('updateSingleton'));
     }
 
     // SAFE OPS
@@ -189,7 +186,9 @@ class BaseModel {
             
     }
 
-    // DATA SANITIZATION
+    // DATA SANITIZATION — HTML FORM SEMANTICS: EVERY METADATA FIELD ABSENT
+    // FROM `data` IS RESET TO ITS FALSY DEFAULT (UNCHECKED CHECKBOXES DON'T
+    // POST). ONLY USE THIS ON FULL FORM SUBMISSIONS, NEVER ON PARTIAL UPDATES.
     _sanitizeData(data, existingData = {}) {
         const sanitized = { ...existingData };
         const errors = [];
