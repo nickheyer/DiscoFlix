@@ -102,12 +102,16 @@ module.exports = {
     // ONLY DB OPS HERE, EASY TO MESS UP
     const txRes = await this.core.prisma.$transaction(async (tx) => {
       const bot = await tx.discordBot.findFirst();
-      const { activeServer } = await tx.state.findFirst({
+      const stateRow = await tx.state.findFirst({
         include: { activeServer: true }
       });
+      const activeServer = stateRow?.activeServer;
 
       const isSelf = author.id === bot.bot_id;
-      const isActiveChannel = activeServer?.active_channel_id === rawDiscMsg.channelId;
+      // DURING AN APP TAKEOVER NOTHING IS "ACTIVE" — MESSAGES ACCRUE UNREAD
+      // BADGES INSTEAD OF BEING EMITTED INTO A SURFACE THAT ISN'T SHOWING THEM
+      const isActiveChannel = !stateRow?.active_app_id
+        && activeServer?.active_channel_id === rawDiscMsg.channelId;
 
       // UPDATE SERVER
       const server = await tx.discordServer.update({
@@ -257,7 +261,7 @@ module.exports = {
 
   async compileMessages(messages = []) {
     // REQUEST STATUS CHIPS FOR ANY MESSAGE THAT TRIGGERED A MediaRequest
-    const chips = await this.core.arr.chipsForMessages(messages.map(msg => msg.message_id));
+    const chips = await this.core.apps.chipsForMessages(messages.map(msg => msg.message_id));
 
     const compiledMessages = [];
     let previousDay = null;
@@ -335,19 +339,34 @@ module.exports = {
   // EMITS A TEMPLATE OF AN UPDATED GUILD/SERVER/CHANNELS/ETC
   // `null` = "fetch for me"; `[]` IS A VALID RESULT (EMPTY CHANNEL), DON'T REFETCH
   async refreshUI(messageObjects = null) {
+    const state = await this.core.models.state.get();
+
+    // APP TAKEOVER GUARD: NEVER STOMP THE APP SURFACE — ONLY THE RAILS KEEP
+    // FLOWING (GUILD UNREAD BADGES + APP STATUS DOTS)
+    if (state.active_app_id) {
+      const servers = await this.core.render.getServerTemplateObj(null, state);
+      const apps = await this.core.apps.getRailViewModel(state);
+      await this.core.sockets.emitCompiled([
+        'sidebar/servers/serverSortableContainer.pug',
+        'sidebar/servers/appRail.pug'
+      ], { servers, state, apps });
+      return;
+    }
+
     if (messageObjects === null) {
-      messageObjects = await this.updateMessages();
+      messageObjects = await this.updateMessages(null, state);
     }
     const messages = await this.compileMessages(messageObjects);
     const eomStamp = _.get(_.last(messageObjects), 'created_at');
 
     const discordBot = await this.core.models.discordBot.get();
-    const servers = await this.core.render.getServerTemplateObj();
-    const state = await this.core.models.state.get();
+    const servers = await this.core.render.getServerTemplateObj(null, state);
     const members = await this.core.render.getServerMembers(state.active_server_id);
+    const apps = await this.core.apps.getRailViewModel(state);
 
     await this.core.sockets.emitCompiled([
       'sidebar/servers/serverSortableContainer.pug',
+      'sidebar/servers/appRail.pug',
       'sidebar/servers/serverBannerLabel.pug',
       'sidebar/channels/chatChannels.pug',
       'chat/messageChannelHeader.pug',
@@ -360,7 +379,8 @@ module.exports = {
       discordBot,
       eomStamp,
       state,
-      members
+      members,
+      apps
     });
   }
 };

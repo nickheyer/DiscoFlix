@@ -1,7 +1,10 @@
-//- ONE DASHBOARD ROW FOR A MediaRequest VIEW (BUILT BY core.arr.buildRequestView).
+//- ONE DASHBOARD ROW FOR A MediaRequest VIEW (BUILT BY core.apps.buildRequestView).
 //- WITH oob=true THE ROW SWAPS ITSELF IN PLACE WHEN PUSHED OVER WS.
-mixin requestRow(req, oob)
+//- instanceOptions (OPTIONAL): contentType -> [{id, label, isDefault}] — WHEN MORE
+//- THAN ONE INSTANCE SERVES THE TYPE, PENDING ROWS GET AN "ADD TO" OVERRIDE SELECT.
+mixin requestRow(req, oob, instanceOptions)
   - var posterSrc = req.posterUrl ? (/^https?:\/\//i.test(req.posterUrl) ? req.posterUrl : `/${req.posterUrl}`) : null
+  - var options = (instanceOptions && instanceOptions[req.contentType]) || []
   .request-row(id=`request-row-${req.id}` hx-swap-oob=oob ? 'outerHTML' : undefined)
     .request-poster
       if posterSrc
@@ -15,6 +18,9 @@ mixin requestRow(req, oob)
         if req.serverName
           span.request-meta-divider •
           span= req.serverName
+        if req.appLabel && req.state !== 'pending'
+          span.request-meta-divider •
+          span= req.appLabel
       if req.origMessage
         .request-orig-message= req.origMessage
     .request-status
@@ -29,8 +35,13 @@ mixin requestRow(req, oob)
               |  • #{req.progress.timeleft} left
       if req.state === 'pending'
         .request-actions
+          if options.length > 1
+            select.request-instance-select(name='appId' id=`request-instance-${req.id}`)
+              each opt in options
+                option(value=opt.id selected=(req.appId ? opt.id === req.appId : opt.isDefault))= opt.label
           button.request-approve-button(
             hx-post=`/requests/${req.id}/approve`
+            hx-include=options.length > 1 ? `#request-instance-${req.id}` : undefined
             hx-target=`#request-row-${req.id}`
             hx-swap='outerHTML'
           ) Approve

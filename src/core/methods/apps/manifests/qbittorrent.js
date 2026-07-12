@@ -1,0 +1,26 @@
+const QbittorrentClient = require('../clients/qbittorrentClient');
+
+module.exports = {
+  id: 'qbittorrent',
+  label: 'qBittorrent',
+  icon: '/images/qbittorrent.min.svg',
+  blurb: 'BitTorrent download client',
+  kind: 'download-client',
+  Client: QbittorrentClient,
+  contentTypes: [],
+  configFields: [
+    { key: 'url', label: 'WebUI URL', type: 'string', required: true, placeholder: 'http://localhost:8080', description: 'Base URL of the qBittorrent WebUI' },
+    { key: 'username', label: 'Username', type: 'string', required: true, description: 'WebUI login username' },
+    { key: 'password', label: 'Password', type: 'string', required: true, sensitive: true, description: 'WebUI login password' }
+  ],
+  sections: ['overview', 'queue', 'history', 'settings'],
+  buildClient(row, logger) {
+    return new QbittorrentClient({
+      url: row.url,
+      username: row.username,
+      password: row.password,
+      logger,
+      cacheKey: row.id
+    });
+  }
+};

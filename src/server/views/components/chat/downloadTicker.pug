@@ -1,0 +1,17 @@
+//- LIVE DOWNLOAD TICKER — THE TYPING-INDICATOR STRIP'S ANALOG. RENDERED IN
+//- BOTH MODES (GLOBAL CHROME); :empty COLLAPSES THE GRID ROW WHEN IDLE.
+//- ticker: { count, appId, title, percent } | null — FROM buildTickerAggregate
+.downloadTicker#downloadTicker(
+  hx-select-oob="#downloadTicker"
+  hx-swap-oob="outerHTML"
+  hx-post=ticker ? `/apps/${ticker.appId}/section/queue` : undefined
+)
+  if ticker
+    svg(viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" aria-hidden="true")
+      path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v12m0 0l-5-5m5 5l5-5M5 20h14")
+    span #{ticker.count} downloading
+    span ·
+    span.downloadTickerTitle= ticker.title
+    .downloadTickerBar
+      .downloadTickerFill(style=`width: ${ticker.percent}%`)
+    span #{ticker.percent}%

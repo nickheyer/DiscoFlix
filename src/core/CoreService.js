@@ -13,7 +13,8 @@ const { createHttpTerminator } = require('http-terminator');
  * - `core.discord.*` — bot lifecycle + guild/channel/message sync (src/core/methods/discord)
  * - `core.render.*`  — pug compilation + view-model builders (src/core/methods/rendering)
  * - `core.sockets.*` — browser websocket registry + broadcasting (src/core/methods/websocket)
- * - `core.arr.*`     — Radarr/Sonarr API clients + download queue monitor (src/core/methods/arr)
+ * - `core.apps.*`    — installed app instances (Radarr/Sonarr/SABnzbd/qBittorrent...):
+ *                      manifest registry, API clients, queue monitor + heartbeat (src/core/methods/apps)
  * - `core.system.*`  — process/server shutdown (src/core/methods/server)
  *
  * Lazy getters: `client` (discord.js), `app` (koa), `server` (http), `prisma`, `wss`.
@@ -37,7 +38,7 @@ class CoreService {
     this.models = require('./models')(this);
     this.render = require('./methods/rendering')(this);
     this.sockets = require('./methods/websocket')(this);
-    this.arr = require('./methods/arr')(this);
+    this.apps = require('./methods/apps')(this);
     this.discord = require('./methods/discord')(this);
     this.system = require('./methods/server')(this);
     require('./wsroutes')(this);

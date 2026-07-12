@@ -1,0 +1,57 @@
+//- SETTINGS — MANIFEST-DRIVEN CONFIG FORM RIDING THE SETTINGS MODAL'S +field
+//- MIXIN, SO SENSITIVE KEEP-ON-BLANK + __clear COME FOR FREE. SAVES AUTO-FIRE
+//- ON CHANGE (HOUSE FORM CONVENTION); THE RESPONSE RE-RENDERS THIS SURFACE
+//- AND DROPS THE TOAST IN THE TAKEOVER HEADER.
+//- sectionData: { configured, formFields [+field DESCRIPTORS + key],
+//-               showDefault, contentTypeLabels }
+include ../../modals/settings/_form
+
+if !sectionData.configured
+  .appSettingsWelcome
+    .welcomeTitle Welcome to #{activeApp.display_name}!
+    .welcomeSubtitle Let's get it connected — fill in the fields below and the rail dot goes green.
+
+.request-section-header Connection
+form.appSettingsForm(
+  hx-post=`/apps/${activeApp.id}/save`
+  hx-trigger="change, submit"
+  hx-swap="none"
+)
+  .appSettingsFields
+    each f in sectionData.formFields
+      +field(f, f.key, activeApp.id, false)
+
+.appSectionActions
+  button.modal-button.button-secondary(
+    hx-post=`/apps/${activeApp.id}/test`
+    hx-target="#appTestResult"
+    hx-swap="outerHTML"
+  ) Test Connection
+  span#appTestResult
+
+if sectionData.showDefault
+  .request-section-header Request Routing
+  .appDefaultRow
+    if activeApp.is_default
+      span.appDefaultChip Default
+      span.appDefaultText New #{sectionData.contentTypeLabels.join(' and ')} requests land here unless an admin picks another instance.
+    else
+      span.appDefaultText Another instance currently takes new #{sectionData.contentTypeLabels.join(' and ')} requests.
+      button.modal-button.button-secondary(
+        hx-post=`/apps/${activeApp.id}/default`
+        hx-swap="none"
+      ) Make Default
+
+.request-section-header.danger Danger Zone
+.appDangerZone
+  .appDangerZoneText
+    | Removing
+    strong #{activeApp.display_name}
+    |  deletes its connection settings from DiscoFlix. The service itself isn't touched, and past requests keep their history.
+  button.appRemoveButton(
+    hx-get=`/modal/apps/remove/${activeApp.id}`
+    hx-target="#modals-here"
+    hx-trigger="click"
+    data-bs-toggle="modal"
+    data-bs-target="#modals-here"
+  ) Remove App

@@ -1,16 +1,39 @@
 const _ = require('lodash');
-const { buildAppRail } = require('./apps');
+const { buildAppRail, buildTakeoverLocals } = require('./apps');
 
 
 async function renderHome(ctx) {
-  const state = await ctx.core.models.state.get();
-  const servers = await ctx.core.render.getServerTemplateObj(null, state);
-  const discordBot = await ctx.core.models.discordBot.get();
-  const messageData = await ctx.core.discord.updateMessages(null, state);
-  const messages = await ctx.core.discord.compileMessages(messageData);
+  const core = ctx.core;
+  const state = await core.models.state.get();
+  const servers = await core.render.getServerTemplateObj(null, state);
+  const discordBot = await core.models.discordBot.get();
+  const apps = await buildAppRail(core, state);
+  const ticker = core.apps.buildTickerAggregate();
+
+  // APP TAKEOVER SURVIVES RELOAD — THE MIRROR LOCALS ARE SKIPPED ENTIRELY,
+  // BACK-OUT RE-RENDERS THEM THROUGH changeActiveServers
+  const activeInstance = state.active_app_id
+    ? await core.apps.getInstance(state.active_app_id)
+    : null;
+  if (activeInstance) {
+    const takeover = await buildTakeoverLocals(core, activeInstance);
+    return ctx.render('index', {
+      state,
+      servers,
+      discordBot,
+      messages: [],
+      eomStamp: null,
+      members: [],
+      apps,
+      ticker,
+      ...takeover
+    });
+  }
+
+  const messageData = await core.discord.updateMessages(null, state);
+  const messages = await core.discord.compileMessages(messageData);
   const eomStamp = _.get(_.last(messageData), 'created_at');
-  const members = await ctx.core.render.getServerMembers(state.active_server_id);
-  const config = await ctx.core.models.configuration.get();
+  const members = await core.render.getServerMembers(state.active_server_id);
 
   await ctx.render('index', {
     state,
@@ -19,7 +42,8 @@ async function renderHome(ctx) {
     messages,
     eomStamp,
     members,
-    apps: buildAppRail(config)
+    apps,
+    ticker
   });
 }
 

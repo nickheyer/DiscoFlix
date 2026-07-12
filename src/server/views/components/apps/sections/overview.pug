@@ -1,0 +1,41 @@
+//- OVERVIEW — IDENTITY, STATUS PILL (HEARTBEAT CACHE), HEALTH, QUICK STATS.
+//- sectionData: { configured, status {ok, version?, error?}, health [{type,message}],
+//-               queueCount, appUrl }
+if !sectionData.configured
+  .welcomeBlock
+    .welcomeHashCircle
+      img(src=appManifest.icon alt=activeApp.display_name style="width: 40px; height: 40px;")
+    .welcomeTitle Welcome to #{activeApp.display_name}!
+    .welcomeSubtitle It isn't connected yet — set its URL and credentials to bring it online.
+    .appSectionActions
+      button.modal-button(
+        hx-post=`/apps/${activeApp.id}/section/settings`
+      ) Open Settings
+else
+  .appOverviewIdentity
+    img(src=appManifest.icon alt=activeApp.display_name)
+    div
+      .appOverviewName
+        | #{activeApp.display_name}
+        |
+        span.appStatusPill(class=sectionData.status.ok ? 'ok' : 'down')= sectionData.status.ok ? `v${sectionData.status.version}` : 'unreachable'
+      if sectionData.appUrl
+        a.appOverviewUrl(href=sectionData.appUrl target="_blank" rel="noopener noreferrer")= sectionData.appUrl
+
+  if !sectionData.status.ok
+    .appHealthNotice.error= sectionData.status.error
+
+  if sectionData.health && sectionData.health.length
+    .request-section-header Health
+    each item in sectionData.health
+      .appHealthNotice(class=item.type === 'error' ? 'error' : '')= item.message
+
+  .appOverviewStats
+    | #{sectionData.queueCount} item#{sectionData.queueCount === 1 ? '' : 's'} in the download queue
+    if !activeApp.enabled
+      |  • this app is currently disabled
+
+  .appSectionActions
+    button.modal-button.button-secondary(
+      hx-post=`/apps/${activeApp.id}/section/overview`
+    ) Refresh

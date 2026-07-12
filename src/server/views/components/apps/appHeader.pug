@@ -1,0 +1,25 @@
+//- TAKEOVER CHANNEL HEADER — SECTION NAME LEFT, "OPEN <APP>" LINK-OUT RIGHT
+//- (OLD DISCORD KEPT ITS UTILITY ICONS ON THE HEADER'S RIGHT EDGE). THE SAVE
+//- TOAST RIDES IN THE HEADER, SAME CONVENTION AS THE SETTINGS MODALS.
+include ../../mixins/notification
+
+.messageChannelHeader#chatChannelHeader(
+    hx-select-oob="#chatChannelHeader"
+    hx-swap-oob="outerHTML"
+)
+  .messageChannelHeaderContent
+    include ../sidebar/settings/settingsChannelHashIcon
+    .messageChannelHeaderText= sectionLabel
+  +Notification
+  if sectionData && sectionData.appUrl
+    a.appHeaderLink(
+      href=sectionData.appUrl
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label=`Open ${activeApp.display_name}`
+      data-cooltipz-dir="bottom"
+    )
+      svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true")
+        path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6")
+        path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 3h6v6")
+        path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14L21 3")

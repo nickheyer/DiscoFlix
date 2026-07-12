@@ -10,7 +10,7 @@ module.exports = {
     await core.discord.updateServerSortOrder();
 
     try {
-      const commands = await client.application.commands.set(buildSlashCommands());
+      const commands = await client.application.commands.set(await buildSlashCommands(core));
       core.logger.info(`Registered ${commands.size} slash commands`);
     } catch (err) {
       core.logger.error('Slash command registration failed:', err);

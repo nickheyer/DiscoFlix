@@ -1,10 +1,14 @@
+//- WHILE AN APP TAKEOVER IS ACTIVE (appActive) NO GUILD SHOWS THE ACTIVE
+//- SQUIRCLE AND EVERY BUBBLE IS CLICKABLE — CLICKING THE PREVIOUSLY-ACTIVE
+//- GUILD IS THE WAY BACK TO THE DISCORD MIRROR.
 div(
-  class=`${serverActive ? 'server active' : 'server'}`
-  hx-post=!serverActive && `/change-active-server/${id}`
-  hx-select-oob=!serverActive && "#serverSelector,#guildNameBanner"
+  class=`${serverActive && !appActive ? 'server active' : 'server'}`
+  hx-post=(!serverActive || appActive) && `/change-active-server/${id}`
+  hx-select-oob=(!serverActive || appActive) && "#serverSelector,#guildNameBanner"
   aria-label=serverName
   data-cooltipz-dir='right'
 )
+  span.railPill
   input(type='hidden' name='item' value=id)
 
   if serverImage

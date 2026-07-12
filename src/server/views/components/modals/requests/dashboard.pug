@@ -20,15 +20,15 @@ include ../../../mixins/requestRow
           if pending.length
             .request-section-header Pending Approval
             each req in pending
-              +requestRow(req, false)
+              +requestRow(req, false, instanceOptions)
           if active.length
             .request-section-header Active
             each req in active
-              +requestRow(req, false)
+              +requestRow(req, false, instanceOptions)
           if history.length
             .request-section-header History
             each req in history
-              +requestRow(req, false)
+              +requestRow(req, false, instanceOptions)
 
     //- REFRESH IS A REAL ACTION (WS PUSHES COVER MOST UPDATES, BUT MANUAL
     //- RE-SYNC IS USEFUL); CLOSE IS REDUNDANT WITH X/BACKDROP/ESC

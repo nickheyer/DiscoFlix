@@ -51,9 +51,37 @@ const MODELS_META = {
             discord_state: { type: FIELD_TYPES.BOOLEAN, label: "Discord State", description: "Discord connection state" },
             sidebar_exp_state: { type: FIELD_TYPES.BOOLEAN, label: "Sidebar Expanded", description: "Sidebar expansion state" },
             active_server_id: { type: FIELD_TYPES.RELATION, label: "Active Server", description: "Currently selected server identifier" },
+            active_app_id: { type: FIELD_TYPES.RELATION, label: "Active App", description: "App instance currently taking over the console (null = Discord mirror)" },
             created_at: { type: FIELD_TYPES.TIMESTAMP, label: "Created At", description: "Timestamp when state was created", computed: true },
             updated_at: { type: FIELD_TYPES.TIMESTAMP, label: "Updated At", description: "Timestamp when state was last updated", computed: true },
-            activeServer: { type: FIELD_TYPES.RELATION, label: "Active Server Reference", description: "Reference to the currently active server", hidden: true }
+            activeServer: { type: FIELD_TYPES.RELATION, label: "Active Server Reference", description: "Reference to the currently active server", hidden: true },
+            activeApp: { type: FIELD_TYPES.RELATION, label: "Active App Reference", description: "Reference to the active app instance", hidden: true }
+        }
+    },
+    App: {
+        type: MODEL_TYPES.ENTITY,
+        description: "Installed app instances (Radarr, Sonarr, SABnzbd, qBittorrent...)",
+        readonly: false,
+        fields: {
+            id: { type: FIELD_TYPES.ID, immutable: true, readonly: true, label: "ID", description: "Unique identifier for this app instance" },
+            // app_type/is_default/sort_position/active_section ARE computed SO
+            // _sanitizeData NEVER RESETS THEM ON FORM SAVES — THEY ARE MANAGED
+            // BY DEDICATED ENDPOINTS VIA PARTIAL update()
+            app_type: { type: FIELD_TYPES.STRING, computed: true, readonly: true, label: "App Type", description: "Registry key: radarr, sonarr, sabnzbd, qbittorrent" },
+            display_name: { type: FIELD_TYPES.STRING, required: true, searchable: true, label: "Display Name", description: "Shown on the app's rail bubble and banner" },
+            enabled: { type: FIELD_TYPES.BOOLEAN, label: "Enabled", description: "Disabled apps keep their config but stop serving requests" },
+            url: { type: FIELD_TYPES.STRING, label: "URL", description: "Base URL of the service" },
+            api_key: { type: FIELD_TYPES.STRING, sensitive: true, label: "API Key", description: "Service API key" },
+            username: { type: FIELD_TYPES.STRING, label: "Username", description: "Service login username" },
+            password: { type: FIELD_TYPES.STRING, sensitive: true, label: "Password", description: "Service login password" },
+            settings_json: { type: FIELD_TYPES.JSON, hidden: true, label: "Settings", description: "Per-type extra settings" },
+            is_default: { type: FIELD_TYPES.BOOLEAN, computed: true, readonly: true, label: "Default", description: "Wins content-type routing among peer instances" },
+            sort_position: { type: FIELD_TYPES.NUMBER, computed: true, readonly: true, label: "Sort Position", description: "Rail order" },
+            active_section: { type: FIELD_TYPES.STRING, computed: true, readonly: true, label: "Active Section", description: "Last viewed section of this app's console surface" },
+            created_at: { type: FIELD_TYPES.TIMESTAMP, computed: true, readonly: true, label: "Created At", description: "Timestamp when this app was added" },
+            updated_at: { type: FIELD_TYPES.TIMESTAMP, computed: true, readonly: true, label: "Updated At", description: "Timestamp when this app was last updated" },
+            requests: { type: FIELD_TYPES.RELATION, hidden: true, label: "Requests", description: "Requests routed to this instance" },
+            state: { type: FIELD_TYPES.RELATION, hidden: true, label: "State", description: "Takeover state reference" }
         }
     },
     EventLog: {

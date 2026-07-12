@@ -1,4 +1,10 @@
 div.chatContainer
-  include messageChannelHeader
-  include messageContainer
+  //- APP TAKEOVER: THE ACTIVE SECTION REPLACES THE MESSAGE MIRROR
+  if activeApp
+    include ../apps/appHeader
+    include ../apps/appSurface
+  else
+    include messageChannelHeader
+    include messageContainer
+  include downloadTicker
   include chatBar

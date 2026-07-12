@@ -1,42 +1,16 @@
 const axios = require('axios');
+const BaseClient = require('./baseClient');
 
-// SHARED HTTP CLIENT FOR THE *ARR v3 API
-class ArrClient {
+// SHARED HTTP CLIENT FOR THE *ARR v3 API (CONTENT-MANAGER FAMILY)
+class ArrClient extends BaseClient {
   constructor({ url, token, logger }) {
+    super({ url, logger });
     this.serviceLabel = 'Arr';
-    this.logger = logger;
-    this.baseUrl = ArrClient.normalizeUrl(url);
     this.http = axios.create({
       baseURL: `${this.baseUrl}/api/v3`,
       timeout: 10000,
       headers: { 'X-Api-Key': token }
     });
-  }
-
-  static normalizeUrl(url) {
-    let normalized = String(url || '').trim().replace(/\/+$/, '');
-    if (normalized && !/^https?:\/\//i.test(normalized)) {
-      normalized = `http://${normalized}`;
-    }
-    return normalized;
-  }
-
-  // ERRORS ARE REWRAPPED WITH A USER-PRESENTABLE MESSAGE — THE REQUEST FLOW
-  // ECHOES `err.message` STRAIGHT INTO DISCORD
-  _normalizeError(err) {
-    let message;
-    if (err.response) {
-      message = err.response.status === 401
-        ? `${this.serviceLabel} rejected the configured API key`
-        : `${this.serviceLabel} responded with HTTP ${err.response.status}`;
-    } else if (err.request) {
-      message = `${this.serviceLabel} is unreachable at ${this.baseUrl}`;
-    } else {
-      message = `${this.serviceLabel} request failed: ${err.message}`;
-    }
-    const wrapped = new Error(message);
-    wrapped.cause = err;
-    return wrapped;
   }
 
   async _get(path, params = {}) {
@@ -64,11 +38,41 @@ class ArrClient {
 
   async getQueue() {
     const data = await this._get('/queue', { page: 1, pageSize: 1000 });
-    return data.records || [];
+    return (data.records || []).map(record => this._normalizeQueueRecord(record));
+  }
+
+  _normalizeQueueRecord(record) {
+    const size = record.size || 0;
+    const sizeleft = record.sizeleft || 0;
+    return {
+      id: String(record.id),
+      title: record.title || 'Unknown',
+      status: (record.status || 'queued').toLowerCase(),
+      percent: size ? BaseClient.clampPercent(((size - sizeleft) / size) * 100) : 0,
+      timeleft: record.timeleft || null,
+      size: size || null,
+      sizeleft: size ? sizeleft : null,
+      raw: record
+    };
   }
 
   async getHealth() {
     return this._get('/health');
+  }
+
+  // FULL LIBRARY LISTING (/movie OR /series) — THE LIBRARY SECTION'S SOURCE
+  async getAll() {
+    return this._get(`/${this.resource}`);
+  }
+
+  // NATIVELY PAGED — RETURNS { records, totalRecords, page, pageSize }
+  async getHistory(page = 1, pageSize = 30) {
+    return this._get('/history', {
+      page,
+      pageSize,
+      sortKey: 'date',
+      sortDirection: 'descending'
+    });
   }
 
   async getRootFolders() {
@@ -112,12 +116,17 @@ class ArrClient {
     return this._post(`/${this.resource}`, payload);
   }
 
+  get capabilities() {
+    return { search: true, add: true, library: true, health: true, pauseResume: false };
+  }
+
   // SUBCLASS CONTRACT
   get resource() { throw new Error('NOT_IMPLEMENTED'); }
+  get externalIdField() { throw new Error('NOT_IMPLEMENTED'); } // Media COLUMN HOLDING THE ARR'S KEY
   normalizeResult() { throw new Error('NOT_IMPLEMENTED'); }
   buildAddPayload() { throw new Error('NOT_IMPLEMENTED'); }
   getByExternalId() { throw new Error('NOT_IMPLEMENTED'); }
-  matchesQueueRecord() { throw new Error('NOT_IMPLEMENTED'); }
+  matchesQueueRecord() { throw new Error('NOT_IMPLEMENTED'); } // (normalizedRow, arrId)
   isImported() { throw new Error('NOT_IMPLEMENTED'); }
 
   // POSTER HELPER FOR normalizeResult

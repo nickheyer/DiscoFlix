@@ -8,11 +8,13 @@ class RadarrClient extends ArrClient {
 
   get resource() { return 'movie'; }
 
+  get externalIdField() { return 'tmdb_id'; }
+
   externalLookupTerm(externalKey) { return `tmdb:${externalKey}`; }
 
   normalizeResult(raw) {
     return {
-      service: 'radarr',
+      appType: 'radarr',
       contentType: 'movie',
       title: raw.title,
       year: raw.year || null,
@@ -51,8 +53,8 @@ class RadarrClient extends ArrClient {
     return matches?.[0] || null;
   }
 
-  matchesQueueRecord(record, arrId) {
-    return record.movieId === arrId;
+  matchesQueueRecord(row, arrId) {
+    return row.raw.movieId === arrId;
   }
 
   isImported(movie) {

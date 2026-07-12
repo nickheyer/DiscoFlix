@@ -2,6 +2,8 @@
   hx-select-oob="#chatBar"
   hx-swap-oob="outerHTML"
 )
-  .floatingChatBar
-    include plusButton
-    include chatInput
+  //- BARE IN TAKEOVER — THE GRID ROW COLLAPSES INSTEAD OF SHOWING A DEAD INPUT
+  if !activeApp
+    .floatingChatBar
+      include plusButton
+      include chatInput

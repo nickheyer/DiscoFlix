@@ -3,8 +3,10 @@ const _ = require('lodash');
 module.exports = {
   async createServerBubbles(serverRows = [], state = null, activeServer = null) {
     const serverBubbles = [];
+    state = state || await this.core.models.state.get();
     activeServer = activeServer || await this.core.models.state.getActiveServer(state);
     const activeID = activeServer ? activeServer.server_id : null;
+    const appActive = !!state.active_app_id;
 
     for (const serverRow of serverRows) {
       const serverBubbleHTML = await this.compile(
@@ -16,6 +18,7 @@ module.exports = {
         serverName: serverRow.server_name,
         serverTrunc: serverRow.server_name.slice(0, 2),
         serverActive: serverRow.server_id === activeID,
+        appActive,
         serverUnread: serverRow.unread_message_count,
         serverImage: serverRow.server_avatar_url,
         serverAvailable: serverRow.available

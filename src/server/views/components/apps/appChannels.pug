@@ -1,0 +1,14 @@
+//- SECTION ROWS STYLED AS CHANNELS. LOCALS: activeApp (App ROW), section
+//- (ACTIVE KEY), appSections [{key, label}]
+.channelViewHeader
+  span= activeApp.display_name.toUpperCase()
+
+.settingsChannelContainer
+  each s in appSections
+    .channelViewOption(
+      class=(s.key === section ? 'active' : 'inactive')
+      hx-post=s.key !== section && `/apps/${activeApp.id}/section/${s.key}`
+    )
+      .channelViewOptionInfo
+        include ../sidebar/settings/settingsChannelHashIcon
+        span= s.label

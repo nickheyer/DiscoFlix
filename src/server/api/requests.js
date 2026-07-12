@@ -1,42 +1,57 @@
-const CONTENT_SERVICES = { movie: 'radarr', show: 'sonarr' };
-
-// ONE QUEUE FETCH PER CONFIGURED SERVICE - DASHBOARD ROWS CAN SHOW LIVE DOWNLOAD STATE
+// ONE QUEUE FETCH PER APP INSTANCE WITH AN ACTIVE WATCH — DASHBOARD ROWS CAN
+// SHOW LIVE DOWNLOAD STATE
 async function loadRequestViews(core) {
-  const [requests, config] = await Promise.all([
-    core.models.mediaRequest.getMany(
-      {},
-      { media: true, users: true, made_in: true },
-      { created_at: 'desc' },
-      { take: 100 }
-    ),
-    core.models.configuration.get()
-  ]);
+  const requests = await core.models.mediaRequest.getMany(
+    {},
+    { media: true, users: true, made_in: true, app: true },
+    { created_at: 'desc' },
+    { take: 100 }
+  );
 
-  const queues = {};
-  for (const service of Object.values(CONTENT_SERVICES)) {
-    const client = core.arr.getClientFor(service, config);
+  const queues = new Map();
+  const watchedAppIds = new Set(
+    requests.map(request => core.apps.watches.get(request.id)?.appId).filter(Boolean)
+  );
+  for (const appId of watchedAppIds) {
+    const instance = await core.apps.getInstance(appId);
+    const client = instance?.enabled ? core.apps.getClientForInstance(instance) : null;
     if (!client) continue;
     try {
-      queues[service] = await client.getQueue();
+      queues.set(appId, { client, queue: await client.getQueue() });
     } catch (err) {
-      core.logger.warn(`Dashboard could not read ${service} queue: ${err.message}`);
+      core.logger.warn(`Dashboard could not read ${instance.display_name} queue: ${err.message}`);
     }
   }
 
   return requests.map(request => {
-    const service = CONTENT_SERVICES[request.orig_parsed_type];
-    const client = core.arr.getClientFor(service, config);
-    const watch = core.arr.watches.get(request.id);
-    const queueRecord = (watch && client && queues[service])
-      ? queues[service].find(record => client.matchesQueueRecord(record, watch.arrId))
+    const watch = core.apps.watches.get(request.id);
+    const watched = watch ? queues.get(watch.appId) : null;
+    const queueRow = watched
+      ? watched.queue.find(row => watched.client.matchesQueueRecord(row, watch.arrId))
       : null;
-    return core.arr.buildRequestView(request, queueRecord);
+    return core.apps.buildRequestView(request, queueRow);
   });
+}
+
+// contentType -> [{ id, label }] FOR THE PER-ROW INSTANCE OVERRIDE SELECT
+// (ONLY MEANINGFUL WHEN MORE THAN ONE INSTANCE SERVES THE TYPE)
+async function buildInstanceOptions(core) {
+  const options = {};
+  for (const def of core.apps.contentTypeDefs()) {
+    const instances = await core.apps.instancesForContentType(def.type);
+    options[def.type] = instances.map(instance => ({
+      id: instance.id,
+      label: instance.display_name,
+      isDefault: instance.is_default
+    }));
+  }
+  return options;
 }
 
 async function renderRequestDashboard(ctx) {
   const requests = await loadRequestViews(ctx.core);
-  return ctx.compileView('modals/requests/dashboard.pug', { requests });
+  const instanceOptions = await buildInstanceOptions(ctx.core);
+  return ctx.compileView('modals/requests/dashboard.pug', { requests, instanceOptions });
 }
 
 async function postVerdict(core, request, approved) {
@@ -61,8 +76,22 @@ async function postVerdict(core, request, approved) {
 // RESPONDS WITH THE FRESH ROW
 async function respondWithRow(ctx, requestId, message) {
   const request = await ctx.core.models.mediaRequest.getWithRelations(requestId);
-  const req = ctx.core.arr.buildRequestView(request);
+  const req = ctx.core.apps.buildRequestView(request);
   return ctx.compileView(['modals/requests/rowResponse.pug'], { req, message });
+}
+
+// WHICH INSTANCE GETS THE ADD: POSTED OVERRIDE > THE INSTANCE THE SEARCH RAN
+// AGAINST (IF STILL SERVING) > THE CURRENT DEFAULT FOR THE CONTENT TYPE
+async function resolveApprovalInstance(core, request, postedAppId) {
+  const candidates = [];
+  if (postedAppId) candidates.push(postedAppId);
+  if (request.appId) candidates.push(request.appId);
+
+  for (const appId of candidates) {
+    const instance = await core.apps.getInstance(appId);
+    if (instance?.enabled && core.apps.isConfigured(instance)) return instance;
+  }
+  return core.apps.defaultInstanceFor(request.orig_parsed_type);
 }
 
 async function approveRequest(ctx) {
@@ -79,24 +108,25 @@ async function approveRequest(ctx) {
     message = 'Request was already decided';
   } else {
     try {
-      const config = await core.models.configuration.get();
-      const service = CONTENT_SERVICES[request.orig_parsed_type];
-      const client = core.arr.getClientFor(service, config);
-      if (!client) throw new Error(`${service} is not configured`);
+      const instance = await resolveApprovalInstance(core, request, ctx.request.body?.appId);
+      if (!instance) throw new Error(`No connected app handles ${request.orig_parsed_type} requests`);
+      const client = core.apps.getClientForInstance(instance);
 
-      const externalKey = service === 'radarr' ? request.media.tmdb_id : request.media.tvdb_id;
+      const externalKey = request.media[client.externalIdField];
       if (!externalKey) throw new Error('Media row is missing its external id');
 
       // ALREADY IN THE LIBRARY (E.G. ADDED BY HAND SINCE THE REQUEST)? SKIP THE ADD.
       let added = await client.getByExternalId(externalKey);
       if (!added) {
         const result = await client.lookupByExternalId(externalKey);
-        if (!result) throw new Error(`Lookup found nothing for ${service} id ${externalKey}`);
+        if (!result) throw new Error(`Lookup found nothing for ${instance.display_name} id ${externalKey}`);
         added = await client.add(result);
       }
 
       const imported = client.isImported(added);
       await core.models.mediaRequest.updateStatus(requestId, true);
+      // PERSIST THE RESOLVED INSTANCE — THE ROW MAY HAVE BEEN OVERRIDDEN OR ORPHANED
+      await core.models.mediaRequest.update({ id: requestId }, { appId: instance.id });
       await core.models.media.updateMediaInfo(request.media.id, {
         path: added.path || null,
         monitored: true,
@@ -104,9 +134,9 @@ async function approveRequest(ctx) {
       });
 
       if (!imported) {
-        core.arr.watchRequest({
+        core.apps.watchRequest({
           requestId,
-          service,
+          appId: instance.id,
           arrId: added.id,
           mediaId: request.media.id,
           title: request.media.title,

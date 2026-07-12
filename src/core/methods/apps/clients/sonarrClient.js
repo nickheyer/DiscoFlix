@@ -8,12 +8,14 @@ class SonarrClient extends ArrClient {
 
   get resource() { return 'series'; }
 
+  get externalIdField() { return 'tvdb_id'; }
+
   externalLookupTerm(externalKey) { return `tvdb:${externalKey}`; }
 
   normalizeResult(raw) {
     const realSeasons = (raw.seasons || []).filter(season => season.seasonNumber > 0);
     return {
-      service: 'sonarr',
+      appType: 'sonarr',
       contentType: 'show',
       title: raw.title,
       year: raw.year || null,
@@ -53,8 +55,8 @@ class SonarrClient extends ArrClient {
     return matches?.[0] || null;
   }
 
-  matchesQueueRecord(record, arrId) {
-    return record.seriesId === arrId;
+  matchesQueueRecord(row, arrId) {
+    return row.raw.seriesId === arrId;
   }
 
   isImported(series) {

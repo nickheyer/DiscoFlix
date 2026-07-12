@@ -38,11 +38,39 @@ model State {
   discord_state     Boolean        @default(false)
   sidebar_exp_state Boolean        @default(true)
   active_server_id  String?        @unique
+  active_app_id     String?        @unique
   created_at        DateTime       @default(now())
   updated_at        DateTime       @updatedAt @default(now())
   activeServer      DiscordServer? @relation(fields: [active_server_id], references: [server_id], onDelete: SetNull)
+  activeApp         App?           @relation(fields: [active_app_id], references: [id], onDelete: SetNull)
 
   @@map("state")
+}
+
+// INSTALLED APP INSTANCES (RADARR/SONARR/SABNZBD/QBITTORRENT...). MULTI-INSTANCE:
+// TWO RADARRS = TWO ROWS. app_type KEYS INTO THE CODE-LEVEL MANIFEST REGISTRY
+// (src/core/methods/apps/registry.js), WHICH DECLARES WHICH CONFIG COLUMNS APPLY.
+model App {
+  id             String         @id @default(cuid())
+  app_type       String
+  display_name   String
+  enabled        Boolean        @default(true)
+  url            String?
+  api_key        String?
+  username       String?
+  password       String?
+  settings_json  String?
+  is_default     Boolean        @default(false)
+  sort_position  Int            @default(0)
+  active_section String         @default("overview")
+  created_at     DateTime       @default(now())
+  updated_at     DateTime       @updatedAt @default(now())
+  requests       MediaRequest[]
+  state          State?
+
+  @@index([app_type])
+  @@index([sort_position])
+  @@map("apps")
 }
 
 model EventLog {
@@ -179,9 +207,12 @@ model MediaRequest {
   orig_message_id   String?
   status            Boolean?
   users             User[]        @relation("UserMediaRequests")
+  app               App?          @relation(fields: [appId], references: [id], onDelete: SetNull)
+  appId             String?
 
   @@index([madeInId])
   @@index([mediaId])
+  @@index([appId])
   @@map("media_requests")
 }
 

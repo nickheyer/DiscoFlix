@@ -7,7 +7,8 @@ const MODELS = {
   discordMessage: require('./discordMessage'),
   user: require('./user'),
   media: require('./media'),
-  mediaRequest: require('./mediaRequest')
+  mediaRequest: require('./mediaRequest'),
+  app: require('./app')
 };
 
 // MODEL REGISTRY, EXPOSED AS core.models. KEYS DOUBLE AS THE URL-ADDRESSABLE

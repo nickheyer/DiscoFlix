@@ -1,21 +1,43 @@
-//- PSEUDO-GUILDS FOR THE CONNECTED APPS (nzb360-STYLE) — RENDERED BELOW THE
-//- REAL GUILDS BEHIND THEIR OWN DIVIDER. `apps` COMES FROM renderHome; THE
-//- RAIL IS STATIC PER PAGE LOAD (WS RE-RENDERS ONLY TOUCH THE SORTABLE FORM).
-if apps && apps.length
+//- PSEUDO-GUILDS FOR INSTALLED APP INSTANCES (nzb360-STYLE) — RENDERED BELOW
+//- THE REAL GUILDS BEHIND THEIR OWN DIVIDER. `apps` COMES FROM
+//- core.apps.getRailViewModel; THE ROOT IS ALWAYS RENDERED (SELF-OOB) SO WS
+//- PUSHES CAN ALWAYS FIND IT. DOT SEMANTICS: NONE = UNCONFIGURED, GREEN =
+//- SERVING (REACHABILITY FROM THE HEARTBEAT CACHE, OPTIMISTIC UNTIL CHECKED),
+//- RED = DISABLED OR UNREACHABLE. THE GREEN "+" OPENS THE ADD-AN-APP PICKER.
+.appRail#appRail(hx-select-oob="#appRail" hx-swap-oob="outerHTML")
+  //- THE PARTITION ALWAYS RENDERS: THE ADD-APP "+" BELOW IT ALWAYS DOES TOO,
+  //- AND IT'S WHAT SEPARATES THE GUILD GROUP (INVITE "+") FROM APP-LAND
   hr.serverDivider
-  .appRail#appRail
-    each app in apps
-      .server.appBubble(
-        aria-label=app.label
-        data-cooltipz-dir="right"
-        hx-get=`/modal/apps/${app.id}`
-        hx-target="#modals-here"
-        hx-trigger="click"
-        data-bs-toggle="modal"
-        data-bs-target="#modals-here"
-      )
-        if app.configured && app.enabled
-          .statusBubble.online
-        else if app.configured
-          .statusBubble.offline
-        img.appIcon(src=app.icon alt=app.label)
+  //- DRAG-SORTABLE LIKE THE GUILD BUBBLES — SAME SortableJS WIRING
+  //- (source.js makeRailSortable), SAME hidden-input FORM POST ON DROP
+  form.appBubbles.sortable#appBubbleContainer(
+    hx-post="/app-sort"
+    hx-trigger="end"
+    hx-swap="none"
+  )
+    if apps && apps.length
+      each app in apps
+        .server.appBubble(
+          class=app.active ? 'active' : undefined
+          aria-label=app.label
+          data-cooltipz-dir="right"
+          hx-post=!app.active && `/change-active-app/${app.id}`
+          hx-select-oob=!app.active && "#serverSelector,#guildNameBanner"
+        )
+          span.railPill
+          input(type='hidden' name='item' value=app.id)
+          if app.configured && app.enabled && app.reachable !== false
+            .statusBubble.online
+          else if app.configured
+            .statusBubble.offline
+          img.appIcon(src=app.icon alt=app.label)
+  .server.invite.addAppButton(
+    aria-label="Add an App"
+    data-cooltipz-dir="right"
+    hx-get="/modal/apps/picker"
+    hx-target="#modals-here"
+    hx-trigger="click"
+    data-bs-toggle="modal"
+    data-bs-target="#modals-here"
+  )
+    p.inviteButton +

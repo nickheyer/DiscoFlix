@@ -28,16 +28,25 @@
   overflow: hidden;
 }
 
+/* 12px INLINE PADDING LEAVES ROOM FOR THE CLASSIC LEFT PILL INDICATOR
+   (CLIPPING HAPPENS AT THE PADDING EDGE, SO THE PILL SURVIVES overflow-x) */
 .serverBubbles.sortable {
-  padding-inline: 5px;
+  padding-inline: 12px;
   scrollbar-width: none;
   overflow-y: scroll;
   overflow-x: clip;
   border-radius: 10px;
 }
 
-.serverBubbles.sortable:has(> *:last-child:nth-last-child(n+5)) {
-  margin-bottom: 15px;
+/* CONSTANT 8px GAP FROM THE LAST GUILD TO THE INVITE "+": SCROLL CONTAINERS
+   SWALLOW THE LAST BUBBLE'S BOTTOM MARGIN ONCE THE LIST OVERFLOWS, SO THE GAP
+   LIVES ON THE INVITE BUTTON (OUTSIDE THE SCROLLER) INSTEAD */
+.serverBubbles.sortable > .server:last-child {
+  margin-bottom: 0;
+}
+
+#serverInviteButton {
+  margin-top: 8px;
 }
 
 .homeButton {
@@ -83,6 +92,37 @@
 .server:hover {
   background-color: var(--blurple);
   border-radius: 30%;
+}
+
+/* THE CLASSIC WHITE PILL IN THE RAIL GUTTER — A REAL CHILD ELEMENT BECAUSE
+   COOLTIPZ ALREADY OWNS ::before/::after ON THE BUBBLES. SHORT ON HOVER,
+   TALL ON ACTIVE; THE GREEN "+" BUBBLES OPT OUT. */
+.railPill {
+  position: absolute;
+  left: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 8px;
+  border-radius: 0 4px 4px 0;
+  background-color: var(--header-primary, #ffffff);
+  opacity: 0;
+  transition: height 0.15s ease-out, opacity 0.15s ease-out;
+  pointer-events: none;
+}
+
+.server:hover .railPill {
+  opacity: 1;
+  height: 20px;
+}
+
+.server.active .railPill {
+  opacity: 1;
+  height: 40px;
+}
+
+.server.invite .railPill {
+  display: none;
 }
 
 .server img {
@@ -149,7 +189,12 @@
   flex-direction: column;
   align-items: center;
   flex-shrink: 0;
+  /* MATCHES .serverBubbles — KEEPS THE PILL GUTTER ALIGNED RAIL-WIDE */
+  padding-inline: 12px;
 }
+
+/* THE PARTITION KEEPS ITS DEFAULT 8px MARGINS — THE INVITE "+" ABOVE IT HAS
+   margin-bottom: 0, SO THE DIVIDER'S OWN MARGIN IS THE WHOLE GAP */
 
 /* APP LOGOS SIT INSET INSIDE THE BUBBLE INSTEAD OF FILLING IT LIKE GUILD ICONS */
 .server.appBubble .appIcon {
@@ -310,19 +355,19 @@
 
 .guildSelectorDropdown {
   max-height: 48px;
-  width: 20px;
-  height: 20px;
+  width: 32px;
+  height: 32px;
   color: var(--interactive-normal);
   cursor: pointer;
 
   position: absolute;
   transform: translateY(-50%);
   transform-origin: center;
-  right: 12px;
+  right: 6px;
   top: 50%;
 
   margin: 0px;
-  padding: 0px;
+  padding: 6px;
   box-sizing: border-box;
   transition-property: transform, color;
   transition-duration: 0.3s;

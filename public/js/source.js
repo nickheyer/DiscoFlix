@@ -46,9 +46,17 @@ document.addEventListener('htmx:afterOnLoad', function (evt) {
 htmx.on("htmx:load", function () {
   const confirmators = document.querySelectorAll('[data-confirm]');
   Array.from(confirmators).forEach(bindConfirmations);
-  
-  const serverBubbleContainer = document.getElementById('serverBubbleContainer');
-  const serverBubbleSortable = new Sortable(serverBubbleContainer, {
+
+  makeRailSortable('serverBubbleContainer');
+  makeRailSortable('appBubbleContainer');
+});
+
+// ONE SORTABLE PER RAIL GROUP (GUILDS + APPS) — DRAGGING DISABLES ITSELF ON
+// DROP UNTIL THE POST-SORT SWAP LANDS A FRESH CONTAINER
+function makeRailSortable(containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const sortable = new Sortable(container, {
     animation: 150,
     ghostClass: 'ghost',
     delay: 50,
@@ -57,8 +65,8 @@ htmx.on("htmx:load", function () {
     onEnd: function (evt) {
       this.option('disabled', true);
     }
-  })
-  serverBubbleContainer.addEventListener("htmx:afterSwap", function() {
-    serverBubbleSortable.option('disabled', false);
   });
-});
+  container.addEventListener("htmx:afterSwap", function () {
+    sortable.option('disabled', false);
+  });
+}

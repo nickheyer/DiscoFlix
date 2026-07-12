@@ -1,0 +1,21 @@
+//- TAKEOVER CONTENT SURFACE — REUSES #messageContainer SO EVERY EXISTING SWAP
+//- PATH RESTORES THE MIRROR WHOLESALE ON BACK-OUT. .appSurface FLIPS THE FLEX
+//- DIRECTION (CHAT IS column-reverse) AND ADDS PADDING.
+.messageContainer.appSurface#messageContainer(
+  hx-select-oob="#messageContainer"
+  hx-swap-oob="outerHTML"
+)
+  .appSectionBody#appSectionBody
+    case section
+      when 'queue'
+        include sections/queue
+      when 'library'
+        include sections/library
+      when 'history'
+        include sections/history
+      when 'search'
+        include sections/search
+      when 'settings'
+        include sections/settings
+      default
+        include sections/overview

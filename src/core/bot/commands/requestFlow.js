@@ -1,12 +1,8 @@
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const { checkRequestAllowance, checkSeasonLimit, effectiveMaxResults, isAdmin } = require('./limits');
+const registry = require('../../methods/apps/registry');
 
 const EMBED_COLOR = 0x5865f2;
-
-const CONTENT_TYPES = {
-  movie: { service: 'radarr', label: 'movie' },
-  show: { service: 'sonarr', label: 'show' }
-};
 
 function truncate(text, max) {
   return text.length > max ? `${text.slice(0, max - 1)}…` : text;
@@ -108,7 +104,7 @@ async function upsertMediaRow(core, result, added) {
 
 // USER PICKS RESULT -> VALIDATE -> ADD TO BAR -> RECORD MEDIA/MEDIA-REQUEST -> HAND TO QUEUE
 async function handleSelection(interaction, result, ctx) {
-  const { core, config, dbUser, client, service } = ctx;
+  const { core, config, dbUser, client, instance } = ctx;
   const name = displayTitle(result);
 
   const seasonDenial = checkSeasonLimit(config, dbUser, result.seasonCount || 0);
@@ -139,15 +135,15 @@ async function handleSelection(interaction, result, ctx) {
     return;
   }
 
-  // ADMIN/STAFF REQUESTS GO STRAIGHT TO THE ARR
+  // ADMIN/STAFF REQUESTS GO STRAIGHT TO THE APP
   if (isAdmin(dbUser)) {
     const added = await client.add(result);
     const media = await upsertMediaRow(core, result, added);
     const request = await createRequestRow(core, ctx, media, true);
 
-    core.arr.watchRequest({
+    core.apps.watchRequest({
       requestId: request.id,
-      service,
+      appId: instance.id,
       arrId: added.id,
       mediaId: media.id,
       title: name,
@@ -155,12 +151,12 @@ async function handleSelection(interaction, result, ctx) {
       requesterIds: [dbUser.id]
     });
 
-    core.logger.info(`Media request created: ${name} (${service}) by ${dbUser.username}`);
+    core.logger.info(`Media request created: ${name} (${instance.display_name}) by ${dbUser.username}`);
     await ctx.channel.send(`🎉 **${name}** has been requested! I'll post updates here as it downloads.`);
   } else {
     const media = await upsertMediaRow(core, result, {});
     await createRequestRow(core, ctx, media, null);
-    core.logger.info(`Media request pending approval: ${name} (${service}) by ${dbUser.username}`);
+    core.logger.info(`Media request pending approval: ${name} (${instance.display_name}) by ${dbUser.username}`);
     await ctx.channel.send(`📨 **${name}** has been submitted for approval — an admin will review it.`);
   }
   core.discord.refreshUI().catch(() => {}); // UPDATE CHAT-MIRROR CHIPS
@@ -176,6 +172,7 @@ async function createRequestRow(core, ctx, media, status) {
     orig_channel_id: ctx.channel.id,
     orig_message_id: ctx.messageId || null,
     status,
+    appId: ctx.instance.id, // WHICH INSTANCE THE SEARCH RAN AGAINST — APPROVAL TARGETS THE SAME ONE
     users: { connect: { id: ctx.dbUser.id } }
   });
 }
@@ -184,20 +181,18 @@ async function createRequestRow(core, ctx, media, status) {
 
 async function runRequestFlow(core, request) {
   const { contentType, title, discordUser, send } = request;
-  const { service, label } = CONTENT_TYPES[contentType];
+  const label = registry.contentTypeDefs().find(def => def.type === contentType)?.label || contentType;
 
   try {
     const config = await core.models.configuration.get();
 
-    if (!core.arr.isServiceEnabled(service, config)) {
-      await send(`🚫 ${label === 'movie' ? 'Movie' : 'Show'} requests are currently disabled.`);
+    // ROUTE TO THE DEFAULT ENABLED+CONFIGURED INSTANCE FOR THIS CONTENT TYPE
+    const instance = await core.apps.defaultInstanceFor(contentType);
+    if (!instance) {
+      await send(`⚙️ No connected app handles ${label} requests yet — add one in the web console.`);
       return;
     }
-    const client = core.arr.getClientFor(service, config);
-    if (!client) {
-      await send(`⚙️ ${capitalize(service)} isn't configured yet — set its URL and API key in the web console settings.`);
-      return;
-    }
+    const client = core.apps.getClientForInstance(instance);
 
     // SLASH COMMANDS DONT PASS THROUGH THE MESSAGE MIRROR, SO THE USER ROW MIGHT NOT EXIST
     const dbUser = await core.models.user.getOrCreate(
@@ -225,7 +220,7 @@ async function runRequestFlow(core, request) {
     }
 
     const ctx = {
-      core, config, dbUser, client, service,
+      core, config, dbUser, client, instance,
       contentType, title, results, discordUser,
       guildId: request.guildId,
       channel: request.channel,
@@ -277,10 +272,6 @@ async function runRequestFlow(core, request) {
     core.logger.error('Request flow failed:', err);
     await send(`❌ Something went wrong with that request: ${err.message}`).catch(() => {});
   }
-}
-
-function capitalize(word) {
-  return word.charAt(0).toUpperCase() + word.slice(1);
 }
 
 module.exports = { runRequestFlow };

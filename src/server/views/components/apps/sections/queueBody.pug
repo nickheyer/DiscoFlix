@@ -1,0 +1,21 @@
+//- LOCALS: activeApp, queue (NORMALIZED ROWS). WHOLE-LIST OOB SWAP DODGES THE
+//- "ROW ID THAT DOESN'T EXIST YET" PROBLEM FOR NEW/FINISHED ITEMS; ROW IDS
+//- STAY STABLE SO THE 0.5s WIDTH TRANSITION KEEPS BARS SMOOTH.
+#appQueueList(
+  hx-select-oob="#appQueueList"
+  hx-swap-oob="outerHTML"
+)
+  - var rows = queue || []
+  if rows.length
+    each item in rows
+      .request-row(id=`appq-${activeApp.id}-${item.id}`)
+        .request-info
+          .request-title= item.title
+          .request-meta= item.status + (item.timeleft ? ` — ${item.timeleft} left` : '')
+        .request-status
+          .request-progress
+            .request-progress-track
+              .request-progress-bar(style=`width: ${item.percent}%`)
+            .request-progress-text #{item.percent}%
+  else
+    .appQueueEmpty The queue is sleeping — nothing downloading right now.

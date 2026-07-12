@@ -24,12 +24,10 @@ module.exports = {
     return STATE_LABELS[state] || state;
   },
 
-  progressOf(queueRecord) {
-    if (!queueRecord || !queueRecord.size) return null;
-    const percent = Math.max(0, Math.min(100,
-      Math.round(((queueRecord.size - queueRecord.sizeleft) / queueRecord.size) * 100)
-    ));
-    return { percent, timeleft: queueRecord.timeleft || null };
+  // QUEUE ROWS ARRIVE PRE-NORMALIZED FROM THE CLIENTS (percent/timeleft)
+  progressOf(queueRow) {
+    if (!queueRow) return null;
+    return { percent: queueRow.percent ?? 0, timeleft: queueRow.timeleft || null };
   },
 
   // request MUST INCLUDE media + users (+ made_in IF SERVER NAME WANTED)
@@ -44,6 +42,8 @@ module.exports = {
       state,
       stateLabel: this.stateLabel(state),
       progress: state === 'downloading' ? this.progressOf(queueRecord) : null,
+      appId: request.appId || null,
+      appLabel: request.app?.display_name || null,
       requestedBy: (request.users || []).map(user => user.display_name || user.username).join(', '),
       serverName: request.made_in?.server_name || null,
       origMessage: request.orig_message,

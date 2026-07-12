@@ -1,0 +1,28 @@
+//- "ADD AN APP" PICKER — ONE CARD PER MANIFEST TYPE. TYPES STAY ADDABLE
+//- FOREVER (MULTI-INSTANCE); THE BADGE JUST SAYS HOW MANY YOU ALREADY RUN.
+//- CARD RESPONSE = THE FULL TAKEOVER FRAGMENT SET LANDING ON THE NEW
+//- INSTANCE'S SETTINGS, SO THE MODAL DISMISSES AND THE CONSOLE SWAPS UNDER IT.
+.modal-dialog.modal-dialog-centered#modal-container(hx-target="#modals-here")
+  .modal-content
+    .modal-header
+      h5.modal-title Add an App
+      button.modal-close-button(type="button" data-bs-dismiss="modal") ×
+    .modal-body
+      .appPickerGrid
+        each t in appTypes
+          .appPickerCard(
+            role="button"
+            aria-label=`Add ${t.label}`
+            hx-post=`/apps/add/${t.id}`
+            hx-swap="none"
+            hx-select-oob="#serverSelector,#guildNameBanner"
+            data-bs-dismiss="modal"
+          )
+            img(src=t.icon alt="")
+            .appPickerInfo
+              .appPickerName
+                span= t.label
+                span.appPickerKind(class=t.kind === 'download-client' ? 'download' : '')= t.kind === 'download-client' ? 'Download Client' : 'Content Manager'
+              .appPickerBlurb= t.blurb
+              if t.installed
+                .appPickerInstalled= `${t.installed} installed`

@@ -1,0 +1,441 @@
+/* APP TAKEOVER SURFACE (nzb360-STYLE PSEUDO-GUILDS) — POSTER GRID, SECTION
+   VIEWS, ADD-APP PICKER. EVERYTHING RIDES THE CLASSIC-DISCORD TOKENS FROM
+   variables.css; NEW SHAPES ONLY WHERE NO EXISTING FAMILY FITS. */
+
+/* ---- THE SURFACE (REPLACES THE MESSAGE SCROLLER IN TAKEOVER) ---- */
+
+.messageContainer.appSurface {
+  flex-direction: column; /* CHAT IS column-reverse; APP CONTENT READS TOP-DOWN */
+  padding: 16px 16px 24px;
+  overflow-y: auto;
+}
+
+.appSectionBody {
+  max-width: 960px;
+  width: 100%;
+}
+
+/* "OPEN <APP>" LINK-OUT ON THE TAKEOVER HEADER'S RIGHT EDGE */
+.appHeaderLink {
+  display: flex;
+  align-items: center;
+  color: var(--interactive-normal);
+  flex-shrink: 0;
+}
+
+.appHeaderLink:hover {
+  color: var(--interactive-hover);
+}
+
+.appHeaderLink svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* ---- OVERVIEW ---- */
+
+.appOverviewIdentity {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.appOverviewIdentity img {
+  width: 48px;
+  height: 48px;
+}
+
+.appOverviewName {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--header-primary);
+}
+
+.appOverviewUrl {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.appOverviewUrl:hover {
+  color: var(--interactive-hover);
+  text-decoration: underline;
+}
+
+.appOverviewStats {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 12px 0 20px;
+}
+
+.appSectionActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+/* ---- QUEUE ---- */
+
+#appQueueList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ---- LIBRARY POSTER GRID ---- */
+
+.posterGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.posterCard {
+  background-color: var(--bg-secondary);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.posterCard img {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  display: block;
+}
+
+.posterCardFallback {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  background-color: var(--bg-secondary-alt);
+}
+
+.posterCardInfo {
+  padding: 8px 10px;
+}
+
+.posterCardTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--header-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.posterCardMeta {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.posterCard:hover {
+  box-shadow: var(--elevation-low);
+}
+
+.posterCard:hover .posterCardTitle {
+  color: var(--interactive-active);
+}
+
+/* GREEN DOT = ON DISK, RINGED WITH THE SURFACE COLOR LIKE STATUS BUBBLES */
+.posterBadge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--green);
+  border: 3px solid var(--bg-primary);
+  box-sizing: content-box;
+}
+
+.libraryLoadMore {
+  display: flex;
+  justify-content: center;
+  padding: 16px 0 8px;
+}
+
+/* ---- HISTORY ---- */
+
+.appHistoryList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.appHistoryRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background-color: var(--bg-secondary);
+  border-radius: 4px;
+  padding: 8px 12px;
+}
+
+.appHistoryGlyph {
+  width: 24px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.appHistoryInfo {
+  min-width: 0;
+  flex: 1;
+}
+
+.appHistoryTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--header-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.appHistoryMeta {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.appHistoryDate {
+  font-size: 12px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+/* ---- SEARCH & ADD ---- */
+
+.appInstanceTabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.appInstanceTab {
+  padding: 3px 10px;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--interactive-normal);
+  background-color: var(--bg-secondary);
+  cursor: pointer;
+  user-select: none;
+}
+
+.appInstanceTab:hover {
+  color: var(--interactive-hover);
+  background-color: var(--bg-modifier-hover);
+}
+
+.appInstanceTab.active {
+  color: #ffffff;
+  background-color: var(--blurple);
+  cursor: default;
+}
+
+.appSearchBar {
+  margin-bottom: 16px;
+}
+
+#appSearchResults {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ---- SETTINGS ---- */
+
+.appSettingsWelcome {
+  margin-bottom: 20px;
+}
+
+.appSettingsWelcome .welcomeTitle {
+  font-size: 20px; /* THE CHAT EMPTY-STATE SCALE (28px) SHOUTS IN A FORM */
+}
+
+.appSettingsFields {
+  display: grid;
+  gap: 16px;
+  max-width: 480px; /* DISCORD SETTINGS FORMS RUN NARROW */
+}
+
+/* SAVE TOAST RIDES THE TAKEOVER HEADER — SETTINGS-MODAL CONVENTION */
+.messageChannelHeader .notification-container {
+  min-height: 0;
+  min-width: 0;
+  margin-left: auto;
+  margin-right: 12px;
+}
+
+.messageChannelHeader .notification {
+  padding: 4px 10px;
+}
+
+#appTestResult {
+  display: inline-flex;
+  align-items: center;
+}
+
+.appDefaultRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 0 8px;
+}
+
+.appDefaultChip {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  background-color: var(--blurple);
+  color: #ffffff;
+  border-radius: 3px;
+  padding: 2px 5px;
+  flex-shrink: 0;
+}
+
+.appDefaultText {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* FILLED RED — OLD DISCORD'S DANGER BUTTON */
+.appRemoveButton,
+.modal-button.appRemoveConfirm {
+  padding: 8px 16px;
+  border-radius: 3px;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  background-color: var(--red);
+  color: #ffffff;
+  flex-shrink: 0;
+  transition: background-color 0.15s ease;
+}
+
+.appRemoveButton:hover,
+.modal-button.appRemoveConfirm:hover {
+  background-color: var(--red-hover);
+}
+
+.request-section-header.danger {
+  color: var(--red);
+  margin-top: 32px;
+}
+
+.appDangerZone {
+  border: 1px solid var(--bg-modifier-accent);
+  border-radius: 4px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.appDangerZoneText {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* ---- DASHBOARD INSTANCE OVERRIDE SELECT (MULTI-INSTANCE ROUTING) ---- */
+
+.request-instance-select {
+  background-color: var(--bg-chat-input);
+  color: var(--text-normal);
+  border: none;
+  border-radius: 3px;
+  font-size: 12px;
+  padding: 4px 6px;
+  outline: none;
+}
+
+/* ---- ADD-AN-APP PICKER ---- */
+
+.appPickerGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.appPickerCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background-color: var(--bg-secondary);
+  border-radius: 4px;
+  padding: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.appPickerCard:hover {
+  background-color: var(--bg-modifier-hover);
+}
+
+.appPickerCard img {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+}
+
+.appPickerInfo {
+  min-width: 0;
+}
+
+.appPickerName {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--header-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.appPickerKind {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  padding: 2px 5px;
+  border-radius: 3px;
+  color: #ffffff;
+  background-color: var(--blurple);
+  flex-shrink: 0;
+}
+
+.appPickerKind.download {
+  background-color: var(--cyan);
+}
+
+.appPickerBlurb {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.appPickerInstalled {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+@media (max-width: 576px) {
+  .appPickerGrid {
+    grid-template-columns: 1fr;
+  }
+}

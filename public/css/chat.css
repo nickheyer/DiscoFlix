@@ -6,7 +6,8 @@
   min-width: 0;
   height: 100%;
   display: grid;
-  grid-template-rows: 48px minmax(0, 1fr) auto;
+  /* ROW 3 IS THE DOWNLOAD TICKER — COLLAPSES TO 0 WHEN EMPTY (:empty) */
+  grid-template-rows: 48px minmax(0, 1fr) auto auto;
   background-color: var(--bg-primary);
 }
 
@@ -429,10 +430,57 @@
   }
 }
 
+/* ---- DOWNLOAD TICKER — THE TYPING-INDICATOR STRIP'S ANALOG ---- */
+
+.downloadTicker {
+  grid-row: 3;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 16px 6px;
+  font-size: 13px;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+.downloadTicker:empty {
+  display: none;
+  padding: 0;
+}
+
+.downloadTicker:hover {
+  color: var(--interactive-hover);
+}
+
+.downloadTickerTitle {
+  font-weight: 600;
+  color: var(--text-normal);
+  max-width: 320px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.downloadTickerBar {
+  width: 96px;
+  height: 4px;
+  background: var(--bg-chat-input);
+  border-radius: 2px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.downloadTickerFill {
+  height: 100%;
+  background: var(--cyan);
+  transition: width 0.5s ease;
+}
+
 /* ---- CHAT INPUT BAR — IN-FLOW, NO Z-INDEX GAMES ---- */
 
 .chatBarContainer {
-  grid-row: 3;
+  grid-row: 4;
   padding: 0 16px 24px;
 }
 

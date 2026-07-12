@@ -23,7 +23,8 @@ class MediaRequest extends BaseModel {
       {
         users: true,
         made_in: true,
-        media: true
+        media: true,
+        app: true
       }
     );
   }

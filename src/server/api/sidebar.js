@@ -1,4 +1,5 @@
 const _ = require("lodash");
+const { buildSectionNav } = require('./apps');
 
 async function toggleSidebarState(ctx) {
   try {
@@ -7,11 +8,17 @@ async function toggleSidebarState(ctx) {
       sidebar_exp_state: !currentState.sidebar_exp_state
     });
 
-    const [servers, discordBot] = await Promise.all([
+    const [servers, discordBot, apps, activeApp] = await Promise.all([
       ctx.core.render.getServerTemplateObj(null, state),
-      ctx.core.models.discordBot.get()
+      ctx.core.models.discordBot.get(),
+      ctx.core.apps.getRailViewModel(state),
+      ctx.core.apps.getInstance(state.active_app_id)
     ]);
-    await ctx.compileView('sidebar/sidebarLayout.pug', { state, servers, discordBot });
+    // DURING A TAKEOVER sidebarLayout INCLUDES THE APP CHANNEL LIST
+    await ctx.compileView('sidebar/sidebarLayout.pug', {
+      state, servers, discordBot, apps, activeApp,
+      ...(activeApp ? buildSectionNav(ctx.core, activeApp) : {})
+    });
   } catch (err) {
     if (err.code === 'P2002') { // PRISMA CONSTRAINT CODE
       return toggleSidebarState(ctx);
@@ -26,13 +33,15 @@ async function toggleSidebarState(ctx) {
 async function changeActiveServers(ctx) {
   try {
     const active_server_id = ctx.params.id;
-    const state = await ctx.core.models.state.update({ active_server_id });
+    // CLICKING A GUILD IS ALSO THE WAY OUT OF AN APP TAKEOVER
+    const state = await ctx.core.models.state.update({ active_server_id, active_app_id: null });
 
-    const [msgObjects, servers, discordBot, members] = await Promise.all([
+    const [msgObjects, servers, discordBot, members, apps] = await Promise.all([
       ctx.core.discord.updateMessages(null, state),
       ctx.core.render.getServerTemplateObj(null, state),
       ctx.core.models.discordBot.get(),
-      ctx.core.render.getServerMembers(active_server_id)
+      ctx.core.render.getServerMembers(active_server_id),
+      ctx.core.apps.getRailViewModel(state)
     ]);
 
     const messages = await ctx.core.discord.compileMessages(msgObjects);
@@ -40,6 +49,7 @@ async function changeActiveServers(ctx) {
 
     await ctx.compileView([
       'sidebar/servers/serverSortableContainer.pug',
+      'sidebar/servers/appRail.pug',
       'sidebar/servers/serverBannerContainer.pug',
       'sidebar/userControls/settingsButton.pug',
       'sidebar/channels/channelsLayout.pug',
@@ -47,7 +57,7 @@ async function changeActiveServers(ctx) {
       'chat/chatBar.pug',
       'chat/messageContainer.pug',
       'members/membersLayout.pug',
-    ], { servers, discordBot, messages, eomStamp, state, members });
+    ], { servers, discordBot, messages, eomStamp, state, members, apps });
   } catch (err) {
     ctx.core.logger.error('CHANGE_SERVER_FAILED:', err);
     ctx.status = 500;
@@ -84,7 +94,12 @@ async function toggleSettings(ctx) {
     const state = await ctx.core.models.state.get();
     const servers = await ctx.core.render.getServerTemplateObj(null, state);
     const discordBot = await ctx.core.models.discordBot.get();
-    await ctx.compileView('sidebar/sidebarLayout.pug', { state, servers, discordBot });
+    const apps = await ctx.core.apps.getRailViewModel(state);
+    const activeApp = await ctx.core.apps.getInstance(state.active_app_id);
+    await ctx.compileView('sidebar/sidebarLayout.pug', {
+      state, servers, discordBot, apps, activeApp,
+      ...(activeApp ? buildSectionNav(ctx.core, activeApp) : {})
+    });
   }
 
 }

@@ -4,7 +4,11 @@ h4.guildSelectorName#guildNameBanner(
   hx-select-oob='#guildNameBanner'
   hx-swap-oob='outerHTML'
 )
-  if (servers && (servers.activeServer && servers.activeServer.server_name))
+  //- APP TAKEOVER: THE BANNER CARRIES THE APP'S DISPLAY NAME
+  if activeApp
+    - var appName = activeApp.display_name
+    span.guildNameText= appName.length > 21 ? appName.substr(0, 21) + '...' : appName
+  else if (servers && (servers.activeServer && servers.activeServer.server_name))
     - var serverName = servers.activeServer.server_name
     span.guildNameText= serverName.length > 21 ? serverName.substr(0, 21) + '...' : serverName
     svg.serverInfoButton(
