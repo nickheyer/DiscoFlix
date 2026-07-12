@@ -1,5 +1,4 @@
-/* BASICALLY MODIFIED BOOTSTRAP BUTTON STYLES */
-
+/* SHARED BUTTON SYSTEM */
 
 /* BASE */
 .button {
@@ -20,32 +19,32 @@
 
 /* PRIMARY */
 .button-primary {
-    background: #5865f2;
+    background: var(--blurple);
     color: #fff;
 }
 
 .button-primary:hover {
-    background: #4752c4;
+    background: var(--blurple-hover);
 }
 
 .button-primary:active {
-    background: #3c45a5;
+    background: var(--blurple-active);
 }
 
 .button-primary:disabled {
-    background: #5865f2;
+    background: var(--blurple);
     opacity: 0.5;
     cursor: not-allowed;
 }
 
 /* SECONDARY */
 .button-secondary {
-    background: #4f545c;
+    background: var(--interactive-muted);
     color: #fff;
 }
 
 .button-secondary:hover {
-    background: #686d73;
+    background: #5d6269;
 }
 
 .button-secondary:active {
@@ -53,27 +52,27 @@
 }
 
 .button-secondary:disabled {
-    background: #4f545c;
+    background: var(--interactive-muted);
     opacity: 0.5;
     cursor: not-allowed;
 }
 
 /* DANGER */
 .button-danger {
-    background: #ed4245;
+    background: var(--red);
     color: #fff;
 }
 
 .button-danger:hover {
-    background: #c03537;
+    background: var(--red-hover);
 }
 
 .button-danger:active {
-    background: #a12d2f;
+    background: #b83a3a;
 }
 
 .button-danger:disabled {
-    background: #ed4245;
+    background: var(--red);
     opacity: 0.5;
     cursor: not-allowed;
 }
@@ -81,16 +80,16 @@
 /* GHOST */
 .button-ghost {
     background: transparent;
-    color: #b9bbbe;
+    color: var(--interactive-normal);
 }
 
 .button-ghost:hover {
-    background: rgba(79, 84, 92, 0.16);
-    color: #dcddde;
+    background: var(--bg-modifier-hover);
+    color: var(--interactive-hover);
 }
 
 .button-ghost:active {
-    background: rgba(79, 84, 92, 0.24);
+    background: var(--bg-modifier-active);
 }
 
 .button-ghost:disabled {
@@ -103,7 +102,7 @@
 .button-link {
     background: none;
     border: none;
-    color: #00aff4;
+    color: var(--text-link);
     font-size: 14px;
     font-weight: 500;
     padding: 2px 8px;

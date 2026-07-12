@@ -1,1 +1,12 @@
-p.chatMessageText #{messageText || "This is some message content!"}
+//- md() ESCAPES FIRST, THEN RENDERS THE DISCORD-MARKDOWN SUBSET — SAFE TO UNESCAPE
+//- EDITED MESSAGES SHOW BEFORE → AFTER: MUTED STRUCK-THROUGH OLD LINE, THEN THE
+//- CURRENT TEXT WITH A CLASSIC (edited) MARKER
+- var wasEdited = typeof edited_at !== 'undefined' && edited_at
+- var oldText = typeof previous_content !== 'undefined' ? previous_content : null
+if wasEdited && oldText && oldText !== messageText
+  p.chatMessageTextOld !{md(oldText)}
+if messageText
+  p.chatMessageText
+    | !{md(messageText)}
+    if wasEdited
+      span.editedTag  (edited)

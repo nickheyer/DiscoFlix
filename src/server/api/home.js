@@ -1,4 +1,5 @@
 const _ = require('lodash');
+const { buildAppRail } = require('./apps');
 
 
 async function renderHome(ctx) {
@@ -8,13 +9,17 @@ async function renderHome(ctx) {
   const messageData = await ctx.core.discord.updateMessages(null, state);
   const messages = await ctx.core.discord.compileMessages(messageData);
   const eomStamp = _.get(_.last(messageData), 'created_at');
+  const members = await ctx.core.render.getServerMembers(state.active_server_id);
+  const config = await ctx.core.models.configuration.get();
 
   await ctx.render('index', {
     state,
     servers,
     discordBot,
     messages,
-    eomStamp
+    eomStamp,
+    members,
+    apps: buildAppRail(config)
   });
 }
 

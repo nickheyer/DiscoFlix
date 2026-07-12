@@ -20,14 +20,28 @@ const {
   deleteRecord
 } = require('../api/modals');
 
+const {
+  renderRequestDashboard,
+  approveRequest,
+  denyRequest
+} = require('../api/requests');
+
+const { renderAppDashboard } = require('../api/apps');
+
 const router = new Router();
 
-router.get('/toggle-sidebar', toggleSidebarState);
-router.get('/toggle-bot', toggleBotState);
-router.get('/toggle-power', toggleAppState);
-router.get('/toggle-settings/:action', toggleSettings);
-router.get('/change-active-server/:id', changeActiveServers);
-router.get('/change-active-channel/:id', changeActiveChannel);
+// STATE-CHANGING ROUTES ARE POST-ONLY (M3)
+router.post('/toggle-sidebar', toggleSidebarState);
+router.post('/toggle-bot', toggleBotState);
+router.post('/toggle-power', toggleAppState);
+router.post('/toggle-settings/:action', toggleSettings);
+router.post('/change-active-server/:id', changeActiveServers);
+router.post('/change-active-channel/:id', changeActiveChannel);
+// REGISTERED BEFORE THE GENERIC MODAL ROUTE SO IT WINS THE MATCH
+router.get('/modal/requests/dashboard', renderRequestDashboard);
+router.get('/modal/apps/:app', renderAppDashboard);
+router.post('/requests/:id/approve', approveRequest);
+router.post('/requests/:id/deny', denyRequest);
 router.get('/modal/:type/:modal', renderModal);
 router.get('/settings/:type/page/:page', getSettingsPage);
 router.post('/settings/:type/save{/:id}', saveSettings);

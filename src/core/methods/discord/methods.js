@@ -34,23 +34,49 @@ module.exports = {
   },
 
   async emitMessage({
+    messageId,
+    userId,
     username,
     isBot,
     isClient,
     timeStamp,
     avatarUrl,
     messageText,
-    accentColor
+    accentColor,
+    embedList,
+    attachmentList
   }) {
     await this.core.sockets.emitCompiled(['chat/discordMessage.pug'], {
+      messageId,
+      userId,
       username,
       isBot,
       isClient,
       timeStamp,
       avatarUrl,
       messageText,
-      accentColor
+      accentColor,
+      embedList: embedList || [],
+      attachmentList: attachmentList || []
     });
+  },
+
+  // SERIALIZE DISCORD EMBEDS/ATTACHMENTS FOR PERSISTENCE + MIRROR RENDERING
+  extractRichContent(rawDiscMsg) {
+    const embedList = (rawDiscMsg.embeds || []).map(embed =>
+      typeof embed.toJSON === 'function' ? embed.toJSON() : embed
+    );
+    const attachmentList = [...(rawDiscMsg.attachments?.values() || [])].map(att => ({
+      url: att.url,
+      name: att.name,
+      contentType: att.contentType
+    }));
+    return {
+      embedList,
+      attachmentList,
+      embedsJson: embedList.length ? JSON.stringify(embedList) : null,
+      attachmentsJson: attachmentList.length ? JSON.stringify(attachmentList) : null
+    };
   },
 
   async logMessageToInterface(rawDiscMsg) {
@@ -70,6 +96,8 @@ module.exports = {
         return;
       }
     }
+
+    const richContent = this.extractRichContent(rawDiscMsg);
 
     // ONLY DB OPS HERE, EASY TO MESS UP
     const txRes = await this.core.prisma.$transaction(async (tx) => {
@@ -133,12 +161,16 @@ module.exports = {
         create: {
           message_id: rawDiscMsg.id,
           content: rawDiscMsg.content,
+          embeds: richContent.embedsJson,
+          attachments: richContent.attachmentsJson,
           user: { connect: { id: author.id } },
           channel: { connect: { channel_id: channel.channel_id } },
           server: { connect: { server_id: server.server_id } }
         },
         update: {
           content: rawDiscMsg.content,
+          embeds: richContent.embedsJson,
+          attachments: richContent.attachmentsJson,
           user: { connect: { id: author.id } },
           channel: { connect: { channel_id: channel.channel_id } },
           server: { connect: { server_id: server.server_id } }
@@ -150,27 +182,96 @@ module.exports = {
     // UI UPDATES OUTSIDE TRANSACTION
     if (txRes.isActiveChannel) {
       await this.emitMessage({
+        messageId: rawDiscMsg.id,
+        userId: author.id,
         username: author.displayName,
         isBot: !!author.bot,
         isClient: txRes.isSelf,
         timeStamp: this.formatTimestamp(rawDiscMsg.createdAt),
         avatarUrl,
         messageText: rawDiscMsg.content,
-        accentColor: userAccent
+        accentColor: userAccent,
+        embedList: richContent.embedList,
+        attachmentList: richContent.attachmentList
       });
     } else {
+      // SCOPE THE CHANNEL LIST EMIT (UNREAD BADGES) - ONLY MATTERS WHEN MESSAGE LANDED IN ACTIVE SERVER, ELSE BUBBLE
       const servers = await this.core.render.getServerTemplateObj();
-      await this.core.sockets.emitCompiled([
-        'sidebar/servers/serverSortableContainer.pug',
-        'sidebar/channels/chatChannels.pug'
-      ], { servers });
+      const isActiveServer = servers.activeServer?.server_id === rawDiscMsg.guildId;
+      await this.core.sockets.emitCompiled(
+        isActiveServer
+          ? ['sidebar/servers/serverSortableContainer.pug', 'sidebar/channels/chatChannels.pug']
+          : ['sidebar/servers/serverSortableContainer.pug'],
+        { servers }
+      );
     }
   },
 
+  // MIRRORS DISCORD MESSAGE EDITS: KEEPS THE PRIOR CONTENT FOR THE
+  // BEFORE → AFTER TREATMENT AND SWAPS THE ROW IN PLACE OVER THE SOCKET
+  async logMessageEditToInterface(oldMsg, newMsg) {
+    if (!newMsg.guildId) return; // DMS NOT SUPPORTED (YET)
+
+    if (newMsg.partial) {
+      try {
+        newMsg = await newMsg.fetch();
+      } catch (err) {
+        this.logger.warn(`Could not fetch edited message ${newMsg.id}: ${err.message}`);
+        return;
+      }
+    }
+
+    const existing = await this.core.prisma.discordMessage.findUnique({
+      where: { message_id: newMsg.id }
+    });
+    // NEVER MIRRORED (PREDATES SYNC / BEYOND THE CAP) — LOG IT AS A FRESH ROW
+    if (!existing) return this.logMessageToInterface(newMsg);
+
+    const richContent = this.extractRichContent(newMsg);
+    const newContent = newMsg.content ?? existing.content;
+    // EMBED-ONLY EDITS (BOT PROGRESS UPDATES) DON'T GET THE (edited) TREATMENT
+    const contentChanged = newContent !== existing.content;
+
+    const updated = await this.core.prisma.discordMessage.update({
+      where: { message_id: newMsg.id },
+      data: {
+        content: newContent,
+        embeds: richContent.embedsJson,
+        attachments: richContent.attachmentsJson,
+        ...(contentChanged ? {
+          previous_content: existing.content,
+          edited_at: newMsg.editedAt || new Date()
+        } : {})
+      },
+      include: { user: true }
+    });
+
+    // ONLY THE ACTIVE CHANNEL IS MIRRORED LIVE
+    const activeServer = await this.core.models.state.getActiveServer();
+    if (activeServer?.active_channel_id !== newMsg.channelId) return;
+
+    updated.oobReplace = true;
+    const [compiledRow] = await this.compileMessages([updated]);
+    await this.core.sockets.emit(compiledRow);
+  },
+
   async compileMessages(messages = []) {
+    // REQUEST STATUS CHIPS FOR ANY MESSAGE THAT TRIGGERED A MediaRequest
+    const chips = await this.core.arr.chipsForMessages(messages.map(msg => msg.message_id));
+
     const compiledMessages = [];
+    let previousDay = null;
     for (const message of messages) {
+      // CLASSIC DATE DIVIDER ABOVE THE FIRST MESSAGE OF EACH DAY (SKIPPED ON
+      // OOB EDIT PUSHES — A LONE REPLACEMENT ROW HAS NO NEIGHBORS TO DIVIDE)
+      const rawDate = new Date(message.created_at);
+      if (!message.oobReplace && rawDate.toDateString() !== previousDay) {
+        message.dayDivider = rawDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+      }
+      previousDay = rawDate.toDateString();
+
       message.created_at = this.formatTimestamp(message.created_at);
+      message.requestChip = chips[message.message_id] || null;
       const compiledMessage = await this.core.render.compile('chat/discordMessageShard.pug', message);
       compiledMessages.push(compiledMessage);
     }
@@ -195,6 +296,10 @@ module.exports = {
       }
     }
 
+    // CAPTURE THE UNREAD COUNT BEFORE ZEROING — IT PLACES THE "NEW" DIVIDER
+    const channelRow = await this.core.models.discordChannel.getById(active_channel_id);
+    const unreadCount = channelRow?.unread_message_count || 0;
+
     // UPDATE UNREAD MESSAGES FOR CHANNEL
     await this.core.models.discordChannel.update(
       { channel_id: active_channel_id },
@@ -218,6 +323,12 @@ module.exports = {
     const messages = await this.core.models.discordChannel.getMessages(active_channel_id);
     this.logger.info(`Rendering ${messages.length} messages to UI`);
 
+    // MESSAGES ARE OLDEST-FIRST — FLAG THE FIRST OF THE NEWEST `unreadCount`
+    // SO THE SHARD TEMPLATE DRAWS THE CLASSIC RED "NEW" DIVIDER ABOVE IT
+    if (unreadCount > 0 && messages.length > 0) {
+      messages[Math.max(0, messages.length - unreadCount)].isFirstUnread = true;
+    }
+
     return messages;
   },
 
@@ -232,6 +343,8 @@ module.exports = {
 
     const discordBot = await this.core.models.discordBot.get();
     const servers = await this.core.render.getServerTemplateObj();
+    const state = await this.core.models.state.get();
+    const members = await this.core.render.getServerMembers(state.active_server_id);
 
     await this.core.sockets.emitCompiled([
       'sidebar/servers/serverSortableContainer.pug',
@@ -239,12 +352,15 @@ module.exports = {
       'sidebar/channels/chatChannels.pug',
       'chat/messageChannelHeader.pug',
       'chat/chatBar.pug',
-      'chat/messageContainer.pug'
+      'chat/messageContainer.pug',
+      'members/membersLayout.pug'
     ], {
       servers,
       messages,
       discordBot,
-      eomStamp
+      eomStamp,
+      state,
+      members
     });
   }
 };

@@ -18,7 +18,7 @@
             label.power-switch
               input#bot-power-switch(
                 type="checkbox"
-                hx-get="/toggle-bot"
+                hx-post="/toggle-bot"
                 hx-target="#modals-here"
                 hx-trigger="click"
                 checked=state.discord_state

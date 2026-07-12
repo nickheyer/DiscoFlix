@@ -26,9 +26,15 @@ mixin field(field, fieldKey, recordId, readonly)
         name=!readonly && fieldKey
         id=!readonly && fieldId
         value=field.value || false
+        placeholder=field.sensitive ? (field.isSet ? '•••••••• (saved — leave blank to keep)' : 'Not set') : undefined
+        autocomplete=field.sensitive ? 'new-password' : undefined
         min=field.min
         max=field.max
         readonly=readonly || field.readonly
         disabled=readonly || field.readonly
         class=(readonly || field.readonly) ? 'readonly' : ''
       )
+      if field.sensitive && field.isSet && !readonly && !field.readonly
+        label.settings-clear-secret
+          input(type='checkbox' name=`${fieldKey}__clear`)
+          span Clear saved value

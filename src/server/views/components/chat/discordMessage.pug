@@ -1,13 +1,16 @@
-- var rowColor = accentColor || 'ffffff'
-- var rowColorStyle = `background-color: #${rowColor}07; box-shadow: inset 5px 0 0 #${rowColor}30;`
+//- LIVE WS-PUSHED MESSAGE. accentColor ARRIVES AS BARE HEX (NO '#').
+//- messageId/userId GIVE THE ROW ITS DOM ID (EDIT SWAPS) AND AVATAR CLICK.
+- var authorColor = accentColor ? `#${String(accentColor).replace('#', '')}` : null
 .messageWrapper(hx-swap-oob="beforeend:#chatLog")
   .chatMessageRow(
+    id=messageId ? `msg-${messageId}` : undefined
     class=isClient ? "botMsg" : "userMsg"
-    style=rowColorStyle
   )
     .chatContentContainer
       include message/messageAvatar
       .chatMessageContent()
         include message/messageAuthor
         include message/messageText
+        include message/messageEmbed
+        include message/messageAttachment
         //include message/messageTyping

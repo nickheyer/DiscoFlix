@@ -1,12 +1,15 @@
-- var whiteHex = "#ffffff"
+//- DISCORD ONLY TAGS BOTS — HUMANS GET NO CHIP. WHITE-DEFAULT USERNAMES SKIP
+//- THE INLINE STYLE ENTIRELY SO THE CSS COLOR CAN CASCADE.
+- var showColor = authorColor && authorColor.toLowerCase() !== '#ffffff'
 .chatAuthor
-  b.chatAuthorUsername(style=`color: ${accentColor || whiteHex}`)
+  b.chatAuthorUsername(style=showColor ? `color: ${authorColor}` : undefined)
     if (username)
-      if (username.length > 16)
-        = username.substr(0, 16) + '...'
+      if (username.length > 24)
+        = username.substr(0, 24) + '...'
       else
         = username
     else
       | Unavailable
-  .chatMessageTag #{isBot ? "APP" : "USER"}
-  .chatMessageDate #{timeStamp || "Time Unavailable"}
+  if isBot
+    .chatMessageTag BOT
+  .chatMessageDate #{timeStamp || ""}

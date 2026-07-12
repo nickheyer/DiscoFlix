@@ -3,14 +3,14 @@ include settingsChannelsHeader
 .settingsChannelContainer
   -
     var settingsChannels = [
-      
+      { name: 'Requests', url: '/modal/requests/dashboard' },
       { name: 'Configuration', type: 'configuration' },
       { name: 'Users', type: 'user' }
     ];
 
   each channel in settingsChannels
     .channelViewOption(
-      hx-get=`/modal/settings/${channel.type}`
+      hx-get=channel.url || `/modal/settings/${channel.type}`
       hx-target="#modals-here"
       hx-trigger="click"
       data-bs-toggle="modal"

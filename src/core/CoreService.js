@@ -3,6 +3,7 @@ const Koa = require('koa');
 const { PrismaClient } = require('@prisma/client');
 const http = require('http');
 const WebSocket = require('ws');
+const { createHttpTerminator } = require('http-terminator');
 
 /**
  * Application spine. A singleton that everything hangs off of:
@@ -12,6 +13,7 @@ const WebSocket = require('ws');
  * - `core.discord.*` — bot lifecycle + guild/channel/message sync (src/core/methods/discord)
  * - `core.render.*`  — pug compilation + view-model builders (src/core/methods/rendering)
  * - `core.sockets.*` — browser websocket registry + broadcasting (src/core/methods/websocket)
+ * - `core.arr.*`     — Radarr/Sonarr API clients + download queue monitor (src/core/methods/arr)
  * - `core.system.*`  — process/server shutdown (src/core/methods/server)
  *
  * Lazy getters: `client` (discord.js), `app` (koa), `server` (http), `prisma`, `wss`.
@@ -29,11 +31,13 @@ class CoreService {
     this._server = null;
     this._client = null;
     this._wss = null;
+    this._httpTerminator = null;
 
     this.logger = require('../../logging')();
     this.models = require('./models')(this);
     this.render = require('./methods/rendering')(this);
     this.sockets = require('./methods/websocket')(this);
+    this.arr = require('./methods/arr')(this);
     this.discord = require('./methods/discord')(this);
     this.system = require('./methods/server')(this);
     require('./wsroutes')(this);
@@ -73,12 +77,19 @@ class CoreService {
       this.logger.info('Attaching Http Server to core-service');
       this._server = http.createServer(this.app.callback());
 
+      // TERMINATOR MUST BE CREATED WITH THE SERVER, CAN ONLY DESTROY WHAT IT WATCHED BE BORN
+      this._httpTerminator = createHttpTerminator({ server: this._server });
+
       // SETTING EVENT HANDLERS FOR ON SHUTDOWN
       process.on('SIGINT', (e) => this.system.shutdownServer('SIGINT', e));
       process.on('SIGTERM', (e) => this.system.shutdownServer('SIGTERM', e));
       process.on('uncaughtException', (e) => this.system.uncaughtShutdown('uncaughtException', e));
     }
     return this._server;
+  }
+
+  get httpTerminator() {
+    return this._httpTerminator;
   }
 
   get prisma() {

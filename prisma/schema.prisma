@@ -13,6 +13,7 @@ model Configuration {
   id                        String   @id @default(cuid())
   media_server_name         String   @default("The Server")
   prefix_keyword            String   @default("!df")
+  admin_password            String?
   discord_token             String?
   radarr_url                String?
   radarr_token              String?
@@ -111,11 +112,15 @@ model DiscordServerChannel {
 }
 
 model DiscordMessage {
-  message_id String               @id @default(uuid())
-  server_id  String
-  channel_id String
-  user_id    String
-  content    String
+  message_id  String               @id @default(uuid())
+  server_id   String
+  channel_id  String
+  user_id     String
+  content     String
+  embeds      String?
+  attachments String?
+  previous_content String?
+  edited_at        DateTime?
   created_at DateTime             @default(now())
   updated_at DateTime             @updatedAt @default(now())
   server     DiscordServer        @relation(fields: [server_id], references: [server_id], onDelete: Cascade)
@@ -143,12 +148,14 @@ model Media {
   network      String?
   air_time     String?
   tvdb_id      String?
+  tmdb_id      String?
   imdb_id      String?        @unique
   first_aired  String?
   series_type  String?
   in_theaters  String?
   website_url  String?
   trailer_url  String?
+  is_available Boolean        @default(false)
   created_at   DateTime       @default(now())
   updated_at   DateTime       @updatedAt @default(now())
   requests     MediaRequest[]
@@ -168,6 +175,8 @@ model MediaRequest {
   orig_message      String?
   orig_parsed_title String?
   orig_parsed_type  String?
+  orig_channel_id   String?
+  orig_message_id   String?
   status            Boolean?
   users             User[]        @relation("UserMediaRequests")
 

@@ -18,7 +18,7 @@
             label.power-switch
               input#bot-power-switch(
                 type="checkbox"
-                hx-get="/toggle-power"
+                hx-post="/toggle-power"
                 hx-target="#modals-here"
                 hx-trigger="click"
                 checked=true

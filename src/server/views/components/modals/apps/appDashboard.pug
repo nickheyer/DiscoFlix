@@ -1,0 +1,53 @@
+//- PER-APP DASHBOARD (v1 OF THE nzb360-STYLE PSEUDO-GUILD SURFACE).
+//- LOCALS FROM api/apps.js: app {id,label,icon}, configured, appUrl,
+//- status {ok, version?, error?}, health [{type,message}], queue [{title,status,percent,timeleft}]
+.modal-dialog.modal-dialog-centered.modal-dialog-scrollable.modal-lg
+  .modal-content
+    .modal-header
+      .appModalTitle
+        img.appModalIcon(src=app.icon alt=app.label)
+        h5.modal-title= app.label
+        if configured
+          span.appStatusPill(class=status.ok ? 'ok' : 'down')= status.ok ? `v${status.version}` : 'unreachable'
+      button.modal-close-button(type='button' data-bs-dismiss='modal' aria-label='Close') ×
+
+    .modal-body
+      if !configured
+        .empty-state
+          .empty-state-text #{app.label} isn't connected yet — set its URL and API key, then flip it on.
+          button.empty-state-button(
+            hx-get='/modal/settings/configuration'
+            hx-target='#modals-here'
+            hx-swap='innerHTML'
+          ) Open Settings
+      else
+        if !status.ok
+          .appHealthNotice.error= status.error
+        if health.length
+          .request-section-header Health
+          each item in health
+            .appHealthNotice(class=item.type === 'error' ? 'error' : '')= item.message
+
+        .request-section-header Download Queue
+        if queue.length
+          each item in queue
+            .request-row
+              .request-info
+                .request-title= item.title
+                .request-meta= item.status + (item.timeleft ? ` — ${item.timeleft} left` : '')
+              .request-status
+                .request-progress
+                  .request-progress-track
+                    .request-progress-bar(style=`width: ${item.percent}%`)
+                  .request-progress-text #{item.percent}%
+        else
+          .appQueueEmpty= status.ok ? 'The queue is empty.' : 'Queue unavailable while the service is unreachable.'
+
+    .modal-footer
+      if configured && appUrl
+        a.modal-button.button-secondary(href=appUrl target='_blank' rel='noopener noreferrer') Open #{app.label}
+      button.modal-button(
+        hx-get=`/modal/apps/${app.id}`
+        hx-target='#modals-here'
+        hx-swap='innerHTML'
+      ) Refresh

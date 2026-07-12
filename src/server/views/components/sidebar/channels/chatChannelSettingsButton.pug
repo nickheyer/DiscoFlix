@@ -1,6 +1,8 @@
 .chSettingsWrapper(
   aria-label='Channel Settings'
 )
+  //- THE GEAR OPENS THE CHANNEL MODAL ONLY — hx-on STOPS THE CLICK FROM
+  //- BUBBLING INTO THE ROW'S change-active-channel POST
   svg.btnInter(
     viewBox="0 0 24 24"
     focusable="false"
@@ -11,6 +13,7 @@
     hx-get=channel_id ? `/settings/discordChannel/search?search=${channel_id}&as-modal=true` : `/modal/settings/discordChannel`
     hx-target="#modals-here"
     hx-trigger="click"
+    hx-on:click="event.stopPropagation()"
     data-bs-toggle="modal"
     data-bs-target="#modals-here"
   )

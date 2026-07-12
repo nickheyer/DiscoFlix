@@ -1,6 +1,6 @@
 div(
   class=`${serverActive ? 'server active' : 'server'}`
-  hx-get=!serverActive && `/change-active-server/${id}`
+  hx-post=!serverActive && `/change-active-server/${id}`
   hx-select-oob=!serverActive && "#serverSelector,#guildNameBanner"
   aria-label=serverName
   data-cooltipz-dir='right'

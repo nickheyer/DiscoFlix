@@ -28,10 +28,11 @@ async function changeActiveServers(ctx) {
     const active_server_id = ctx.params.id;
     const state = await ctx.core.models.state.update({ active_server_id });
 
-    const [msgObjects, servers, discordBot] = await Promise.all([
+    const [msgObjects, servers, discordBot, members] = await Promise.all([
       ctx.core.discord.updateMessages(null, state),
       ctx.core.render.getServerTemplateObj(null, state),
-      ctx.core.models.discordBot.get()
+      ctx.core.models.discordBot.get(),
+      ctx.core.render.getServerMembers(active_server_id)
     ]);
 
     const messages = await ctx.core.discord.compileMessages(msgObjects);
@@ -45,7 +46,8 @@ async function changeActiveServers(ctx) {
       'chat/messageChannelHeader.pug',
       'chat/chatBar.pug',
       'chat/messageContainer.pug',
-    ], { servers, discordBot, messages, eomStamp, state });
+      'members/membersLayout.pug',
+    ], { servers, discordBot, messages, eomStamp, state, members });
   } catch (err) {
     ctx.core.logger.error('CHANGE_SERVER_FAILED:', err);
     ctx.status = 500;

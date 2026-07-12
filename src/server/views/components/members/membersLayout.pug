@@ -1,2 +1,34 @@
-div.memberContainer
-  // Members list goes here
+//- MEMBERS PANE — USERS TRACKED FOR THE ACTIVE SERVER (core.render.getServerMembers).
+//- RENDERS EMPTY (AND :empty-HIDES) WHEN THERE ARE NO MEMBERS TO SHOW.
+- var memberList = members || []
+- var botOnline = state && state.discord_state
+div.memberContainer#memberContainer(
+  hx-select-oob="#memberContainer"
+  hx-swap-oob="outerHTML"
+)
+  if memberList.length
+    .memberListHeader Members — #{memberList.length}
+    each member in memberList
+      - var nameColor = member.accent_color && member.accent_color.toLowerCase() !== 'ffffff' ? `#${member.accent_color}` : null
+      //- CACHED AVATARS ARE STORED AS BARE PATHS (user_images/…) — SERVE ROOT-RELATIVE
+      - var memberAvatarSrc = member.avatar_url ? (/^https?:\/\//.test(member.avatar_url) ? member.avatar_url : `/${member.avatar_url.replace(/^\/+/, '')}`) : "https://cdn.discordapp.com/embed/avatars/0.png"
+      //- ROW CLICK OPENS THE MEMBER'S SETTINGS FORM, LIKE THE CHANNEL GEAR
+      .memberRow(
+        hx-get=`/settings/user/search?search=${member.id}&as-modal=true`
+        hx-target="#modals-here"
+        hx-trigger="click"
+        data-bs-toggle="modal"
+        data-bs-target="#modals-here"
+      )
+        .memberAvatarWrapper
+          img.memberAvatar(
+            src=memberAvatarSrc
+            alt="avatar"
+            referrerpolicy="no-referrer"
+          )
+          if member.is_client
+            .statusBubble(class=botOnline ? 'online' : 'offline')
+        span.memberName(style=nameColor ? `color: ${nameColor}` : undefined)
+          = member.display_name || member.username
+        if member.is_bot
+          .chatMessageTag BOT

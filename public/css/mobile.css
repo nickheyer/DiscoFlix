@@ -1,6 +1,6 @@
 /* STYLING FOR MOBILE */
 
-@media(max-width:768px){
+@media (max-width: 768px) {
   #serverSideBar.expanded {
     flex: auto;
     width: 100%;
@@ -16,49 +16,28 @@
     font-size: .9rem;
   }
 
-
   .servers {
     order: 1;
-    height: 50vh;
+    height: 100vh;
   }
 
+  /* MEMBERS PANE IS A STUB — NEVER LET IT OVERLAY THE RAIL ON MOBILE */
   .memberContainer {
-    order: 1;
-    height: 50vh;
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    background-color: var(--dark-server-list);
-    border-top: 3px var(--server-divider) solid;
-    max-width: 70px;
-
+    display: none;
   }
 
   .userMenuBtnGroup {
-    right: 25px;
+    right: 16px;
+    gap: 6px;
     > div:has(> svg) {
-      margin: 5px;
       > svg {
-        height: 30px;
-        width: 30px;
+        height: 24px;
+        width: 24px;
       }
     }
   }
 
-  .channelViewOption:hover, .channelViewOption.active {
-    .channelViewOptionConfig {
-      > div:has(> svg) {
-        &::before, &::after {
-          display: none;
-        }
-        > svg {
-          height: 25px;
-          width: 25px;
-        }
-      }
-    }
-  }
   .channelViewOption {
-    height: 2em;
+    padding: 8px;
   }
 }

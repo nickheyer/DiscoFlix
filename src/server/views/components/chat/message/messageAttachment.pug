@@ -1,2 +1,10 @@
-.chatMessageAttachment
-  img(src, alt, referrerpolicy="no-referrer")
+//- RENDERS `attachmentList` ({ url, name, contentType }). IMAGES INLINE,
+//- EVERYTHING ELSE AS A DOWNLOAD LINK. ONLY http(s) URLS RENDER.
+if attachmentList && attachmentList.length
+  each att in attachmentList
+    - var attUrl = att.url && /^https?:\/\//i.test(att.url) ? att.url : null
+    if attUrl && att.contentType && att.contentType.startsWith('image/')
+      .chatMessageAttachment
+        img(src=attUrl alt=att.name || 'attachment' referrerpolicy="no-referrer")
+    else if attUrl
+      a.chatAttachmentLink(href=attUrl target="_blank" rel="noopener noreferrer") 📎 #{att.name || 'attachment'}

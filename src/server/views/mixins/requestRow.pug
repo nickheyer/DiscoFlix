@@ -1,0 +1,41 @@
+//- ONE DASHBOARD ROW FOR A MediaRequest VIEW (BUILT BY core.arr.buildRequestView).
+//- WITH oob=true THE ROW SWAPS ITSELF IN PLACE WHEN PUSHED OVER WS.
+mixin requestRow(req, oob)
+  - var posterSrc = req.posterUrl ? (/^https?:\/\//i.test(req.posterUrl) ? req.posterUrl : `/${req.posterUrl}`) : null
+  .request-row(id=`request-row-${req.id}` hx-swap-oob=oob ? 'outerHTML' : undefined)
+    .request-poster
+      if posterSrc
+        img(src=posterSrc alt="poster" referrerpolicy="no-referrer")
+      else
+        .request-poster-placeholder= req.contentType === 'show' ? '📺' : '🎬'
+    .request-info
+      .request-title= req.title
+      .request-meta
+        span= req.requestedBy || 'Unknown user'
+        if req.serverName
+          span.request-meta-divider •
+          span= req.serverName
+      if req.origMessage
+        .request-orig-message= req.origMessage
+    .request-status
+      span.requestChip(class=`chip-${req.state}`)= req.stateLabel
+      .request-progress(id=`request-progress-${req.id}`)
+        if req.progress
+          .request-progress-track
+            .request-progress-bar(style=`width: ${req.progress.percent}%;`)
+          .request-progress-text
+            | #{req.progress.percent}%
+            if req.progress.timeleft
+              |  • #{req.progress.timeleft} left
+      if req.state === 'pending'
+        .request-actions
+          button.request-approve-button(
+            hx-post=`/requests/${req.id}/approve`
+            hx-target=`#request-row-${req.id}`
+            hx-swap='outerHTML'
+          ) Approve
+          button.request-deny-button(
+            hx-post=`/requests/${req.id}/deny`
+            hx-target=`#request-row-${req.id}`
+            hx-swap='outerHTML'
+          ) Deny

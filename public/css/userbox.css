@@ -1,32 +1,38 @@
 /* USER INFO AND CONTROLS IN BOTTOM LEFT CORNER */
 
 .userBox {
-  position: absolute;
-  bottom: 0;
-  background-color: var(--user-box);
+  flex-shrink: 0;
+  margin-top: auto; /* PINS TO THE BOTTOM OF THE FLEX-COLUMN SIDEBAR */
+  background-color: var(--bg-secondary-alt);
   width: 100%;
-  height: 53px;
-  margin-bottom: 0;
+  height: 52px;
   display: flex;
-  padding-block: 5px;
+  position: relative;
+  box-sizing: border-box;
 }
 
 .userAvatar {
-  height: 40px;
-  width: 40px;
+  height: 32px;
+  width: 32px;
   border-radius: 50%;
 }
 
 .userInfo {
-  margin-left: 58px;
-  margin-top: 10px;
+  margin-left: 48px;
+  padding-top: 8px;
   cursor: pointer;
+  min-width: 0;
 }
 
 .username {
   display: block !important;
   margin: 0;
-  font-weight: bolder;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--header-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 #userInfoContainer {
@@ -36,8 +42,9 @@
 .discriminator {
   display: block !important;
   margin: 0;
-  font-weight: lighter;
-  color: var(--text-gray);
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-muted);
 }
 
 .userMenuIcons {
@@ -49,24 +56,31 @@
 }
 
 .botPowerIcon, .serverPowerIcon, .settingsIcon {
-  padding: 3px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   user-select: none;
   cursor: pointer;
-  border-radius: 18%;
+  border-radius: 4px;
 }
 
 .botPowerIcon svg, .serverPowerIcon svg, .settingsIcon svg {
-  padding: 3px;
   height: 20px;
   width: 20px;
-  fill: var(--iconColor);
+  fill: var(--interactive-normal);
 }
 
 .botPowerIcon:hover, .serverPowerIcon:hover, .settingsIcon:hover {
-  background-color: var(--dark-bg);
+  background-color: var(--bg-modifier-selected);
 }
 
-.settingsIcon:hover svg{
+.botPowerIcon:hover svg, .serverPowerIcon:hover svg, .settingsIcon:hover svg {
+  fill: var(--interactive-hover);
+}
+
+.settingsIcon:hover svg {
   transition: transform 1.4s cubic-bezier(0.5, 0, 0, 1);
   transform: rotate(360deg);
 }
@@ -88,102 +102,101 @@
 
   > #shutdownButton {
     display: flex;
-    -moz-box-align: center;
     align-items: center;
-    margin:auto;
+    margin: auto;
     width: auto;
-    border-radius: 5px;
+    border-radius: 4px;
   }
   > #shutdownButton span {
     padding: 3px 8px;
-    color: var(--senary);
+    color: var(--channel-default);
+    font-size: 13px;
   }
   &:hover > #shutdownButton,
   &.active > #shutdownButton {
-    background-color: var(--quinary);
+    background-color: var(--bg-modifier-selected);
     > span {
-      color: var(--white);
+      color: var(--interactive-active);
     }
   }
 }
 
 .userAvatarBubble {
   position: absolute;
-  height: 40px;
+  height: 32px;
   top: 50%;
   transform: translateY(-50%);
-  left: 10px;
+  left: 8px;
   cursor: pointer;
   user-select: none;
 }
 
 .userAvatarBubble:hover {
-  > .userAvatar {
-    background-color: #000000;
-  }
-  
   opacity: 0.8;
 }
 
 .statusBubble {
   background-color: var(--yellow);
-	width: 12px;
-	height: 12px;
-	position: absolute;
-	bottom: -4px;
-	right: -4px;
-	border-radius: 50%;
-	border: 4px solid var(--quaternary);
-	text-align: right;
-	font-size: 13px;
-	font-weight: bold;
-	color: var(--white);
-	display: inline;
+  width: 10px;
+  height: 10px;
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  border-radius: 50%;
+  border: 3px solid var(--bg-secondary-alt);
+  text-align: right;
+  font-size: 13px;
+  font-weight: bold;
+  color: #ffffff;
+  display: inline;
   visibility: hidden;
 }
 
 .statusBubble.offline {
-  transition: 1.7ms;
   background-color: var(--red);
   visibility: visible !important;
 }
 
 .statusBubble.online {
-  transition: 1.7ms;
   background-color: var(--green);
   visibility: visible !important;
 }
 
+/* UNREAD COUNT BADGE (RAIL BUBBLES) */
 .statusBubble.unread {
-  transition: 1.7ms;
-  background-color: var(--blurple);
+  background-color: var(--red);
   visibility: visible !important;
   text-align: center;
+  align-content: center;
+  width: 16px;
+  height: 16px;
   font-size: 10px;
-  font-weight: bold;
-  color: var(--dark-bg);
+  font-weight: 700;
+  color: #ffffff;
 }
 
+/* UNREAD COUNT BADGE (CHANNEL ROWS) */
 .statusBubble.unread-channel {
-  transition: 1.7ms;
-  background-color: var(--blurple);
+  background-color: var(--red);
   visibility: visible !important;
   text-align: center;
   align-content: center;
   font-size: 11px;
-  font-weight: bold;
-  color: var(--dark-bg);
-  width: 14px;
-	height: 14px;
-	position: relative;
+  font-weight: 700;
+  color: #ffffff;
+  width: 16px;
+  height: 16px;
+  position: relative;
   bottom: unset;
-	right: unset;
+  right: unset;
+  border: none;
 }
 
 .userMenuBtnGroup {
   position: absolute;
   display: flex;
+  gap: 2px;
   top: 50%;
   transform: translateY(-50%);
-  right: 5px;
+  right: 8px;
 }

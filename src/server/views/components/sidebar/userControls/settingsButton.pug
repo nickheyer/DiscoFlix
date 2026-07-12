@@ -1,5 +1,5 @@
 div.settingsIcon#settingsToggle(
-  hx-get='/toggle-settings/open'
+  hx-post='/toggle-settings/open'
   hx-select-oob='#sidebarToggle:outerHTML,#guildNameBanner:outerHTML'
   hx-swap-oob="outerHTML"
   aria-label='Bot settings'

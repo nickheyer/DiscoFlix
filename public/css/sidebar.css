@@ -1,10 +1,12 @@
 /* NAV BAR AND SERVER BUTTONS */
 
+/* ---- SERVER RAIL (FAR LEFT) ---- */
+
 .servers {
   order: 1;
-  min-width: 70px;
+  min-width: 72px;
   height: 100%;
-  background-color: var(--dark-server-list);
+  background-color: var(--bg-tertiary);
   overflow-y: auto !important;
   display: flex;
   align-items: center;
@@ -38,18 +40,11 @@
   margin-bottom: 15px;
 }
 
-.invite {
-  color: var(--green) !important;
-  font-size: 33px;
-  font-weight: 200;
-  margin-bottom: 0;
-}
-
 .homeButton {
   position: relative;
   flex-shrink: 0;
-  background-color: var(--dark-bg);
-  color: #FFFFFF;
+  background-color: var(--bg-primary);
+  color: #ffffff;
   border-radius: 50%;
   text-align: center;
   height: 48px;
@@ -57,15 +52,20 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 15px;
+  margin-top: 12px;
   cursor: pointer;
-  transition: 0.2s;
+  transition: background-color 0.15s ease-out, border-radius 0.15s ease-out;
+}
+
+.homeButton:hover {
+  background-color: var(--blurple);
+  border-radius: 30%;
 }
 
 .server {
   position: relative;
-  background-color: var(--dark-bg);
-  color: #FFFFFF;
+  background-color: var(--bg-primary);
+  color: #ffffff;
   border-radius: 50%;
   text-align: center;
   height: 48px;
@@ -73,9 +73,16 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   cursor: pointer;
-  transition: 0.2s;
+  transition: background-color 0.15s ease-out, border-radius 0.15s ease-out;
+}
+
+/* THE CLASSIC SQUIRCLE MORPH — CIRCLE AT REST, ROUNDED SQUARE WHEN ACTIVE/HOVERED */
+.server.active,
+.server:hover {
+  background-color: var(--blurple);
+  border-radius: 30%;
 }
 
 .server img {
@@ -83,14 +90,26 @@
   width: 48px;
   border-radius: 50%;
   text-align: center;
-  transition: 0.2s;
+  transition: border-radius 0.15s ease-out;
   user-select: none;
+}
+
+.server:hover img,
+.server.active img {
+  border-radius: 30%;
+}
+
+.server p.serverIcon {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 48px;
+  color: var(--text-normal);
 }
 
 .server.ghost {
   opacity: 0.5;
-  background-color: var(--light-bg);
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--elevation-high);
   transform: scale(1.1);
   z-index: 1000;
 }
@@ -103,62 +122,72 @@
 }
 
 .invite:hover {
-  color: #FFFFFF !important;
+  color: #ffffff !important;
   background-color: var(--green) !important;
 }
 
-.server.active, .server:hover {
-  background-color: var(--blurple);
-  border-radius: 30%;
-  transition: 0.3s;
-}
-
-.server img:hover {
-  border-radius: 30%;
-  transition: 0.3s;
-}
-
-.server.active img {
-  background-color: var(--blurple);
-  border-radius: 30%;
-  transition: 0.3s;
-}
-
-.homeButton:hover {
-  background-color: var(--blurple);
-  border-radius: 30%;
-  transition: 0.3s;
+.invite .inviteButton {
+  margin: 0;
+  line-height: 1;
 }
 
 .serverDivider {
-  margin-top: 7px;
-  width: 38px;
-  background-color: var(--server-divider);
-  height: 2.4px;
+  margin-top: 8px;
+  margin-bottom: 8px;
+  width: 32px;
+  background-color: var(--bg-modifier-accent);
+  height: 2px;
   border: none;
-  border-radius: 15px;
+  border-radius: 1px;
+  flex-shrink: 0;
 }
+
+/* ---- APP RAIL — PSEUDO-GUILDS FOR CONNECTED SERVICES (RADARR/SONARR/…) ---- */
+
+.appRail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* APP LOGOS SIT INSET INSIDE THE BUBBLE INSTEAD OF FILLING IT LIKE GUILD ICONS */
+.server.appBubble .appIcon {
+  width: 26px;
+  height: 26px;
+  border-radius: 0;
+  user-select: none;
+  transition: none;
+}
+
+/* STATUS DOTS ON RAIL BUBBLES RING WITH THE RAIL COLOR */
+.servers .statusBubble {
+  border-color: var(--bg-tertiary);
+}
+
+/* ---- CHANNEL SIDEBAR ---- */
 
 #serverSideBar {
   order: 2;
   position: relative;
+  display: flex;
+  flex-direction: column;
   min-width: 60px;
   height: 100vh;
-  background-color: var(--dark-primary);
-  transition: width 0.6s ease;
+  background-color: var(--bg-secondary);
+  transition: width 0.3s ease;
   overflow-x: visible;
 }
 
 #serverSideBar.expanded {
-  width: 270px;
-  
+  width: 240px;
 
   .guildSelectorName,
   .userInfo,
   .userMenuIcons,
   .channelViewContainer {
     opacity: 1;
-    transition: all 1s ease .3s;
+    transition: opacity 0.4s ease 0.15s;
   }
 
   .guildSelectorName {
@@ -170,27 +199,19 @@
     transform: translateY(-50%) rotate(0deg);
     transform-origin: center;
   }
-
-  .channelViewContainer {
-    overflow-y: scroll !important;
-    height: calc(100% - 136px) !important
-  }
 }
-
 
 #serverSideBar:not(.expanded) {
   width: 60px;
-  
+
   .guildSelectorDropdown {
     width: 100%;
     height: 100%;
     overflow: hidden;
     transform: translateY(-50%) rotate(90deg);
     transform-origin: center;
-    color: var(--text-gray);
+    color: var(--interactive-normal);
     cursor: pointer;
-    border: 0px;
-    outline: 0px;
     display: inline-block;
     vertical-align: middle;
     margin: 0px;
@@ -199,10 +220,10 @@
     right: 0;
   }
   .guildSelectorDropdown:hover {
-    color: var(--blurple);
+    color: var(--interactive-active);
   }
 
-  .navGuildItems{
+  .navGuildItems {
     padding: 0;
   }
   .nav {
@@ -217,71 +238,111 @@
   }
 
   .guildSelectorName {
-    position:fixed;
-    top:-1000vh;
+    position: fixed;
+    top: -1000vh;
   }
+}
+
+/* GUILD NAME BANNER */
+.nav {
+  flex-shrink: 0;
 }
 
 .navGuildItems {
   display: flex;
   justify-content: space-between;
-  -moz-box-align: center;
   align-items: center;
-  -moz-box-pack: justify;
-  padding: 0px 11px 0px 16px;
-  background-color: var(--dark-primary);
+  padding: 0px 8px 0px 16px;
+  background-color: var(--bg-secondary);
   z-index: 2;
-  height: 70px;
+  height: 48px;
   position: relative;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.navGuildItems:hover {
+  background-color: var(--bg-modifier-hover);
 }
 
 .navGuild {
-  border-bottom: 1px solid var(--dark-server-list);
+  box-shadow: var(--elevation-low);
 }
 
 .guildSelectorName {
-  font-size: 16px !important;
-  font-weight: bold;
-  color: var(--text-gray);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: 15px !important;
+  font-weight: 600;
+  color: var(--header-primary);
   user-select: none;
   cursor: pointer;
   transition: opacity 0.2s ease 0s;
 }
 
-.guildSelectorDropdown {
-  max-height: 56px;
-  width: 28px;
-  height: 28px;
-  color: var(--text-gray);
+.guildNameText {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+/* SERVER INFO (i) — RIDES THE BANNER, FADES IN ON HOVER LIKE THE CHANNEL GEAR */
+.serverInfoButton {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: var(--interactive-normal);
+  opacity: 0;
   cursor: pointer;
-  border: 0px;
-  outline: 0px;
+  transition: opacity 0.15s ease, color 0.15s ease;
+}
+
+.navGuildItems:hover .serverInfoButton {
+  opacity: 1;
+}
+
+.serverInfoButton:hover {
+  color: var(--interactive-active);
+}
+
+.guildSelectorDropdown {
+  max-height: 48px;
+  width: 20px;
+  height: 20px;
+  color: var(--interactive-normal);
+  cursor: pointer;
 
   position: absolute;
   transform: translateY(-50%);
   transform-origin: center;
-  right: 10px;
+  right: 12px;
   top: 50%;
-
 
   margin: 0px;
   padding: 0px;
   box-sizing: border-box;
-  transition-property: all;
-  transition-duration: 0.6s; 
+  transition-property: transform, color;
+  transition-duration: 0.3s;
   transition-timing-function: ease;
-
-  &:hover {
-    color: var(--blurple);
-    height: 56px;
-  }
 }
 
+.guildSelectorDropdown:hover {
+  color: var(--interactive-active);
+}
+
+/* CHANNEL LIST — FILLS THE SPACE BETWEEN BANNER AND USERBOX */
 .channelViewContainer {
-  background-color: var(--secondary);
+  background-color: var(--bg-secondary);
   display: flex;
   flex-direction: column;
-  padding-left: 8px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 8px 8px 8px;
   transition: opacity 0.2s ease 0s;
 }
 
@@ -290,82 +351,88 @@
   align-items: center;
   justify-content: space-between;
   cursor: pointer;
-  padding: 8px 5px;
-  border-radius: 5px;
+  padding: 5px 8px;
+  border-radius: 4px;
   background-color: transparent;
-  transition: background-color 0.2s;
   font-family: var(--font-family) !important;
   margin-top: 2px;
+  flex-shrink: 0;
 
   > div {
     display: flex;
     align-items: center;
+    min-width: 0;
   }
   > div span {
-    margin-left: 5px;
-    color: var(--senary);
+    margin-left: 6px;
+    color: var(--channel-default);
+    font-size: 15px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
-  &:hover,
-  &.active {
-    background-color: var(--quinary);
+  &:hover {
+    background-color: var(--bg-modifier-hover);
     > div span {
-      color: var(--white);
-    }
-    .channelViewOptionConfig {
-      transition: 0.7ms;
-      visibility: visible !important;
+      color: var(--interactive-hover);
     }
   }
-
-  &:hover > .channelViewOptionConfig {
-    transition: 0.7ms;
+  &.active {
+    background-color: var(--bg-modifier-selected);
+    > div span {
+      color: var(--interactive-active);
+    }
+  }
+  &:hover .channelViewOptionConfig,
+  &.active .channelViewOptionConfig {
     visibility: visible !important;
   }
 
   .channelViewOptionConfig {
-    transition: 0.7ms;
     visibility: hidden;
-    transform: translateY(2px);
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
   }
 }
 
 .btnInter {
-  filter: brightness(100%);
-  -webkit-filter: brightness(100%);
+  color: var(--interactive-normal);
+  transition: color 0.15s ease;
 }
-.btnInter:hover, .btnInter:active {
-  filter: brightness(70%);
-  -webkit-filter: brightness(70%);
-  -webkit-transition: all .2s ease;
-  -moz-transition: all .2s ease;
-  -o-transition: all .2s ease;
-  -ms-transition: all .2s ease;
-  transition: all .2s ease;
+
+.btnInter:hover,
+.btnInter:active {
+  color: var(--interactive-active);
 }
 
 .channelViewOptionInfo {
   display: flex;
-  -moz-box-align: center;
   align-items: center;
 }
+
 .hashTagIcon {
   width: 20px;
   height: 20px;
-  color: var(--symbol);
+  flex-shrink: 0;
+  color: var(--text-muted);
 }
-.channelViewOptionInfo span {
-  margin-left: 5px;
-}
+
 .channelViewOption.active .channelViewOptionInfo span {
-  color: var(--white);
+  color: var(--interactive-active);
 }
 
 .channelViewOptionConfig svg {
-  width: 22px;
-  height: 22px;
-  color: var(--symbol);
+  width: 16px;
+  height: 16px;
+  color: var(--interactive-normal);
   cursor: pointer;
-  transition: color 0.2s ease 0s;
+  transition: color 0.15s ease;
+}
+
+.channelViewOptionConfig svg:hover {
+  color: var(--interactive-active);
 }
 
 svg.noInter {
@@ -376,25 +443,33 @@ svg.noInter {
   margin-left: 4px;
 }
 
+/* CATEGORY / SECTION HEADERS */
 .channelViewHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 24px;
-  margin-bottom: 4px;
+  margin-top: 18px;
+  margin-bottom: 2px;
+  padding: 0 8px 0 2px;
+  flex-shrink: 0;
+
   > span {
     text-transform: uppercase;
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--gray);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--channel-default);
+    user-select: none;
   }
 }
 
-.channelViewHeader > svg {
-  width: 21px;
-  height: 21px;
-  color: var(--symbol);
-  cursor: pointer;
+.channelViewHeader:first-child {
+  margin-top: 8px;
 }
 
-
+.channelViewHeader > svg {
+  width: 18px;
+  height: 18px;
+  color: var(--interactive-normal);
+  cursor: pointer;
+}

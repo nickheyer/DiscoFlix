@@ -196,9 +196,17 @@ class BaseModel {
         // PROCESS ALL METADATA FIELDS
         Object.entries(this.metadata.fields).forEach(([key, meta]) => {
             if (meta.computed || [FIELD_TYPES.RELATION, FIELD_TYPES.ID].includes(meta.type)) return;
-            
+
             try {
                 const value = key in data ? data[key] : null;
+                // SENSITIVE FIELDS RENDER EMPTY IN FORMS
+                if (meta.sensitive) {
+                    if (data[`${key}__clear`]) {
+                        sanitized[key] = null;
+                        return;
+                    }
+                    if (!value) return;
+                }
                 sanitized[key] = this._convertValue(value, meta.type, meta.min);
             } catch (err) {
                 errors.push(`${key}: ${err.message}`);
@@ -241,7 +249,9 @@ class BaseModel {
             .reduce((acc, [key, meta]) => {
                 if (!meta.hidden && meta.type !== 'RELATION') {
                     acc[key] = {
-                        value: record[key],
+                        // SECRETS NEVER LEAVE THE SERVER
+                        value: meta.sensitive ? '' : record[key],
+                        isSet: meta.sensitive ? !!record[key] : undefined,
                         type: meta.type,
                         label: meta.label || key.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
                         description: meta.description,

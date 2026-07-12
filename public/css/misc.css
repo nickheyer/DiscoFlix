@@ -1,5 +1,8 @@
 /* EVERYTHING ELSE - ANIMATIONS, ALERTS, WHATEVER I COULDNT FIND A FILE FOR */
 
+/* KEYFRAME NAMES ARE GLOBAL — EVERY ANIMATION HERE GETS ITS OWN PREFIXED NAME
+   SO FILES CANT SILENTLY OVERRIDE EACH OTHER (dash/fadeIn USED TO COLLIDE) */
+
 .loading-bar {
   z-index: 9999;
   opacity: 0;
@@ -7,18 +10,18 @@
   top: 0;
   left: 0;
   width: 100%;
-  height: 4px;
+  height: 3px;
   background: linear-gradient(90deg, transparent,
-      #000, transparent,
-      #000, transparent);
+      var(--blurple), transparent,
+      var(--blurple), transparent);
 }
 
 .htmx-request.loading-bar {
   opacity: 1;
-  animation: fadeIn 2s linear forwards, slide 0.8s ease-in-out infinite;
+  animation: loadbar-fade-in 2s linear forwards, loadbar-slide 0.8s ease-in-out infinite;
 }
 
-@keyframes slide {
+@keyframes loadbar-slide {
   0% {
     transform: translateX(-100%);
   }
@@ -28,7 +31,8 @@
   }
 }
 
-@keyframes fadeIn {
+/* DELIBERATELY HOLDS AT 0 UNTIL HALFWAY — SHORT REQUESTS NEVER FLASH THE BAR */
+@keyframes loadbar-fade-in {
   0% {
     opacity: 0;
   }
@@ -48,7 +52,7 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: rgba(255,255,255,0.8);
+  background: rgba(255, 255, 255, 0.8);
   padding: 1rem;
   border-radius: 0.5rem;
 }
@@ -73,9 +77,9 @@
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  background: #2f3136;
+  background: var(--bg-secondary);
   border-radius: 4px;
-  border: 1px solid #404449;
+  border: 1px solid var(--bg-tertiary);
   opacity: 0;
   transform: translateX(-10px);
   transition: all 0.2s ease;
@@ -91,12 +95,12 @@
 .notification-icon {
   width: 16px;
   height: 16px;
-  color: #00b341;
+  color: var(--green);
 }
 
 .notification-message {
   font-size: 14px;
-  color: #dcddde;
+  color: var(--text-normal);
   font-weight: 500;
 }
 
@@ -107,8 +111,8 @@
   min-width: calc(6rem + 20px);
   font-family: var(--font-family);
   font-size: 12px;
-  color: #fff;
-  background-color: var(--dark-bg);
+  color: var(--text-normal);
+  background-color: var(--bg-tertiary);
   border-radius: 3px;
   padding: 10px 0 10px 14px;
 }
@@ -157,9 +161,9 @@
   margin: 4px 0 0;
   padding: 4px;
   list-style: none;
-  background: #4f545c;
+  background: var(--bg-floating);
   border-radius: 4px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--elevation-high);
   opacity: 0;
   pointer-events: none;
   transform: translateY(-10px);
@@ -175,8 +179,8 @@
 
 .select-box__option {
   display: block;
-  padding: 12px;
-  color: #fff;
+  padding: 10px 12px;
+  color: var(--interactive-normal);
   border-radius: 3px;
   cursor: pointer;
   transition: background-color 0.2s;
@@ -185,11 +189,13 @@
 }
 
 .select-box__option:hover {
-  background-color: #5a5f69;
+  background-color: var(--bg-modifier-hover);
+  color: var(--interactive-hover);
 }
 
 .select-box__option.selected {
-  background-color: #5865f2;
+  background-color: var(--blurple);
+  color: #fff;
 }
 
 .select-box__option[disabled] {

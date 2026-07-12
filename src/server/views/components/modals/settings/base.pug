@@ -1,6 +1,7 @@
 include ../../../mixins/search
 include ../../../mixins/notification
 
+//- NO FOOTER: X / BACKDROP / ESC ALL CLOSE — THE SAVE TOAST LIVES IN THE HEADER
 .modal-dialog.modal-dialog-centered.modal-dialog-scrollable.modal-lg
   .modal-content
     .modal-header
@@ -8,16 +9,11 @@ include ../../../mixins/notification
         = title
         if readonly
           span.badge.ms-2.bg-secondary.small Read Only
+      +Notification
       button.modal-close-button(type='button' data-bs-dismiss='modal' aria-label='Close') ×
-    
-    
-    
+
     .modal-body
       if !isSingleton
         +SearchBar(type)
       #records-container.settings-records-container
         include _records
-
-    .modal-footer
-      +Notification
-      button.modal-button.button-secondary(type='button' data-bs-dismiss='modal') Close

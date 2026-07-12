@@ -10,11 +10,13 @@ mixin paginate(type, currentPage, totalRecords, perPage, search)
   
   .records-pagination
     if totalRecords > (safePage * safePerPage)
+      //- INCLUDES #search-input ('#search-bar' MATCHED NOTHING, SO PAGINATING
+      //- DURING A SEARCH SILENTLY DROPPED THE FILTER)
       button.button.button-secondary(
         hx-get=`/settings/${type}/page/${safePage + 1}?page-size=${safePerPage}`
         hx-target='#records-container'
         hx-swap='innerHTML'
-        hx-include='#search-bar'
+        hx-include='#search-input'
       ) Load More
 
     if totalRecords !== 0

@@ -6,6 +6,7 @@ const errorHandler = require('./middlewares/errorHandler');
 const debugHandler = require('./middlewares/debugHandler');
 const { defermentMiddleware } = require('./middlewares/defermentHandler');
 const { compileMiddleware } = require('./middlewares/compiler');
+const { authHandler } = require('./middlewares/authHandler');
 const routes = require('./routes');
 const Pug = require('koa-pug');
 const pug = new Pug({
@@ -22,6 +23,9 @@ app.use(compileMiddleware);
 app.use(defermentMiddleware);
 app.use(serve('public'));
 app.use(serve('.cache'));
+
+// AUTH SITS AFTER STATIC - LOGIN PAGE ASSETS STAY REACHABLE
+app.use(authHandler());
 
 // Routes
 app.use(routes.routes()).use(routes.allowedMethods());

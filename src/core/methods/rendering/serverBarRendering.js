@@ -73,29 +73,22 @@ module.exports = {
   },
 
   async getOneServerTemplate(serverID) {
-    let activeServer;
-    let channels = [];
-
-    if (!serverID) {
-      activeServer = await this.core.models.state.getActiveServer();
-      if (activeServer) {
-        activeServer = await this.core.models.discordServer.getComplete(activeServer.server_id);
-      }
-    } else {
-      activeServer = await this.core.models.discordServer.getComplete(serverID);
-    }
+    const targetId = serverID ||
+      (await this.core.models.state.getActiveServer())?.server_id;
+    const activeServer = targetId
+      ? await this.core.models.discordServer.getComplete(targetId)
+      : null;
 
     if (activeServer?.channels) {
       const validChannelIds = activeServer.channels
         .filter(ch => ch.isTextChannel)
         .map(ch => ch.channel_id);
 
-      await this.ensureActiveChannel(activeServer.server_id, validChannelIds);
-      activeServer = await this.core.models.discordServer.getComplete(activeServer.server_id);
+      const currentChannelView = await this.ensureActiveChannel(activeServer, validChannelIds);
+      activeServer.active_channel_id = currentChannelView;
 
-      const currentChannelView = activeServer.active_channel_id;
       const activeChannel = _.find(activeServer.channels, ['channel_id', currentChannelView]);
-      channels = await this.createActiveChannels(activeServer.channels, currentChannelView);
+      const channels = await this.createActiveChannels(activeServer.channels, currentChannelView);
 
       return {
         activeServer,
@@ -125,6 +118,8 @@ module.exports = {
     let activeChannel = null;
 
     if (activeServer) {
+      // ONE getComplete PER RENDER PASS; ensureActiveChannel WORKS ON THE
+      // ALREADY-LOADED RECORD
       activeServer = await this.core.models.discordServer.getComplete(activeServer.server_id);
 
       if (activeServer?.channels) {
@@ -132,10 +127,9 @@ module.exports = {
           .filter(ch => ch.isTextChannel)
           .map(ch => ch.channel_id);
 
-        await this.ensureActiveChannel(activeServer.server_id, validChannelIds);
-        activeServer = await this.core.models.discordServer.getComplete(activeServer.server_id);
+        const currentChannelView = await this.ensureActiveChannel(activeServer, validChannelIds);
+        activeServer.active_channel_id = currentChannelView;
 
-        const currentChannelView = activeServer.active_channel_id;
         activeChannel = _.find(activeServer.channels, ['channel_id', currentChannelView]);
         channels = await this.createActiveChannels(activeServer.channels, currentChannelView);
       }
@@ -156,23 +150,44 @@ module.exports = {
     };
   },
 
-  async ensureActiveChannel(serverId, validChannelIds) {
-    const discordServer = await this.core.models.discordServer.getComplete(serverId);
-    const activeChannel = discordServer.active_channel_id;
-
-    if (!activeChannel || !validChannelIds.includes(activeChannel)) {
-      const channels = await this.core.models.discordChannel.getMany({ discord_server: serverId });
-      const firstTextChannel =
-        _.find(channels, (ch) => ch.isTextChannel && ch.parent_id && ch.position === 0) ||
-        _.find(channels, (ch) => ch.isTextChannel);
-
-      if (firstTextChannel) {
-        await this.core.models.discordServer.update(
-          { server_id: serverId },
-          { active_channel_id: firstTextChannel.channel_id }
-        );
-      }
+  // MEMBERS PANE VIEW MODEL — USERS THE APP HAS SEEN ON THE ACTIVE SERVER
+  // (THE JOIN TABLE FILLS AS MESSAGES SYNC). CLIENT BOT SORTS FIRST.
+  async getServerMembers(serverId) {
+    if (!serverId) {
+      const activeServer = await this.core.models.state.getActiveServer();
+      serverId = activeServer?.server_id;
     }
+    if (!serverId) return [];
+    return this.core.models.user.getMany(
+      { discord_servers: { some: { server_id: serverId } } },
+      {},
+      [{ is_client: 'desc' }, { username: 'asc' }]
+    );
+  },
+
+  // ACCEPTS A LOADED SERVER RECORD (WITH OR WITHOUT CHANNELS) OR AN ID, AND
+  // RETURNS THE VALID ACTIVE CHANNEL ID — CALLERS DON'T NEED TO REFETCH.
+  async ensureActiveChannel(serverOrId, validChannelIds) {
+    const server = typeof serverOrId === 'string'
+      ? await this.core.models.discordServer.getById(serverOrId)
+      : serverOrId;
+    if (!server) return null;
+
+    const current = server.active_channel_id;
+    if (current && validChannelIds.includes(current)) return current;
+
+    const channels = server.channels ||
+      await this.core.models.discordChannel.getMany({ discord_server: server.server_id });
+    const firstTextChannel =
+      _.find(channels, (ch) => ch.isTextChannel && ch.parent_id && ch.position === 0) ||
+      _.find(channels, (ch) => ch.isTextChannel);
+    if (!firstTextChannel) return null;
+
+    await this.core.models.discordServer.update(
+      { server_id: server.server_id },
+      { active_channel_id: firstTextChannel.channel_id }
+    );
+    return firstTextChannel.channel_id;
   },
 
   async ensureActiveServer(defaultServerId) {

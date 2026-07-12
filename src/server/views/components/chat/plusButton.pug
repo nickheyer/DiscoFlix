@@ -1,4 +1,14 @@
-.plusButton
+//- DISCORD'S "+" ATTACHES FILES; OURS OPENS THE REQUEST DASHBOARD — THE ONE
+//- SURFACE THAT MATTERS. SAME MODAL WIRING AS THE CHANNEL GEAR / INVITE BUTTON.
+.plusButton(
+  aria-label="Media Requests"
+  data-cooltipz-dir="top"
+  hx-get="/modal/requests/dashboard"
+  hx-target="#modals-here"
+  hx-trigger="click"
+  data-bs-toggle="modal"
+  data-bs-target="#modals-here"
+)
   svg(
     xmlns="http://www.w3.org/2000/svg",
     width="24", height="24", viewBox="0 0 24 24",

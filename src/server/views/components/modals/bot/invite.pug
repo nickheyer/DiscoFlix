@@ -13,12 +13,11 @@
           value=discordBot.bot_invite_link
           style="text-align: center;"
         )
-      .modal-footer
-        if (discordBot.bot_invite_link)
-            a.btn.modal-button(
+      if (discordBot.bot_invite_link)
+        .modal-footer
+          a.btn.modal-button(
             id="invite-button"
             href=discordBot.bot_invite_link
             target="_blank"
             rel="noopener noreferrer"
-            ) Invite
-        button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Close
+          ) Invite

@@ -2,7 +2,7 @@
 div.settingsIcon#settingsToggle(
   aria-label='Close settings'
   data-cooltipz-dir='top'
-  hx-get='/toggle-settings/close',
+  hx-post='/toggle-settings/close',
   hx-swap-oob="outerHTML",
   hx-select-oob='#sidebarToggle:outerHTML,#guildNameBanner:outerHTML'
 )

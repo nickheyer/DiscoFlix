@@ -1,12 +1,29 @@
+//- THE (i) LIVES INSIDE THE SWAPPED BANNER SO IT ALWAYS TRACKS THE ACTIVE
+//- SERVER; IT FADES IN ON BANNER HOVER AND OPENS THE GUILD'S CONFIG MODAL
 h4.guildSelectorName#guildNameBanner(
   hx-select-oob='#guildNameBanner'
   hx-swap-oob='outerHTML'
 )
   if (servers && (servers.activeServer && servers.activeServer.server_name))
-    - var serverName=servers.activeServer.server_name
-    if (serverName.length > 21)
-      = serverName.substr(0, 21) + '...'
-    else
-      = serverName
+    - var serverName = servers.activeServer.server_name
+    span.guildNameText= serverName.length > 21 ? serverName.substr(0, 21) + '...' : serverName
+    svg.serverInfoButton(
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      xmlns="http://www.w3.org/2000/svg"
+      role="img"
+      aria-label="Server Info"
+      data-cooltipz-dir="bottom"
+      hx-get=`/settings/discordServer/search?search=${servers.activeServer.server_id}&as-modal=true`
+      hx-target="#modals-here"
+      hx-trigger="click"
+      hx-on:click="event.stopPropagation()"
+      data-bs-toggle="modal"
+      data-bs-target="#modals-here"
+    )
+      circle(cx="12" cy="12" r="9" stroke-width="2")
+      line(x1="12" y1="11" x2="12" y2="16" stroke-width="2" stroke-linecap="round")
+      circle(cx="12" cy="8" r="0.5" fill="currentColor" stroke-width="1.5")
   else if (settingsToggled)
     | Settings

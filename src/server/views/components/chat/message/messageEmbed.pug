@@ -1,19 +1,30 @@
-.chatEmbed(style="border-color: #00FFFF;")
-  .chatEmbedContent
-    .chatEmbedAuthor.hidden()
-    .chatEmbedTitle.description.hidden()
-    .chatEmbedDescription.description.hidden()
-    .chatEmbedFields.hidden()
-    .chatEmbedImage.chatMessageAttachment.hidden()
-      img(src, alt, referrerpolicy="no-referrer")
-    .chatEmbedfooter.hidden
-      img.chatFooterIcon.hidden(src, alt, referrerpolicy="no-referrer")
-      |  
-      span.hidden()
-      |  
-      span.divider.hidden •
-      |  
-      span.hidden(data-timestamp)
-  .chatEmbedthumbnail.hidden
-    .chatEmbedAvatar.large
-      img(src, referrerpolicy="no-referrer")
+//- RENDERS `embedList` (PARSED DISCORD EMBED JSON). ALL TEXT INTERPOLATION IS
+//- ESCAPED — EMBED CONTENT IS DISCORD-CONTROLLED. ONLY http(s) URLS RENDER.
+if embedList && embedList.length
+  each embed in embedList
+    - var borderColor = embed.color ? `#${Number(embed.color).toString(16).padStart(6, '0')}` : '#7289da'
+    - var thumbUrl = embed.thumbnail && /^https?:\/\//i.test(embed.thumbnail.url || '') ? embed.thumbnail.url : null
+    - var imageUrl = embed.image && /^https?:\/\//i.test(embed.image.url || '') ? embed.image.url : null
+    .chatEmbed(style=`border-color: ${borderColor};`)
+      .chatEmbedContent
+        if embed.author && embed.author.name
+          .chatEmbedAuthor= embed.author.name
+        if embed.title
+          .chatEmbedTitle= embed.title
+        if embed.description
+          //- md() ESCAPES BEFORE SUBSTITUTING TAGS — EMBED MARKDOWN RENDERS LIKE DISCORD
+          .chatEmbedDescription !{md(embed.description)}
+        if embed.fields && embed.fields.length
+          .chatEmbedFields
+            each field in embed.fields
+              .chatEmbedField
+                .chatEmbedFieldName= field.name
+                .chatEmbedFieldValue !{md(field.value)}
+        if imageUrl
+          .chatEmbedImage.chatMessageAttachment
+            img(src=imageUrl alt="embed image" referrerpolicy="no-referrer")
+        if embed.footer && embed.footer.text
+          .chatEmbedFooter= embed.footer.text
+      if thumbUrl
+        .chatEmbedThumbnail
+          img(src=thumbUrl alt="thumbnail" referrerpolicy="no-referrer")

@@ -1,4 +1,5 @@
 const BaseModel = require('./base');
+const { hashPassword, isHashed } = require('./passwords');
 
 class Configuration extends BaseModel {
   constructor(core) {
@@ -21,8 +22,25 @@ class Configuration extends BaseModel {
     return this.getSingleton(this.defaults, include);
   }
 
+  // THE ADMIN PASSWORD IS NEVER STORED IN THE CLEAR
+  _hashAdminPassword(fields) {
+    if (fields.admin_password && !isHashed(fields.admin_password)) {
+      return { ...fields, admin_password: hashPassword(fields.admin_password) };
+    }
+    return fields;
+  }
+
+  async safeUpdateOne(pk, data) {
+    return super.safeUpdateOne(pk, this._hashAdminPassword(data));
+  }
+
+  async safeUpsertOne(data) {
+    return super.safeUpsertOne(this._hashAdminPassword(data));
+  }
+
   async update(fields = {}, include = {}) {
-    this.logger.info('Updating configuration:', fields);
+    fields = this._hashAdminPassword(fields);
+    this.logger.info('Updating configuration:', Object.keys(fields));
     return this.updateSingleton(fields, include)
       .then(config => {
         this.logger.info('Configuration updated successfully');

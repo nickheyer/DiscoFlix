@@ -6,8 +6,7 @@ if servers.activeChannel
   )
     .messageChannelHeaderContent
       include messageChannelHeaderHashIcon
-      .messageChannelHeaderText 
-        | #{channelName}
+      .messageChannelHeaderText= channelName
 else
   .messageChannelHeaderPlaceholder#chatChannelHeader(
       hx-select-oob="#chatChannelHeader"

@@ -27,6 +27,22 @@ function bindConfirmations(element) {
   htmx.process(element); // HTMX ATTR REQUIRES PROCESSING
 }
 
+// THIS SCRIPT LOADS IN <HEAD>
+
+// CLEAR CHAT INPUT ONCE ITS MESSAGE HAS GONE OVER THE SOCKET
+document.addEventListener('htmx:wsAfterSend', function (evt) {
+  const elt = (evt.detail && evt.detail.elt) || evt.target;
+  const form = elt && elt.closest ? elt.closest('form.chatInputForm') : null;
+  if (form) form.reset();
+});
+
+// AFTER A SETTINGS SEARCH RESPONSE SWAPS IN, SYNC THE SEARCH BOX TO QUERY
+document.addEventListener('htmx:afterOnLoad', function (evt) {
+  if (!evt.target || evt.target.id !== 'search-input') return;
+  const canonical = document.querySelector("#state-management input[name='search']");
+  if (canonical) evt.target.value = canonical.value;
+});
+
 htmx.on("htmx:load", function () {
   const confirmators = document.querySelectorAll('[data-confirm]');
   Array.from(confirmators).forEach(bindConfirmations);

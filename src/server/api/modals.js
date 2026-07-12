@@ -52,7 +52,10 @@ async function getPaginatedData(model, currentPage, perPage, searchQuery = '') {
 }
 
 async function renderRecordsView(ctx, model, records, currentPage, perPage, totalRecords, searchQuery = null, message = null, fullRender = null) {
-    const templatesToRender = ['modals/settings/_records.pug', 'extra/notification.pug'];
+    // BASE.PUG ALREADY INCLUDES _RECORDS — RENDERING BOTH DUPLICATES THE RECORDS INTO #modals-here
+    const templatesToRender = fullRender ?
+        ['modals/settings/base.pug', 'extra/notification.pug'] :
+        ['modals/settings/_records.pug', 'extra/notification.pug'];
     const templateParams = {
         title: model.getModelDescription() || `${model.modelName} Settings`,
         type: _.lowerFirst(model?.metadata?.alias || model.modelName),
@@ -63,9 +66,6 @@ async function renderRecordsView(ctx, model, records, currentPage, perPage, tota
         searchQuery,
         ...(message && { message })
     };
-    if (fullRender) {
-        templatesToRender.unshift('modals/settings/base.pug');
-    }
     return ctx.compileView(templatesToRender, templateParams);
 }
 
