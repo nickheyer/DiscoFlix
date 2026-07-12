@@ -44,7 +44,9 @@ module.exports = {
       progress: state === 'downloading' ? this.progressOf(queueRecord) : null,
       appId: request.appId || null,
       appLabel: request.app?.display_name || null,
-      requestedBy: (request.users || []).map(user => user.display_name || user.username).join(', '),
+      // NO USERS + NO GUILD = OPERATOR ADD FROM THE CONSOLE'S SEARCH & ADD
+      requestedBy: (request.users || []).map(user => user.display_name || user.username).join(', ')
+        || (!request.madeInId ? 'Console' : ''),
       serverName: request.made_in?.server_name || null,
       origMessage: request.orig_message,
       requestedAt: request.created_at

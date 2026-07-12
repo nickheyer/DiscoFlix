@@ -12,6 +12,21 @@ class RadarrClient extends ArrClient {
 
   externalLookupTerm(externalKey) { return `tmdb:${externalKey}`; }
 
+  get historyIncludeParams() { return { includeMovie: true }; }
+
+  historyTitleOf(record) { return record.movie?.title || null; }
+
+  normalizeLibraryItem(raw) {
+    return {
+      id: String(raw.id),
+      title: raw.title,
+      sortTitle: raw.sortTitle || raw.title,
+      year: raw.year || null,
+      posterUrl: this.absolutePosterFrom(raw.images),
+      available: !!raw.hasFile
+    };
+  }
+
   normalizeResult(raw) {
     return {
       appType: 'radarr',

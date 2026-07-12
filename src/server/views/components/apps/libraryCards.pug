@@ -1,0 +1,28 @@
+//- Poster cards + revealed sentinel; included by the library section and returned bare by GET /apps/:id/library/page/:n.
+- var libraryItems = (library && library.items) || []
+- var libraryPage = (library && library.page) || 1
+each item in libraryItems
+  .posterCard
+    if item.posterUrl
+      img(src=item.posterUrl alt=item.title loading="lazy" referrerpolicy="no-referrer")
+    else
+      .posterCardFallback
+        svg(viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true")
+          if contentKind === 'show'
+            rect(x="3" y="7" width="18" height="13" rx="2")
+            path(stroke-linecap="round" stroke-linejoin="round" d="M8 3l4 4 4-4")
+          else
+            rect(x="3" y="5" width="18" height="14" rx="2")
+            path(stroke-linecap="round" d="M3 9h18M8 5v14M16 5v14")
+    if item.available
+      .posterBadge(title="On disk")
+    .posterCardInfo
+      .posterCardTitle(title=item.title)= item.title
+      if item.year
+        .posterCardMeta= item.year
+if library && library.hasMore
+  .libraryLoadMore(
+    hx-get=`/apps/${activeApp.id}/library/page/${libraryPage + 1}`
+    hx-trigger="revealed"
+    hx-swap="outerHTML"
+  ) Loading more…

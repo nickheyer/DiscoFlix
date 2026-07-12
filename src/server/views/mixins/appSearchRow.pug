@@ -1,0 +1,36 @@
+//- One Search & Add result row; rowState: addable | in-library | available | added | error.
+mixin appSearchRow(result, appId)
+  .request-row.appSearchRow
+    .request-poster
+      if result.posterUrl
+        img(src=result.posterUrl alt="poster" referrerpolicy="no-referrer")
+      else
+        .request-poster-placeholder
+          svg(viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" aria-hidden="true")
+            if result.contentType === 'show'
+              rect(x="3" y="7" width="18" height="13" rx="2" stroke-width="2")
+              path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 3l4 4 4-4")
+            else
+              rect(x="3" y="5" width="18" height="14" rx="2" stroke-width="2")
+              path(stroke-linecap="round" stroke-width="2" d="M3 9h18M8 5v14M16 5v14")
+    .request-info
+      .request-title= result.year ? `${result.title} (${result.year})` : result.title
+      if result.overview
+        .request-orig-message= result.overview
+    .request-status
+      case result.rowState
+        when 'available'
+          span.requestChip.chip-available Available
+        when 'in-library'
+          span.requestChip.chip-approved In Library
+        when 'added'
+          span.requestChip.chip-downloading Added — watch the Queue
+        when 'error'
+          span.requestChip.chip-denied(title=result.error)= result.error || 'Add failed'
+        default
+          button.request-approve-button(
+            hx-post=`/apps/${appId}/add-media`
+            hx-vals=JSON.stringify({ externalKey: result.externalKey, title: result.title })
+            hx-target="closest .appSearchRow"
+            hx-swap="outerHTML"
+          ) Add

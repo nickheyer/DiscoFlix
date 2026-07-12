@@ -18,7 +18,7 @@ module.exports = {
     { key: 'url', label: 'URL', type: 'string', required: true, placeholder: 'http://localhost:8989', description: 'Base URL of the Sonarr server' },
     { key: 'api_key', label: 'API Key', type: 'string', required: true, sensitive: true, description: 'Settings → General → API Key' }
   ],
-  sections: ['overview', 'queue', 'library', 'history', 'search', 'settings'],
+  sections: ['overview', 'queue', 'library', 'search', 'settings'],
   buildClient(row, logger) {
     return new SonarrClient({ url: row.url, token: row.api_key, logger });
   }

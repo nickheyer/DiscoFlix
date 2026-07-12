@@ -1,6 +1,18 @@
 const axios = require('axios');
 const BaseClient = require('./baseClient');
 
+// ARR /history eventType -> NORMALIZED FEED KIND (SEE baseClient CONTRACT)
+const HISTORY_EVENT_KINDS = {
+  grabbed: 'grabbed',
+  downloadFolderImported: 'imported',
+  downloadFailed: 'failed',
+  downloadIgnored: 'ignored',
+  movieFileDeleted: 'deleted',
+  episodeFileDeleted: 'deleted',
+  movieFileRenamed: 'renamed',
+  episodeFileRenamed: 'renamed'
+};
+
 // SHARED HTTP CLIENT FOR THE *ARR v3 API (CONTENT-MANAGER FAMILY)
 class ArrClient extends BaseClient {
   constructor({ url, token, logger }) {
@@ -60,19 +72,34 @@ class ArrClient extends BaseClient {
     return this._get('/health');
   }
 
-  // FULL LIBRARY LISTING (/movie OR /series) — THE LIBRARY SECTION'S SOURCE
-  async getAll() {
-    return this._get(`/${this.resource}`);
+  // FULL LIBRARY LISTING (/movie OR /series) — THE LIBRARY SECTION'S SOURCE.
+  // SORTED FOR BROWSING; PAGING IS SLICED SERVER-SIDE FROM THE CACHED LIST.
+  async getLibrary() {
+    const items = (await this._get(`/${this.resource}`))
+      .map(raw => this.normalizeLibraryItem(raw));
+    return items.sort((a, b) => (a.sortTitle || a.title || '').localeCompare(b.sortTitle || b.title || ''));
   }
 
-  // NATIVELY PAGED — RETURNS { records, totalRecords, page, pageSize }
-  async getHistory(page = 1, pageSize = 30) {
-    return this._get('/history', {
+  // NATIVELY PAGED /history, MAPPED TO NORMALIZED FEED ROWS
+  async getHistory(page = 1, pageSize = 15) {
+    const data = await this._get('/history', {
       page,
       pageSize,
       sortKey: 'date',
-      sortDirection: 'descending'
+      sortDirection: 'descending',
+      ...this.historyIncludeParams
     });
+    const records = data.records || [];
+    return {
+      rows: records.map(record => ({
+        id: String(record.id),
+        kind: HISTORY_EVENT_KINDS[record.eventType] || 'info',
+        title: this.historyTitleOf(record) || record.sourceTitle || 'Unknown',
+        detail: record.quality?.quality?.name || null,
+        at: record.date || null
+      })),
+      hasMore: page * pageSize < (data.totalRecords || 0)
+    };
   }
 
   async getRootFolders() {
@@ -123,7 +150,10 @@ class ArrClient extends BaseClient {
   // SUBCLASS CONTRACT
   get resource() { throw new Error('NOT_IMPLEMENTED'); }
   get externalIdField() { throw new Error('NOT_IMPLEMENTED'); } // Media COLUMN HOLDING THE ARR'S KEY
+  get historyIncludeParams() { return {}; } // /history EXPANSION FLAGS (includeMovie/includeSeries)
+  historyTitleOf() { return null; } // MEDIA TITLE OFF AN EXPANDED HISTORY RECORD
   normalizeResult() { throw new Error('NOT_IMPLEMENTED'); }
+  normalizeLibraryItem() { throw new Error('NOT_IMPLEMENTED'); } // -> { id, title, sortTitle, year, posterUrl, available }
   buildAddPayload() { throw new Error('NOT_IMPLEMENTED'); }
   getByExternalId() { throw new Error('NOT_IMPLEMENTED'); }
   matchesQueueRecord() { throw new Error('NOT_IMPLEMENTED'); } // (normalizedRow, arrId)
@@ -133,6 +163,13 @@ class ArrClient extends BaseClient {
   static posterFrom(images = []) {
     const poster = images.find(img => img.coverType === 'poster');
     return poster?.remoteUrl || poster?.url || null;
+  }
+
+  // LIBRARY ROWS OFTEN ONLY CARRY THE ARR-LOCAL /MediaCover PATH — ABSOLUTIZE
+  // AGAINST THE INSTANCE URL SO THE BROWSER CAN LOAD IT
+  absolutePosterFrom(images = []) {
+    const poster = ArrClient.posterFrom(images);
+    return poster && poster.startsWith('/') ? `${this.baseUrl}${poster}` : poster;
   }
 }
 

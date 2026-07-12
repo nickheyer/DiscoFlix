@@ -57,19 +57,29 @@ class SabnzbdClient extends BaseClient {
     }));
   }
 
-  async getHistory(limit = 30, start = 0) {
-    const data = await this._call('history', { start, limit });
-    const slots = data.history?.slots || [];
-    return slots.map(slot => ({
-      id: slot.nzo_id,
-      title: slot.name || 'Unknown',
-      status: (slot.status || 'completed').toLowerCase(),
-      size: slot.bytes || null,
-      category: slot.category || null,
-      completedAt: slot.completed ? new Date(slot.completed * 1000) : null,
-      failMessage: slot.fail_message || null,
-      raw: slot
-    }));
+  // NORMALIZED FEED ROWS (SEE baseClient CONTRACT) — SAB PAGES VIA start/limit
+  async getHistory(page = 1, pageSize = 15) {
+    const start = (page - 1) * pageSize;
+    const data = await this._call('history', { start, limit: pageSize });
+    const history = data.history || {};
+    const slots = history.slots || [];
+    return {
+      rows: slots.map(slot => {
+        const failed = /fail/i.test(slot.status || '');
+        const detail = [
+          slot.category && slot.category !== '*' ? slot.category : null,
+          BaseClient.humanSize(slot.bytes)
+        ].filter(Boolean).join(' • ');
+        return {
+          id: slot.nzo_id,
+          kind: failed ? 'failed' : 'completed',
+          title: slot.name || 'Unknown',
+          detail: (failed && slot.fail_message) || detail || null,
+          at: slot.completed ? new Date(slot.completed * 1000).toISOString() : null
+        };
+      }),
+      hasMore: start + slots.length < (history.noofslots || 0)
+    };
   }
 
   async pauseQueue() {

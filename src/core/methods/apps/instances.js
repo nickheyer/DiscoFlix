@@ -133,12 +133,14 @@ module.exports = {
     return this.core.models.app.safeUpdateOne(instance.id, data);
   },
 
-  // DELETE AN INSTANCE: ITS QUEUE WATCHES AND HEARTBEAT CACHES GO WITH IT.
-  // MediaRequest.appId AND State.active_app_id SetNull VIA THE SCHEMA
+  // DELETE AN INSTANCE: ITS QUEUE WATCHES AND HEARTBEAT/BROWSE CACHES GO WITH
+  // IT. MediaRequest.appId AND State.active_app_id SetNull VIA THE SCHEMA
   async removeInstance(id) {
     this.stopWatchesForInstance(id);
     this.statusCache.delete(id);
     this.queueCache.delete(id);
+    this.feedCache.delete(id);
+    this.libraryCache.delete(id);
     return this.core.models.app.safeDelete(id);
   },
 

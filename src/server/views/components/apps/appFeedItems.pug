@@ -1,0 +1,64 @@
+//- Feed rows + revealed sentinel; included by appFeed and returned bare by GET /apps/:id/feed/page/:n.
+-
+  var FEED_KINDS = {
+    grabbed:   { label: 'Grabbed' },
+    imported:  { label: 'Imported' },
+    completed: { label: 'Completed' },
+    failed:    { label: 'Failed' },
+    deleted:   { label: 'Deleted' },
+    renamed:   { label: 'Renamed' },
+    ignored:   { label: 'Ignored' },
+    info:      { label: 'Activity' }
+  };
+  function timeAgo(value) {
+    if (!value) return '';
+    var seconds = Math.max(0, (Date.now() - new Date(value).getTime()) / 1000);
+    if (seconds < 60) return 'now';
+    if (seconds < 3600) return Math.floor(seconds / 60) + 'm';
+    if (seconds < 86400) return Math.floor(seconds / 3600) + 'h';
+    if (seconds < 2592000) return Math.floor(seconds / 86400) + 'd';
+    return Math.floor(seconds / 2592000) + 'mo';
+  }
+  var feedRowList = (feed && feed.rows) || [];
+  var currentFeedPage = typeof feedPage === 'number' ? feedPage : 1;
+
+mixin feedGlyph(kind)
+  svg(viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true")
+    case kind
+      when 'grabbed'
+        path(d="M12 4v12m0 0l-5-5m5 5l5-5M5 20h14")
+      when 'imported'
+        path(d="M5 13l4 4L19 7")
+      when 'completed'
+        path(d="M5 13l4 4L19 7")
+      when 'failed'
+        path(d="M6 6l12 12M18 6L6 18")
+      when 'deleted'
+        path(d="M4 7h16M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2m3 0l-.9 12.1A2 2 0 0115.1 21H8.9a2 2 0 01-2-1.9L6 7")
+      when 'renamed'
+        path(d="M15.2 4.8l4 4L8.5 19.5 3.5 20.5l1-5L15.2 4.8z")
+      when 'ignored'
+        circle(cx="12" cy="12" r="9")
+        path(d="M5.6 5.6l12.8 12.8")
+      default
+        path(d="M7 3h7l5 5v12a1 1 0 01-1 1H7a1 1 0 01-1-1V4a1 1 0 011-1zm7 0v5h5")
+
+each row in feedRowList
+  - var kindMeta = FEED_KINDS[row.kind] || FEED_KINDS.info
+  .appFeedRow
+    .appFeedGlyph(class=`kind-${FEED_KINDS[row.kind] ? row.kind : 'info'}`)
+      +feedGlyph(row.kind)
+    .appFeedInfo
+      .appFeedTitle(title=row.title)= row.title
+      .appFeedMeta
+        span= kindMeta.label
+        if row.detail
+          span.appFeedMetaDivider •
+          span= row.detail
+    .appFeedTime= timeAgo(row.at)
+if feed && feed.hasMore
+  .appFeedMore(
+    hx-get=`/apps/${activeApp.id}/feed/page/${currentFeedPage + 1}`
+    hx-trigger="revealed"
+    hx-swap="outerHTML"
+  ) Loading more…

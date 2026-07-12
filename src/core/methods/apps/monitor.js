@@ -176,11 +176,10 @@ module.exports = {
 
     // PRUNE CACHES FOR REMOVED/DISABLED/UNCONFIGURED INSTANCES
     const liveIds = new Set(rows.map(row => row.id));
-    for (const id of [...this.statusCache.keys()]) {
-      if (!liveIds.has(id)) this.statusCache.delete(id);
-    }
-    for (const id of [...this.queueCache.keys()]) {
-      if (!liveIds.has(id)) this.queueCache.delete(id);
+    for (const cache of [this.statusCache, this.queueCache, this.feedCache, this.libraryCache]) {
+      for (const id of [...cache.keys()]) {
+        if (!liveIds.has(id)) cache.delete(id);
+      }
     }
 
     for (const row of rows) {
@@ -249,18 +248,29 @@ module.exports = {
       }
     }
 
-    // LIVE QUEUE SECTION — ONLY WHEN THE TAKEOVER IS SHOWING SOME QUEUE
+    // LIVE TAKEOVER SURFACES — THE ACTIVE APP'S QUEUE SECTION, PLUS ITS
+    // ACTIVITY FEED RAIL (WHICH RIDES ALONG IN EVERY SECTION)
     try {
       const state = await this.core.models.state.get();
       if (!state.active_app_id) return;
       const instance = await this.getInstance(state.active_app_id);
-      if (!instance || instance.active_section !== 'queue') return;
-      await this.core.sockets.emitCompiled(['apps/sections/queueBody.pug'], {
-        activeApp: instance,
-        queue: this.queueCache.get(instance.id) || []
-      });
+      if (!instance) return;
+
+      if (instance.active_section === 'queue') {
+        await this.core.sockets.emitCompiled(['apps/sections/queueBody.pug'], {
+          activeApp: instance,
+          queue: this.queueCache.get(instance.id) || []
+        });
+      }
+
+      // CHANGE-ONLY: refreshFeed RETURNS null WHEN PAGE 1 IS UNCHANGED, SO THE
+      // RAIL (AND ITS SCROLL POSITION) ISN'T STOMPED EVERY TICK
+      const feed = await this.refreshFeed(instance);
+      if (feed) {
+        await this.core.sockets.emitCompiled(['apps/appFeed.pug'], { activeApp: instance, feed });
+      }
     } catch (err) {
-      this.logger.debug(`Heartbeat queue-section push skipped: ${err.message}`);
+      this.logger.debug(`Heartbeat takeover push skipped: ${err.message}`);
     }
   }
 };

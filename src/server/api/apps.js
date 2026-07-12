@@ -46,6 +46,34 @@ async function buildSectionData(core, instance, section) {
       data.queue = core.apps.queueCache.get(instance.id) || [];
       break;
     }
+    case 'library': {
+      data.library = configured
+        ? await core.apps.getLibraryPage(instance, 1)
+        : { items: [], total: 0, hasMore: false, page: 1 };
+      const manifest = core.apps.getType(instance.app_type);
+      data.contentTypeLabel = manifest.contentTypes[0]?.label || 'item';
+      data.contentKind = manifest.contentTypes[0]?.type || 'movie';
+      break;
+    }
+    case 'search': {
+      const manifest = core.apps.getType(instance.app_type);
+      data.contentTypeLabel = manifest.contentTypes[0]?.label || 'media';
+      // "ADD TO" TABS WHEN RIVAL INSTANCES SERVE THE SAME CONTENT TYPE — AN
+      // INACTIVE TAB IS JUST THE TAKEOVER-SWITCH ROUTE LANDING ON search
+      data.instanceTabs = [];
+      const contentType = manifest.contentTypes[0]?.type;
+      if (contentType) {
+        const peers = await core.apps.instancesForContentType(contentType);
+        if (peers.length > 1) {
+          data.instanceTabs = peers.map(peer => ({
+            id: peer.id,
+            label: peer.display_name,
+            active: peer.id === instance.id
+          }));
+        }
+      }
+      break;
+    }
     case 'settings': {
       const manifest = core.apps.getType(instance.app_type);
       // METADATA DESCRIPTORS (SENSITIVE isSet, TYPES) OVERLAID WITH THE
@@ -100,10 +128,15 @@ function buildSectionNav(core, instance) {
 
 async function buildTakeoverLocals(core, instance) {
   const nav = buildSectionNav(core, instance);
-  const sectionData = await buildSectionData(core, instance, nav.section);
+  const [sectionData, feed] = await Promise.all([
+    buildSectionData(core, instance, nav.section),
+    // THE ACTIVITY FEED RAIL RIDES ALONG IN EVERY SECTION (CACHED PAGE 1)
+    core.apps.getFeedViewModel(instance)
+  ]);
   return {
     ...nav,
     sectionData,
+    feed,
     // queueBody.pug READS `queue` DIRECTLY SO WS PUSHES AND HTTP RENDERS SHARE ONE SHAPE
     queue: sectionData.queue || []
   };
@@ -213,6 +246,148 @@ async function changeAppSection(ctx) {
     'apps/appHeader.pug',
     'apps/appSurface.pug'
   ], { state, ...takeover });
+}
+
+// ACTIVITY-FEED PAGINATION — THE REVEALED SENTINEL IN THE RIGHT RAIL SWAPS
+// ITSELF FOR THE NEXT PAGE OF ROWS (+ A NEW SENTINEL WHILE THERE'S MORE)
+async function appFeedPage(ctx) {
+  const core = ctx.core;
+  const instance = await core.apps.getInstance(ctx.params.id);
+  if (!instance) {
+    ctx.status = 404;
+    return;
+  }
+  const page = Math.max(1, parseInt(ctx.params.page, 10) || 1);
+  const feed = await core.apps.getFeedPage(instance, page);
+  return ctx.compileView('apps/appFeedItems.pug', { activeApp: instance, feed, feedPage: page });
+}
+
+// LIBRARY PAGINATION — SAME REVEALED-SENTINEL TRICK AS THE FEED, SLICING THE
+// TTL-CACHED FULL LISTING (SEE core.apps.getLibraryPage)
+async function appLibraryPage(ctx) {
+  const core = ctx.core;
+  const instance = await core.apps.getInstance(ctx.params.id);
+  if (!instance) {
+    ctx.status = 404;
+    return;
+  }
+  const page = Math.max(1, parseInt(ctx.params.page, 10) || 1);
+  const library = await core.apps.getLibraryPage(instance, page);
+  const manifest = core.apps.getType(instance.app_type);
+  return ctx.compileView('apps/libraryCards.pug', {
+    activeApp: instance,
+    library,
+    contentKind: manifest.contentTypes[0]?.type || 'movie'
+  });
+}
+
+// isImported REACHES INTO SERVICE-SHAPED raw — NEVER LET A SHAPE SURPRISE
+// TAKE A SEARCH RENDER DOWN
+function safeIsImported(client, raw) {
+  try {
+    return !!client.isImported(raw);
+  } catch (err) {
+    return false;
+  }
+}
+
+// SEARCH & ADD: DEBOUNCED LOOKUP AGAINST THIS INSTANCE'S SERVICE
+async function appSearch(ctx) {
+  const core = ctx.core;
+  const instance = await core.apps.getInstance(ctx.params.id);
+  if (!instance) {
+    ctx.status = 404;
+    return;
+  }
+  const client = core.apps.getClientForInstance(instance);
+  const term = String(ctx.query.term || '').trim();
+  const locals = { activeApp: instance, searchTerm: term };
+
+  // NO CLIENT / BLANK BOX — BACK TO THE PROMPT STATE (searchResults: null)
+  if (!client || !client.capabilities.search || term.length < 2) {
+    return ctx.compileView('apps/searchResults.pug', { ...locals, searchResults: null });
+  }
+
+  try {
+    const results = (await client.search(term)).slice(0, 20);
+    const searchResults = results.map(result => ({
+      ...result,
+      rowState: result.libraryId
+        ? (safeIsImported(client, result.raw) ? 'available' : 'in-library')
+        : 'addable'
+    }));
+    return ctx.compileView('apps/searchResults.pug', { ...locals, searchResults });
+  } catch (err) {
+    core.logger.warn(`${instance.display_name} search failed: ${err.message}`);
+    return ctx.compileView('apps/searchResults.pug', { ...locals, searchResults: [], searchError: err.message });
+  }
+}
+
+// OPERATOR ADD — THE ADMIN REQUEST PATH WITHOUT A GUILD: AUTO-APPROVED
+// MediaRequest (NO madeIn/USERS), STRAIGHT client.add, NULL-CHANNEL WATCH
+async function appAddMedia(ctx) {
+  const core = ctx.core;
+  const instance = await core.apps.getInstance(ctx.params.id);
+  if (!instance) {
+    ctx.status = 404;
+    return;
+  }
+  const client = core.apps.getClientForInstance(instance);
+  const externalKey = String(ctx.request.body?.externalKey || '').trim();
+  if (!client || !client.capabilities.add || !externalKey) {
+    ctx.status = 400;
+    return;
+  }
+
+  let result = null;
+  let searchResult;
+  try {
+    result = await client.lookupByExternalId(externalKey);
+    if (!result) throw new Error('Lookup came back empty — try the search again');
+
+    if (result.libraryId) {
+      // SOMEONE BEAT US TO IT — REFLECT REALITY INSTEAD OF DOUBLE-ADDING
+      searchResult = {
+        ...result,
+        rowState: safeIsImported(client, result.raw) ? 'available' : 'in-library'
+      };
+    } else {
+      const added = await client.add(result);
+      const media = await core.models.media.upsertFromResult(result, added);
+      const request = await core.models.mediaRequest.createRequest({
+        mediaId: media.id,
+        orig_parsed_title: result.title,
+        orig_parsed_type: result.contentType,
+        status: true, // CONSOLE = OPERATOR = PRE-APPROVED
+        appId: instance.id
+      });
+
+      if (!safeIsImported(client, added)) {
+        core.apps.watchRequest({
+          requestId: request.id,
+          appId: instance.id,
+          arrId: added.id,
+          mediaId: media.id,
+          title: result.year ? `${result.title} (${result.year})` : result.title,
+          channelId: null, // CONSOLE-INITIATED — NO DISCORD NOTIFY
+          requesterIds: []
+        });
+      }
+
+      core.apps.libraryCache.delete(instance.id); // THE LIBRARY GRID JUST GREW
+      core.logger.info(`Console add: ${result.title} → ${instance.display_name}`);
+      searchResult = { ...result, rowState: 'added' };
+    }
+  } catch (err) {
+    core.logger.error('Console add failed:', err);
+    searchResult = {
+      ...(result || { title: ctx.request.body?.title || 'Unknown', contentType: null, posterUrl: null }),
+      rowState: 'error',
+      error: err.message
+    };
+  }
+
+  return ctx.compileView('apps/searchResultRow.pug', { activeApp: instance, searchResult });
 }
 
 // RAIL DRAG-SORT — THE APP-SIDE changeServerSortOrder. RESPONSE RE-RENDERS
@@ -378,6 +553,10 @@ module.exports = {
   buildTakeoverLocals,
   changeActiveApp,
   changeAppSection,
+  appFeedPage,
+  appLibraryPage,
+  appSearch,
+  appAddMedia,
   changeAppSortOrder,
   renderAppPicker,
   addApp,

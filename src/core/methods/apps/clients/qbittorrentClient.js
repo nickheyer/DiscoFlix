@@ -121,21 +121,23 @@ class QbittorrentClient extends BaseClient {
       }));
   }
 
-  async getHistory(limit = 30) {
+  // NORMALIZED FEED ROWS (SEE baseClient CONTRACT) — QBIT HAS NO PAGED HISTORY
+  // ENDPOINT, SO COMPLETED TORRENTS ARE SORTED AND SLICED CLIENT-SIDE
+  async getHistory(page = 1, pageSize = 15) {
     const torrents = await this._request('/api/v2/torrents/info', { filter: 'completed' });
-    return (torrents || [])
-      .sort((a, b) => (b.completion_on || 0) - (a.completion_on || 0))
-      .slice(0, limit)
-      .map(torrent => ({
+    const sorted = (torrents || []).sort((a, b) => (b.completion_on || 0) - (a.completion_on || 0));
+    const start = (page - 1) * pageSize;
+    const slice = sorted.slice(start, start + pageSize);
+    return {
+      rows: slice.map(torrent => ({
         id: torrent.hash,
+        kind: 'completed',
         title: torrent.name || 'Unknown',
-        status: 'completed',
-        size: torrent.size || null,
-        category: torrent.category || null,
-        completedAt: torrent.completion_on > 0 ? new Date(torrent.completion_on * 1000) : null,
-        failMessage: null,
-        raw: torrent
-      }));
+        detail: [torrent.category, BaseClient.humanSize(torrent.size)].filter(Boolean).join(' • ') || null,
+        at: torrent.completion_on > 0 ? new Date(torrent.completion_on * 1000).toISOString() : null
+      })),
+      hasMore: sorted.length > start + slice.length
+    };
   }
 
   async getTransferInfo() {

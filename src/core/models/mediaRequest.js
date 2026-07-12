@@ -5,13 +5,10 @@ class MediaRequest extends BaseModel {
     super(core, 'MediaRequest');
   }
 
-  // HELPERS
+  // HELPERS — madeInId IS NULL FOR CONSOLE-INITIATED (SEARCH & ADD) REQUESTS
   async createRequest(data = {}) {
-    const required = ['madeInId', 'mediaId'];
-    for (const field of required) {
-      if (!data[field]) {
-        throw new Error(`Missing required field: ${field}`);
-      }
+    if (!data.mediaId) {
+      throw new Error('Missing required field: mediaId');
     }
 
     return this.create(data);

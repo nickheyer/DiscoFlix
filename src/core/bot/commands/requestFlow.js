@@ -57,51 +57,6 @@ function renderResult(ctx, index) {
   };
 }
 
-// FIND AN EXISTING Media ROW BY STRONGEST AVAILABLE KEY
-async function findMediaRow(core, result) {
-  if (result.imdbId) {
-    const byImdb = await core.models.media.findFirst({ imdb_id: result.imdbId });
-    if (byImdb) return byImdb;
-  }
-  if (result.tmdbId) {
-    const byTmdb = await core.models.media.findFirst({ tmdb_id: result.tmdbId });
-    if (byTmdb) return byTmdb;
-  }
-  if (result.tvdbId) {
-    const byTvdb = await core.models.media.findFirst({ tvdb_id: result.tvdbId });
-    if (byTvdb) return byTvdb;
-  }
-  return null;
-}
-
-async function upsertMediaRow(core, result, added) {
-  const data = {
-    title: result.title,
-    overview: result.overview || null,
-    poster_url: result.posterUrl,
-    year: result.year,
-    path: added.path || null,
-    monitored: true,
-    runtime: result.runtime,
-    added: added.added || new Date().toISOString(),
-    season_count: result.seasonCount,
-    network: result.network,
-    air_time: result.airTime,
-    tvdb_id: result.tvdbId || null,
-    tmdb_id: result.tmdbId || null,
-    imdb_id: result.imdbId || null,
-    first_aired: result.firstAired,
-    series_type: result.seriesType,
-    in_theaters: result.inTheaters,
-    website_url: result.websiteUrl,
-    trailer_url: result.trailerUrl
-  };
-
-  const existing = await findMediaRow(core, result);
-  if (existing) return core.models.media.updateMediaInfo(existing.id, data);
-  return core.models.media.addMedia(data);
-}
-
 // USER PICKS RESULT -> VALIDATE -> ADD TO BAR -> RECORD MEDIA/MEDIA-REQUEST -> HAND TO QUEUE
 async function handleSelection(interaction, result, ctx) {
   const { core, config, dbUser, client, instance } = ctx;
@@ -122,7 +77,7 @@ async function handleSelection(interaction, result, ctx) {
       await ctx.channel.send(`✅ **${name}** is already available on ${config.media_server_name}!`);
       return;
     }
-    const media = await findMediaRow(core, result);
+    const media = await core.models.media.findByResult(result);
     const openRequest = media
       ? await core.models.mediaRequest.findFirst({ mediaId: media.id, status: null })
       : null;
@@ -138,7 +93,7 @@ async function handleSelection(interaction, result, ctx) {
   // ADMIN/STAFF REQUESTS GO STRAIGHT TO THE APP
   if (isAdmin(dbUser)) {
     const added = await client.add(result);
-    const media = await upsertMediaRow(core, result, added);
+    const media = await core.models.media.upsertFromResult(result, added);
     const request = await createRequestRow(core, ctx, media, true);
 
     core.apps.watchRequest({
@@ -154,7 +109,7 @@ async function handleSelection(interaction, result, ctx) {
     core.logger.info(`Media request created: ${name} (${instance.display_name}) by ${dbUser.username}`);
     await ctx.channel.send(`🎉 **${name}** has been requested! I'll post updates here as it downloads.`);
   } else {
-    const media = await upsertMediaRow(core, result, {});
+    const media = await core.models.media.upsertFromResult(result);
     await createRequestRow(core, ctx, media, null);
     core.logger.info(`Media request pending approval: ${name} (${instance.display_name}) by ${dbUser.username}`);
     await ctx.channel.send(`📨 **${name}** has been submitted for approval — an admin will review it.`);

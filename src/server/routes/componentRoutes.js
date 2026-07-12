@@ -29,6 +29,10 @@ const {
 const {
   changeActiveApp,
   changeAppSection,
+  appFeedPage,
+  appLibraryPage,
+  appSearch,
+  appAddMedia,
   changeAppSortOrder,
   renderAppPicker,
   addApp,
@@ -53,6 +57,10 @@ router.post('/change-active-app/:id', changeActiveApp);
 // LITERAL 'add' REGISTERED BEFORE THE :id ROUTES SO IT WINS THE MATCH
 router.post('/apps/add/:type', addApp);
 router.post('/apps/:id/section/:section', changeAppSection);
+router.get('/apps/:id/feed/page/:page', appFeedPage);
+router.get('/apps/:id/library/page/:page', appLibraryPage);
+router.get('/apps/:id/search', appSearch);
+router.post('/apps/:id/add-media', appAddMedia);
 router.post('/apps/:id/save', saveApp);
 router.post('/apps/:id/test', testApp);
 router.post('/apps/:id/default', setDefaultApp);

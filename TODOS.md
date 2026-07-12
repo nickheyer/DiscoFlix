@@ -5,6 +5,11 @@ bottom is the unstaged backlog — items must be promoted into a milestone befor
 anyone works on them. Nothing goes below Feature Planning except more feature
 planning.
 
+## CODE RULES
+1. Never use emojis, always use high quality svg's of some sort
+2. Whenever you write a comment in code, it can only be 1 line tall and 1 sentence long maximum. Never use more words than you have to. AND ALWAYS UPPER CASE EACH LETTER. 
+3. Never leave placeholder, stale, or lazily implemented code in the code base at any point.
+
 ## M0 — Stabilize (complete)
 
 - [x] Remove echo-reply debug behavior from onMessage

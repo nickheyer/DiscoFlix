@@ -719,7 +719,7 @@
   align-items: center;
   justify-content: center;
   background-color: var(--bg-tertiary);
-  font-size: 20px;
+  color: var(--text-muted);
 }
 
 .request-info {

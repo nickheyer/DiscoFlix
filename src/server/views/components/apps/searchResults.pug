@@ -1,0 +1,11 @@
+//- Result list for #appSearchResults; searchResults null = prompt state, [] = no matches.
+include ../../mixins/appSearchRow
+if searchError
+  .appQueueEmpty Search failed — #{searchError}
+else if !searchResults
+  .appQueueEmpty Search for something to add to #{activeApp.display_name}.
+else if !searchResults.length
+  .appQueueEmpty No results for “#{searchTerm}”.
+else
+  each result in searchResults
+    +appSearchRow(result, activeApp.id)

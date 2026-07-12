@@ -5,11 +5,12 @@
 // commands TYPE_ALIASES/SLASH_COMMANDS).
 const APP_TYPES = require('./manifests');
 
+// NO 'history' SECTION — RECENT ACTIVITY LIVES IN THE TAKEOVER'S RIGHT RAIL
+// (apps/appFeed.pug), VISIBLE FROM EVERY SECTION
 const SECTION_LABELS = {
   overview: 'Overview',
   queue: 'Queue',
   library: 'Library',
-  history: 'History',
   search: 'Search & Add',
   settings: 'Settings'
 };

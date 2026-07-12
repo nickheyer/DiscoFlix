@@ -12,6 +12,22 @@ class SonarrClient extends ArrClient {
 
   externalLookupTerm(externalKey) { return `tvdb:${externalKey}`; }
 
+  get historyIncludeParams() { return { includeSeries: true }; }
+
+  historyTitleOf(record) { return record.series?.title || null; }
+
+  normalizeLibraryItem(raw) {
+    const stats = raw.statistics || {};
+    return {
+      id: String(raw.id),
+      title: raw.title,
+      sortTitle: raw.sortTitle || raw.title,
+      year: raw.year || null,
+      posterUrl: this.absolutePosterFrom(raw.images),
+      available: (stats.episodeFileCount || 0) > 0
+    };
+  }
+
   normalizeResult(raw) {
     const realSeasons = (raw.seasons || []).filter(season => season.seasonNumber > 0);
     return {

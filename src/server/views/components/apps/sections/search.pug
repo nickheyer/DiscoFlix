@@ -1,3 +1,25 @@
-//- PLACEHOLDER — SEARCH & ADD LANDS WITH ITS MILESTONE STEP
-.request-section-header Search & Add
-.appQueueEmpty Search for something to add to #{activeApp.display_name}.
+//- Search & Add — operator requests against this instance; results land in #appSearchResults.
+if !sectionData.configured
+  .appQueueEmpty Connect #{activeApp.display_name} in Settings before searching.
+else
+  if sectionData.instanceTabs && sectionData.instanceTabs.length
+    .appInstanceTabs
+      span Add to:
+      each tab in sectionData.instanceTabs
+        .appInstanceTab(
+          class=tab.active ? 'active' : ''
+          hx-post=!tab.active && `/apps/${tab.id}/section/search`
+        )= tab.label
+  .appSearchBar
+    input.appSearchInput(
+      type="search"
+      name="term"
+      placeholder=`Search for a ${sectionData.contentTypeLabel}...`
+      autocomplete="off"
+      hx-get=`/apps/${activeApp.id}/search`
+      hx-trigger="keyup changed delay:400ms, search"
+      hx-target="#appSearchResults"
+      hx-swap="innerHTML"
+    )
+  #appSearchResults
+    .appQueueEmpty Search for something to add to #{activeApp.display_name}.

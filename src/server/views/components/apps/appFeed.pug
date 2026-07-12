@@ -1,0 +1,13 @@
+//- TAKEOVER RIGHT RAIL — THE APP'S ACTIVITY FEED LIVES WHERE THE MEMBERS PANE
+//- DOES IN MIRROR MODE (SAME #memberContainer, HOUSE ID-REUSE CONVENTION), SO
+//- EVERY EXISTING SWAP PATH RESTORES MEMBERS WHOLESALE ON BACK-OUT. RENDERS
+//- EMPTY (AND :empty-HIDES) WHEN THE APP HAS NO HISTORY TO SHOW.
+//- LOCALS: activeApp, feed { rows, hasMore, error? }
+- var feedRows = (feed && feed.rows) || []
+div.memberContainer.appFeed#memberContainer(
+  hx-select-oob="#memberContainer"
+  hx-swap-oob="outerHTML"
+)
+  if feedRows.length
+    .memberListHeader Recent Activity
+    include appFeedItems

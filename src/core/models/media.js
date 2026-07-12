@@ -23,6 +23,54 @@ class Media extends BaseModel {
     }
 
     // HELPERS
+    // FIND AN EXISTING ROW BY THE STRONGEST EXTERNAL KEY A NORMALIZED LOOKUP
+    // RESULT CARRIES (SHARED BY THE BOT REQUEST FLOW AND CONSOLE SEARCH & ADD)
+    async findByResult(result) {
+        if (result.imdbId) {
+            const byImdb = await this.findFirst({ imdb_id: result.imdbId });
+            if (byImdb) return byImdb;
+        }
+        if (result.tmdbId) {
+            const byTmdb = await this.findFirst({ tmdb_id: result.tmdbId });
+            if (byTmdb) return byTmdb;
+        }
+        if (result.tvdbId) {
+            const byTvdb = await this.findFirst({ tvdb_id: result.tvdbId });
+            if (byTvdb) return byTvdb;
+        }
+        return null;
+    }
+
+    // UPSERT FROM A NORMALIZED LOOKUP RESULT (+ THE SERVICE'S ADD RESPONSE,
+    // WHEN THE ADD ALREADY HAPPENED)
+    async upsertFromResult(result, added = {}) {
+        const data = {
+            title: result.title,
+            overview: result.overview || null,
+            poster_url: result.posterUrl,
+            year: result.year,
+            path: added.path || null,
+            monitored: true,
+            added: added.added || new Date().toISOString(),
+            runtime: result.runtime,
+            season_count: result.seasonCount,
+            network: result.network,
+            air_time: result.airTime,
+            tvdb_id: result.tvdbId || null,
+            tmdb_id: result.tmdbId || null,
+            imdb_id: result.imdbId || null,
+            first_aired: result.firstAired,
+            series_type: result.seriesType,
+            in_theaters: result.inTheaters,
+            website_url: result.websiteUrl,
+            trailer_url: result.trailerUrl
+        };
+
+        const existing = await this.findByResult(result);
+        if (existing) return this.updateMediaInfo(existing.id, data);
+        return this.addMedia(data);
+    }
+
     async findByTitle(title, year = null) {
         const where = {
             title: { contains: title }

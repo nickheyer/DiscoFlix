@@ -13,7 +13,7 @@ module.exports = {
     { key: 'username', label: 'Username', type: 'string', required: true, description: 'WebUI login username' },
     { key: 'password', label: 'Password', type: 'string', required: true, sensitive: true, description: 'WebUI login password' }
   ],
-  sections: ['overview', 'queue', 'history', 'settings'],
+  sections: ['overview', 'queue', 'settings'],
   buildClient(row, logger) {
     return new QbittorrentClient({
       url: row.url,

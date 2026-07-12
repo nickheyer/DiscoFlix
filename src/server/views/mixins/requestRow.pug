@@ -10,7 +10,14 @@ mixin requestRow(req, oob, instanceOptions)
       if posterSrc
         img(src=posterSrc alt="poster" referrerpolicy="no-referrer")
       else
-        .request-poster-placeholder= req.contentType === 'show' ? '📺' : '🎬'
+        .request-poster-placeholder
+          svg(viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" aria-hidden="true")
+            if req.contentType === 'show'
+              rect(x="3" y="7" width="18" height="13" rx="2" stroke-width="2")
+              path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 3l4 4 4-4")
+            else
+              rect(x="3" y="5" width="18" height="14" rx="2" stroke-width="2")
+              path(stroke-linecap="round" stroke-width="2" d="M3 9h18M8 5v14M16 5v14")
     .request-info
       .request-title= req.title
       .request-meta

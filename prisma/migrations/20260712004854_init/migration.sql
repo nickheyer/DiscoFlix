@@ -147,7 +147,7 @@ CREATE TABLE "media_requests" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "madeInId" TEXT NOT NULL,
+    "madeInId" TEXT,
     "mediaId" TEXT NOT NULL,
     "orig_message" TEXT,
     "orig_parsed_title" TEXT,
@@ -156,7 +156,7 @@ CREATE TABLE "media_requests" (
     "orig_message_id" TEXT,
     "status" BOOLEAN,
     "appId" TEXT,
-    CONSTRAINT "media_requests_madeInId_fkey" FOREIGN KEY ("madeInId") REFERENCES "discord_servers" ("server_id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "media_requests_madeInId_fkey" FOREIGN KEY ("madeInId") REFERENCES "discord_servers" ("server_id") ON DELETE SET NULL ON UPDATE CASCADE,
     CONSTRAINT "media_requests_mediaId_fkey" FOREIGN KEY ("mediaId") REFERENCES "media" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT "media_requests_appId_fkey" FOREIGN KEY ("appId") REFERENCES "apps" ("id") ON DELETE SET NULL ON UPDATE CASCADE
 );
