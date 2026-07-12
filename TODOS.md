@@ -9,6 +9,8 @@ planning.
 1. Never use emojis, always use high quality svg's of some sort
 2. Whenever you write a comment in code, it can only be 1 line tall and 1 sentence long maximum. Never use more words than you have to. AND ALWAYS UPPER CASE EACH LETTER. 
 3. Never leave placeholder, stale, or lazily implemented code in the code base at any point.
+4. No em or es dashes. No ellpsis characters. No ; or : outside of syntactical usage.
+5. No need to end comment with punctuation or include the symbol name you are annotating.
 
 ## M0 - Stabilize (complete)
 
