@@ -12,8 +12,6 @@ class Configuration extends BaseModel {
       max_results: 0,
       max_seasons_for_non_admin: 0,
       is_debug: false,
-      is_radarr_enabled: true,
-      is_sonarr_enabled: true,
       is_trailers_enabled: true
     };
   }
@@ -58,16 +56,6 @@ class Configuration extends BaseModel {
     return this.update({ is_debug: !config.is_debug });
   }
 
-  async toggleRadarr() {
-    const config = await this.get();
-    return this.update({ is_radarr_enabled: !config.is_radarr_enabled });
-  }
-
-  async toggleSonarr() {
-    const config = await this.get();
-    return this.update({ is_sonarr_enabled: !config.is_sonarr_enabled });
-  }
-
   async toggleTrailers() {
     const config = await this.get();
     return this.update({ is_trailers_enabled: !config.is_trailers_enabled });
@@ -81,11 +69,9 @@ class Configuration extends BaseModel {
     return this.update({ prefix_keyword: prefix });
   }
 
-  async updateTokens({ discord, radarr, sonarr }) {
+  async updateTokens({ discord }) {
     const updates = {};
     if (discord) updates.discord_token = discord;
-    if (radarr) updates.radarr_token = radarr;
-    if (sonarr) updates.sonarr_token = sonarr;
     return this.update(updates);
   }
 

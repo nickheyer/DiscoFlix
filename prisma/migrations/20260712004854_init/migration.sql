@@ -5,17 +5,11 @@ CREATE TABLE "configuration" (
     "prefix_keyword" TEXT NOT NULL DEFAULT '!df',
     "admin_password" TEXT,
     "discord_token" TEXT,
-    "radarr_url" TEXT,
-    "radarr_token" TEXT,
-    "sonarr_url" TEXT,
-    "sonarr_token" TEXT,
     "session_timeout" INTEGER NOT NULL DEFAULT 60,
     "max_check_time" INTEGER NOT NULL DEFAULT 600,
     "max_results" INTEGER NOT NULL DEFAULT 0,
     "max_seasons_for_non_admin" INTEGER NOT NULL DEFAULT 0,
     "is_debug" BOOLEAN NOT NULL DEFAULT false,
-    "is_radarr_enabled" BOOLEAN NOT NULL DEFAULT true,
-    "is_sonarr_enabled" BOOLEAN NOT NULL DEFAULT true,
     "is_trailers_enabled" BOOLEAN NOT NULL DEFAULT true,
     "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -27,9 +21,29 @@ CREATE TABLE "state" (
     "discord_state" BOOLEAN NOT NULL DEFAULT false,
     "sidebar_exp_state" BOOLEAN NOT NULL DEFAULT true,
     "active_server_id" TEXT,
+    "active_app_id" TEXT,
     "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT "state_active_server_id_fkey" FOREIGN KEY ("active_server_id") REFERENCES "discord_servers" ("server_id") ON DELETE SET NULL ON UPDATE CASCADE
+    CONSTRAINT "state_active_server_id_fkey" FOREIGN KEY ("active_server_id") REFERENCES "discord_servers" ("server_id") ON DELETE SET NULL ON UPDATE CASCADE,
+    CONSTRAINT "state_active_app_id_fkey" FOREIGN KEY ("active_app_id") REFERENCES "apps" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "apps" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "app_type" TEXT NOT NULL,
+    "display_name" TEXT NOT NULL,
+    "enabled" BOOLEAN NOT NULL DEFAULT true,
+    "url" TEXT,
+    "api_key" TEXT,
+    "username" TEXT,
+    "password" TEXT,
+    "settings_json" TEXT,
+    "is_default" BOOLEAN NOT NULL DEFAULT false,
+    "sort_position" INTEGER NOT NULL DEFAULT 0,
+    "active_section" TEXT NOT NULL DEFAULT 'overview',
+    "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- CreateTable
@@ -92,6 +106,8 @@ CREATE TABLE "discord_messages" (
     "content" TEXT NOT NULL,
     "embeds" TEXT,
     "attachments" TEXT,
+    "previous_content" TEXT,
+    "edited_at" DATETIME,
     "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "discord_messages_server_id_fkey" FOREIGN KEY ("server_id") REFERENCES "discord_servers" ("server_id") ON DELETE CASCADE ON UPDATE CASCADE,
@@ -139,8 +155,10 @@ CREATE TABLE "media_requests" (
     "orig_channel_id" TEXT,
     "orig_message_id" TEXT,
     "status" BOOLEAN,
+    "appId" TEXT,
     CONSTRAINT "media_requests_madeInId_fkey" FOREIGN KEY ("madeInId") REFERENCES "discord_servers" ("server_id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "media_requests_mediaId_fkey" FOREIGN KEY ("mediaId") REFERENCES "media" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT "media_requests_mediaId_fkey" FOREIGN KEY ("mediaId") REFERENCES "media" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "media_requests_appId_fkey" FOREIGN KEY ("appId") REFERENCES "apps" ("id") ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 -- CreateTable
@@ -184,6 +202,15 @@ CREATE TABLE "_UserMediaRequests" (
 CREATE UNIQUE INDEX "state_active_server_id_key" ON "state"("active_server_id");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "state_active_app_id_key" ON "state"("active_app_id");
+
+-- CreateIndex
+CREATE INDEX "apps_app_type_idx" ON "apps"("app_type");
+
+-- CreateIndex
+CREATE INDEX "apps_sort_position_idx" ON "apps"("sort_position");
+
+-- CreateIndex
 CREATE INDEX "event_logs_timestamp_idx" ON "event_logs"("timestamp");
 
 -- CreateIndex
@@ -223,6 +250,9 @@ CREATE INDEX "media_requests_madeInId_idx" ON "media_requests"("madeInId");
 CREATE INDEX "media_requests_mediaId_idx" ON "media_requests"("mediaId");
 
 -- CreateIndex
+CREATE INDEX "media_requests_appId_idx" ON "media_requests"("appId");
+
+-- CreateIndex
 CREATE INDEX "users_username_idx" ON "users"("username");
 
 -- CreateIndex
@@ -236,3 +266,4 @@ CREATE UNIQUE INDEX "_UserMediaRequests_AB_unique" ON "_UserMediaRequests"("A", 
 
 -- CreateIndex
 CREATE INDEX "_UserMediaRequests_B_index" ON "_UserMediaRequests"("B");
+

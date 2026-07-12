@@ -211,11 +211,14 @@ Remaining:
       (watchRequest channelId:null already supported), instance tabs when >1
 - [ ] First-run onboarding checklist in empty mirror (trigger: no token or no
       servers)
-- [ ] Cleanup: Migration B drops the six arr columns from Configuration
-      (+ metadata + configuration.js defaults + updateTokens → discord-only),
-      delete orphaned radarrButton/sonarrButton.pug
-- [ ] `npm run reset` caveat: reset wipes prisma/migrations, discarding the
-      config carry-over path (fine — reset implies empty DB)
+- [x] Cleanup (2026-07-12): six arr columns dropped from Configuration
+      (+ metadata + configuration.js defaults/toggles + updateTokens →
+      discord-only), orphaned radarrButton/sonarrButton.pug deleted; then
+      migrations flattened to a single `20260712004854_init` (no v3 releases
+      exist, so no upgrade path to preserve) — dev DB rebuilt in place
+      (data kept) and re-baselined via `migrate resolve --applied`
+- [x] `npm run reset` caveat: moot — the flatten discarded the config
+      carry-over migration entirely; init now builds the final schema
 
 ---
 
@@ -242,7 +245,7 @@ Remaining:
 - Logout button in the user-controls strip (`POST /logout` route already exists, no UI for it)
 - Scoped ws emits, phase 2: per-bubble/per-channel oob swaps instead of container re-renders (`serverSortableContainer` still re-renders wholesale on every message)
 - First-run onboarding: when no `discord_token`/arr is configured, the chat pane renders a "getting started" checklist (token → invite bot → connect arr → first request) instead of an empty mirror — the operator hook for new installs
-- Arr status dots in the userbox: `radarrButton.pug`/`sonarrButton.pug` exist but are referenced nowhere — revive as green/red per-service health indicators, click = test connection + toast (pairs with the existing arr "Test" backlog item)
+- Arr status dots in the userbox: likely obsolete — the orphaned `radarrButton.pug`/`sonarrButton.pug` were deleted in the M7 cleanup, and the app rail now ships per-instance heartbeat status dots + a Test Connection pill in app settings
 - "Coming Soon" virtual channel: read-only feed rendered from the Radarr/Sonarr calendar endpoints as bot-style messages (releases this week/month) — gives every server a reason to open the console daily
 - Dashboard request rows deep-link to the originating message in the chat mirror (jump to channel, scroll, flash the mentioned row)
 - Live download ticker: slim strip above the chat input showing active queue progress (the ws push pipeline already feeds the dashboard; surface it in the chat)
