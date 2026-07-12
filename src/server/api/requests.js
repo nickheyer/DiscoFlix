@@ -1,4 +1,4 @@
-// ONE QUEUE FETCH PER APP INSTANCE WITH AN ACTIVE WATCH — DASHBOARD ROWS CAN
+// ONE QUEUE FETCH PER APP INSTANCE WITH AN ACTIVE WATCH - DASHBOARD ROWS CAN
 // SHOW LIVE DOWNLOAD STATE
 async function loadRequestViews(core) {
   const requests = await core.models.mediaRequest.getMany(
@@ -64,7 +64,7 @@ async function postVerdict(core, request, approved) {
     const mentions = (request.users || []).map(user => `<@${user.id}>`).join(' ');
     const title = request.media?.title || request.orig_parsed_title;
     const verdict = approved
-      ? `✅ ${mentions} Your request for **${title}** was approved — I'll post updates here as it downloads.`
+      ? `✅ ${mentions} Your request for **${title}** was approved - I'll post updates here as it downloads.`
       : `🚫 ${mentions} Your request for **${title}** was denied.`;
     const channel = await core.client.channels.fetch(request.orig_channel_id);
     await channel.send(verdict);
@@ -125,7 +125,7 @@ async function approveRequest(ctx) {
 
       const imported = client.isImported(added);
       await core.models.mediaRequest.updateStatus(requestId, true);
-      // PERSIST THE RESOLVED INSTANCE — THE ROW MAY HAVE BEEN OVERRIDDEN OR ORPHANED
+      // PERSIST THE RESOLVED INSTANCE - THE ROW MAY HAVE BEEN OVERRIDDEN OR ORPHANED
       await core.models.mediaRequest.update({ id: requestId }, { appId: instance.id });
       await core.models.media.updateMediaInfo(request.media.id, {
         path: added.path || null,

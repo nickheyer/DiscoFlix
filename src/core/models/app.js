@@ -1,7 +1,7 @@
 const BaseModel = require('./base');
 
 // INSTALLED APP INSTANCES (RADARR/SONARR/SABNZBD/QBITTORRENT...). WHICH CONFIG
-// COLUMNS APPLY TO A ROW IS DECLARED BY ITS app_type's MANIFEST — SEE
+// COLUMNS APPLY TO A ROW IS DECLARED BY ITS app_type's MANIFEST - SEE
 // src/core/methods/apps/registry.js. MANIFEST-AWARE HELPERS LIVE ON core.apps;
 // THIS CLASS IS THE THIN DATA LAYER ONLY.
 class App extends BaseModel {
@@ -16,7 +16,7 @@ class App extends BaseModel {
         ]);
     }
 
-    // RAIL DRAG-SORT — SAME SHAPE AS DiscordServer.reorder. KOA GIVES A BARE
+    // RAIL DRAG-SORT - SAME SHAPE AS DiscordServer.reorder. KOA GIVES A BARE
     // STRING WHEN THE FORM POSTS A SINGLE item FIELD, SO NORMALIZE FIRST
     async reorder(appIds = []) {
         if (!Array.isArray(appIds)) appIds = appIds ? [appIds] : [];

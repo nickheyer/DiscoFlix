@@ -51,7 +51,7 @@ htmx.on("htmx:load", function () {
   makeRailSortable('appBubbleContainer');
 });
 
-// ONE SORTABLE PER RAIL GROUP (GUILDS + APPS) — DRAGGING DISABLES ITSELF ON
+// ONE SORTABLE PER RAIL GROUP (GUILDS + APPS) - DRAGGING DISABLES ITSELF ON
 // DROP UNTIL THE POST-SORT SWAP LANDS A FRESH CONTAINER
 function makeRailSortable(containerId) {
   const container = document.getElementById(containerId);

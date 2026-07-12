@@ -6,7 +6,7 @@
   min-width: 0;
   height: 100%;
   display: grid;
-  /* ROW 3 IS THE DOWNLOAD TICKER — COLLAPSES TO 0 WHEN EMPTY (:empty) */
+  /* ROW 3 IS THE DOWNLOAD TICKER - COLLAPSES TO 0 WHEN EMPTY (:empty) */
   grid-template-rows: 48px minmax(0, 1fr) auto auto;
   background-color: var(--bg-primary);
 }
@@ -49,7 +49,7 @@
   }
 }
 
-/* NO ACTIVE CHANNEL — KEEP THE 48px BAR AND ITS SHADOW SO THE LAYOUT HOLDS */
+/* NO ACTIVE CHANNEL - KEEP THE 48px BAR AND ITS SHADOW SO THE LAYOUT HOLDS */
 .messageChannelHeaderPlaceholder {
   grid-row: 1;
   height: 48px;
@@ -156,6 +156,77 @@
   text-transform: uppercase;
 }
 
+/* FIRST-RUN ONBOARDING CHECKLIST - LIVES IN THE EMPTY MIRROR */
+.gettingStarted {
+  max-width: 560px;
+  padding-bottom: 16px;
+}
+
+.gettingStartedStep {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background-color: var(--bg-secondary);
+  border-radius: 5px;
+  padding: 10px 14px;
+  margin: 6px 16px;
+}
+
+.gettingStartedStep.done .gettingStartedLabel {
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+
+.gettingStartedCheck {
+  flex-shrink: 0;
+  display: flex;
+}
+
+.gettingStartedCheck svg {
+  width: 22px;
+  height: 22px;
+}
+
+.gettingStartedRing {
+  fill: none;
+  stroke: var(--interactive-muted);
+  stroke-width: 2;
+}
+
+.gettingStartedCheck.done .gettingStartedRing {
+  fill: var(--green);
+  stroke: var(--green);
+}
+
+.gettingStartedTick {
+  fill: none;
+  stroke: var(--bg-secondary);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.gettingStartedInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.gettingStartedLabel {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-normal);
+}
+
+.gettingStartedHint {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.gettingStartedCta {
+  flex-shrink: 0;
+}
+
 /* CLASSIC EMPTY-CHANNEL WELCOME BLOCK */
 .welcomeBlock {
   padding: 16px;
@@ -191,7 +262,7 @@
   color: var(--text-muted);
 }
 
-/* BOT TAG — ONE DEFINITION; CHAT AND MEMBERS PANE BOTH USE IT */
+/* BOT TAG - ONE DEFINITION; CHAT AND MEMBERS PANE BOTH USE IT */
 .chatMessageTag {
   border-radius: 3px;
   background: var(--blurple);
@@ -204,7 +275,7 @@
   flex-shrink: 0;
 }
 
-/* ---- MESSAGE ROWS — FULL-WIDTH, LEFT-ALIGNED, LIKE THE REAL THING ---- */
+/* ---- MESSAGE ROWS - FULL-WIDTH, LEFT-ALIGNED, LIKE THE REAL THING ---- */
 
 .chatMessageRow {
   position: relative; /* ANCHORS THE HOVER ACTION TRAY */
@@ -218,7 +289,7 @@
     background-color: rgba(4, 4, 5, 0.07);
   }
 
-  /* OLD-DISCORD MENTION TREATMENT — RESERVED FOR ROWS THAT MEAN SOMETHING
+  /* OLD-DISCORD MENTION TREATMENT - RESERVED FOR ROWS THAT MEAN SOMETHING
      (REQUEST-TRIGGERING MESSAGES), NOT WALLPAPER */
   &.mentioned {
     background-color: rgba(250, 166, 26, 0.05);
@@ -346,7 +417,7 @@
   }
 }
 
-/* HOVER ACTION TRAY — CLASSIC TOP-RIGHT MESSAGE TOOLBAR */
+/* HOVER ACTION TRAY - CLASSIC TOP-RIGHT MESSAGE TOOLBAR */
 .messageHoverTray {
   position: absolute;
   top: -14px;
@@ -430,7 +501,7 @@
   }
 }
 
-/* ---- DOWNLOAD TICKER — THE TYPING-INDICATOR STRIP'S ANALOG ---- */
+/* ---- DOWNLOAD TICKER - THE TYPING-INDICATOR STRIP'S ANALOG ---- */
 
 .downloadTicker {
   grid-row: 3;
@@ -477,7 +548,7 @@
   transition: width 0.5s ease;
 }
 
-/* ---- CHAT INPUT BAR — IN-FLOW, NO Z-INDEX GAMES ---- */
+/* ---- CHAT INPUT BAR - IN-FLOW, NO Z-INDEX GAMES ---- */
 
 .chatBarContainer {
   grid-row: 4;

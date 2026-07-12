@@ -14,7 +14,7 @@ function isAdmin(dbUser) {
 // OTHERWISE A USER-PRESENTABLE DENIAL MESSAGE.
 async function checkRequestAllowance(core, dbUser) {
   if (!dbUser.is_active) {
-    return 'Your account has been deactivated — you cannot make requests.';
+    return 'Your account has been deactivated - you cannot make requests.';
   }
   if (isAdmin(dbUser)) return null;
 
@@ -28,7 +28,7 @@ async function checkRequestAllowance(core, dbUser) {
       }
     });
     if (recentCount >= dailyLimit) {
-      return `You've hit your limit of ${dailyLimit} request${dailyLimit === 1 ? '' : 's'} per day — try again later.`;
+      return `You've hit your limit of ${dailyLimit} request${dailyLimit === 1 ? '' : 's'} per day - try again later.`;
     }
   }
   return null;
@@ -39,7 +39,7 @@ function checkSeasonLimit(config, dbUser, seasonCount) {
   if (isAdmin(dbUser)) return null;
   const limit = resolveLimit(dbUser.max_seasons_for_non_admin, config.max_seasons_for_non_admin);
   if (limit > 0 && seasonCount > limit) {
-    return `That show has ${seasonCount} seasons — you can only request shows with up to ${limit}.`;
+    return `That show has ${seasonCount} seasons - you can only request shows with up to ${limit}.`;
   }
   return null;
 }

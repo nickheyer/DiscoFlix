@@ -1,4 +1,4 @@
-//- One Search & Add result row; rowState: addable | in-library | available | added | error.
+//- ONE SEARCH & ADD RESULT ROW - rowState: addable | in-library | available | added | error.
 mixin appSearchRow(result, appId)
   .request-row.appSearchRow
     .request-poster
@@ -24,7 +24,7 @@ mixin appSearchRow(result, appId)
         when 'in-library'
           span.requestChip.chip-approved In Library
         when 'added'
-          span.requestChip.chip-downloading Added — watch the Queue
+          span.requestChip.chip-downloading Added - watch the Queue
         when 'error'
           span.requestChip.chip-denied(title=result.error)= result.error || 'Add failed'
         default

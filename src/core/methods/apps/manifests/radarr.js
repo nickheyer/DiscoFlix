@@ -4,7 +4,7 @@ module.exports = {
   id: 'radarr',
   label: 'Radarr',
   icon: '/images/radarr.min.svg',
-  blurb: 'Movies — search, request, and track',
+  blurb: 'Movies - search, request, and track',
   kind: 'content-manager',
   Client: RadarrClient,
   contentTypes: [{

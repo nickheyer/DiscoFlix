@@ -83,9 +83,9 @@ async function handleSelection(interaction, result, ctx) {
       : null;
     if (openRequest) {
       await core.models.mediaRequest.addUser(openRequest.id, dbUser.id);
-      await ctx.channel.send(`📌 **${name}** has already been requested — I've added you to it and will post updates here.`);
+      await ctx.channel.send(`📌 **${name}** has already been requested - I've added you to it and will post updates here.`);
     } else {
-      await ctx.channel.send(`📌 **${name}** is already on the download list — hang tight.`);
+      await ctx.channel.send(`📌 **${name}** is already on the download list - hang tight.`);
     }
     return;
   }
@@ -112,7 +112,7 @@ async function handleSelection(interaction, result, ctx) {
     const media = await core.models.media.upsertFromResult(result);
     await createRequestRow(core, ctx, media, null);
     core.logger.info(`Media request pending approval: ${name} (${instance.display_name}) by ${dbUser.username}`);
-    await ctx.channel.send(`📨 **${name}** has been submitted for approval — an admin will review it.`);
+    await ctx.channel.send(`📨 **${name}** has been submitted for approval - an admin will review it.`);
   }
   core.discord.refreshUI().catch(() => {}); // UPDATE CHAT-MIRROR CHIPS
 }
@@ -127,7 +127,7 @@ async function createRequestRow(core, ctx, media, status) {
     orig_channel_id: ctx.channel.id,
     orig_message_id: ctx.messageId || null,
     status,
-    appId: ctx.instance.id, // WHICH INSTANCE THE SEARCH RAN AGAINST — APPROVAL TARGETS THE SAME ONE
+    appId: ctx.instance.id, // WHICH INSTANCE THE SEARCH RAN AGAINST - APPROVAL TARGETS THE SAME ONE
     users: { connect: { id: ctx.dbUser.id } }
   });
 }
@@ -144,7 +144,7 @@ async function runRequestFlow(core, request) {
     // ROUTE TO THE DEFAULT ENABLED+CONFIGURED INSTANCE FOR THIS CONTENT TYPE
     const instance = await core.apps.defaultInstanceFor(contentType);
     if (!instance) {
-      await send(`⚙️ No connected app handles ${label} requests yet — add one in the web console.`);
+      await send(`⚙️ No connected app handles ${label} requests yet - add one in the web console.`);
       return;
     }
     const client = core.apps.getClientForInstance(instance);
@@ -192,7 +192,7 @@ async function runRequestFlow(core, request) {
     collector.on('collect', async (interaction) => {
       try {
         if (interaction.user.id !== discordUser.id) {
-          await interaction.reply({ content: 'This selection belongs to someone else — start your own request.', ephemeral: true });
+          await interaction.reply({ content: 'This selection belongs to someone else - start your own request.', ephemeral: true });
           return;
         }
         switch (interaction.customId) {

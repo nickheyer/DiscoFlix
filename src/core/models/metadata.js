@@ -59,7 +59,7 @@ const MODELS_META = {
         fields: {
             id: { type: FIELD_TYPES.ID, immutable: true, readonly: true, label: "ID", description: "Unique identifier for this app instance" },
             // app_type/is_default/sort_position/active_section ARE computed SO
-            // _sanitizeData NEVER RESETS THEM ON FORM SAVES — THEY ARE MANAGED
+            // _sanitizeData NEVER RESETS THEM ON FORM SAVES - THEY ARE MANAGED
             // BY DEDICATED ENDPOINTS VIA PARTIAL update()
             app_type: { type: FIELD_TYPES.STRING, computed: true, readonly: true, label: "App Type", description: "Registry key: radarr, sonarr, sabnzbd, qbittorrent" },
             display_name: { type: FIELD_TYPES.STRING, required: true, searchable: true, label: "Display Name", description: "Shown on the app's rail bubble and banner" },

@@ -1,4 +1,4 @@
-//- MEMBERS PANE — USERS TRACKED FOR THE ACTIVE SERVER (core.render.getServerMembers).
+//- MEMBERS PANE - USERS TRACKED FOR THE ACTIVE SERVER (core.render.getServerMembers).
 //- RENDERS EMPTY (AND :empty-HIDES) WHEN THERE ARE NO MEMBERS TO SHOW.
 //- APP TAKEOVER: THE SAME RAIL CARRIES THE APP'S ACTIVITY FEED INSTEAD
 if activeApp
@@ -11,10 +11,10 @@ else
     hx-swap-oob="outerHTML"
   )
     if memberList.length
-      .memberListHeader Members — #{memberList.length}
+      .memberListHeader Members - #{memberList.length}
       each member in memberList
         - var nameColor = member.accent_color && member.accent_color.toLowerCase() !== 'ffffff' ? `#${member.accent_color}` : null
-        //- CACHED AVATARS ARE STORED AS BARE PATHS (user_images/…) — SERVE ROOT-RELATIVE
+        //- CACHED AVATARS ARE STORED AS BARE PATHS (user_images/…) - SERVE ROOT-RELATIVE
         - var memberAvatarSrc = member.avatar_url ? (/^https?:\/\//.test(member.avatar_url) ? member.avatar_url : `/${member.avatar_url.replace(/^\/+/, '')}`) : "https://cdn.discordapp.com/embed/avatars/0.png"
         //- ROW CLICK OPENS THE MEMBER'S SETTINGS FORM, LIKE THE CHANNEL GEAR
         .memberRow(

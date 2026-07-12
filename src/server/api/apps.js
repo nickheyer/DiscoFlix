@@ -3,7 +3,7 @@
 // USING THE SAME SLOT-SWAP FRAGMENTS THE SETTINGS SIDEBAR ALREADY PROVED.
 const _ = require('lodash');
 
-// RAIL VIEW MODEL — EVERY INSTALLED INSTANCE RENDERS A BUBBLE
+// RAIL VIEW MODEL - EVERY INSTALLED INSTANCE RENDERS A BUBBLE
 async function buildAppRail(core, state = null) {
   return core.apps.getRailViewModel(state);
 }
@@ -58,7 +58,7 @@ async function buildSectionData(core, instance, section) {
     case 'search': {
       const manifest = core.apps.getType(instance.app_type);
       data.contentTypeLabel = manifest.contentTypes[0]?.label || 'media';
-      // "ADD TO" TABS WHEN RIVAL INSTANCES SERVE THE SAME CONTENT TYPE — AN
+      // "ADD TO" TABS WHEN RIVAL INSTANCES SERVE THE SAME CONTENT TYPE - AN
       // INACTIVE TAB IS JUST THE TAKEOVER-SWITCH ROUTE LANDING ON search
       data.instanceTabs = [];
       const contentType = manifest.contentTypes[0]?.type;
@@ -77,7 +77,7 @@ async function buildSectionData(core, instance, section) {
     case 'settings': {
       const manifest = core.apps.getType(instance.app_type);
       // METADATA DESCRIPTORS (SENSITIVE isSet, TYPES) OVERLAID WITH THE
-      // MANIFEST'S PER-TYPE LABELS/PLACEHOLDERS — ONE SHAPE FOR THE +field MIXIN
+      // MANIFEST'S PER-TYPE LABELS/PLACEHOLDERS - ONE SHAPE FOR THE +field MIXIN
       const formData = core.models.app.getFormData(instance);
       data.formFields = [
         { key: 'display_name', ...formData.display_name },
@@ -142,7 +142,7 @@ async function buildTakeoverLocals(core, instance) {
   };
 }
 
-// THE FULL TAKEOVER FRAGMENT SET — THE APP-SIDE ANALOG OF changeActiveServers
+// THE FULL TAKEOVER FRAGMENT SET - THE APP-SIDE ANALOG OF changeActiveServers
 async function respondWithTakeover(ctx, instance, state) {
   const core = ctx.core;
   const [servers, discordBot, apps, takeover] = await Promise.all([
@@ -174,17 +174,18 @@ async function respondWithTakeover(ctx, instance, state) {
   });
 }
 
-// MIRROR RESTORE — THE SAME FRAGMENT SET changeActiveServers SENDS, MINUS THE
+// MIRROR RESTORE - THE SAME FRAGMENT SET changeActiveServers SENDS, MINUS THE
 // SERVER SWITCH. THE RESPONSE TO REMOVING THE ACTIVE APP: ITS TAKEOVER ENDS
 // BY DEFINITION, SO THE CONSOLE FALLS BACK TO WHATEVER GUILD WAS ACTIVE.
 async function respondWithMirror(ctx, state) {
   const core = ctx.core;
-  const [msgObjects, servers, discordBot, members, apps] = await Promise.all([
+  const [msgObjects, servers, discordBot, members, apps, onboarding] = await Promise.all([
     core.discord.updateMessages(null, state),
     core.render.getServerTemplateObj(null, state),
     core.models.discordBot.get(),
     core.render.getServerMembers(state.active_server_id),
-    core.apps.getRailViewModel(state)
+    core.apps.getRailViewModel(state),
+    core.render.getOnboarding(state)
   ]);
 
   const messages = await core.discord.compileMessages(msgObjects);
@@ -200,7 +201,7 @@ async function respondWithMirror(ctx, state) {
     'chat/chatBar.pug',
     'chat/messageContainer.pug',
     'members/membersLayout.pug'
-  ], { servers, discordBot, messages, eomStamp, state, members, apps });
+  ], { servers, discordBot, messages, eomStamp, state, members, apps, onboarding });
 }
 
 // ── HANDLERS ─────────────────────────────────────────────────────────────
@@ -217,7 +218,7 @@ async function changeActiveApp(ctx) {
 }
 
 // SECTION NAV. WHEN THE TARGET INSTANCE ISN'T THE ACTIVE APP THIS ALSO ENTERS
-// ITS TAKEOVER — ONE ROUTE POWERS SECTION ROWS, SEARCH INSTANCE TABS, AND THE
+// ITS TAKEOVER - ONE ROUTE POWERS SECTION ROWS, SEARCH INSTANCE TABS, AND THE
 // DOWNLOAD TICKER'S JUMP-TO-QUEUE.
 async function changeAppSection(ctx) {
   const core = ctx.core;
@@ -248,7 +249,7 @@ async function changeAppSection(ctx) {
   ], { state, ...takeover });
 }
 
-// ACTIVITY-FEED PAGINATION — THE REVEALED SENTINEL IN THE RIGHT RAIL SWAPS
+// ACTIVITY-FEED PAGINATION - THE REVEALED SENTINEL IN THE RIGHT RAIL SWAPS
 // ITSELF FOR THE NEXT PAGE OF ROWS (+ A NEW SENTINEL WHILE THERE'S MORE)
 async function appFeedPage(ctx) {
   const core = ctx.core;
@@ -262,7 +263,7 @@ async function appFeedPage(ctx) {
   return ctx.compileView('apps/appFeedItems.pug', { activeApp: instance, feed, feedPage: page });
 }
 
-// LIBRARY PAGINATION — SAME REVEALED-SENTINEL TRICK AS THE FEED, SLICING THE
+// LIBRARY PAGINATION - SAME REVEALED-SENTINEL TRICK AS THE FEED, SLICING THE
 // TTL-CACHED FULL LISTING (SEE core.apps.getLibraryPage)
 async function appLibraryPage(ctx) {
   const core = ctx.core;
@@ -281,7 +282,7 @@ async function appLibraryPage(ctx) {
   });
 }
 
-// isImported REACHES INTO SERVICE-SHAPED raw — NEVER LET A SHAPE SURPRISE
+// isImported REACHES INTO SERVICE-SHAPED raw - NEVER LET A SHAPE SURPRISE
 // TAKE A SEARCH RENDER DOWN
 function safeIsImported(client, raw) {
   try {
@@ -303,7 +304,7 @@ async function appSearch(ctx) {
   const term = String(ctx.query.term || '').trim();
   const locals = { activeApp: instance, searchTerm: term };
 
-  // NO CLIENT / BLANK BOX — BACK TO THE PROMPT STATE (searchResults: null)
+  // NO CLIENT / BLANK BOX - BACK TO THE PROMPT STATE (searchResults: null)
   if (!client || !client.capabilities.search || term.length < 2) {
     return ctx.compileView('apps/searchResults.pug', { ...locals, searchResults: null });
   }
@@ -323,7 +324,7 @@ async function appSearch(ctx) {
   }
 }
 
-// OPERATOR ADD — THE ADMIN REQUEST PATH WITHOUT A GUILD: AUTO-APPROVED
+// OPERATOR ADD - THE ADMIN REQUEST PATH WITHOUT A GUILD: AUTO-APPROVED
 // MediaRequest (NO madeIn/USERS), STRAIGHT client.add, NULL-CHANNEL WATCH
 async function appAddMedia(ctx) {
   const core = ctx.core;
@@ -343,10 +344,10 @@ async function appAddMedia(ctx) {
   let searchResult;
   try {
     result = await client.lookupByExternalId(externalKey);
-    if (!result) throw new Error('Lookup came back empty — try the search again');
+    if (!result) throw new Error('Lookup came back empty - try the search again');
 
     if (result.libraryId) {
-      // SOMEONE BEAT US TO IT — REFLECT REALITY INSTEAD OF DOUBLE-ADDING
+      // SOMEONE BEAT US TO IT - REFLECT REALITY INSTEAD OF DOUBLE-ADDING
       searchResult = {
         ...result,
         rowState: safeIsImported(client, result.raw) ? 'available' : 'in-library'
@@ -369,7 +370,7 @@ async function appAddMedia(ctx) {
           arrId: added.id,
           mediaId: media.id,
           title: result.year ? `${result.title} (${result.year})` : result.title,
-          channelId: null, // CONSOLE-INITIATED — NO DISCORD NOTIFY
+          channelId: null, // CONSOLE-INITIATED - NO DISCORD NOTIFY
           requesterIds: []
         });
       }
@@ -390,7 +391,7 @@ async function appAddMedia(ctx) {
   return ctx.compileView('apps/searchResultRow.pug', { activeApp: instance, searchResult });
 }
 
-// RAIL DRAG-SORT — THE APP-SIDE changeServerSortOrder. RESPONSE RE-RENDERS
+// RAIL DRAG-SORT - THE APP-SIDE changeServerSortOrder. RESPONSE RE-RENDERS
 // THE SELF-OOB RAIL SO THE DOM ORDER AND sort_position AGREE
 async function changeAppSortOrder(ctx) {
   await ctx.core.models.app.reorder(ctx.request.body.item);
@@ -400,7 +401,7 @@ async function changeAppSortOrder(ctx) {
 
 // ── ADD / SETTINGS / REMOVE FLOWS ────────────────────────────────────────
 
-// "ADD AN APP" PICKER — ONE CARD PER MANIFEST TYPE; TYPES STAY ADDABLE
+// "ADD AN APP" PICKER - ONE CARD PER MANIFEST TYPE; TYPES STAY ADDABLE
 // FOREVER (MULTI-INSTANCE), THE BADGE JUST SAYS HOW MANY YOU ALREADY RUN
 async function renderAppPicker(ctx) {
   const rows = await ctx.core.models.app.getInstalled();
@@ -419,7 +420,7 @@ async function renderAppPicker(ctx) {
 }
 
 // PICKER CARD CLICK: CREATE THE ROW AND DROP STRAIGHT INTO ITS TAKEOVER ON
-// SETTINGS — CONFIG-FIRST LANDING
+// SETTINGS - CONFIG-FIRST LANDING
 async function addApp(ctx) {
   const core = ctx.core;
   const instance = await core.apps.installType(ctx.params.type);
@@ -451,12 +452,12 @@ async function saveApp(ctx) {
   }
   core.apps.syncSlashCommands().catch(() => {});
 
-  // SAVE IS THE ONE MOMENT THE OPERATOR EXPECTS A LIVE ANSWER — REFRESH THE
+  // SAVE IS THE ONE MOMENT THE OPERATOR EXPECTS A LIVE ANSWER - REFRESH THE
   // STATUS CACHE NOW SO THE RAIL DOT AND TOAST TELL THE TRUTH IMMEDIATELY
   let message = 'Changes Saved';
   if (updated.enabled && core.apps.isConfigured(updated)) {
     const status = await core.apps.testInstance(updated);
-    message = status.ok ? `Connected — v${status.version}` : 'Saved — but unreachable';
+    message = status.ok ? `Connected - v${status.version}` : 'Saved - but unreachable';
   }
 
   const state = await core.models.state.get();
@@ -476,7 +477,7 @@ async function saveApp(ctx) {
   ], { state, apps, message, ...takeover });
 }
 
-// EXPLICIT LIVE CHECK AGAINST THE *SAVED* ROW — PROVES KEEP-ON-BLANK/CLEAR
+// EXPLICIT LIVE CHECK AGAINST THE *SAVED* ROW - PROVES KEEP-ON-BLANK/CLEAR
 // ACTUALLY PERSISTED WHAT YOU THINK. RESPONSE = INLINE PILL + RAIL DOT OOB
 async function testApp(ctx) {
   const core = ctx.core;

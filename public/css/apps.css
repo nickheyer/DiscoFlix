@@ -1,4 +1,4 @@
-/* APP TAKEOVER SURFACE (nzb360-STYLE PSEUDO-GUILDS) — POSTER GRID, SECTION
+/* APP TAKEOVER SURFACE (nzb360-STYLE PSEUDO-GUILDS) - POSTER GRID, SECTION
    VIEWS, ADD-APP PICKER. EVERYTHING RIDES THE CLASSIC-DISCORD TOKENS FROM
    variables.css; NEW SHAPES ONLY WHERE NO EXISTING FAMILY FITS. */
 
@@ -155,7 +155,7 @@
   box-sizing: content-box;
 }
 
-/* SENTINEL LIVES INSIDE THE GRID — SPAN THE FULL ROW SO "revealed" FIRES
+/* SENTINEL LIVES INSIDE THE GRID - SPAN THE FULL ROW SO "revealed" FIRES
    WHEN THE LAST CARD ROW SCROLLS INTO VIEW */
 .libraryLoadMore {
   grid-column: 1 / -1;
@@ -166,7 +166,7 @@
   color: var(--text-muted);
 }
 
-/* ---- ACTIVITY FEED (TAKEOVER RIGHT RAIL — THE MEMBERS PANE'S APP-MODE TWIN,
+/* ---- ACTIVITY FEED (TAKEOVER RIGHT RAIL - THE MEMBERS PANE'S APP-MODE TWIN,
    REPLACED THE OLD HISTORY SECTION) ---- */
 
 .appFeedRow {
@@ -298,7 +298,7 @@
   gap: 8px;
 }
 
-/* Lookup overviews run long — clamp them to two lines */
+/* LOOKUP OVERVIEWS RUN LONG - CLAMP THEM TO TWO LINES */
 .appSearchRow .request-orig-message {
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -323,7 +323,7 @@
   max-width: 480px; /* DISCORD SETTINGS FORMS RUN NARROW */
 }
 
-/* SAVE TOAST RIDES THE TAKEOVER HEADER — SETTINGS-MODAL CONVENTION */
+/* SAVE TOAST RIDES THE TAKEOVER HEADER - SETTINGS-MODAL CONVENTION */
 .messageChannelHeader .notification-container {
   min-height: 0;
   min-width: 0;
@@ -364,7 +364,7 @@
   color: var(--text-muted);
 }
 
-/* FILLED RED — OLD DISCORD'S DANGER BUTTON */
+/* FILLED RED - OLD DISCORD'S DANGER BUTTON */
 .appRemoveButton,
 .modal-button.appRemoveConfirm {
   padding: 8px 16px;

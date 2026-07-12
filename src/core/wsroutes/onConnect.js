@@ -30,7 +30,7 @@ function parseCookies(header = '') {
 
 module.exports = (core) => {
   core.wss.on('connection', async (ws, req) => {
-    // WS CARRIES THE WHOLE UI — IT HONORS THE SAME SESSION AS HTTP
+    // WS CARRIES THE WHOLE UI - IT HONORS THE SAME SESSION AS HTTP
     try {
       const config = await core.models.configuration.get();
       if (config.admin_password) {

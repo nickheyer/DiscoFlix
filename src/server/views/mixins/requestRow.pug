@@ -1,6 +1,6 @@
 //- ONE DASHBOARD ROW FOR A MediaRequest VIEW (BUILT BY core.apps.buildRequestView).
 //- WITH oob=true THE ROW SWAPS ITSELF IN PLACE WHEN PUSHED OVER WS.
-//- instanceOptions (OPTIONAL): contentType -> [{id, label, isDefault}] — WHEN MORE
+//- instanceOptions (OPTIONAL): contentType -> [{id, label, isDefault}] - WHEN MORE
 //- THAN ONE INSTANCE SERVES THE TYPE, PENDING ROWS GET AN "ADD TO" OVERRIDE SELECT.
 mixin requestRow(req, oob, instanceOptions)
   - var posterSrc = req.posterUrl ? (/^https?:\/\//i.test(req.posterUrl) ? req.posterUrl : `/${req.posterUrl}`) : null

@@ -43,7 +43,7 @@ module.exports = {
     return instances[0] || null;
   },
 
-  // CONTENT TYPES THAT CURRENTLY HAVE A SERVING INSTANCE — DRIVES WHICH
+  // CONTENT TYPES THAT CURRENTLY HAVE A SERVING INSTANCE - DRIVES WHICH
   // SLASH COMMANDS GET REGISTERED
   async enabledContentTypes() {
     const rows = await this.core.models.app.getMany({ enabled: true });
@@ -57,7 +57,7 @@ module.exports = {
     return [...types];
   },
 
-  // EVERY APP TYPE WHOSE MANIFEST SHARES A CONTENT TYPE WITH appType — PEERS
+  // EVERY APP TYPE WHOSE MANIFEST SHARES A CONTENT TYPE WITH appType - PEERS
   // COMPETE FOR is_default ROUTING (A TYPE ALWAYS COUNTS AS ITS OWN PEER)
   peerAppTypes(appType) {
     const myTypes = (this.getType(appType)?.contentTypes || []).map(ct => ct.type);
@@ -88,7 +88,7 @@ module.exports = {
 
   // CREATE AN App ROW FOR A MANIFEST TYPE. NAMES DISAMBIGUATE LIKE GUILD
   // CHANNELS ("Radarr", "Radarr 2", ...); THE FIRST INSTANCE IN A CONTENT-TYPE
-  // FAMILY BECOMES ITS DEFAULT; LANDS ON SETTINGS — NEW APPS NEED CONFIG FIRST
+  // FAMILY BECOMES ITS DEFAULT; LANDS ON SETTINGS - NEW APPS NEED CONFIG FIRST
   async installType(appType) {
     const manifest = this.getType(appType);
     if (!manifest) return null;
@@ -126,7 +126,7 @@ module.exports = {
     for (const [key, value] of Object.entries(body || {})) {
       if (allowed.has(key)) data[key] = value;
     }
-    // A BLANK NAME WOULD BLANK THE RAIL TOOLTIP AND BANNER — KEEP THE OLD ONE
+    // A BLANK NAME WOULD BLANK THE RAIL TOOLTIP AND BANNER - KEEP THE OLD ONE
     if (!data.display_name || !String(data.display_name).trim()) {
       data.display_name = instance.display_name;
     }
@@ -161,7 +161,7 @@ module.exports = {
     return result;
   },
 
-  // RE-REGISTER SLASH COMMANDS AFTER APP CRUD — NO-OP WHEN THE BOT IS OFFLINE
+  // RE-REGISTER SLASH COMMANDS AFTER APP CRUD - NO-OP WHEN THE BOT IS OFFLINE
   // (ready.js RE-REGISTERS ON EVERY LOGIN ANYWAY)
   async syncSlashCommands() {
     if (!this.core.client || !this.core.client.isReady()) return;
@@ -175,7 +175,7 @@ module.exports = {
     }
   },
 
-  // RAIL BUBBLE VIEW MODEL. REACHABILITY COMES FROM THE HEARTBEAT'S CACHE —
+  // RAIL BUBBLE VIEW MODEL. REACHABILITY COMES FROM THE HEARTBEAT'S CACHE -
   // NEVER LIVE-CHECKED AT RENDER TIME (null = NOT CHECKED YET, BE OPTIMISTIC)
   async getRailViewModel(state = null) {
     if (!state) state = await this.core.models.state.get();

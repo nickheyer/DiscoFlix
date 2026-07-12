@@ -10,7 +10,7 @@ async function renderHome(ctx) {
   const apps = await buildAppRail(core, state);
   const ticker = core.apps.buildTickerAggregate();
 
-  // APP TAKEOVER SURVIVES RELOAD — THE MIRROR LOCALS ARE SKIPPED ENTIRELY,
+  // APP TAKEOVER SURVIVES RELOAD - THE MIRROR LOCALS ARE SKIPPED ENTIRELY,
   // BACK-OUT RE-RENDERS THEM THROUGH changeActiveServers
   const activeInstance = state.active_app_id
     ? await core.apps.getInstance(state.active_app_id)
@@ -34,6 +34,7 @@ async function renderHome(ctx) {
   const messages = await core.discord.compileMessages(messageData);
   const eomStamp = _.get(_.last(messageData), 'created_at');
   const members = await core.render.getServerMembers(state.active_server_id);
+  const onboarding = await core.render.getOnboarding(state);
 
   await ctx.render('index', {
     state,
@@ -43,7 +44,8 @@ async function renderHome(ctx) {
     eomStamp,
     members,
     apps,
-    ticker
+    ticker,
+    onboarding
   });
 }
 

@@ -28,7 +28,7 @@ function destroySession(token) {
   if (token) sessions.delete(token);
 }
 
-// STATIC ASSETS ARE SERVED BY EARLIER MIDDLEWARE AND NEVER REACH THIS —
+// STATIC ASSETS ARE SERVED BY EARLIER MIDDLEWARE AND NEVER REACH THIS -
 // ONLY ROUTES NEED GUARDING
 function authHandler() {
   return async (ctx, next) => {

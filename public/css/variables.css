@@ -1,4 +1,4 @@
-/* DESIGN TOKENS — CLASSIC DISCORD (~2019) PALETTE. ONE NAME PER COLOR, USED EVERYWHERE. */
+/* DESIGN TOKENS - CLASSIC DISCORD (~2019) PALETTE. ONE NAME PER COLOR, USED EVERYWHERE. */
 
 :root {
   /* SURFACES */
@@ -29,7 +29,7 @@
   --interactive-active: #ffffff;
   --interactive-muted: #4f545c;
 
-  /* ACCENTS — CLASSIC BLURPLE, NOT THE 2021 REBRAND */
+  /* ACCENTS - CLASSIC BLURPLE, NOT THE 2021 REBRAND */
   --blurple: #7289da;
   --blurple-hover: #677bc4;
   --blurple-active: #5b6eae;
@@ -50,7 +50,7 @@
 
   --font-family: 'Roboto', sans-serif;
 
-  /* LEGACY ALIASES — OLD NAMES STILL REFERENCED ANYWHERE MAP ONTO THE TOKENS ABOVE */
+  /* LEGACY ALIASES - OLD NAMES STILL REFERENCED ANYWHERE MAP ONTO THE TOKENS ABOVE */
   --dark-bg: var(--bg-primary);
   --chat-bar: var(--bg-chat-input);
   --dark-server-list: var(--bg-tertiary);

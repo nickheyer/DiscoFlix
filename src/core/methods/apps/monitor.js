@@ -4,7 +4,7 @@ const HEARTBEAT_BOOT_DELAY_MS = 5 * 1000;
 
 // TWO TIMERS LIVE HERE:
 // - THE WATCH MONITOR (15s, SELF-CLEARING): TRACKS OPEN MediaRequests THROUGH
-//   AN INSTANCE'S QUEUE UNTIL IMPORT — DISCORD NOTIFY + DASHBOARD ROW PUSH.
+//   AN INSTANCE'S QUEUE UNTIL IMPORT - DISCORD NOTIFY + DASHBOARD ROW PUSH.
 // - THE HEARTBEAT (60s, ALWAYS-ON, unref'D): REFRESHES statusCache/queueCache
 //   FOR EVERY CONFIGURED+ENABLED INSTANCE AND BROADCASTS RAIL DOTS / TICKER /
 //   QUEUE-SECTION FRAGMENTS WHEN SOMETHING ACTUALLY CHANGED.
@@ -67,7 +67,7 @@ module.exports = {
     }
 
     for (const [appId, watches] of byInstance) {
-      // RESOLVED FRESH EVERY TICK — SETTINGS/DELETE/DISABLE APPLY IMMEDIATELY
+      // RESOLVED FRESH EVERY TICK - SETTINGS/DELETE/DISABLE APPLY IMMEDIATELY
       const instance = await this.getInstance(appId);
       const client = instance?.enabled ? this.getClientForInstance(instance) : null;
       if (!client) {
@@ -95,7 +95,7 @@ module.exports = {
       const queueRow = queue.find(row => client.matchesQueueRecord(row, watch.arrId));
       if (queueRow && watch.stage === 'pending') {
         watch.stage = 'grabbed';
-        const eta = queueRow.timeleft ? ` — about \`${queueRow.timeleft}\` remaining` : '';
+        const eta = queueRow.timeleft ? ` - about \`${queueRow.timeleft}\` remaining` : '';
         await this._notify(watch, `📥 **${watch.title}** is downloading${eta}.`);
       }
 
@@ -120,7 +120,7 @@ module.exports = {
       if (Date.now() - watch.startedAt > config.max_check_time * 1000) {
         await this._notify(
           watch,
-          `⏳ ${this._mentions(watch)} **${watch.title}** is still processing — I'll stop watching it for now, check back later.`
+          `⏳ ${this._mentions(watch)} **${watch.title}** is still processing - I'll stop watching it for now, check back later.`
         );
         this.watches.delete(watch.requestId);
       }
@@ -145,7 +145,7 @@ module.exports = {
   },
 
   async _notify(watch, content) {
-    if (!watch.channelId) return; // CONSOLE-INITIATED — NOTHING TO NOTIFY
+    if (!watch.channelId) return; // CONSOLE-INITIATED - NOTHING TO NOTIFY
     if (!this.core.client || !this.core.client.isReady()) return;
     try {
       const channel = await this.core.client.channels.fetch(watch.channelId);
@@ -219,7 +219,7 @@ module.exports = {
     return count ? { count, ...top } : null;
   },
 
-  // EMITS ONLY ON CHANGE. EACH EMIT IS INDEPENDENTLY GUARDED — THE TICKER AND
+  // EMITS ONLY ON CHANGE. EACH EMIT IS INDEPENDENTLY GUARDED - THE TICKER AND
   // QUEUE-SECTION TEMPLATES LAND IN LATER MILESTONE STEPS AND MUST NOT TAKE
   // THE DOT/RAIL PUSHES DOWN WITH THEM.
   async _broadcastHeartbeat() {
@@ -248,7 +248,7 @@ module.exports = {
       }
     }
 
-    // LIVE TAKEOVER SURFACES — THE ACTIVE APP'S QUEUE SECTION, PLUS ITS
+    // LIVE TAKEOVER SURFACES - THE ACTIVE APP'S QUEUE SECTION, PLUS ITS
     // ACTIVITY FEED RAIL (WHICH RIDES ALONG IN EVERY SECTION)
     try {
       const state = await this.core.models.state.get();

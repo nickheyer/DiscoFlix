@@ -72,7 +72,7 @@ class ArrClient extends BaseClient {
     return this._get('/health');
   }
 
-  // FULL LIBRARY LISTING (/movie OR /series) — THE LIBRARY SECTION'S SOURCE.
+  // FULL LIBRARY LISTING (/movie OR /series) - THE LIBRARY SECTION'S SOURCE.
   // SORTED FOR BROWSING; PAGING IS SLICED SERVER-SIDE FROM THE CACHED LIST.
   async getLibrary() {
     const items = (await this._get(`/${this.resource}`))
@@ -127,7 +127,7 @@ class ArrClient extends BaseClient {
   }
 
   // ADD TO LIBRARY (MONITORED + SEARCH-ON-ADD), DEFAULTING TO THE FIRST
-  // ROOT FOLDER AND QUALITY PROFILE — PER-REQUEST SELECTION IS BACKLOGGED
+  // ROOT FOLDER AND QUALITY PROFILE - PER-REQUEST SELECTION IS BACKLOGGED
   async add(normalizedResult) {
     const [rootFolders, profiles] = await Promise.all([
       this.getRootFolders(),
@@ -165,7 +165,7 @@ class ArrClient extends BaseClient {
     return poster?.remoteUrl || poster?.url || null;
   }
 
-  // LIBRARY ROWS OFTEN ONLY CARRY THE ARR-LOCAL /MediaCover PATH — ABSOLUTIZE
+  // LIBRARY ROWS OFTEN ONLY CARRY THE ARR-LOCAL /MediaCover PATH - ABSOLUTIZE
   // AGAINST THE INSTANCE URL SO THE BROWSER CAN LOAD IT
   absolutePosterFrom(images = []) {
     const poster = ArrClient.posterFrom(images);

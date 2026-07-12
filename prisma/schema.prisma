@@ -190,7 +190,7 @@ model MediaRequest {
   id                String         @id @default(cuid())
   created_at        DateTime       @default(now())
   updated_at        DateTime       @updatedAt @default(now())
-  // NULL = CONSOLE-INITIATED (SEARCH & ADD) — NO ORIGINATING GUILD
+  // NULL = CONSOLE-INITIATED (SEARCH & ADD) - NO ORIGINATING GUILD
   made_in           DiscordServer? @relation("DiscordServerRequests", fields: [madeInId], references: [server_id])
   madeInId          String?
   media             Media         @relation(fields: [mediaId], references: [id])

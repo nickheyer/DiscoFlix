@@ -62,7 +62,7 @@
   overflow-y: auto;
 }
 
-/* FOOTERS EXIST ONLY WHERE THEY CARRY REAL ACTIONS — AND STAY SLIM */
+/* FOOTERS EXIST ONLY WHERE THEY CARRY REAL ACTIONS - AND STAY SLIM */
 .modal-footer {
   padding: 8px 16px;
   background-color: var(--bg-secondary-alt);

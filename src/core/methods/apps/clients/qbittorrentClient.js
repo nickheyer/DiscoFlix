@@ -34,7 +34,7 @@ function formatEta(seconds) {
   return `${minutes}m`;
 }
 
-// QBITTORRENT WEBUI API v2 — COOKIE-SESSION AUTH (POST /auth/login -> SID)
+// QBITTORRENT WEBUI API v2 - COOKIE-SESSION AUTH (POST /auth/login -> SID)
 class QbittorrentClient extends BaseClient {
   constructor({ url, username, password, logger, cacheKey }) {
     super({ url, logger });
@@ -121,7 +121,7 @@ class QbittorrentClient extends BaseClient {
       }));
   }
 
-  // NORMALIZED FEED ROWS (SEE baseClient CONTRACT) — QBIT HAS NO PAGED HISTORY
+  // NORMALIZED FEED ROWS (SEE baseClient CONTRACT) - QBIT HAS NO PAGED HISTORY
   // ENDPOINT, SO COMPLETED TORRENTS ARE SORTED AND SLICED CLIENT-SIDE
   async getHistory(page = 1, pageSize = 15) {
     const torrents = await this._request('/api/v2/torrents/info', { filter: 'completed' });

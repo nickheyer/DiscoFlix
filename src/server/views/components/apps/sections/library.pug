@@ -1,11 +1,11 @@
-//- Library — poster grid over the arr's full listing, extended by the revealed sentinel in libraryCards.
+//- LIBRARY - POSTER GRID OVER THE ARR'S FULL LISTING, EXTENDED BY THE REVEALED SENTINEL IN libraryCards.
 - var library = sectionData.library || { items: [], total: 0, hasMore: false, page: 1 }
 - var contentKind = sectionData.contentKind || 'movie'
-.request-section-header Library — #{library.total} #{sectionData.contentTypeLabel || 'item'}#{library.total === 1 ? '' : 's'}
+.request-section-header Library - #{library.total} #{sectionData.contentTypeLabel || 'item'}#{library.total === 1 ? '' : 's'}
 if library.error
-  .appQueueEmpty #{activeApp.display_name} didn't answer — #{library.error}
+  .appQueueEmpty #{activeApp.display_name} didn't answer - #{library.error}
 else if !library.items.length
-  .appQueueEmpty Nothing here yet — approved requests land in the library.
+  .appQueueEmpty Nothing here yet - approved requests land in the library.
 else
   .posterGrid#posterGrid
     include ../libraryCards

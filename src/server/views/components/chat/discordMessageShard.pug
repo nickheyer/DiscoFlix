@@ -7,12 +7,12 @@
 - var userId = user.id
 - var timeStamp = created_at
 - var messageText = content
-//- PERSISTED EMBEDS/ATTACHMENTS ARE JSON COLUMNS — PARSE DEFENSIVELY
+//- PERSISTED EMBEDS/ATTACHMENTS ARE JSON COLUMNS - PARSE DEFENSIVELY
 - var embedList = []
 - try { embedList = embeds ? JSON.parse(embeds) : [] } catch (err) {}
 - var attachmentList = []
 - try { attachmentList = attachments ? JSON.parse(attachments) : [] } catch (err) {}
-//- CLASSIC DATE DIVIDER — compileMessages FLAGS THE FIRST MESSAGE OF EACH DAY
+//- CLASSIC DATE DIVIDER - compileMessages FLAGS THE FIRST MESSAGE OF EACH DAY
 if dayDivider
   .divider.dateDivider
     span.dividerText= dayDivider
@@ -39,7 +39,7 @@ if isFirstUnread
           if requestChip.title
             span.requestChipTitle= requestChip.title
       //include message/messageTyping
-  //- HOVER ACTION TRAY — CLASSIC TOP-RIGHT TOOLBAR; ACTIONS ONLY WHERE THEY
+  //- HOVER ACTION TRAY - CLASSIC TOP-RIGHT TOOLBAR; ACTIONS ONLY WHERE THEY
   //- MEAN SOMETHING (REQUEST ROWS). APPROVE/DENY FIRE-AND-FORGET; THE
   //- HANDLER'S refreshUI() PUSHES THE UPDATED CHIP BACK OVER THE SOCKET.
   if requestChip

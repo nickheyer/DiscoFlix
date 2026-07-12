@@ -21,7 +21,7 @@
     height: 100vh;
   }
 
-  /* MEMBERS PANE IS A STUB — NEVER LET IT OVERLAY THE RAIL ON MOBILE */
+  /* MEMBERS PANE IS A STUB - NEVER LET IT OVERLAY THE RAIL ON MOBILE */
   .memberContainer {
     display: none;
   }

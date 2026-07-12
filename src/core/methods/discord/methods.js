@@ -108,7 +108,7 @@ module.exports = {
       const activeServer = stateRow?.activeServer;
 
       const isSelf = author.id === bot.bot_id;
-      // DURING AN APP TAKEOVER NOTHING IS "ACTIVE" — MESSAGES ACCRUE UNREAD
+      // DURING AN APP TAKEOVER NOTHING IS "ACTIVE" - MESSAGES ACCRUE UNREAD
       // BADGES INSTEAD OF BEING EMITTED INTO A SURFACE THAT ISN'T SHOWING THEM
       const isActiveChannel = !stateRow?.active_app_id
         && activeServer?.active_channel_id === rawDiscMsg.channelId;
@@ -228,7 +228,7 @@ module.exports = {
     const existing = await this.core.prisma.discordMessage.findUnique({
       where: { message_id: newMsg.id }
     });
-    // NEVER MIRRORED (PREDATES SYNC / BEYOND THE CAP) — LOG IT AS A FRESH ROW
+    // NEVER MIRRORED (PREDATES SYNC / BEYOND THE CAP) - LOG IT AS A FRESH ROW
     if (!existing) return this.logMessageToInterface(newMsg);
 
     const richContent = this.extractRichContent(newMsg);
@@ -267,7 +267,7 @@ module.exports = {
     let previousDay = null;
     for (const message of messages) {
       // CLASSIC DATE DIVIDER ABOVE THE FIRST MESSAGE OF EACH DAY (SKIPPED ON
-      // OOB EDIT PUSHES — A LONE REPLACEMENT ROW HAS NO NEIGHBORS TO DIVIDE)
+      // OOB EDIT PUSHES - A LONE REPLACEMENT ROW HAS NO NEIGHBORS TO DIVIDE)
       const rawDate = new Date(message.created_at);
       if (!message.oobReplace && rawDate.toDateString() !== previousDay) {
         message.dayDivider = rawDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
@@ -300,7 +300,7 @@ module.exports = {
       }
     }
 
-    // CAPTURE THE UNREAD COUNT BEFORE ZEROING — IT PLACES THE "NEW" DIVIDER
+    // CAPTURE THE UNREAD COUNT BEFORE ZEROING - IT PLACES THE "NEW" DIVIDER
     const channelRow = await this.core.models.discordChannel.getById(active_channel_id);
     const unreadCount = channelRow?.unread_message_count || 0;
 
@@ -327,7 +327,7 @@ module.exports = {
     const messages = await this.core.models.discordChannel.getMessages(active_channel_id);
     this.logger.info(`Rendering ${messages.length} messages to UI`);
 
-    // MESSAGES ARE OLDEST-FIRST — FLAG THE FIRST OF THE NEWEST `unreadCount`
+    // MESSAGES ARE OLDEST-FIRST - FLAG THE FIRST OF THE NEWEST `unreadCount`
     // SO THE SHARD TEMPLATE DRAWS THE CLASSIC RED "NEW" DIVIDER ABOVE IT
     if (unreadCount > 0 && messages.length > 0) {
       messages[Math.max(0, messages.length - unreadCount)].isFirstUnread = true;
@@ -341,7 +341,7 @@ module.exports = {
   async refreshUI(messageObjects = null) {
     const state = await this.core.models.state.get();
 
-    // APP TAKEOVER GUARD: NEVER STOMP THE APP SURFACE — ONLY THE RAILS KEEP
+    // APP TAKEOVER GUARD: NEVER STOMP THE APP SURFACE - ONLY THE RAILS KEEP
     // FLOWING (GUILD UNREAD BADGES + APP STATUS DOTS)
     if (state.active_app_id) {
       const servers = await this.core.render.getServerTemplateObj(null, state);
@@ -363,6 +363,7 @@ module.exports = {
     const servers = await this.core.render.getServerTemplateObj(null, state);
     const members = await this.core.render.getServerMembers(state.active_server_id);
     const apps = await this.core.apps.getRailViewModel(state);
+    const onboarding = await this.core.render.getOnboarding(state);
 
     await this.core.sockets.emitCompiled([
       'sidebar/servers/serverSortableContainer.pug',
@@ -380,7 +381,8 @@ module.exports = {
       eomStamp,
       state,
       members,
-      apps
+      apps,
+      onboarding
     });
   }
 };

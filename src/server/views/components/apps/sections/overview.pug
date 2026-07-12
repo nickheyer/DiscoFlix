@@ -1,4 +1,4 @@
-//- OVERVIEW — IDENTITY, STATUS PILL (HEARTBEAT CACHE), HEALTH, QUICK STATS.
+//- OVERVIEW - IDENTITY, STATUS PILL (HEARTBEAT CACHE), HEALTH, QUICK STATS.
 //- sectionData: { configured, status {ok, version?, error?}, health [{type,message}],
 //-               queueCount, appUrl }
 if !sectionData.configured
@@ -6,7 +6,7 @@ if !sectionData.configured
     .welcomeHashCircle
       img(src=appManifest.icon alt=activeApp.display_name style="width: 40px; height: 40px;")
     .welcomeTitle Welcome to #{activeApp.display_name}!
-    .welcomeSubtitle It isn't connected yet — set its URL and credentials to bring it online.
+    .welcomeSubtitle It isn't connected yet - set its URL and credentials to bring it online.
     .appSectionActions
       button.modal-button(
         hx-post=`/apps/${activeApp.id}/section/settings`

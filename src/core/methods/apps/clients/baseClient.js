@@ -3,11 +3,11 @@
 // ARRAY OF NORMALIZED QUEUE ROWS:
 //   { id, title, status, percent (0-100 int), timeleft, size, sizeleft, raw }
 // THE NORMALIZED SHAPE IS SHARED BY THE MONITOR, THE DOWNLOAD TICKER, AND
-// EVERY QUEUE UI — ONLY matchesQueueRecord IMPLEMENTATIONS MAY REACH INTO raw.
+// EVERY QUEUE UI - ONLY matchesQueueRecord IMPLEMENTATIONS MAY REACH INTO raw.
 // getHistory(page) -> { rows, hasMore } OF NORMALIZED FEED ROWS:
 //   { id, kind ('grabbed'|'imported'|'completed'|'failed'|'deleted'|'renamed'|
 //     'ignored'|'info'), title, detail, at (ISO STRING) }
-// — THE ACTIVITY FEED IN THE TAKEOVER'S RIGHT RAIL RENDERS THESE.
+// - THE ACTIVITY FEED IN THE TAKEOVER'S RIGHT RAIL RENDERS THESE.
 class BaseClient {
   constructor({ url, logger }) {
     this.serviceLabel = 'App';
@@ -42,7 +42,7 @@ class BaseClient {
     return `${value >= 100 || unit === 0 ? Math.round(value) : value.toFixed(1)} ${units[unit]}`;
   }
 
-  // ERRORS ARE REWRAPPED WITH A USER-PRESENTABLE MESSAGE — THE REQUEST FLOW
+  // ERRORS ARE REWRAPPED WITH A USER-PRESENTABLE MESSAGE - THE REQUEST FLOW
   // ECHOES `err.message` STRAIGHT INTO DISCORD
   _normalizeError(err) {
     let message;
@@ -66,7 +66,7 @@ class BaseClient {
   async getHealth() { return []; }
   async getHistory() { return { rows: [], hasMore: false }; }
 
-  // UI/DISPATCH HINTS — CONTENT MANAGERS OVERRIDE search/add/health
+  // UI/DISPATCH HINTS - CONTENT MANAGERS OVERRIDE search/add/health
   get capabilities() {
     return { search: false, add: false, library: false, health: false, pauseResume: false };
   }

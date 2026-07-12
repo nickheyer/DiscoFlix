@@ -4,14 +4,14 @@ const LIBRARY_PAGE_SIZE = 60;
 const LIBRARY_TTL_MS = 5 * 60 * 1000;
 
 // READ-ONLY BROWSING SURFACES FOR THE TAKEOVER: THE ACTIVITY FEED (RIGHT RAIL,
-// REPLACES THE MEMBERS PANE — AND THE OLD HISTORY SECTION) AND LIBRARY POSTER
+// REPLACES THE MEMBERS PANE - AND THE OLD HISTORY SECTION) AND LIBRARY POSTER
 // PAGES. BOTH RIDE SMALL CACHES SO SECTION SWITCHES AND REVEALED-SENTINEL
 // PAGINATION DON'T HAMMER THE SERVICES.
 module.exports = {
   FEED_PAGE_SIZE,
   LIBRARY_PAGE_SIZE,
 
-  // ONE LIVE HISTORY PAGE, GUARDED — FEED FAILURES NEVER TAKE A RENDER DOWN
+  // ONE LIVE HISTORY PAGE, GUARDED - FEED FAILURES NEVER TAKE A RENDER DOWN
   async getFeedPage(instance, page = 1) {
     const client = this.getClientForInstance(instance);
     if (!client) return { rows: [], hasMore: false };
@@ -23,7 +23,7 @@ module.exports = {
     }
   },
 
-  // PAGE 1, CACHED — TAKEOVER RENDERS AND THE HEARTBEAT SHARE IT
+  // PAGE 1, CACHED - TAKEOVER RENDERS AND THE HEARTBEAT SHARE IT
   async getFeedViewModel(instance) {
     if (!instance) return { rows: [], hasMore: false };
     const cached = this.feedCache.get(instance.id);
@@ -33,7 +33,7 @@ module.exports = {
     return feed;
   },
 
-  // HEARTBEAT REFRESH — RETURNS THE FRESH FEED ONLY WHEN IT ACTUALLY CHANGED,
+  // HEARTBEAT REFRESH - RETURNS THE FRESH FEED ONLY WHEN IT ACTUALLY CHANGED,
   // SO THE RAIL ISN'T RE-SWAPPED (AND ITS SCROLL RESET) EVERY 60s
   async refreshFeed(instance) {
     const feedKey = feed => JSON.stringify((feed?.rows || []).map(row => `${row.id}:${row.kind}`));
@@ -43,7 +43,7 @@ module.exports = {
     return feedKey(feed) !== feedKey(previous?.feed) ? feed : null;
   },
 
-  // LIBRARY PAGES SLICE A TTL-CACHED FULL LISTING — THE ARR RETURNS THE WHOLE
+  // LIBRARY PAGES SLICE A TTL-CACHED FULL LISTING - THE ARR RETURNS THE WHOLE
   // LIBRARY IN ONE CALL, AND SCROLL PAGINATION MUST NOT REFETCH IT PER PAGE.
   // THE CACHE IS INVALIDATED ON CONSOLE ADDS (SEARCH & ADD).
   async getLibraryPage(instance, page = 1) {

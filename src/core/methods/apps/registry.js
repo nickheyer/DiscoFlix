@@ -1,11 +1,11 @@
-// THE APP-TYPE REGISTRY — PURE MODULE (NO core), SO THE BOT'S COMMAND PARSER
+// THE APP-TYPE REGISTRY - PURE MODULE (NO core), SO THE BOT'S COMMAND PARSER
 // CAN REQUIRE IT DIRECTLY. THIS + THE MANIFESTS REPLACE THE FIVE TABLES THAT
 // USED TO DUPLICATE THE SERVICE↔CONTENT-TYPE BINDING (arr/clients.js SERVICES,
 // api/apps.js APP_DEFS, requestFlow CONTENT_TYPES, api/requests CONTENT_SERVICES,
 // commands TYPE_ALIASES/SLASH_COMMANDS).
 const APP_TYPES = require('./manifests');
 
-// NO 'history' SECTION — RECENT ACTIVITY LIVES IN THE TAKEOVER'S RIGHT RAIL
+// NO 'history' SECTION - RECENT ACTIVITY LIVES IN THE TAKEOVER'S RIGHT RAIL
 // (apps/appFeed.pug), VISIBLE FROM EVERY SECTION
 const SECTION_LABELS = {
   overview: 'Overview',
@@ -42,7 +42,7 @@ function contentTypeDefs() {
   return _contentTypeDefs;
 }
 
-// { movie: 'movie', film: 'movie', tv: 'show', ... } — PREFIX KEYWORD LOOKUP
+// { movie: 'movie', film: 'movie', tv: 'show', ... } - PREFIX KEYWORD LOOKUP
 let _aliasIndex = null;
 function aliasIndex() {
   if (!_aliasIndex) {

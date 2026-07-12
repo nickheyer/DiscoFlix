@@ -26,7 +26,7 @@ mixin field(field, fieldKey, recordId, readonly)
         name=!readonly && fieldKey
         id=!readonly && fieldId
         value=field.value || false
-        placeholder=field.sensitive ? (field.isSet ? '•••••••• (saved — leave blank to keep)' : 'Not set') : field.placeholder
+        placeholder=field.sensitive ? (field.isSet ? '•••••••• (saved - leave blank to keep)' : 'Not set') : field.placeholder
         autocomplete=field.sensitive ? 'new-password' : undefined
         min=field.min
         max=field.max

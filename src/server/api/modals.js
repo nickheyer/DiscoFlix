@@ -52,7 +52,7 @@ async function getPaginatedData(model, currentPage, perPage, searchQuery = '') {
 }
 
 async function renderRecordsView(ctx, model, records, currentPage, perPage, totalRecords, searchQuery = null, message = null, fullRender = null) {
-    // BASE.PUG ALREADY INCLUDES _RECORDS — RENDERING BOTH DUPLICATES THE RECORDS INTO #modals-here
+    // BASE.PUG ALREADY INCLUDES _RECORDS - RENDERING BOTH DUPLICATES THE RECORDS INTO #modals-here
     const templatesToRender = fullRender ?
         ['modals/settings/base.pug', 'extra/notification.pug'] :
         ['modals/settings/_records.pug', 'extra/notification.pug'];

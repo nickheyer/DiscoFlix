@@ -1,7 +1,7 @@
-//- Result list for #appSearchResults; searchResults null = prompt state, [] = no matches.
+//- RESULT LIST FOR #appSearchResults; searchResults null = PROMPT STATE, [] = NO MATCHES.
 include ../../mixins/appSearchRow
 if searchError
-  .appQueueEmpty Search failed — #{searchError}
+  .appQueueEmpty Search failed - #{searchError}
 else if !searchResults
   .appQueueEmpty Search for something to add to #{activeApp.display_name}.
 else if !searchResults.length

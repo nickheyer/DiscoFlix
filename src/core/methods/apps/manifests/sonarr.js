@@ -4,7 +4,7 @@ module.exports = {
   id: 'sonarr',
   label: 'Sonarr',
   icon: '/images/sonarr.min.svg',
-  blurb: 'TV shows — search, request, and track',
+  blurb: 'TV shows - search, request, and track',
   kind: 'content-manager',
   Client: SonarrClient,
   contentTypes: [{

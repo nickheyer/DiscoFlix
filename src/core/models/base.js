@@ -87,7 +87,7 @@ class BaseModel {
             .catch(this._handleError('update'));
     }
 
-    // NOTE: `update` MUST STAY PARTIAL — DO NOT RUN IT THROUGH _sanitizeData,
+    // NOTE: `update` MUST STAY PARTIAL - DO NOT RUN IT THROUGH _sanitizeData,
     // WHICH RESETS EVERY ABSENT FIELD (FORM SEMANTICS, SEE _sanitizeData)
     async upsert(where = {}, create = {}, update = {}, include = {}) {
         const pkName = this.getPrimaryKeyName();
@@ -186,7 +186,7 @@ class BaseModel {
             
     }
 
-    // DATA SANITIZATION — HTML FORM SEMANTICS: EVERY METADATA FIELD ABSENT
+    // DATA SANITIZATION - HTML FORM SEMANTICS: EVERY METADATA FIELD ABSENT
     // FROM `data` IS RESET TO ITS FALSY DEFAULT (UNCHECKED CHECKBOXES DON'T
     // POST). ONLY USE THIS ON FULL FORM SUBMISSIONS, NEVER ON PARTIAL UPDATES.
     _sanitizeData(data, existingData = {}) {

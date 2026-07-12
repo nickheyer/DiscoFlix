@@ -14,7 +14,7 @@ module.exports = {
 
     const renderedViews = await Promise.all(viewFiles.map((file, index) => {
       const viewPath = path.resolve(__dirname, '../../../server/views/components', file);
-      // `md` IS AVAILABLE IN EVERY COMPILED TEMPLATE — ESCAPES, THEN RENDERS
+      // `md` IS AVAILABLE IN EVERY COMPILED TEMPLATE - ESCAPES, THEN RENDERS
       // THE DISCORD-MARKDOWN SUBSET. USE WITH !{md(...)} ONLY.
       const templateArgs = { md: renderMarkdownLite, ...globalArgs, ...(localArgsArray[index] || {}), cache: CACHE_TEMPLATES };
       return pug.renderFile(viewPath, templateArgs);

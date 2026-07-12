@@ -11,11 +11,11 @@
       .request-row(id=`appq-${activeApp.id}-${item.id}`)
         .request-info
           .request-title= item.title
-          .request-meta= item.status + (item.timeleft ? ` — ${item.timeleft} left` : '')
+          .request-meta= item.status + (item.timeleft ? ` - ${item.timeleft} left` : '')
         .request-status
           .request-progress
             .request-progress-track
               .request-progress-bar(style=`width: ${item.percent}%`)
             .request-progress-text #{item.percent}%
   else
-    .appQueueEmpty The queue is sleeping — nothing downloading right now.
+    .appQueueEmpty The queue is sleeping - nothing downloading right now.

@@ -1,7 +1,7 @@
-//- CACHED AVATARS ARE STORED AS BARE PATHS (user_images/…) — SERVE ROOT-RELATIVE
+//- CACHED AVATARS ARE STORED AS BARE PATHS (user_images/…) - SERVE ROOT-RELATIVE
 - var avatarSrc = avatarUrl ? (/^https?:\/\//.test(avatarUrl) ? avatarUrl : `/${avatarUrl.replace(/^\/+/, '')}`) : "https://cdn.discordapp.com/embed/avatars/0.png"
 //- CLICKING AN AVATAR OPENS THAT USER'S SETTINGS FORM (SAME FLOW AS THE
-//- CHANNEL GEAR) — ONLY WHEN THE RENDER PATH SUPPLIED A userId
+//- CHANNEL GEAR) - ONLY WHEN THE RENDER PATH SUPPLIED A userId
 - var canOpenUser = typeof userId !== 'undefined' && userId
 img.userAvatar.chatAuthorAvatar(
     src=avatarSrc

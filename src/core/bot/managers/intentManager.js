@@ -9,7 +9,7 @@ module.exports = () => {
       GatewayIntentBits.GuildMembers,
     ],
     // WITHOUT Partials.Message, EDITS TO UNCACHED MESSAGES NEVER FIRE
-    // MessageUpdate — onMessageUpdate FETCHES THE FULL MESSAGE WHEN PARTIAL
+    // MessageUpdate - onMessageUpdate FETCHES THE FULL MESSAGE WHEN PARTIAL
     partials: [
       Partials.Message,
     ]

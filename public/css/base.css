@@ -12,7 +12,7 @@ html, body, #root {
   scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 
-/* THE GLOBAL RESET ABOVE KILLS FOCUS RINGS — GIVE KEYBOARD USERS ONE BACK */
+/* THE GLOBAL RESET ABOVE KILLS FOCUS RINGS - GIVE KEYBOARD USERS ONE BACK */
 input:focus-visible,
 button:focus-visible,
 a:focus-visible,

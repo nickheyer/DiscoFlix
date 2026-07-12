@@ -8,7 +8,7 @@ function mbToBytes(mb) {
   return isNaN(num) || num <= 0 ? null : Math.round(num * MB);
 }
 
-// SABNZBD JSON API — SINGLE /api ENDPOINT, mode= SELECTS THE OPERATION.
+// SABNZBD JSON API - SINGLE /api ENDPOINT, mode= SELECTS THE OPERATION.
 // SAB ANSWERS HTTP 200 EVEN FOR A BAD API KEY ({ status: false, error }), SO
 // APPLICATION-LEVEL FAILURES ARE DETECTED AND RETHROWN AS NORMALIZED ERRORS.
 class SabnzbdClient extends BaseClient {
@@ -57,7 +57,7 @@ class SabnzbdClient extends BaseClient {
     }));
   }
 
-  // NORMALIZED FEED ROWS (SEE baseClient CONTRACT) — SAB PAGES VIA start/limit
+  // NORMALIZED FEED ROWS (SEE baseClient CONTRACT) - SAB PAGES VIA start/limit
   async getHistory(page = 1, pageSize = 15) {
     const start = (page - 1) * pageSize;
     const data = await this._call('history', { start, limit: pageSize });

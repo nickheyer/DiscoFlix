@@ -18,7 +18,7 @@ function escapeHtml(text) {
 const MD_LINK = /\[([^\]\n]+)\]\((https?:\/\/[^\s<)]+)\)/g;
 const BARE_URL = /(^|[^"=>])(https?:\/\/[^\s<]+[^\s<.,:;"')\]!?])/g;
 
-// PRIVATE-USE SENTINELS FENCE CODE-SPAN PLACEHOLDERS — CHAT TEXT CANT COLLIDE
+// PRIVATE-USE SENTINELS FENCE CODE-SPAN PLACEHOLDERS - CHAT TEXT CANT COLLIDE
 const PH_OPEN = '\uE000';
 const PH_CLOSE = '\uE001';
 const PH_PATTERN = /\uE000(\d+)\uE001/g;

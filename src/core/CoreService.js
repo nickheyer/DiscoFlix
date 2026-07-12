@@ -8,14 +8,14 @@ const { createHttpTerminator } = require('http-terminator');
 /**
  * Application spine. A singleton that everything hangs off of:
  *
- * - `core.models.*`  — Prisma-backed model wrappers (src/core/models). Keys are
+ * - `core.models.*`  - Prisma-backed model wrappers (src/core/models). Keys are
  *                      URL-addressable by the dynamic settings modals.
- * - `core.discord.*` — bot lifecycle + guild/channel/message sync (src/core/methods/discord)
- * - `core.render.*`  — pug compilation + view-model builders (src/core/methods/rendering)
- * - `core.sockets.*` — browser websocket registry + broadcasting (src/core/methods/websocket)
- * - `core.apps.*`    — installed app instances (Radarr/Sonarr/SABnzbd/qBittorrent...):
+ * - `core.discord.*` - bot lifecycle + guild/channel/message sync (src/core/methods/discord)
+ * - `core.render.*`  - pug compilation + view-model builders (src/core/methods/rendering)
+ * - `core.sockets.*` - browser websocket registry + broadcasting (src/core/methods/websocket)
+ * - `core.apps.*`    - installed app instances (Radarr/Sonarr/SABnzbd/qBittorrent...):
  *                      manifest registry, API clients, queue monitor + heartbeat (src/core/methods/apps)
- * - `core.system.*`  — process/server shutdown (src/core/methods/server)
+ * - `core.system.*`  - process/server shutdown (src/core/methods/server)
  *
  * Lazy getters: `client` (discord.js), `app` (koa), `server` (http), `prisma`, `wss`.
  */

@@ -1,7 +1,7 @@
 const STATE_LABELS = {
   pending: 'Pending',
   denied: 'Denied',
-  approved: 'Approved — searching',
+  approved: 'Approved - searching',
   downloading: 'Downloading',
   available: 'Available'
 };

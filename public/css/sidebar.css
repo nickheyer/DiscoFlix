@@ -87,14 +87,14 @@
   transition: background-color 0.15s ease-out, border-radius 0.15s ease-out;
 }
 
-/* THE CLASSIC SQUIRCLE MORPH — CIRCLE AT REST, ROUNDED SQUARE WHEN ACTIVE/HOVERED */
+/* THE CLASSIC SQUIRCLE MORPH - CIRCLE AT REST, ROUNDED SQUARE WHEN ACTIVE/HOVERED */
 .server.active,
 .server:hover {
   background-color: var(--blurple);
   border-radius: 30%;
 }
 
-/* THE CLASSIC WHITE PILL IN THE RAIL GUTTER — A REAL CHILD ELEMENT BECAUSE
+/* THE CLASSIC WHITE PILL IN THE RAIL GUTTER - A REAL CHILD ELEMENT BECAUSE
    COOLTIPZ ALREADY OWNS ::before/::after ON THE BUBBLES. SHORT ON HOVER,
    TALL ON ACTIVE; THE GREEN "+" BUBBLES OPT OUT. */
 .railPill {
@@ -182,18 +182,18 @@
   flex-shrink: 0;
 }
 
-/* ---- APP RAIL — PSEUDO-GUILDS FOR CONNECTED SERVICES (RADARR/SONARR/…) ---- */
+/* ---- APP RAIL - PSEUDO-GUILDS FOR CONNECTED SERVICES (RADARR/SONARR/…) ---- */
 
 .appRail {
   display: flex;
   flex-direction: column;
   align-items: center;
   flex-shrink: 0;
-  /* MATCHES .serverBubbles — KEEPS THE PILL GUTTER ALIGNED RAIL-WIDE */
+  /* MATCHES .serverBubbles - KEEPS THE PILL GUTTER ALIGNED RAIL-WIDE */
   padding-inline: 12px;
 }
 
-/* THE PARTITION KEEPS ITS DEFAULT 8px MARGINS — THE INVITE "+" ABOVE IT HAS
+/* THE PARTITION KEEPS ITS DEFAULT 8px MARGINS - THE INVITE "+" ABOVE IT HAS
    margin-bottom: 0, SO THE DIVIDER'S OWN MARGIN IS THE WHOLE GAP */
 
 /* APP LOGOS SIT INSET INSIDE THE BUBBLE INSTEAD OF FILLING IT LIKE GUILD ICONS */
@@ -334,7 +334,7 @@
   min-width: 0;
 }
 
-/* SERVER INFO (i) — RIDES THE BANNER, FADES IN ON HOVER LIKE THE CHANNEL GEAR */
+/* SERVER INFO (i) - RIDES THE BANNER, FADES IN ON HOVER LIKE THE CHANNEL GEAR */
 .serverInfoButton {
   width: 16px;
   height: 16px;
@@ -378,7 +378,7 @@
   color: var(--interactive-active);
 }
 
-/* CHANNEL LIST — FILLS THE SPACE BETWEEN BANNER AND USERBOX */
+/* CHANNEL LIST - FILLS THE SPACE BETWEEN BANNER AND USERBOX */
 .channelViewContainer {
   background-color: var(--bg-secondary);
   display: flex;

@@ -153,7 +153,7 @@ module.exports = {
     };
   },
 
-  // MEMBERS PANE VIEW MODEL — USERS THE APP HAS SEEN ON THE ACTIVE SERVER
+  // MEMBERS PANE VIEW MODEL - USERS THE APP HAS SEEN ON THE ACTIVE SERVER
   // (THE JOIN TABLE FILLS AS MESSAGES SYNC). CLIENT BOT SORTS FIRST.
   async getServerMembers(serverId) {
     if (!serverId) {
@@ -168,8 +168,51 @@ module.exports = {
     );
   },
 
+  // FIRST-RUN CHECKLIST VIEW MODEL - null UNLESS A TOKEN OR SERVER IS STILL MISSING
+  async getOnboarding(state) {
+    if (state?.active_app_id) return null;
+    const config = await this.core.models.configuration.get();
+    const serverCount = await this.core.prisma.discordServer.count();
+    if (config.discord_token && serverCount > 0) return null;
+
+    const [appCount, requestCount] = await Promise.all([
+      this.core.prisma.app.count(),
+      this.core.prisma.mediaRequest.count()
+    ]);
+    const botOnline = !!(this.core.client && this.core.client.isReady());
+    return {
+      steps: [
+        {
+          label: 'Add your Discord bot token',
+          done: !!config.discord_token,
+          cta: { label: 'Open Configuration', url: '/modal/settings/configuration' }
+        },
+        {
+          label: 'Power the bot on',
+          done: botOnline,
+          cta: { label: 'Open Power Menu', url: '/modal/bot/power' }
+        },
+        {
+          label: 'Invite the bot to your Discord server',
+          done: serverCount > 0,
+          cta: { label: 'Get Invite Link', url: '/modal/bot/invite' }
+        },
+        {
+          label: 'Connect an app like Radarr or Sonarr',
+          done: appCount > 0,
+          cta: { label: 'Add an App', url: '/modal/apps/picker' }
+        },
+        {
+          label: 'Make your first request',
+          done: requestCount > 0,
+          hint: `Type ${config.prefix_keyword} movie <title> in Discord, or use an app's Search & Add section`
+        }
+      ]
+    };
+  },
+
   // ACCEPTS A LOADED SERVER RECORD (WITH OR WITHOUT CHANNELS) OR AN ID, AND
-  // RETURNS THE VALID ACTIVE CHANNEL ID — CALLERS DON'T NEED TO REFETCH.
+  // RETURNS THE VALID ACTIVE CHANNEL ID - CALLERS DON'T NEED TO REFETCH.
   async ensureActiveChannel(serverOrId, validChannelIds) {
     const server = typeof serverOrId === 'string'
       ? await this.core.models.discordServer.getById(serverOrId)

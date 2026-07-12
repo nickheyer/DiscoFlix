@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, InteractionContextType } = require('discord.js');
-// PURE REGISTRY — SAFE TO REQUIRE WITHOUT THE CORE SPINE
+// PURE REGISTRY - SAFE TO REQUIRE WITHOUT THE CORE SPINE
 const registry = require('../../methods/apps/registry');
 
 // ONLY CONTENT TYPES WITH AN ENABLED+CONFIGURED INSTANCE GET A SLASH COMMAND.
@@ -29,13 +29,13 @@ function slashContentType(commandName) {
 // PARSES `<prefix> movie|show <title>` MESSAGES. RETURNS null WHEN THE MESSAGE
 // ISN'T ADDRESSED TO THE BOT, { type: 'help' } WHEN IT IS BUT ISN'T A VALID
 // REQUEST, OR { type: 'request', contentType, title }. ALIASES PARSE EVEN WHEN
-// NO INSTANCE SERVES THE TYPE — THE FLOW REPLIES "NOT CONFIGURED", WHICH IS
+// NO INSTANCE SERVES THE TYPE - THE FLOW REPLIES "NOT CONFIGURED", WHICH IS
 // FRIENDLIER THAN SILENCE.
 function parsePrefixCommand(content, prefix) {
   const trimmed = (content || '').trim();
   if (!prefix || !trimmed.toLowerCase().startsWith(prefix.toLowerCase())) return null;
 
-  // PREFIX MUST BE ITS OWN WORD — `!dfilm` IS NOT `!df ilm`
+  // PREFIX MUST BE ITS OWN WORD - `!dfilm` IS NOT `!df ilm`
   const afterPrefix = trimmed[prefix.length];
   if (afterPrefix !== undefined && !/\s/.test(afterPrefix)) return null;
 
@@ -53,7 +53,7 @@ function parsePrefixCommand(content, prefix) {
 function usageText(prefix) {
   const defs = registry.contentTypeDefs();
   const lines = defs.map(def =>
-    `**${prefix} ${def.slash.name} <title>** — ${def.slash.description.charAt(0).toLowerCase()}${def.slash.description.slice(1)}`
+    `**${prefix} ${def.slash.name} <title>** - ${def.slash.description.charAt(0).toLowerCase()}${def.slash.description.slice(1)}`
   );
   const slashNames = defs.map(def => `\`/${def.slash.name}\``).join(' and ');
   lines.push(`Slash commands ${slashNames} work too.`);

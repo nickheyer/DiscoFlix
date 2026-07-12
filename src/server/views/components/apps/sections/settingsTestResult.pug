@@ -1,6 +1,6 @@
-//- INLINE RESULT PILL FOR THE SETTINGS "TEST CONNECTION" BUTTON. NO SELF-OOB —
+//- INLINE RESULT PILL FOR THE SETTINGS "TEST CONNECTION" BUTTON. NO SELF-OOB -
 //- THIS IS THE MAIN SWAP CONTENT (hx-target="#appTestResult"); THE RAIL RIDES
 //- ALONG OOB IN THE SAME RESPONSE. status: { ok, version|error }
 span#appTestResult
   if status
-    span.appStatusPill(class=status.ok ? 'ok' : 'down')= status.ok ? `Connected — v${status.version}` : (status.error || 'unreachable')
+    span.appStatusPill(class=status.ok ? 'ok' : 'down')= status.ok ? `Connected - v${status.version}` : (status.error || 'unreachable')
