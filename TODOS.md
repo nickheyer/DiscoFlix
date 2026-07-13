@@ -482,6 +482,7 @@ template fixtures + 24 client checks green - rides THE live pass below):
 - Bot presence/status line config (playing/watching text)
 - `!df status` / `/status` command - show the caller's open requests + live download state from the arr queue
 - DM request support (`logMessageToInterface` skips DMs entirely; request flow + notifications are guild-channel-only)
+- Complete Discord Request Interface Overhaul - The message based (and others) api/interface provided by discord is very large and full of features and ways to interact or facilitate an interaction, we are using a small fraction of it's capabilities to render a very crude and poorly made interaction full of childish emojis and bad ux for a end user's media request.
 - Re-arm arr queue watches on boot (monitor state is in-memory; open MediaRequests are orphaned by a restart)
 - Root folder / quality profile selection per request (pipeline defaults to first root folder + first profile)
 - Perf: `logMessageToInterface` force-fetches the author from the Discord API on every message (`author.fetch(true)` busts cache); throttle or trust cache
