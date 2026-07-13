@@ -38,7 +38,7 @@ else
           button.appViewToggleButton(
             type="button"
             aria-label="Cover view"
-            data-cooltipz-dir="top"
+            data-tooltip-dir="top"
             class=view === 'covers' ? 'active' : ''
             hx-get=view !== 'covers' ? `/apps/${activeApp.id}/search?view=covers` : undefined
             hx-include=view !== 'covers' && sectionData.searchable ? '#appRailSearchInput' : undefined
@@ -53,7 +53,7 @@ else
           button.appViewToggleButton(
             type="button"
             aria-label="Detailed view"
-            data-cooltipz-dir="top"
+            data-tooltip-dir="top"
             class=view === 'detailed' ? 'active' : ''
             hx-get=view !== 'detailed' ? `/apps/${activeApp.id}/search?view=detailed` : undefined
             hx-include=view !== 'detailed' && sectionData.searchable ? '#appRailSearchInput' : undefined

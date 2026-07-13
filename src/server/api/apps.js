@@ -197,11 +197,57 @@ async function buildSectionData(core, instance, section, opts = {}) {
         }
       }
       data.queueCount = (core.apps.queueCache.get(instance.id) || []).length;
+      // MEDIA SERVERS TRADE THE QUEUE LINE FOR A LIVE STREAM COUNT
+      data.sessionCount = null;
+      if (data.status.ok && client.capabilities.sessions) {
+        const { sessions } = await core.apps.getSessionsFor(instance);
+        data.sessionCount = sessions.length;
+      }
       break;
     }
     case 'queue': {
       data.queue = core.apps.queueCache.get(instance.id) || [];
       data.queueActions = core.apps.queueActionsFor(instance);
+      data.canAddByUrl = !!(client && client.capabilities.addByUrl);
+      break;
+    }
+    // NOW PLAYING - LIVE STREAMS OFF THE MEDIA SERVER, HEARTBEAT KEEPS THE
+    // OPEN SECTION MOVING VIA sessionsBody PUSHES
+    case 'sessions': {
+      const { sessions, error } = configured
+        ? await core.apps.getSessionsFor(instance)
+        : { sessions: [], error: null };
+      data.sessions = sessions;
+      data.sessionsError = error;
+      break;
+    }
+    // RELEASES - THE INDEXER'S SEARCH SURFACE. A TERM RUNS THE META SEARCH,
+    // IDLE SHOWS THE INDEXER ROSTER (WHERE THE SERVICE EXPOSES ONE) AND A HINT
+    case 'releases': {
+      const term = String(opts.searchTerm || '').trim();
+      data.mode = term ? 'search' : 'idle';
+      data.searchTerm = term;
+      if (term && configured) {
+        const [{ releases, error }, grabTargets] = await Promise.all([
+          core.apps.getReleaseResults(instance, term),
+          core.apps.getGrabTargets()
+        ]);
+        data.releases = releases;
+        data.releasesError = error;
+        data.grabTargets = grabTargets;
+      } else {
+        data.releases = [];
+        data.releasesError = null;
+        data.grabTargets = { torrent: [], usenet: [] };
+        if (configured) {
+          try {
+            data.indexers = await client.getIndexers();
+          } catch (err) {
+            core.logger.debug(`${instance.display_name} indexer roster failed: ${err.message}`);
+            data.indexers = null;
+          }
+        }
+      }
       break;
     }
     // ONE SURFACE, TWO SOURCES: THE ARR LISTING (BROWSE) OR LIVE SEARCH
@@ -209,7 +255,7 @@ async function buildSectionData(core, instance, section, opts = {}) {
     // STYLES (COVER GRID / DETAILED ROWS, STICKY PER MODE)
     case 'library': {
       const manifest = core.apps.getType(instance.app_type);
-      data.contentTypeLabel = manifest.contentTypes[0]?.label || 'item';
+      data.contentTypeLabel = manifest.contentTypes[0]?.label || manifest.browseLabel || 'item';
       data.contentKind = manifest.contentTypes[0]?.type || 'movie';
       data.searchable = !!(client && client.capabilities.search);
       const term = String(opts.searchTerm || '').trim();
@@ -301,11 +347,11 @@ async function buildTakeoverLocals(core, instance, opts = {}) {
     core.apps.getFeedViewModel(instance)
   ]);
   // THE RAIL SEARCH BAR RIDES EVERY SECTION OF A SEARCH-CAPABLE APP - TYPING
-  // ANYWHERE DROPS THE SURFACE INTO THE LIBRARY SECTION'S SEARCH MODE
+  // ANYWHERE DROPS THE SURFACE INTO ITS SEARCH SECTION (LIBRARY OR RELEASES)
   const client = core.apps.getClientForInstance(instance);
   const railSearch = client && client.capabilities.search ? {
     term: String(opts.searchTerm || '').trim(),
-    placeholder: `Search ${nav.appManifest.contentTypes[0]?.label || 'media'}s...`
+    placeholder: `Search ${nav.appManifest.contentTypes[0]?.label || nav.appManifest.browseLabel || 'media'}s...`
   } : null;
   return {
     ...nav,
@@ -636,35 +682,41 @@ async function appLibraryItemAction(ctx) {
   });
 }
 
-// THE RAIL SEARCH BAR'S ROUTE: A TERM DROPS THE TAKEOVER INTO THE LIBRARY
-// SECTION'S SEARCH MODE (THE INPUT LIVES IN THE UNTOUCHED RIGHT RAIL, SO THE
-// TRANSITION IS SEAMLESS); AN EMPTY TERM FALLS BACK TO BROWSING. CROSS-
-// INSTANCE CALLS (ADD-TO TABS) ENTER THAT APP'S TAKEOVER, TERM RIDING ALONG.
-// ?view= ALSO SERVES THE COVERS/DETAILED TOGGLE - SAME RENDER, NEW STYLE.
+// THE RAIL SEARCH BAR'S ROUTE: A TERM DROPS THE TAKEOVER INTO THE APP'S
+// SEARCH SECTION (LIBRARY FOR MEDIA APPS, RELEASES FOR INDEXERS - THE INPUT
+// LIVES IN THE UNTOUCHED RIGHT RAIL, SO THE TRANSITION IS SEAMLESS); AN EMPTY
+// TERM FALLS BACK TO BROWSING. CROSS-INSTANCE CALLS (ADD-TO TABS) ENTER THAT
+// APP'S TAKEOVER, TERM RIDING ALONG. ?view= ALSO SERVES THE COVERS/DETAILED
+// TOGGLE - SAME RENDER, NEW STYLE.
 async function appSearch(ctx) {
   const core = ctx.core;
   const instance = await core.apps.getInstance(ctx.params.id);
   const manifest = instance && core.apps.getType(instance.app_type);
-  if (!instance || !manifest || !manifest.sections.includes('library')) {
+  const searchSection = manifest?.sections.includes('library')
+    ? 'library'
+    : (manifest?.sections.includes('releases') ? 'releases' : null);
+  if (!instance || !searchSection) {
     ctx.status = 404;
     return;
   }
 
   const term = String(ctx.query.term || '').trim();
   const view = String(ctx.query.view || '').trim();
-  if (view) core.apps.setBrowseView(instance.id, term ? 'search' : 'library', view);
+  if (view && searchSection === 'library') {
+    core.apps.setBrowseView(instance.id, term ? 'search' : 'library', view);
+  }
 
   let state = await core.models.state.get();
-  // CLEARING THE BOX ONLY MEANS SOMETHING ON THE LIBRARY SURFACE - FROM ANY
+  // CLEARING THE BOX ONLY MEANS SOMETHING ON THE SEARCH SURFACE - FROM ANY
   // OTHER SECTION AN EMPTY TERM MUST NOT YANK THE VIEW AROUND
-  if (!term && !view && (state.active_app_id !== instance.id || instance.active_section !== 'library')) {
+  if (!term && !view && (state.active_app_id !== instance.id || instance.active_section !== searchSection)) {
     ctx.status = 204;
     return;
   }
 
-  if (instance.active_section !== 'library') {
-    await core.models.app.update({ id: instance.id }, { active_section: 'library' });
-    instance.active_section = 'library';
+  if (instance.active_section !== searchSection) {
+    await core.models.app.update({ id: instance.id }, { active_section: searchSection });
+    instance.active_section = searchSection;
   }
 
   if (state.active_app_id !== instance.id) {
@@ -775,6 +827,105 @@ async function appAddMedia(ctx) {
   return ctx.compileView('apps/searchResultRow.pug', { activeApp: instance, searchResult });
 }
 
+// PROXIED SERVICE ART - THE CLIENT FETCHES WITH ITS OWN AUTH SERVER-SIDE, SO
+// TOKENS NEVER RENDER INTO <img> TAGS AND LAN-ONLY SERVICES STILL SHOW ART.
+// CLIENTS WHITELIST THEIR OWN IMAGE PATHS INSIDE fetchImage.
+async function appImage(ctx) {
+  const core = ctx.core;
+  const instance = await core.apps.getInstance(ctx.params.id);
+  const client = instance && core.apps.getClientForInstance(instance);
+  const path = String(ctx.query.path || '');
+  if (!client || !path.startsWith('/') || path.includes('..')) {
+    ctx.status = 404;
+    return;
+  }
+  try {
+    const image = await client.fetchImage(path);
+    ctx.set('Content-Type', image.contentType);
+    ctx.set('Cache-Control', 'private, max-age=3600');
+    ctx.body = image.buffer;
+  } catch (err) {
+    core.logger.debug(`${instance.display_name} image proxy miss: ${err.message}`);
+    ctx.status = 404;
+  }
+}
+
+// PASTED MAGNET/TORRENT/NZB LINK INTO THE QUEUE - SAME RESPONSE SHAPE AS THE
+// QUEUE VERBS SO THE LIST, TICKER, AND TOAST ALL MOVE TOGETHER
+async function appQueueAdd(ctx) {
+  const core = ctx.core;
+  const instance = await core.apps.getInstance(ctx.params.id);
+  if (!instance) {
+    ctx.status = 404;
+    return;
+  }
+
+  const url = String(ctx.request.body?.url || '').trim();
+  const views = ['apps/sections/queueBody.pug', 'chat/downloadTicker.pug', 'extra/notification.pug'];
+  const locals = { activeApp: instance, queueActions: core.apps.queueActionsFor(instance) };
+  try {
+    if (!/^(magnet:|https?:\/\/)/i.test(url)) throw new Error('Paste a magnet or http(s) link');
+    locals.queue = await core.apps.addDownloadTo(instance, url);
+    locals.message = 'Sent to the queue';
+  } catch (err) {
+    core.logger.warn(`Queue add failed on ${instance.display_name}: ${err.message}`);
+    locals.queue = core.apps.queueCache.get(instance.id) || [];
+    locals.message = err.message;
+  }
+  locals.ticker = core.apps.buildTickerAggregate();
+  return ctx.compileView(views, locals);
+}
+
+// RELEASE GRAB - THE INDEXER ROW'S SEND-TO-CLIENT ACTION. RESPONSE SWAPS THE
+// ROW (SENT/FAILED STATE REBUILT FROM THE POSTED FIELDS) AND TOASTS.
+async function appGrabRelease(ctx) {
+  const core = ctx.core;
+  const instance = await core.apps.getInstance(ctx.params.id);
+  if (!instance) {
+    ctx.status = 404;
+    return;
+  }
+
+  const body = ctx.request.body || {};
+  const release = {
+    id: String(body.releaseId || ''),
+    title: String(body.title || 'Unknown'),
+    indexer: body.indexer || null,
+    category: body.category || null,
+    protocol: body.protocol === 'usenet' ? 'usenet' : 'torrent',
+    sizeHuman: body.sizeHuman || null,
+    seeders: body.seeders ? Number(body.seeders) : null,
+    age: body.age || null,
+    downloadUrl: String(body.url || '')
+  };
+
+  let target = null;
+  try {
+    target = await core.apps.getInstance(String(body.targetId || ''));
+    if (!target || core.apps.getType(target.app_type)?.kind !== 'download-client') {
+      throw new Error('Pick a download client to send this to');
+    }
+    if (!release.downloadUrl) throw new Error('This release carries no download link');
+    await core.apps.addDownloadTo(target, release.downloadUrl);
+    release.rowState = 'sent';
+    release.sentTo = target.display_name;
+  } catch (err) {
+    core.logger.warn(`Release grab failed on ${instance.display_name}: ${err.message}`);
+    release.rowState = 'error';
+    release.error = err.message;
+  }
+
+  return ctx.compileView(['apps/releaseRow.pug', 'chat/downloadTicker.pug', 'extra/notification.pug'], {
+    activeApp: instance,
+    release,
+    grabTargets: await core.apps.getGrabTargets(),
+    ticker: core.apps.buildTickerAggregate(),
+    message: release.rowState === 'sent'
+      ? `Sent to ${release.sentTo} - watch its queue`
+      : release.error
+  });
+}
+
 // QUEUE VERBS FROM THE TAKEOVER UI - RESPONDS WITH OOB LIST + TICKER SO THE
 // ROWS AND THE CHROME STRIP MOVE TOGETHER; FAILURES TOAST INTO THE APP HEADER
 async function appQueueAction(ctx) {
@@ -823,6 +974,8 @@ async function renderAppPicker(ctx) {
     icon: manifest.icon,
     blurb: manifest.blurb,
     kind: manifest.kind,
+    why: manifest.why || null,
+    functions: manifest.functions || [],
     installed: counts[manifest.id] || 0
   }));
   return ctx.compileView('modals/apps/picker.pug', { appTypes });
@@ -993,6 +1146,9 @@ module.exports = {
   appLibraryItemAction,
   appSearch,
   appAddMedia,
+  appImage,
+  appQueueAdd,
+  appGrabRelease,
   appQueueAction,
   changeAppSortOrder,
   renderAppPicker,

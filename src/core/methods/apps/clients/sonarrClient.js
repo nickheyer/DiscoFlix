@@ -72,6 +72,7 @@ class SonarrClient extends ArrClient {
       monitored: !!raw.monitored,
       available: (stats.episodeFileCount || 0) > 0,
       availabilityLabel: `${stats.episodeFileCount || 0} of ${stats.episodeCount || 0} episodes`,
+      verbs: ['monitor', 'search'],
       status: raw.status || null,
       genres: raw.genres || [],
       runtime: ArrClient.formatRuntime(raw.runtime),

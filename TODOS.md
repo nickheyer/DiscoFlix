@@ -449,6 +449,82 @@ Remaining:
       bad key with a readable pill; stale active_section='search' rows fall
       back to Overview
 
+## M10 - Full-Featured App Interfaces (in progress)
+
+Scope (Nick, 2026-07-12): the M9 catalog stops being connection-checks -
+media servers and indexers get real surfaces "viewed like a Discord channel",
+every feature ties back to bot user benefit; the add-app picker explains what
+each app actually does for you; tooltips stop hiding behind everything.
+"Availability answers before requesting" promoted up from Feature Planning.
+
+Built 2026-07-12 (fixture renders + stubbed-transport client checks - 17
+template fixtures + 24 client checks green - rides THE live pass below):
+
+- [x] Tooltips replaced: cooltipz CDN dropped, one fixed-position body-level
+      #tooltipLayer (source.js + tooltips.css) driven by aria-label +
+      data-tooltip-dir (renamed everywhere), delegated hover/focus events,
+      viewport clamping, scroll/click/swap dismissal - scroll containers and
+      stacking contexts can no longer clip or bury a tooltip
+- [x] Picker teaches: every visible manifest carries functions[] (complete
+      user functions) + why (one-liner); an (i) toggle expands the card into
+      a green-check function list + italic why line without triggering the
+      add (hyperscript halt) - card became a grid so the detail spans full
+      width
+- [x] Media servers for real (Plex + Emby + Jellyfin via inheritance):
+      Library browse/search on the existing covers/detailed machinery
+      (results always render available; detail opens the real view), Now
+      Playing section (normalized session rows w/ user/device/progress/
+      transcode chips, heartbeat pushes #appSessionList change-only while
+      open, Refresh button), detail views (hero/facts/ratings/links; Plex
+      shows watched-progress seasons, movie file cards from Media/
+      MediaSources), overview shows live stream count, external ids
+      (tmdb/imdb/tvdb) captured on every library row
+- [x] Art proxied, tokens stay server-side: GET /apps/:id/image?path= streams
+      service art through the console (client-side path whitelists, Plex
+      photo transcoder for light grids) - X-Plex-Token/API keys never render
+      into <img> tags and LAN-only servers still show posters
+- [x] Indexers for real (Jackett + NZBHydra2): Releases section driven by
+      the rail search bar (manifest.searchSection routing in appSearch),
+      Jackett JSON aggregate + Hydra newznab o=json searches normalized to
+      release rows (indexer/category/size/age/seeders chips), idle surface =
+      Jackett's configured-indexer roster w/ error dots (roster errors also
+      feed overview Health); every release row can be sent straight to a
+      compatible download client
+- [x] addDownload(url) on all 7 download clients (sab addurl, nzbget append,
+      qbit torrents/add, deluge magnet/url split, transmission torrent-add,
+      rutorrent load.start, utorrent add-url) + paste-a-link add form in the
+      queue section header (POST /apps/:id/queue-add re-swaps list + ticker
+      + toast); release grabs ride the same method via POST /apps/:id/grab
+      (grab targets grouped by manifest.protocol, select when >1)
+- [x] Bot availability answers (promoted from Feature Planning):
+      core.apps.findOnMediaServers matches a selection against every
+      connected media-server library (external ids first, title+year
+      fallback, TTL library cache) and the bot replies "already on <Plex>"
+      instead of opening a request - guarded so a dead server never blocks
+      the flow
+- [x] Contract growth kept honest: BaseClient documents session/release row
+      shapes, capabilities gained sessions/releases/addByUrl and every
+      client now spreads super.capabilities; formatDate/formatRuntime moved
+      down to BaseClient (static inheritance keeps ArrClient call sites);
+      detail views gate monitor chips/verbs on detail.monitored/detail.verbs
+      so media-server details render read-only
+
+Remaining:
+
+- [ ] M10 additions to THE live browser pass (merged with M7/M8/M9's item):
+      tooltips visible over the rail/modals/queue rows in all four
+      directions incl. keyboard focus; picker (i) expands w/o adding, card
+      click still adds; plex/emby/jellyfin library browse + search + detail
+      + Now Playing move while a real stream plays (pause flips the row,
+      heartbeat updates it); posters load through /apps/:id/image with no
+      token in the URL; jackett/hydra release search returns rows, Send to
+      <client> lands the download in its queue + ticker, roster shows a
+      failing indexer red; paste-a-magnet in every torrent client queue and
+      an nzb link in sab/nzbget; bot answers "already on Plex" for an
+      in-library title and still requests a missing one (show-with-missing-
+      episodes caveat noted); grab with zero compatible clients shows the
+      No-client hint
+
 ---
 
 ## Feature Planning (unstaged - promote before working)
@@ -478,7 +554,6 @@ Remaining:
 - Live download ticker: slim strip above the chat input showing active queue progress (the ws push pipeline already feeds the dashboard; surface it in the chat)
 - Per-guild ops stats inside the Server Info modal: requests this week, top requesters, quota usage per user
 - Weekly digest the bot posts to a configured channel ("added this week / now available") - retention hook for end users
-- Availability answers before requesting: check Media/library (later Plex/Jellyfin) and reply "already on the server" with a link instead of opening a request
 - Scope expansion, someday: Lidarr/Readarr clients (`arrClient` is already service-generic) for music/book requests
 - Keyboard accessibility pass: channel rows, gears, and avatars are click-only divs - needs `role="button"`, `tabindex`, and key triggers
-- Self-host vendor assets (htmx, ws.js, hyperscript, sweetalert2, bootstrap, cooltipz, fonts all come from CDNs) - one `npm` vendor step, works offline, no supply-chain surprises
+- Self-host vendor assets (htmx, ws.js, hyperscript, sweetalert2, bootstrap, fonts still come from CDNs; cooltipz already replaced in-repo by M10's tooltip layer) - one `npm` vendor step, works offline, no supply-chain surprises

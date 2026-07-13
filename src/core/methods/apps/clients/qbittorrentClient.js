@@ -182,12 +182,18 @@ class QbittorrentClient extends BaseClient {
     throw new Error(`${this.serviceLabel} cannot '${verb}' a queue item`);
   }
 
+  async addDownload(url) {
+    const data = await this._post('/api/v2/torrents/add', { urls: url });
+    if (typeof data === 'string' && /fail/i.test(data)) {
+      throw new Error(`${this.serviceLabel} did not accept that link`);
+    }
+    return data;
+  }
+
   get capabilities() {
     return {
-      search: false,
-      add: false,
-      library: false,
-      health: false,
+      ...super.capabilities,
+      addByUrl: true,
       queueActions: { item: ['pause', 'resume', 'remove'], queue: ['pause', 'resume'] }
     };
   }

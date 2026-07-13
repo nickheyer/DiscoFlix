@@ -3,8 +3,15 @@ const FEED_TTL_MS = 60 * 1000;
 const LIBRARY_PAGE_SIZE = 60;
 const LIBRARY_TTL_MS = 5 * 60 * 1000;
 const SEARCH_RESULT_CAP = 20;
+const RELEASE_RESULT_CAP = 30;
 const BROWSE_VIEWS = ['covers', 'detailed'];
 const BROWSE_VIEW_DEFAULTS = { library: 'covers', search: 'detailed' };
+
+// TITLE MATCHING FALLBACK FOR AVAILABILITY ANSWERS - EXTERNAL IDS WIN, THIS
+// ONLY CATCHES ITEMS THE MEDIA SERVER NEVER GOT AN ID FOR
+function comparableTitle(title) {
+  return String(title || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+}
 
 // READ-ONLY BROWSING SURFACES FOR THE TAKEOVER: THE ACTIVITY FEED (RIGHT RAIL,
 // REPLACES THE MEMBERS PANE - AND THE OLD HISTORY SECTION) AND LIBRARY POSTER
@@ -125,34 +132,112 @@ module.exports = {
     return feedKey(feed) !== feedKey(previous?.feed) ? feed : null;
   },
 
-  // LIBRARY PAGES SLICE A TTL-CACHED FULL LISTING - THE ARR RETURNS THE WHOLE
-  // LIBRARY IN ONE CALL, AND SCROLL PAGINATION MUST NOT REFETCH IT PER PAGE.
-  // THE CACHE IS INVALIDATED ON CONSOLE ADDS (SEARCH & ADD).
+  // THE TTL-CACHED FULL LISTING - SERVICES RETURN THE WHOLE LIBRARY IN ONE
+  // CALL, AND SCROLL PAGINATION (OR AVAILABILITY MATCHING) MUST NOT REFETCH
+  // IT PER USE. THE CACHE IS INVALIDATED ON CONSOLE ADDS (SEARCH & ADD).
+  async _getFullLibrary(instance, client) {
+    let cached = this.libraryCache.get(instance.id);
+    if (!cached || Date.now() - cached.fetchedAt > LIBRARY_TTL_MS) {
+      cached = { items: await client.getLibrary(), fetchedAt: Date.now() };
+      this.libraryCache.set(instance.id, cached);
+    }
+    return cached.items;
+  },
+
   async getLibraryPage(instance, page = 1) {
     const client = this.getClientForInstance(instance);
     if (!client || !client.capabilities.library) {
       return { items: [], total: 0, hasMore: false, page };
     }
 
-    let cached = this.libraryCache.get(instance.id);
-    if (!cached || Date.now() - cached.fetchedAt > LIBRARY_TTL_MS) {
-      try {
-        cached = { items: await client.getLibrary(), fetchedAt: Date.now() };
-        this.libraryCache.set(instance.id, cached);
-      } catch (err) {
-        this.logger.debug(`${instance.display_name} library fetch failed: ${err.message}`);
-        return { items: [], total: 0, hasMore: false, page, error: err.message };
-      }
+    let items;
+    try {
+      items = await this._getFullLibrary(instance, client);
+    } catch (err) {
+      this.logger.debug(`${instance.display_name} library fetch failed: ${err.message}`);
+      return { items: [], total: 0, hasMore: false, page, error: err.message };
     }
 
     const start = (page - 1) * LIBRARY_PAGE_SIZE;
-    const items = cached.items.slice(start, start + LIBRARY_PAGE_SIZE);
+    const pageItems = items.slice(start, start + LIBRARY_PAGE_SIZE);
     return {
-      items,
-      total: cached.items.length,
-      hasMore: start + items.length < cached.items.length,
+      items: pageItems,
+      total: items.length,
+      hasMore: start + pageItems.length < items.length,
       page
     };
+  },
+
+  // THE BOT'S AVAILABILITY ANSWER: IS THIS LOOKUP RESULT ALREADY STREAMABLE
+  // ON A CONNECTED MEDIA SERVER? EXTERNAL IDS MATCH FIRST, TITLE+YEAR CATCHES
+  // THE REST. RETURNS { instance, item } OR null; FAILURES NEVER BLOCK A
+  // REQUEST FLOW.
+  async findOnMediaServers(result) {
+    const rows = await this.core.models.app.getMany({ enabled: true });
+    const servers = rows.filter(row =>
+      this.getType(row.app_type)?.kind === 'media-server' && this.isConfigured(row)
+    );
+    const wantIds = {
+      tmdb: result.tmdbId ? String(result.tmdbId) : null,
+      imdb: result.imdbId ? String(result.imdbId) : null,
+      tvdb: result.tvdbId ? String(result.tvdbId) : null
+    };
+    const wantKind = result.contentType === 'show' ? 'show' : 'movie';
+    const wantTitle = comparableTitle(result.title);
+
+    for (const row of servers) {
+      const client = this.getClientForInstance(row);
+      if (!client || !client.capabilities.library) continue;
+      let items;
+      try {
+        items = await this._getFullLibrary(row, client);
+      } catch (err) {
+        this.logger.debug(`${row.display_name} availability check skipped: ${err.message}`);
+        continue;
+      }
+      const match = items.find(item => {
+        if (item.kind && item.kind !== wantKind) return false;
+        const ids = item.externalIds || {};
+        if (wantIds.tmdb && ids.tmdb === wantIds.tmdb) return true;
+        if (wantIds.imdb && ids.imdb === wantIds.imdb) return true;
+        if (wantIds.tvdb && ids.tvdb === wantIds.tvdb) return true;
+        return !!wantTitle
+          && comparableTitle(item.title) === wantTitle
+          && (!result.year || !item.year || item.year === result.year);
+      });
+      if (match) return { instance: row, item: match };
+    }
+    return null;
+  },
+
+  // LIVE RELEASE SEARCH FOR INDEXER APPS - THE RELEASES SECTION'S SEARCH MODE
+  async getReleaseResults(instance, term) {
+    const client = this.getClientForInstance(instance);
+    if (!client || !client.capabilities.releases) {
+      return { releases: [], error: `${instance.display_name} cannot search releases` };
+    }
+    try {
+      const releases = (await client.searchReleases(term)).slice(0, RELEASE_RESULT_CAP);
+      return { releases, error: null };
+    } catch (err) {
+      this.logger.warn(`${instance.display_name} release search failed: ${err.message}`);
+      return { releases: [], error: err.message };
+    }
+  },
+
+  // NOW PLAYING ROWS - LIVE ON SECTION RENDERS (STREAMS MOVE FASTER THAN THE
+  // HEARTBEAT), CACHED SO WS PUSHES AND FALLBACK RENDERS SHARE ONE SHAPE
+  async getSessionsFor(instance) {
+    const client = this.getClientForInstance(instance);
+    if (!client || !client.capabilities.sessions) return { sessions: [], error: null };
+    try {
+      const sessions = await client.getSessions();
+      this.sessionsCache.set(instance.id, sessions);
+      return { sessions, error: null };
+    } catch (err) {
+      this.logger.debug(`${instance.display_name} sessions fetch failed: ${err.message}`);
+      return { sessions: this.sessionsCache.get(instance.id) || [], error: err.message };
+    }
   },
 
   // ONE LIVE DETAIL FETCH PER OPEN - NEVER CACHED, THE OPERATOR EXPECTS THE

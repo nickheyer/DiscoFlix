@@ -160,13 +160,16 @@ class UtorrentClient extends BaseClient {
     return this._call({ action: actions[verb], hash: id });
   }
 
+  async addDownload(url) {
+    const data = await this._call({ action: 'add-url', s: url });
+    if (data?.error) throw new Error(`${this.serviceLabel} did not accept that link: ${data.error}`);
+    return data;
+  }
+
   get capabilities() {
     return {
-      search: false,
-      add: false,
-      library: false,
-      libraryDetail: false,
-      health: false,
+      ...super.capabilities,
+      addByUrl: true,
       queueActions: { item: ['pause', 'resume', 'remove'], queue: [] }
     };
   }

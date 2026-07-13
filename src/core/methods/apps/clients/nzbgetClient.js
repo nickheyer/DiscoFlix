@@ -115,13 +115,17 @@ class NzbgetClient extends BaseClient {
     return ok;
   }
 
+  // append'S Content PARAMETER TAKES A URL AS WELL AS BASE64 NZB DATA (v14+)
+  async addDownload(url) {
+    const id = await this._call('append', ['', url, '', 0, false, false, '', 0, 'SCORE']);
+    if (!id || id <= 0) throw new Error(`${this.serviceLabel} did not accept that link`);
+    return id;
+  }
+
   get capabilities() {
     return {
-      search: false,
-      add: false,
-      library: false,
-      libraryDetail: false,
-      health: false,
+      ...super.capabilities,
+      addByUrl: true,
       queueActions: { item: ['pause', 'resume', 'remove'], queue: ['pause', 'resume'] }
     };
   }

@@ -10,6 +10,17 @@
 //   { id, kind ('grabbed'|'imported'|'completed'|'failed'|'deleted'|'renamed'|
 //     'ignored'|'info'), title, detail, at (ISO STRING) }
 // - THE ACTIVITY FEED IN THE TAKEOVER'S RIGHT RAIL RENDERS THESE.
+// OPT-IN SURFACES (GATED BY capabilities, SEE THE GETTER):
+// getSessions() -> NORMALIZED STREAM ROWS FOR THE NOW PLAYING SECTION:
+//   { id, title, subtitle?, user, device, state ('playing'|'paused'|
+//     'buffering'), percent, chips [], raw }
+// searchReleases(term) -> NORMALIZED RELEASE ROWS FOR THE RELEASES SECTION:
+//   { id, title, indexer?, category?, protocol ('torrent'|'usenet'), size,
+//     sizeHuman?, seeders?, age?, downloadUrl, raw }
+// addDownload(url) -> HANDS A MAGNET/TORRENT/NZB LINK TO A DOWNLOAD CLIENT
+// getIndexers() -> [{ id, name, kind?, error? }] | null WHEN UNSUPPORTED
+// fetchImage(path) -> { buffer, contentType } PROXIED ART (TOKENS STAY
+//   SERVER-SIDE - SERVICE URLS/SECRETS NEVER RENDER INTO <img> TAGS)
 class BaseClient {
   constructor({ url, logger }) {
     this.serviceLabel = 'App';
@@ -68,6 +79,11 @@ class BaseClient {
   async getHealth() { return []; }
   async getHistory() { return { rows: [], hasMore: false }; }
   async queueAction() { throw new Error('NOT_IMPLEMENTED'); } // (verb, id) - NULL id TARGETS THE WHOLE QUEUE
+  async addDownload() { throw new Error('NOT_IMPLEMENTED'); } // (url) - MAGNET/TORRENT/NZB LINK
+  async getSessions() { throw new Error('NOT_IMPLEMENTED'); }
+  async searchReleases() { throw new Error('NOT_IMPLEMENTED'); }
+  async getIndexers() { return null; }
+  async fetchImage() { throw new Error('NOT_IMPLEMENTED'); }
 
   // BYTES/SEC -> HUMAN RATE FOR QUEUE ROWS
   static humanSpeed(bytesPerSecond) {
@@ -86,9 +102,45 @@ class BaseClient {
     return `${Math.max(1, minutes)}m`;
   }
 
-  // UI/DISPATCH HINTS - queueActions.item/queue LIST THE VERBS EACH QUEUE SURFACE OFFERS
+  static formatDate(value) {
+    if (!value) return null;
+    const date = new Date(value);
+    if (isNaN(date.getTime())) return null;
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  static formatRuntime(minutes) {
+    const num = Number(minutes);
+    if (isNaN(num) || num <= 0) return null;
+    return num >= 60 ? `${Math.floor(num / 60)}h ${num % 60}m` : `${num}m`;
+  }
+
+  // PUBLISH DATE -> COMPACT AGE ("3h", "5d", "2y") FOR RELEASE ROWS
+  static humanAge(value) {
+    if (!value) return null;
+    const then = new Date(value).getTime();
+    if (isNaN(then)) return null;
+    const days = Math.max(0, (Date.now() - then) / 86400000);
+    if (days < 1) return `${Math.max(1, Math.floor(days * 24))}h`;
+    if (days < 365) return `${Math.floor(days)}d`;
+    return `${(days / 365).toFixed(1)}y`;
+  }
+
+  // UI/DISPATCH HINTS - queueActions.item/queue LIST THE VERBS EACH QUEUE
+  // SURFACE OFFERS. SUBCLASSES SPREAD super.capabilities SO NEW FLAGS GET A
+  // SAFE DEFAULT EVERYWHERE AT ONCE.
   get capabilities() {
-    return { search: false, add: false, library: false, libraryDetail: false, health: false, queueActions: { item: [], queue: [] } };
+    return {
+      search: false,
+      add: false,
+      library: false,
+      libraryDetail: false,
+      health: false,
+      sessions: false,
+      releases: false,
+      addByUrl: false,
+      queueActions: { item: [], queue: [] }
+    };
   }
 }
 

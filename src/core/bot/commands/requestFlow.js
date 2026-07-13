@@ -70,6 +70,18 @@ async function handleSelection(interaction, result, ctx) {
 
   await interaction.update({ content: `⏳ Working on **${name}**...`, embeds: [], components: [] });
 
+  // ALREADY STREAMABLE? A CONNECTED MEDIA SERVER ANSWERS BEFORE ANYTHING IS
+  // REQUESTED - GUARDED, A DEAD SERVER MUST NEVER BLOCK THE FLOW
+  try {
+    const streaming = await core.apps.findOnMediaServers(result);
+    if (streaming) {
+      await ctx.channel.send(`📺 **${name}** is already on **${streaming.instance.display_name}** - go stream it!`);
+      return;
+    }
+  } catch (err) {
+    core.logger.debug(`Availability check skipped: ${err.message}`);
+  }
+
   // ALREADY IN THE LIBRARY?
   const existing = await client.getByExternalId(result.externalKey);
   if (existing) {

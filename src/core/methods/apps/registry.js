@@ -7,11 +7,13 @@ const APP_TYPES = require('./manifests');
 
 // NO 'history' SECTION - RECENT ACTIVITY LIVES IN THE TAKEOVER'S RIGHT RAIL
 // (apps/appFeed.pug), VISIBLE FROM EVERY SECTION. NO 'search' SECTION EITHER -
-// THE RAIL'S SEARCH BAR DRIVES THE LIBRARY SECTION'S SEARCH MODE.
+// THE RAIL'S SEARCH BAR DRIVES THE LIBRARY (OR RELEASES) SECTION'S SEARCH MODE.
 const SECTION_LABELS = {
   overview: 'Overview',
   queue: 'Queue',
+  sessions: 'Now Playing',
   library: 'Library',
+  releases: 'Releases',
   users: 'Users',
   settings: 'Settings'
 };

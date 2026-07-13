@@ -9,7 +9,7 @@ mixin queueConfirm(verb, label, itemId)
     button.queueActionButton.danger(
       type="button"
       aria-label=label
-      data-cooltipz-dir="top"
+      data-tooltip-dir="top"
       _="on click add .armed to the closest .queueRowConfirm then wait 4s then remove .armed from the closest .queueRowConfirm"
     )
       block
@@ -34,7 +34,7 @@ mixin queueConfirm(verb, label, itemId)
         .request-info
           .request-title.queueRowTitle
             if item.warnings && item.warnings.length
-              span.queueWarning(aria-label=item.warnings.join(' • ') data-cooltipz-dir="top")
+              span.queueWarning(aria-label=item.warnings.join(' • ') data-tooltip-dir="top")
                 svg(viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true")
                   path(d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z")
                   path(d="M12 9v4M12 17h.01")
@@ -71,7 +71,7 @@ mixin queueConfirm(verb, label, itemId)
                 button.queueActionButton(
                   type="button"
                   aria-label=paused ? 'Resume' : 'Pause'
-                  data-cooltipz-dir="top"
+                  data-tooltip-dir="top"
                   hx-post=`/apps/${activeApp.id}/queue-action/${paused ? 'resume' : 'pause'}`
                   hx-vals=JSON.stringify({ itemId: item.id })
                   hx-swap="none"

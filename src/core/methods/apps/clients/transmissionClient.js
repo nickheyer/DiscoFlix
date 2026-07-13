@@ -122,13 +122,17 @@ class TransmissionClient extends BaseClient {
     throw new Error(`${this.serviceLabel} cannot '${verb}' a queue item`);
   }
 
+  // torrent-add'S filename FIELD TAKES MAGNETS AND HTTP LINKS ALIKE
+  async addDownload(url) {
+    const result = await this._rpc('torrent-add', { filename: url });
+    if (result['torrent-duplicate']) throw new Error(`${this.serviceLabel} already has that torrent`);
+    return result['torrent-added'] || result;
+  }
+
   get capabilities() {
     return {
-      search: false,
-      add: false,
-      library: false,
-      libraryDetail: false,
-      health: false,
+      ...super.capabilities,
+      addByUrl: true,
       queueActions: { item: ['pause', 'resume', 'remove'], queue: ['pause', 'resume'] }
     };
   }

@@ -34,7 +34,7 @@ mixin dfUserCard(user)
         role="button"
         tabindex="0"
         aria-label="Full user info"
-        data-cooltipz-dir="left"
+        data-tooltip-dir="left"
         hx-get=`/settings/user/search?search=${row.id}&as-modal=true`
         hx-target="#modals-here"
         hx-trigger="click, keyup[key=='Enter']"

@@ -19,4 +19,16 @@
           hx-swap="none"
           hx-disabled-elt="this"
         ) Resume All
+//- PASTE-A-LINK ADD - MAGNETS, TORRENT URLS, OR NZB LINKS GO STRAIGHT TO THE
+//- CLIENT; THE RESPONSE RE-SWAPS THE LIST + TICKER AND TOASTS THE HEADER
+if sectionData && sectionData.canAddByUrl
+  form.queueAddForm(hx-post=`/apps/${activeApp.id}/queue-add` hx-swap="none" hx-disabled-elt="find button" _="on htmx:afterRequest call me.reset()")
+    input.queueAddInput(
+      type="text"
+      name="url"
+      placeholder="Paste a magnet or download link..."
+      autocomplete="off"
+      spellcheck="false"
+    )
+    button.queueHeaderButton(type="submit") Add
 include queueBody

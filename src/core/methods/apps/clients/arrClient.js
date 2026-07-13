@@ -229,6 +229,7 @@ class ArrClient extends BaseClient {
 
   get capabilities() {
     return {
+      ...super.capabilities,
       search: true,
       add: true,
       library: true,
@@ -294,18 +295,6 @@ class ArrClient extends BaseClient {
     return chips;
   }
 
-  static formatDate(value) {
-    if (!value) return null;
-    const date = new Date(value);
-    if (isNaN(date.getTime())) return null;
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  }
-
-  static formatRuntime(minutes) {
-    const num = Number(minutes);
-    if (isNaN(num) || num <= 0) return null;
-    return num >= 60 ? `${Math.floor(num / 60)}h ${num % 60}m` : `${num}m`;
-  }
 }
 
 module.exports = ArrClient;

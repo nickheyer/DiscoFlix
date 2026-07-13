@@ -6,6 +6,13 @@ module.exports = {
   icon: '/images/sonarr.min.svg',
   blurb: 'TV shows - search, request, and track',
   kind: 'content-manager',
+  why: 'The engine behind show requests - the bot cannot add series without it.',
+  functions: [
+    'Search and request TV shows straight from Discord',
+    'Approve, deny, and track requests in the console',
+    'Browse the series library with season progress',
+    'Follow grabs through import with live progress'
+  ],
   Client: SonarrClient,
   contentTypes: [{
     type: 'show',

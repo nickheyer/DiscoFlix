@@ -1,0 +1,60 @@
+//- ONE RELEASE ROW - AN INDEXER SEARCH RESULT WITH ITS SEND-TO-CLIENT ACTION.
+//- THE GRAB FORM CARRIES THE ROW'S DISPLAY FIELDS SO THE SWAP-IN RESPONSE CAN
+//- REBUILD IT SERVER-SIDE. rowState: undefined (grabbable) | sent | error
+mixin releaseRow(release, appId, grabTargets)
+  - var targets = (grabTargets && grabTargets[release.protocol]) || []
+  .request-row.releaseRow
+    .request-info
+      .request-title.releaseTitle(title=release.title)= release.title
+      .queueRowChips
+        if release.indexer
+          span.queueRowChip= release.indexer
+        span.queueRowChip= release.protocol
+        if release.category
+          span.queueRowChip= release.category
+      .request-meta
+        if release.sizeHuman
+          span= release.sizeHuman
+        if release.age
+          span.request-meta-divider •
+          span #{release.age} old
+        if release.seeders != null
+          span.request-meta-divider •
+          span #{release.seeders} seeders
+    .request-status
+      case release.rowState
+        when 'sent'
+          span.requestChip.chip-available Sent to #{release.sentTo}
+        when 'error'
+          span.requestChip.chip-denied(title=release.error)= release.error || 'Send failed'
+        default
+          if targets.length
+            form.releaseGrabForm
+              input(type="hidden" name="releaseId" value=release.id)
+              input(type="hidden" name="title" value=release.title)
+              input(type="hidden" name="indexer" value=release.indexer || '')
+              input(type="hidden" name="category" value=release.category || '')
+              input(type="hidden" name="protocol" value=release.protocol)
+              input(type="hidden" name="sizeHuman" value=release.sizeHuman || '')
+              input(type="hidden" name="seeders" value=release.seeders != null ? release.seeders : '')
+              input(type="hidden" name="age" value=release.age || '')
+              input(type="hidden" name="url" value=release.downloadUrl)
+              if targets.length > 1
+                select.request-instance-select(name="targetId")
+                  each target in targets
+                    option(value=target.id)= target.label
+              else
+                input(type="hidden" name="targetId" value=targets[0].id)
+              button.request-approve-button(
+                type="button"
+                hx-post=`/apps/${appId}/grab`
+                hx-include="closest form"
+                hx-target="closest .releaseRow"
+                hx-swap="outerHTML"
+                hx-disabled-elt="this"
+              )= targets.length > 1 ? 'Send' : `Send to ${targets[0].label}`
+          else
+            span.releaseNoTarget(
+              aria-label=`Connect a ${release.protocol} download client to send releases from here`
+              data-tooltip-dir="left"
+            ) No client

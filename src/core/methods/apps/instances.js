@@ -175,6 +175,7 @@ module.exports = {
     this.stopWatchesForInstance(id);
     this.statusCache.delete(id);
     this.queueCache.delete(id);
+    this.sessionsCache.delete(id);
     this.feedCache.delete(id);
     this.libraryCache.delete(id);
     return this.core.models.app.safeDelete(id);
@@ -194,6 +195,42 @@ module.exports = {
       throw new Error(`${instance.display_name} does not support '${verb}' here`);
     }
     await client.queueAction(verb, itemId);
+    await new Promise(resolve => setTimeout(resolve, QUEUE_SETTLE_MS));
+    try {
+      this.queueCache.set(instance.id, await client.getQueue());
+    } catch (err) {
+      this.logger.debug(`${instance.display_name} queue re-pull failed: ${err.message}`);
+    }
+    return this.queueCache.get(instance.id) || [];
+  },
+
+  // SERVING DOWNLOAD CLIENTS THAT TAKE A PASTED LINK, GROUPED BY PROTOCOL -
+  // RELEASE GRABS AND THE QUEUE'S ADD-BY-LINK BOTH ROUTE THROUGH THESE
+  async getGrabTargets() {
+    const rows = await this.core.models.app.getMany(
+      { enabled: true },
+      {},
+      [{ is_default: 'desc' }, { sort_position: 'asc' }, { created_at: 'asc' }]
+    );
+    const targets = { torrent: [], usenet: [] };
+    for (const row of rows) {
+      const manifest = this.getType(row.app_type);
+      if (manifest?.kind !== 'download-client' || !this.isConfigured(row)) continue;
+      const client = this.getClientForInstance(row);
+      if (!client?.capabilities.addByUrl || !targets[manifest.protocol]) continue;
+      targets[manifest.protocol].push({ id: row.id, label: row.display_name });
+    }
+    return targets;
+  },
+
+  // HAND A MAGNET/TORRENT/NZB LINK TO A DOWNLOAD CLIENT AND REFRESH ITS QUEUE
+  // CACHE SO THE TICKER AND ANY OPEN QUEUE SECTION SEE THE NEW ITEM
+  async addDownloadTo(instance, url) {
+    const client = this.getClientForInstance(instance);
+    if (!client || !client.capabilities.addByUrl) {
+      throw new Error(`${instance.display_name} cannot take a pasted link`);
+    }
+    await client.addDownload(url);
     await new Promise(resolve => setTimeout(resolve, QUEUE_SETTLE_MS));
     try {
       this.queueCache.set(instance.id, await client.getQueue());

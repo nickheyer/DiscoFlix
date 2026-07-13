@@ -149,13 +149,15 @@ class RutorrentClient extends BaseClient {
     throw new Error(`${this.serviceLabel} cannot '${verb}' a queue item`);
   }
 
+  // RTORRENT ITSELF FETCHES THE LINK - load.start HANDLES MAGNET AND HTTP
+  async addDownload(url) {
+    return this._xmlrpc('load.start', ['', url]);
+  }
+
   get capabilities() {
     return {
-      search: false,
-      add: false,
-      library: false,
-      libraryDetail: false,
-      health: false,
+      ...super.capabilities,
+      addByUrl: true,
       queueActions: { item: ['pause', 'resume', 'remove'], queue: [] }
     };
   }

@@ -31,12 +31,18 @@ else
     each item in sectionData.health
       .appHealthNotice(class=item.type === 'error' ? 'error' : '')= item.message
 
-  //- THE QUEUE LINE ONLY MAKES SENSE FOR APPS THAT ACTUALLY HAVE ONE
+  //- THE QUEUE LINE ONLY MAKES SENSE FOR APPS THAT ACTUALLY HAVE ONE; MEDIA
+  //- SERVERS SHOW THEIR LIVE STREAM COUNT INSTEAD
   - var hasQueue = appManifest.sections.includes('queue')
-  if hasQueue || !activeApp.enabled
+  - var hasSessions = typeof sectionData.sessionCount === 'number'
+  if hasQueue || hasSessions || !activeApp.enabled
     .appOverviewStats
       if hasQueue
         | #{sectionData.queueCount} item#{sectionData.queueCount === 1 ? '' : 's'} in the download queue
+        if !activeApp.enabled
+          |  • this app is currently disabled
+      else if hasSessions
+        | #{sectionData.sessionCount} stream#{sectionData.sessionCount === 1 ? '' : 's'} playing right now
         if !activeApp.enabled
           |  • this app is currently disabled
       else

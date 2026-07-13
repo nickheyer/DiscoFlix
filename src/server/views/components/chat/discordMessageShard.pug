@@ -47,7 +47,7 @@ if isFirstUnread
       if requestChip.id && requestChip.state === 'pending'
         button.trayButton.approve(
           aria-label="Approve request"
-          data-cooltipz-dir="top"
+          data-tooltip-dir="top"
           hx-post=`/requests/${requestChip.id}/approve`
           hx-swap="none"
         )
@@ -55,7 +55,7 @@ if isFirstUnread
             path(d="M20 6L9 17l-5-5")
         button.trayButton.deny(
           aria-label="Deny request"
-          data-cooltipz-dir="top"
+          data-tooltip-dir="top"
           hx-post=`/requests/${requestChip.id}/deny`
           hx-swap="none"
         )
@@ -63,7 +63,7 @@ if isFirstUnread
             path(d="M18 6L6 18M6 6l12 12")
       button.trayButton(
         aria-label="Open requests"
-        data-cooltipz-dir="top"
+        data-tooltip-dir="top"
         hx-get="/modal/requests/dashboard"
         hx-target="#modals-here"
         hx-trigger="click"

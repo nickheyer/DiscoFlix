@@ -37,6 +37,9 @@ const {
   appLibraryItemAction,
   appSearch,
   appAddMedia,
+  appImage,
+  appQueueAdd,
+  appGrabRelease,
   appQueueAction,
   changeAppSortOrder,
   renderAppPicker,
@@ -71,10 +74,14 @@ router.post('/apps/:id/library/item/:itemId/:verb', appLibraryItemAction);
 // EPHEMERAL PRE-ADD DETAIL FOR SEARCH RESULTS NOT YET IN THE LIBRARY
 router.get('/apps/:id/lookup/:externalKey', appLookupDetail);
 router.get('/apps/:id/search', appSearch);
+// SERVICE ART PROXY - AUTH STAYS SERVER-SIDE (SEE appImage)
+router.get('/apps/:id/image', appImage);
 router.get('/apps/:id/users', appUsersPage);
 router.post('/apps/:id/users/:userId/save', saveAppUser);
 router.post('/apps/:id/add-media', appAddMedia);
 router.post('/apps/:id/queue-action/:verb', appQueueAction);
+router.post('/apps/:id/queue-add', appQueueAdd);
+router.post('/apps/:id/grab', appGrabRelease);
 router.post('/apps/:id/save', saveApp);
 router.post('/apps/:id/test', testApp);
 router.post('/apps/:id/default', setDefaultApp);

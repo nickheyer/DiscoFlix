@@ -22,7 +22,7 @@
         .server.appBubble(
           class=app.active ? 'active' : undefined
           aria-label=app.label
-          data-cooltipz-dir="right"
+          data-tooltip-dir="right"
           hx-post=!app.active && `/change-active-app/${app.id}`
           hx-select-oob=!app.active && "#serverSelector,#guildNameBanner"
         )
@@ -35,7 +35,7 @@
           img.appIcon(src=app.icon alt=app.label)
   .server.invite.addAppButton(
     aria-label="Add an App"
-    data-cooltipz-dir="right"
+    data-tooltip-dir="right"
     hx-get="/modal/apps/picker"
     hx-target="#modals-here"
     hx-trigger="click"

@@ -6,6 +6,14 @@ module.exports = {
   icon: '/images/rutorrent.svg',
   blurb: 'rTorrent web front end',
   kind: 'download-client',
+  protocol: 'torrent',
+  why: 'See the downloads your requests kick off without leaving the console.',
+  functions: [
+    'Watch the torrent queue with speeds and ETAs',
+    'Pause, resume, or erase individual torrents',
+    'Add a torrent by pasting a magnet or URL',
+    'Finished torrents feed the activity rail'
+  ],
   Client: RutorrentClient,
   contentTypes: [],
   configFields: [

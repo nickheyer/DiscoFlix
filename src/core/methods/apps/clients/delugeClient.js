@@ -173,13 +173,16 @@ class DelugeClient extends BaseClient {
     throw new Error(`${this.serviceLabel} cannot '${verb}' a queue item`);
   }
 
+  async addDownload(url) {
+    return /^magnet:/i.test(url)
+      ? this._call('core.add_torrent_magnet', [url, {}])
+      : this._call('core.add_torrent_url', [url, {}]);
+  }
+
   get capabilities() {
     return {
-      search: false,
-      add: false,
-      library: false,
-      libraryDetail: false,
-      health: false,
+      ...super.capabilities,
+      addByUrl: true,
       queueActions: { item: ['pause', 'resume', 'remove'], queue: ['pause', 'resume'] }
     };
   }

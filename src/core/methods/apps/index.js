@@ -16,6 +16,7 @@ module.exports = (core) => {
   apps._heartbeatTimer = null;
   apps.statusCache = new Map();   // appId -> { ok, version|error, checkedAt }
   apps.queueCache = new Map();    // appId -> normalized queue rows
+  apps.sessionsCache = new Map(); // appId -> normalized session rows (NOW PLAYING)
   apps.feedCache = new Map();     // appId -> { feed, fetchedAt } (ACTIVITY FEED PAGE 1)
   apps.libraryCache = new Map();  // appId -> { items, fetchedAt } (FULL NORMALIZED LISTING)
   apps.browseViews = new Map();   // `appId:mode` -> 'covers' | 'detailed' (LIBRARY VIEW TOGGLE)

@@ -112,12 +112,16 @@ class SabnzbdClient extends BaseClient {
     throw new Error(`${this.serviceLabel} cannot '${verb}' a queue item`);
   }
 
+  async addDownload(url) {
+    const data = await this._call('addurl', { name: url });
+    if (!data?.nzo_ids?.length) throw new Error(`${this.serviceLabel} did not accept that link`);
+    return data;
+  }
+
   get capabilities() {
     return {
-      search: false,
-      add: false,
-      library: false,
-      health: false,
+      ...super.capabilities,
+      addByUrl: true,
       queueActions: { item: ['pause', 'resume', 'remove'], queue: ['pause', 'resume'] }
     };
   }

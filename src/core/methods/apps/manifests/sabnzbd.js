@@ -6,6 +6,14 @@ module.exports = {
   icon: '/images/sabnzbd.min.svg',
   blurb: 'Usenet download client',
   kind: 'download-client',
+  protocol: 'usenet',
+  why: 'See the downloads your requests kick off without leaving the console.',
+  functions: [
+    'Watch the usenet queue with live speeds and ETAs',
+    'Pause, resume, or remove downloads per item or globally',
+    'Queue an NZB by pasting its link',
+    'Download history feeds the activity rail'
+  ],
   Client: SabnzbdClient,
   contentTypes: [],
   configFields: [

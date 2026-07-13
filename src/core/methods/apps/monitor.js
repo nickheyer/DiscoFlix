@@ -186,7 +186,7 @@ module.exports = {
     for (const row of installed) {
       if (this.getType(row.app_type)?.hidden) liveIds.add(row.id);
     }
-    for (const cache of [this.statusCache, this.queueCache, this.feedCache, this.libraryCache]) {
+    for (const cache of [this.statusCache, this.queueCache, this.sessionsCache, this.feedCache, this.libraryCache]) {
       for (const id of [...cache.keys()]) {
         if (!liveIds.has(id)) cache.delete(id);
       }
@@ -276,6 +276,19 @@ module.exports = {
           queue: this.queueCache.get(instance.id) || [],
           queueActions: this.queueActionsFor(instance)
         });
+      }
+
+      // AN OPEN NOW PLAYING SECTION GETS FRESH STREAMS EVERY TICK - CHANGE-ONLY
+      // SO IDLE SERVERS DON'T RE-SWAP THE LIST FOR NOTHING
+      if (instance.active_section === 'sessions') {
+        const before = JSON.stringify(this.sessionsCache.get(instance.id) || []);
+        const { sessions } = await this.getSessionsFor(instance);
+        if (JSON.stringify(sessions) !== before) {
+          await this.core.sockets.emitCompiled(['apps/sections/sessionsBody.pug'], {
+            activeApp: instance,
+            sessions
+          });
+        }
       }
 
       // CHANGE-ONLY: refreshFeed RETURNS null WHEN PAGE 1 IS UNCHANGED, SO THE

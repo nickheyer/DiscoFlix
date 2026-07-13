@@ -6,6 +6,14 @@ module.exports = {
   icon: '/images/transmission.svg',
   blurb: 'BitTorrent download client',
   kind: 'download-client',
+  protocol: 'torrent',
+  why: 'See the downloads your requests kick off without leaving the console.',
+  functions: [
+    'Watch the torrent queue with speeds, seeds, and ETAs',
+    'Pause, resume, or remove torrents per item or globally',
+    'Add a torrent by pasting a magnet or URL',
+    'Completed torrents feed the activity rail'
+  ],
   Client: TransmissionClient,
   contentTypes: [],
   configFields: [

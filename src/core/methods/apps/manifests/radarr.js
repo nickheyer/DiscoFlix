@@ -6,6 +6,13 @@ module.exports = {
   icon: '/images/radarr.min.svg',
   blurb: 'Movies - search, request, and track',
   kind: 'content-manager',
+  why: 'The engine behind movie requests - the bot cannot add movies without it.',
+  functions: [
+    'Search and request movies straight from Discord',
+    'Approve, deny, and track requests in the console',
+    'Browse the movie library and add titles yourself',
+    'Follow grabs through import with live progress'
+  ],
   Client: RadarrClient,
   contentTypes: [{
     type: 'movie',

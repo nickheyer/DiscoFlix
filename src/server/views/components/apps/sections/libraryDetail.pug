@@ -61,7 +61,9 @@ else
             span.appStatusPill.pending Not in library
           else
             span.appStatusPill(class=detail.available ? 'ok' : 'down')= detail.availabilityLabel
-            span.appDetailMonitorChip(class=detail.monitored ? 'on' : 'off')= detail.monitored ? 'Monitored' : 'Unmonitored'
+            //- MEDIA SERVERS HAVE NO MONITORING CONCEPT - null HIDES THE CHIP
+            if detail.monitored !== null
+              span.appDetailMonitorChip(class=detail.monitored ? 'on' : 'off')= detail.monitored ? 'Monitored' : 'Unmonitored'
         if detail.ratings.length
           .appDetailRatings
             each rating in detail.ratings
@@ -79,20 +81,25 @@ else
               hx-disabled-elt="this"
             ) Add to #{activeApp.display_name}
           else
-            button.modal-button.button-secondary(
-              hx-post=`/apps/${activeApp.id}/library/item/${detail.id}/monitor`
-              hx-vals=JSON.stringify({ monitored: !detail.monitored, from: backTarget })
-              hx-target="#appSectionBody"
-              hx-swap="innerHTML"
-              hx-disabled-elt="this"
-            )= detail.monitored ? 'Stop Monitoring' : 'Start Monitoring'
-            button.modal-button.button-secondary(
-              hx-post=`/apps/${activeApp.id}/library/item/${detail.id}/search`
-              hx-vals=JSON.stringify({ from: backTarget })
-              hx-target="#appSectionBody"
-              hx-swap="innerHTML"
-              hx-disabled-elt="this"
-            )= detail.contentKind === 'show' ? 'Search All Episodes' : 'Search for Release'
+            //- SERVICE VERBS ONLY WHERE THE CLIENT DECLARES THEM (ARRS DO,
+            //- MEDIA SERVERS ARE READ-ONLY SHELVES)
+            - var detailVerbs = detail.verbs || []
+            if detailVerbs.includes('monitor')
+              button.modal-button.button-secondary(
+                hx-post=`/apps/${activeApp.id}/library/item/${detail.id}/monitor`
+                hx-vals=JSON.stringify({ monitored: !detail.monitored, from: backTarget })
+                hx-target="#appSectionBody"
+                hx-swap="innerHTML"
+                hx-disabled-elt="this"
+              )= detail.monitored ? 'Stop Monitoring' : 'Start Monitoring'
+            if detailVerbs.includes('search')
+              button.modal-button.button-secondary(
+                hx-post=`/apps/${activeApp.id}/library/item/${detail.id}/search`
+                hx-vals=JSON.stringify({ from: backTarget })
+                hx-target="#appSectionBody"
+                hx-swap="innerHTML"
+                hx-disabled-elt="this"
+              )= detail.contentKind === 'show' ? 'Search All Episodes' : 'Search for Release'
           each link in detail.links
             a.appDetailLink(href=link.url target="_blank" rel="noopener noreferrer")= link.label
 
@@ -128,7 +135,7 @@ else
               span Added #{detail.file.added}
 
       if detail.seasons && detail.seasons.length
-        .request-section-header Seasons
+        .request-section-header= detail.seasonsLabel || 'Seasons'
         .appSeasonTable
           each season in detail.seasons
             .appSeasonRow
@@ -137,7 +144,9 @@ else
                 .request-progress-track
                   .request-progress-bar(class=season.percent >= 100 ? 'complete' : undefined style=`width: ${season.percent}%`)
               .appSeasonCount #{season.episodeFileCount} / #{season.totalEpisodeCount || season.episodeCount}
-              .appSeasonSize= season.size || '0 B'
+              //- MEDIA-SERVER SEASONS CARRY NO SIZE - THE CELL DROPS OUT
+              if season.size
+                .appSeasonSize= season.size
 
     .appDetailFacts
       .request-section-header Details

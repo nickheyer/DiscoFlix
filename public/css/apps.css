@@ -1438,8 +1438,10 @@
   gap: 10px;
 }
 
+/* GRID SO THE EXPANDED DETAIL CAN SPAN UNDER ICON + INFO + (i) */
 .appPickerCard {
-  display: flex;
+  display: grid;
+  grid-template-columns: 40px 1fr auto;
   align-items: center;
   gap: 12px;
   background-color: var(--bg-secondary);
@@ -1447,6 +1449,7 @@
   padding: 12px;
   cursor: pointer;
   user-select: none;
+  align-self: start;
 }
 
 .appPickerCard:hover {
@@ -1456,11 +1459,72 @@
 .appPickerCard img {
   width: 40px;
   height: 40px;
-  flex-shrink: 0;
 }
 
 .appPickerInfo {
   min-width: 0;
+}
+
+.appPickerInfoToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--interactive-normal);
+  cursor: pointer;
+}
+
+.appPickerInfoToggle:hover,
+.appPickerCard.expanded .appPickerInfoToggle {
+  color: var(--header-primary);
+  background-color: var(--bg-modifier-selected);
+}
+
+.appPickerDetail {
+  display: none;
+  grid-column: 1 / -1;
+  border-top: 1px solid var(--bg-modifier-accent);
+  padding-top: 10px;
+  cursor: default;
+}
+
+.appPickerCard.expanded .appPickerDetail {
+  display: block;
+}
+
+.appPickerFunctions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.appPickerFunctions li {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  font-size: 12px;
+  color: var(--text-normal);
+  line-height: 1.35;
+}
+
+.appPickerFunctions svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--green);
+}
+
+.appPickerWhy {
+  margin-top: 8px;
+  font-size: 12px;
+  font-style: italic;
+  color: var(--text-muted);
 }
 
 .appPickerName {
@@ -1506,6 +1570,10 @@
   text-overflow: ellipsis;
 }
 
+.appPickerCard.expanded .appPickerBlurb {
+  white-space: normal;
+}
+
 .appPickerInstalled {
   font-size: 11px;
   color: var(--text-muted);
@@ -1516,4 +1584,95 @@
   .appPickerGrid {
     grid-template-columns: 1fr;
   }
+}
+
+/* ---- NOW PLAYING (MEDIA-SERVER SESSIONS) ---- */
+
+.sessionRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sessionStateGlyph {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-modifier-selected);
+  color: var(--green);
+}
+
+.sessionStateGlyph.paused {
+  color: var(--text-muted);
+}
+
+.sessionSubtitle {
+  margin-left: 8px;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+/* ---- QUEUE ADD-BY-LINK ---- */
+
+.queueAddForm {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.queueAddInput {
+  flex: 1;
+  min-width: 0;
+  background-color: var(--bg-tertiary);
+  border: none;
+  border-radius: 4px;
+  color: var(--text-normal);
+  font-size: 13px;
+  padding: 8px 12px;
+  outline: none;
+}
+
+.queueAddInput::placeholder {
+  color: var(--text-muted);
+}
+
+/* ---- RELEASES (INDEXER SEARCH + GRAB) ---- */
+
+.releaseTitle {
+  overflow-wrap: anywhere;
+}
+
+.releaseGrabForm {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.releaseNoTarget {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.releaseIndexerRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.indexerStatusDot {
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--green);
+}
+
+.indexerStatusDot.down {
+  background-color: var(--red);
 }

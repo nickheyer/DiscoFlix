@@ -50,6 +50,7 @@ class RadarrClient extends ArrClient {
       monitored: !!raw.monitored,
       available: !!raw.hasFile,
       availabilityLabel: raw.hasFile ? 'Downloaded' : 'Missing',
+      verbs: ['monitor', 'search'],
       status: raw.status || null,
       genres: raw.genres || [],
       runtime: ArrClient.formatRuntime(raw.runtime),
