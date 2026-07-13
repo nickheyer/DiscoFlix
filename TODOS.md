@@ -257,19 +257,6 @@ Built 2026-07-12, second pass (rides the same live pass below):
       land on Overview already configured; DEV_TOKEN fallback and orphaned
       updateTokens deleted; .env.example documents the contract
 
-Remaining:
-
-- [ ] THE live browser pass over the whole takeover surface
-      (enter/section/reload/back-out; msg-during-takeover → badge not stomp;
-      add "Radarr 2" → configure → dot green; blank-password save keeps
-      secret, `__clear` clears - Test proves it; remove → mirror restore;
-      queue bars move during a real download + ticker matches; library
-      scroll pagination; feed pagination; search → add → row flips to
-      added → library grid shows it; onboarding renders on empty install;
-      poster → detail view (hero/facts/file card/seasons), monitor toggle
-      flips the chip, item search toasts, Back restores the grid; enriched
-      queue rows show chips/sizes/speeds + warning tooltips; fresh-DB boot
-      seeds token + all four apps from .env)
 - [x] Cleanup (2026-07-12): six arr columns dropped from Configuration
       (+ metadata + configuration.js defaults/toggles + updateTokens →
       discord-only), orphaned radarrButton/sonarrButton.pug deleted; then
@@ -359,21 +346,6 @@ rides the same live pass below):
       title). Users section bounded to the same measure, cards fill it
       two-up. Fixed +field dropping value="0" (0 = unlimited now renders)
 
-Remaining:
-
-- [ ] M8 additions to THE live browser pass (merged with M7's item): badge
-      click → overview lands w/ pill + banner "DiscoFlix"; hover cog →
-      settings; problem dot appears when an app is unreachable and clears
-      after fix; users search/paginate; toggle staff → chip + toast, identity
-      survives; limits save; user popup from avatar is read-only; config
-      save toasts and persists incl. blank-token keep + __clear; onboarding
-      CTA enters settings takeover; reload inside DiscoFlix restores it;
-      guild click backs out clean; arr settings/overview/queue regressions;
-      settings rows look right at widescreen + pinched sidebar widths
-      (controls pinned right and sized, token/URL stacked full width,
-      hairlines between rows, group dividers full-bleed, interiors centered);
-      zero-valued limits render 0; user popup rows show values half-row
-      with hover title on truncation
 
 ## M9 - Library Search + The App Catalog (in progress)
 
@@ -432,22 +404,6 @@ rides THE live pass below):
 - [x] BaseClient.humanEta shared (qbit's local formatEta rides it now);
       arr normalizeLibraryItem carries overview for the detailed rows
 
-Remaining:
-
-- [ ] M9 additions to THE live browser pass (merged with M7/M8's item):
-      rail search from every section lands in library search mode with
-      focus + term intact; Enter forces short terms; clearing restores
-      browse; the view toggle sticks per mode incl. View More pages;
-      quick-Add flips the row in place; row click opens ephemeral detail,
-      Add unlocks the real one w/ toast, Back returns to the same results;
-      in-library results open real detail whose Back says Results;
-      a heartbeat feed push mid-typing leaves the input alone; Add-to tabs
-      hop instances with the term; each new app type adds from the picker,
-      configures, Tests green, and its dot goes live; queue verbs move real
-      downloads on nzbget/deluge/transmission/rutorrent/utorrent; plex/
-      emby/jellyfin recently-added feeds paginate; jackett/hydra reject a
-      bad key with a readable pill; stale active_section='search' rows fall
-      back to Overview
 
 ## M10 - Full-Featured App Interfaces (in progress)
 
@@ -509,22 +465,6 @@ template fixtures + 24 client checks green - rides THE live pass below):
       detail views gate monitor chips/verbs on detail.monitored/detail.verbs
       so media-server details render read-only
 
-Remaining:
-
-- [ ] M10 additions to THE live browser pass (merged with M7/M8/M9's item):
-      tooltips visible over the rail/modals/queue rows in all four
-      directions incl. keyboard focus; picker (i) expands w/o adding, card
-      click still adds; plex/emby/jellyfin library browse + search + detail
-      + Now Playing move while a real stream plays (pause flips the row,
-      heartbeat updates it); posters load through /apps/:id/image with no
-      token in the URL; jackett/hydra release search returns rows, Send to
-      <client> lands the download in its queue + ticker, roster shows a
-      failing indexer red; paste-a-magnet in every torrent client queue and
-      an nzb link in sab/nzbget; bot answers "already on Plex" for an
-      in-library title and still requests a missing one (show-with-missing-
-      episodes caveat noted); grab with zero compatible clients shows the
-      No-client hint
-
 ---
 
 ## Feature Planning (unstaged - promote before working)
@@ -532,17 +472,18 @@ Remaining:
 - EventLog DB transport + log viewer modal (model + readonly modal support exist; logging.js never wired prisma)
 - Per-browser-session active server/channel - multi-user UI (today `State` is a global singleton, deliberately single-user)
 - Chat history pagination / infinite scroll (`getChannelMessages` already has a `before` cursor)
-- Media library browser (Media model + poster cache exist)
+- Unified media library browser (Media model + poster cache exist) with indexes that allow all services to link to a common media item by id, file path, or some other common key attribute.
 - Download-complete DM notifications to requesters (v2 feature)
 - Mobile layout pass (`mobile.css` exists, unmaintained)
 - Members pane phase 2: per-user presence + role grouping (pane itself shipped in M5 from tracked users)
+- Discord User/Role Whitelist Strategy - Currently a user is automatically registered and set as an approved requestor if they send a message in a channel the bot has read messages permissions. 
+- Discord role → permission mapping (staff/admin are hand-set in the DiscoFlix Users section today; map guild roles onto them automatically)
 - Message grouping: collapse consecutive same-author messages within ~7min like Discord (each message currently renders a full author header)
 - Bot presence/status line config (playing/watching text)
 - `!df status` / `/status` command - show the caller's open requests + live download state from the arr queue
 - DM request support (`logMessageToInterface` skips DMs entirely; request flow + notifications are guild-channel-only)
 - Re-arm arr queue watches on boot (monitor state is in-memory; open MediaRequests are orphaned by a restart)
 - Root folder / quality profile selection per request (pipeline defaults to first root folder + first profile)
-- Discord role → permission mapping (staff/admin are hand-set in the DiscoFlix Users section today; map guild roles onto them automatically)
 - Perf: `logMessageToInterface` force-fetches the author from the Discord API on every message (`author.fetch(true)` busts cache); throttle or trust cache
 - Season-level requesting for shows (request whole series only today; v2 allowed picking seasons)
 - Logout button in the user-controls strip (`POST /logout` route already exists, no UI for it)
