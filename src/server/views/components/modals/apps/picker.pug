@@ -3,7 +3,11 @@
 //- CARD RESPONSE = THE FULL TAKEOVER FRAGMENT SET LANDING ON THE NEW
 //- INSTANCE'S SETTINGS, SO THE MODAL DISMISSES AND THE CONSOLE SWAPS UNDER IT.
 //- THE (i) TOGGLE EXPANDS THE CARD INTO ITS FUNCTION LIST + WHY-ADD-IT LINE
-//- WITHOUT TRIGGERING THE ADD (halt STOPS THE CARD'S CLICK AND THE DISMISS).
+//- WITHOUT TRIGGERING THE ADD (halt STOPS THE CLICK BEFORE IT REACHES THE CARD).
+//- THE CARD CLOSES THE MODAL ITSELF RATHER THAN CARRYING data-bs-dismiss:
+//- BOOTSTRAP LISTENS FOR DISMISSES ON document IN THE *CAPTURE* PHASE, SO A
+//- dismiss ON THE CARD FIRES FOR ANY CLICK INSIDE IT - INCLUDING THE (i) AND
+//- THE DETAIL - AND NO BUBBLE-PHASE halt CAN STOP IT.
 .modal-dialog.modal-dialog-centered#modal-container(hx-target="#modals-here")
   .modal-content
     .modal-header
@@ -26,7 +30,7 @@
             hx-post=`/apps/add/${t.id}`
             hx-swap="none"
             hx-select-oob="#serverSelector,#guildNameBanner"
-            data-bs-dismiss="modal"
+            _="on click call closeModal()"
           )
             img(src=t.icon alt="")
             .appPickerInfo

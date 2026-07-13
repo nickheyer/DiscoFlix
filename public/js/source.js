@@ -27,6 +27,12 @@ function bindConfirmations(element) {
   htmx.process(element); // HTMX ATTR REQUIRES PROCESSING
 }
 
+// CLOSE THE MODAL FROM A CLICK HANDLER
+function closeModal() {
+  const modal = document.getElementById('modals-here');
+  if (modal) bootstrap.Modal.getOrCreateInstance(modal).hide();
+}
+
 // THIS SCRIPT LOADS IN <HEAD>
 
 // CLEAR CHAT INPUT ONCE ITS MESSAGE HAS GONE OVER THE SOCKET
