@@ -1,11 +1,90 @@
-//- LIBRARY - POSTER GRID OVER THE ARR'S FULL LISTING, EXTENDED BY THE REVEALED SENTINEL IN libraryCards.
-- var library = sectionData.library || { items: [], total: 0, hasMore: false, page: 1 }
-- var contentKind = sectionData.contentKind || 'movie'
-.request-section-header Library - #{library.total} #{sectionData.contentTypeLabel || 'item'}#{library.total === 1 ? '' : 's'}
-if library.error
-  .appQueueEmpty #{activeApp.display_name} didn't answer - #{library.error}
-else if !library.items.length
-  .appQueueEmpty Nothing here yet - approved requests land in the library.
+//- LIBRARY - ONE SURFACE, TWO SOURCES (THE SERVICE LISTING OR LIVE SEARCH
+//- RESULTS FED BY THE RAIL SEARCH BAR) TIMES TWO VIEW STYLES (COVER GRID /
+//- DETAILED ROWS). SEARCH MODE DEFAULTS TO DETAILED, BROWSING TO COVERS;
+//- THE TOGGLE STICKS PER MODE. sectionData: { configured, mode, view,
+//- searchTerm, searchResults?, searchError?, library?, instanceTabs,
+//- contentTypeLabel, contentKind, searchable }
+include ../../../mixins/browse
+
+if !sectionData.configured
+  .appQueueEmpty Connect #{activeApp.display_name} in Settings before browsing.
 else
-  .posterGrid#posterGrid
-    include ../libraryCards
+  - var mode = sectionData.mode || 'library'
+  - var view = sectionData.view || (mode === 'search' ? 'detailed' : 'covers')
+  - var library = sectionData.library || { items: [], total: 0, hasMore: false, page: 1 }
+  - var results = sectionData.searchResults || []
+  - var contentKind = sectionData.contentKind || 'movie'
+  - var label = sectionData.contentTypeLabel || 'item'
+  - var hasItems = mode === 'search' ? results.length : library.items.length
+  .request-section-header.appLibraryHeader
+    if mode === 'search'
+      span Results - #{results.length} for “#{sectionData.searchTerm}”
+    else
+      span Library - #{library.total} #{label}#{library.total === 1 ? '' : 's'}
+    .appLibraryHeaderTools
+      if mode === 'search' && sectionData.instanceTabs.length
+        .appInstanceTabs
+          span Add to:
+          each tab in sectionData.instanceTabs
+            //- INACTIVE TABS RE-RUN THE SEARCH INSIDE THE RIVAL'S TAKEOVER
+            .appInstanceTab(
+              class=tab.active ? 'active' : ''
+              hx-get=!tab.active ? `/apps/${tab.id}/search` : undefined
+              hx-include=!tab.active ? '#appRailSearchInput' : undefined
+              hx-swap=!tab.active ? 'none' : undefined
+            )= tab.label
+      if hasItems
+        .appViewToggle(role="group" aria-label="View style")
+          button.appViewToggleButton(
+            type="button"
+            aria-label="Cover view"
+            data-cooltipz-dir="top"
+            class=view === 'covers' ? 'active' : ''
+            hx-get=view !== 'covers' ? `/apps/${activeApp.id}/search?view=covers` : undefined
+            hx-include=view !== 'covers' && sectionData.searchable ? '#appRailSearchInput' : undefined
+            hx-swap=view !== 'covers' ? 'none' : undefined
+            hx-disabled-elt="this"
+          )
+            svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true")
+              rect(x="3" y="3" width="7" height="7" rx="1")
+              rect(x="14" y="3" width="7" height="7" rx="1")
+              rect(x="3" y="14" width="7" height="7" rx="1")
+              rect(x="14" y="14" width="7" height="7" rx="1")
+          button.appViewToggleButton(
+            type="button"
+            aria-label="Detailed view"
+            data-cooltipz-dir="top"
+            class=view === 'detailed' ? 'active' : ''
+            hx-get=view !== 'detailed' ? `/apps/${activeApp.id}/search?view=detailed` : undefined
+            hx-include=view !== 'detailed' && sectionData.searchable ? '#appRailSearchInput' : undefined
+            hx-swap=view !== 'detailed' ? 'none' : undefined
+            hx-disabled-elt="this"
+          )
+            svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true")
+              path(d="M4 6h16M4 12h16M4 18h16")
+  if mode === 'search'
+    if sectionData.searchError
+      .appQueueEmpty Search failed - #{sectionData.searchError}
+    else if !results.length
+      .appQueueEmpty No results for “#{sectionData.searchTerm}” on #{activeApp.display_name}.
+    else if view === 'detailed'
+      .appBrowseList.appSectionDoc
+        each result in results
+          +searchBrowseRow(result, activeApp.id)
+    else
+      .posterGrid#posterGrid
+        each result in results
+          - var cardUrl = result.libraryId ? `/apps/${activeApp.id}/library/item/${result.libraryId}?from=search` : `/apps/${activeApp.id}/lookup/${result.externalKey}`
+          - var cardBadge = result.rowState === 'available' ? 'available' : (result.rowState === 'in-library' ? 'in-library' : null)
+          +browsePosterCard({ clickUrl: cardUrl, title: result.title, year: result.year, posterUrl: result.posterUrl, badge: cardBadge, kind: contentKind })
+  else
+    if library.error
+      .appQueueEmpty #{activeApp.display_name} didn't answer - #{library.error}
+    else if !library.items.length
+      .appQueueEmpty Nothing here yet - approved requests land in the library.
+    else if view === 'detailed'
+      .appBrowseList.appSectionDoc
+        include ../libraryCards
+    else
+      .posterGrid#posterGrid
+        include ../libraryCards

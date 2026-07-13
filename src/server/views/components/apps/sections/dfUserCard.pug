@@ -1,0 +1,63 @@
+//- ONE USER CARD - READ-ONLY IDENTITY HEADER + THE EDITABLE SUBSET. ALSO THE
+//- STANDALONE RENDER TARGET FOR POST /apps/:id/users/:userId/save (LOCALS:
+//- activeApp, user {row, fields}, mutableFields).
+include ../../../mixins/field
+
+mixin dfUserCard(user)
+  - var row = user.row
+  - var nameColor = row.accent_color && row.accent_color.toLowerCase() !== 'ffffff' ? `#${row.accent_color}` : null
+  .dfUserCard.appFormCard(id=`df-user-${row.id}`)
+    .dfUserHeader
+      img.dfUserAvatar(
+        src=row.avatar_url || 'https://cdn.discordapp.com/embed/avatars/0.png'
+        alt="avatar"
+        referrerpolicy="no-referrer"
+      )
+      .dfUserIdent
+        .dfUserName(style=nameColor ? `color: ${nameColor}` : undefined)= row.display_name || row.username
+        .dfUserSub= row.username
+      .dfUserChips
+        if row.is_client
+          span.dfUserChip.client THIS BOT
+        else if row.is_bot
+          span.dfUserChip.bot BOT
+        if row.is_superuser
+          span.dfUserChip.admin ADMIN
+        else if row.is_staff
+          span.dfUserChip.staff STAFF
+        if !row.is_active
+          span.dfUserChip.inactive INACTIVE
+      svg.dfUserInfoButton(
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        role="button"
+        tabindex="0"
+        aria-label="Full user info"
+        data-cooltipz-dir="left"
+        hx-get=`/settings/user/search?search=${row.id}&as-modal=true`
+        hx-target="#modals-here"
+        hx-trigger="click, keyup[key=='Enter']"
+        data-bs-toggle="modal"
+        data-bs-target="#modals-here"
+      )
+        circle(cx="12" cy="12" r="9" stroke-width="2")
+        line(x1="12" y1="11" x2="12" y2="16" stroke-width="2" stroke-linecap="round")
+        circle(cx="12" cy="8" r="0.5" fill="currentColor" stroke-width="1.5")
+    if row.is_client
+      .dfUserSelfNote This is DiscoFlix's own account - nothing to manage here.
+    else
+      form.dfUserForm(
+        hx-post=`/apps/${activeApp.id}/users/${row.id}/save`
+        hx-trigger="change, submit"
+        hx-target=`#df-user-${row.id}`
+        hx-swap="outerHTML"
+      )
+        .appSettingsFields
+          each key in mutableFields
+            if user.fields[key]
+              +field(user.fields[key], key, row.id, false)
+
+//- STANDALONE RENDER (SAVE RESPONSE) - THE LOOPING LISTS CALL THE MIXIN
+if typeof user !== 'undefined' && user
+  +dfUserCard(user)

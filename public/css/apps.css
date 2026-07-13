@@ -10,8 +10,9 @@
   overflow-y: auto;
 }
 
+/* SECTIONS OWN THE WHOLE CHAT-VIEW WIDTH - DENSITY COMES FROM GRIDS INSIDE,
+   NEVER FROM A SURFACE-WIDE CAP */
 .appSectionBody {
-  max-width: 960px;
   width: 100%;
 }
 
@@ -75,12 +76,238 @@
   margin-top: 20px;
 }
 
+/* ---- SHARED IN-FLIGHT SPINNER (VIEW MORE, SEARCH, SECTION ROWS) ---- */
+
+.appSpinner {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  animation: apps-spin 1s linear infinite;
+}
+
+.appSpinner circle {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 60;
+  stroke-dashoffset: 30;
+  transform-origin: center;
+}
+
+@keyframes apps-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* EXPLICIT VIEW MORE BUTTON - THE ARRS ANSWER PAGINATION TOO SLOWLY FOR
+   SCROLL-TRIGGERED LOADS TO FEEL RESPONSIVE */
+.appLoadMore {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+  border-radius: 3px;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  background-color: var(--bg-secondary);
+  color: var(--interactive-normal);
+  cursor: pointer;
+}
+
+.appLoadMore:hover {
+  background-color: var(--bg-modifier-hover);
+  color: var(--interactive-hover);
+}
+
+.appLoadMore:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.appLoadMore .appSpinner {
+  display: none;
+}
+
+.appLoadMore.htmx-request .appSpinner {
+  display: block;
+}
+
+/* SECTION-ROW SPINNER RIDES THE ROW'S space-between RIGHT EDGE */
+.sectionRowSpinner {
+  display: none;
+  width: 14px;
+  height: 14px;
+  color: var(--interactive-normal);
+}
+
+.channelViewOption.htmx-request .sectionRowSpinner {
+  display: block;
+}
+
+.appInstanceTab.htmx-request {
+  opacity: 0.5;
+  cursor: progress;
+}
+
 /* ---- QUEUE ---- */
 
 #appQueueList {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.queueSectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.queueHeaderActions {
+  display: flex;
+  gap: 6px;
+}
+
+.queueHeaderButton {
+  border: none;
+  border-radius: 3px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  background-color: var(--bg-secondary);
+  color: var(--interactive-normal);
+  cursor: pointer;
+}
+
+.queueHeaderButton:hover {
+  background-color: var(--bg-modifier-hover);
+  color: var(--interactive-hover);
+}
+
+.queueHeaderButton:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.queueRowActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.queueActionButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 3px;
+  background-color: transparent;
+  color: var(--interactive-normal);
+  cursor: pointer;
+}
+
+.queueActionButton:hover {
+  background-color: var(--bg-modifier-hover);
+  color: var(--interactive-hover);
+}
+
+.queueActionButton.danger:hover {
+  color: var(--red);
+}
+
+.queueActionButton:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+/* TWO-STEP CONFIRM - ARMING HIDES THE ICON AND REVEALS A RED "Sure?" */
+.queueRowConfirm {
+  display: flex;
+  align-items: center;
+}
+
+.queueRowConfirm .queueConfirmButton {
+  display: none;
+  border: none;
+  border-radius: 3px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  background-color: var(--red);
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.queueRowConfirm .queueConfirmButton:hover {
+  background-color: var(--red-hover);
+}
+
+.queueRowConfirm.armed .queueActionButton {
+  display: none;
+}
+
+.queueRowConfirm.armed .queueConfirmButton {
+  display: block;
+}
+
+.request-progress-bar.paused {
+  background-color: var(--text-muted);
+}
+
+/* ENRICHED QUEUE ROWS - RELEASE LINE, SERVICE CHIPS, WARNING TOOLTIP */
+.queueRow {
+  align-items: flex-start;
+}
+
+.queueRow .request-status {
+  margin-top: 2px;
+}
+
+.queueRowTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.queueWarning {
+  display: inline-flex;
+  align-items: center;
+  color: var(--yellow);
+  flex-shrink: 0;
+  cursor: help;
+}
+
+.queueRowRelease {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.queueRowChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 5px;
+}
+
+.queueRowChip {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  color: var(--interactive-normal);
+  background-color: var(--bg-modifier-selected);
+  border-radius: 3px;
+  padding: 2px 6px;
 }
 
 /* ---- LIBRARY POSTER GRID ---- */
@@ -92,10 +319,13 @@
 }
 
 .posterCard {
+  display: block;
   background-color: var(--bg-secondary);
   border-radius: 4px;
   overflow: hidden;
   position: relative;
+  color: inherit;
+  text-decoration: none;
 }
 
 .posterCard img {
@@ -134,12 +364,21 @@
   margin-top: 2px;
 }
 
+.posterCard {
+  cursor: pointer;
+}
+
 .posterCard:hover {
   box-shadow: var(--elevation-low);
 }
 
 .posterCard:hover .posterCardTitle {
   color: var(--interactive-active);
+}
+
+.posterCard.htmx-request {
+  opacity: 0.6;
+  cursor: progress;
 }
 
 /* GREEN DOT = ON DISK, RINGED WITH THE SURFACE COLOR LIKE STATUS BUBBLES */
@@ -155,15 +394,323 @@
   box-sizing: content-box;
 }
 
-/* SENTINEL LIVES INSIDE THE GRID - SPAN THE FULL ROW SO "revealed" FIRES
-   WHEN THE LAST CARD ROW SCROLLS INTO VIEW */
+/* THE BUTTON LIVES INSIDE THE GRID - SPAN THE FULL ROW, CENTER THE PILL */
 .libraryLoadMore {
   grid-column: 1 / -1;
+  justify-self: center;
+  margin: 8px 0 4px;
+  min-width: 160px;
+}
+
+/* ---- LIBRARY ITEM DETAIL (IN-CONSOLE TWIN OF THE ARR'S DETAIL PAGE) ---- */
+
+.appDetailBack {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  border-radius: 3px;
+  padding: 6px 12px 6px 8px;
+  margin-bottom: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  background-color: var(--bg-secondary);
+  color: var(--interactive-normal);
+  cursor: pointer;
+}
+
+.appDetailBack:hover {
+  background-color: var(--bg-modifier-hover);
+  color: var(--interactive-hover);
+}
+
+/* FANART HERO - THE SCRIM KEEPS TEXT READABLE OVER ANY BACKDROP */
+.appDetailHero {
+  border-radius: 6px;
+  overflow: hidden;
+  background-color: var(--bg-secondary);
+  background-size: cover;
+  background-position: center 20%;
+}
+
+.appDetailHeroScrim {
   display: flex;
-  justify-content: center;
-  padding: 16px 0 8px;
+  gap: 24px;
+  padding: 24px;
+  background: linear-gradient(90deg, rgba(24, 25, 28, 0.94) 0%, rgba(24, 25, 28, 0.82) 55%, rgba(24, 25, 28, 0.65) 100%);
+}
+
+.appDetailPoster {
+  flex-shrink: 0;
+  width: 154px;
+}
+
+.appDetailPoster img,
+.appDetailPoster .posterCardFallback {
+  width: 154px;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: 4px;
+  box-shadow: var(--elevation-high);
+}
+
+.appDetailHeadline {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.appDetailTitle {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--header-primary);
+  line-height: 1.2;
+}
+
+.appDetailYear {
+  font-weight: 400;
+  color: var(--header-secondary);
+}
+
+.appDetailSubMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--header-secondary);
+}
+
+.appDetailCert {
+  border: 1px solid var(--bg-modifier-accent);
+  border-radius: 3px;
+  padding: 1px 6px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.appDetailGenre {
+  background-color: var(--bg-modifier-selected);
+  border-radius: 3px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--interactive-normal);
+}
+
+.appDetailChips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.appDetailMonitorChip {
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 3px;
+  padding: 2px 8px;
+  color: #ffffff;
+}
+
+.appDetailMonitorChip.on {
+  background-color: var(--blurple);
+}
+
+.appDetailMonitorChip.off {
+  background-color: var(--interactive-muted);
+}
+
+.appDetailRatings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+}
+
+.appDetailRating {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.appDetailRatingSource {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.appDetailRatingValue {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--header-primary);
+}
+
+.appDetailActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+}
+
+/* METADATA REFERENCES (IMDB/TMDB/TRAILER) - NOT APP LINK-OUTS */
+.appDetailLink {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--interactive-normal);
+  background-color: var(--bg-modifier-selected);
+  border-radius: 3px;
+  padding: 5px 10px;
+  text-decoration: none;
+}
+
+.appDetailLink:hover {
+  color: var(--interactive-hover);
+  background-color: var(--bg-modifier-accent);
+}
+
+/* BODY SPLITS INTO CONTENT + FACTS RAIL, COLLAPSING WHEN NARROW */
+.appDetailColumns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 32px;
+  margin-top: 20px;
+}
+
+.appDetailMain {
+  flex: 1 1 480px;
+  min-width: 0;
+}
+
+.appDetailFacts {
+  flex: 0 1 340px;
+  min-width: 260px;
+}
+
+.appDetailOverview {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-normal);
+  margin: 0 0 8px;
+}
+
+.appDetailFactList {
+  display: flex;
+  flex-direction: column;
+}
+
+.appDetailFact {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--bg-modifier-accent);
+  font-size: 13px;
+}
+
+.appDetailFact:last-child {
+  border-bottom: none;
+}
+
+.appDetailFactLabel {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.appDetailFactValue {
+  color: var(--text-normal);
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.appDetailFileCard {
+  background-color: var(--bg-secondary);
+  border-radius: 5px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+}
+
+.appDetailFileName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--header-primary);
+  overflow-wrap: anywhere;
+}
+
+.appDetailFileChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.appDetailFileChip {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  color: var(--interactive-normal);
+  background-color: var(--bg-modifier-selected);
+  border-radius: 3px;
+  padding: 2px 6px;
+}
+
+.appDetailFileMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin-top: 8px;
   font-size: 12px;
   color: var(--text-muted);
+}
+
+/* SEASONS - NAME / PROGRESS / HAVE-OF-TOTAL / SIZE */
+.appSeasonTable {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.appSeasonRow {
+  display: grid;
+  grid-template-columns: minmax(90px, 140px) 1fr 70px 80px;
+  align-items: center;
+  gap: 14px;
+  background-color: var(--bg-secondary);
+  border-radius: 4px;
+  padding: 8px 12px;
+}
+
+.appSeasonName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--header-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.appSeasonName.unmonitored {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.appSeasonProgress .request-progress-track {
+  width: 100%;
+}
+
+.appSeasonProgress .request-progress-bar.complete {
+  background-color: var(--green);
+}
+
+.appSeasonCount,
+.appSeasonSize {
+  font-size: 12px;
+  color: var(--header-secondary);
+  text-align: right;
+  white-space: nowrap;
 }
 
 /* ---- ACTIVITY FEED (TAKEOVER RIGHT RAIL - THE MEMBERS PANE'S APP-MODE TWIN,
@@ -193,9 +740,15 @@
 
 .appFeedGlyph.kind-grabbed { color: var(--cyan); }
 .appFeedGlyph.kind-imported,
-.appFeedGlyph.kind-completed { color: var(--green); }
+.appFeedGlyph.kind-completed,
+.appFeedGlyph.kind-added { color: var(--green); }
 .appFeedGlyph.kind-failed,
 .appFeedGlyph.kind-deleted { color: var(--red); }
+/* SELF-APP (DISCOFLIX) FEED - REQUEST LIFECYCLE KINDS */
+.appFeedGlyph.kind-pending { color: var(--yellow); }
+.appFeedGlyph.kind-approved,
+.appFeedGlyph.kind-available { color: var(--green); }
+.appFeedGlyph.kind-denied { color: var(--red); }
 
 .appFeedInfo {
   min-width: 0;
@@ -232,14 +785,205 @@
 }
 
 .appFeedMore {
-  padding: 10px 8px;
-  font-size: 12px;
-  color: var(--text-muted);
-  text-align: center;
   flex-shrink: 0;
+  margin: 8px 8px 12px;
 }
 
-/* ---- SEARCH & ADD ---- */
+/* ---- RAIL SEARCH (PINNED OVER THE ACTIVITY FEED) ---- */
+
+/* THE STRIP IS THE HEADER'S 48px ROW CONTINUED INTO THE RAIL - ITS HAIRLINE
+   SITS LEVEL WITH THE PANEL HEADER'S BOTTOM EDGE, FULL-BLEED ACROSS THE RAIL */
+.appRailSearch {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  height: 48px;
+  min-height: 48px;
+  margin: 0 -8px;
+  padding: 0 10px;
+  background-color: var(--bg-secondary);
+  box-shadow: var(--elevation-low);
+}
+
+.appRailSearchBox {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.appRailSearchInput {
+  width: 100%;
+  height: 28px;
+  border: none;
+  border-radius: 3px;
+  outline: none;
+  background-color: var(--bg-tertiary);
+  color: var(--text-normal);
+  font-size: 13px;
+  padding: 0 30px 0 8px;
+  box-sizing: border-box;
+}
+
+.appRailSearchInput::placeholder {
+  color: var(--text-muted);
+}
+
+/* THE GLYPH/SPINNER PAIR OWNS THE RIGHT EDGE - WEBKIT'S CANCEL WOULD OVERLAP */
+.appRailSearchInput::-webkit-search-cancel-button {
+  display: none;
+}
+
+.appRailSearchGlyph {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.appRailSearchSpinner {
+  display: none;
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-top: -7px;
+  width: 14px;
+  height: 14px;
+  color: var(--interactive-normal);
+}
+
+.appRailSearchInput.htmx-request ~ .appRailSearchGlyph {
+  opacity: 0;
+}
+
+.appRailSearchInput.htmx-request ~ .appRailSearchSpinner {
+  display: block;
+}
+
+/* SEARCHLESS APPS WITH NO HISTORY GIVE THE RAIL BACK (MEMBERS-MODE :empty TWIN) */
+.memberContainer.appFeed:not(:has(.appRailSearch, .appFeedRow, .appFeedMore)) {
+  display: none;
+}
+
+/* ---- LIBRARY BROWSE (SEARCH MODE + COVERS/DETAILED TOGGLE) ---- */
+
+.appLibraryHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  flex-wrap: wrap;
+}
+
+.appLibraryHeaderTools {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.appLibraryHeader .appInstanceTabs {
+  margin-bottom: 0;
+}
+
+.appViewToggle {
+  display: flex;
+  gap: 2px;
+  background-color: var(--bg-secondary);
+  border-radius: 4px;
+  padding: 2px;
+}
+
+.appViewToggleButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 22px;
+  border: none;
+  border-radius: 3px;
+  background-color: transparent;
+  color: var(--interactive-normal);
+  cursor: pointer;
+}
+
+.appViewToggleButton:hover {
+  background-color: var(--bg-modifier-hover);
+  color: var(--interactive-hover);
+}
+
+.appViewToggleButton.active {
+  background-color: var(--bg-modifier-selected);
+  color: var(--interactive-active);
+  cursor: default;
+}
+
+.appViewToggleButton svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* DETAILED ROWS READ BEST ON A BOUNDED MEASURE - THE SAME 1040px DOC THE
+   SETTINGS GROUPS CENTER ON; ULTRAWIDE GETS MARGINS, NOT MILE-LONG ROWS */
+.appBrowseList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.appBrowseRow {
+  cursor: pointer;
+}
+
+.appBrowseRow:hover {
+  background-color: var(--bg-modifier-hover);
+}
+
+.appBrowseRow:hover .request-title {
+  color: var(--interactive-active);
+}
+
+.appBrowseRow.htmx-request {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.appBrowseList .libraryLoadMore {
+  align-self: center;
+  min-width: 160px;
+  margin: 8px 0 4px;
+}
+
+.requestChip.chip-missing {
+  background-color: var(--interactive-muted);
+}
+
+/* SEARCH-RESULT CARDS NOT YET ADDED CARRY A BLURPLE LIBRARY DOT */
+.posterBadge.inLibrary {
+  background-color: var(--blurple);
+}
+
+/* NARROW SCREENS - THE STATE COLUMN DROPS UNDER THE OVERVIEW */
+@media (max-width: 640px) {
+  .appBrowseRow {
+    flex-wrap: wrap;
+  }
+
+  .appBrowseRow .request-status {
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+/* ---- ADD-TO INSTANCE TABS (MULTI-INSTANCE SEARCH) ---- */
 
 .appInstanceTabs {
   display: flex;
@@ -272,13 +1016,29 @@
   cursor: default;
 }
 
+/* SURFACE-WIDTH FILTER BOX (THE DISCOFLIX USERS SECTION) */
 .appSearchBar {
+  position: relative;
   margin-bottom: 16px;
+}
+
+.appSearchIndicator {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--interactive-normal);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.appSearchIndicator.htmx-request {
+  opacity: 1;
 }
 
 .appSearchInput {
   width: 100%;
-  max-width: 480px;
   background-color: var(--bg-chat-input);
   color: var(--text-normal);
   border: none;
@@ -292,14 +1052,8 @@
   color: var(--text-muted);
 }
 
-#appSearchResults {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-/* LOOKUP OVERVIEWS RUN LONG - CLAMP THEM TO TWO LINES */
-.appSearchRow .request-orig-message {
+/* LOOKUP AND LIBRARY OVERVIEWS RUN LONG - CLAMP THEM TO TWO LINES */
+.appBrowseRow .request-orig-message {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -309,18 +1063,279 @@
 
 /* ---- SETTINGS ---- */
 
+/* CARD-LIST SECTIONS (USERS) BOUND TO THE SAME 1040px MEASURE THE SETTINGS GROUPS CENTER ON */
+.appSectionDoc {
+  width: 100%;
+  max-width: 1040px;
+  margin: 0 auto;
+}
+
+/* GROUP BOXES RUN FULL-BLEED SO THE DIVIDERS DECORATE THE WHOLE SURFACE WHILE THE PADDING FORMULA CENTERS THE RAIL+CARD INTERIOR ON 1040px */
+.appSettingsGroup {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 12px 40px;
+  padding: 32px max(0px, calc(50% - 520px));
+}
+
+.appSettingsGroup + .appSettingsGroup {
+  border-top: 1px solid var(--bg-modifier-accent);
+}
+
+/* A FLEXIBLE RAIL DRIFTS THE LABEL AWAY FROM ITS CARD ON WIDE VIEWS, SO IT STAYS FIXED */
+.appSettingsGroupInfo {
+  flex: 0 0 240px;
+}
+
+.appSettingsGroupInfo .request-section-header {
+  margin: 0;
+}
+
+.appSettingsGroupBlurb {
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+.appSettingsGroupBody {
+  flex: 1 1 480px;
+  max-width: 760px;
+  min-width: 0;
+}
+
+/* PAGE-TITLE DIVIDER - FULL-BLEED LINE, SECTION LABEL INSET CENTER, DRESSED
+   LIKE THE GROUP RAIL HEADERS (BASE .divider/.dividerText LIVE IN chat.css) */
+.appSectionTitleDivider {
+  margin: 12px 0 16px;
+}
+
+.appSectionTitleDivider .dividerText {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--channel-default);
+}
+
+.appSettingsGroupBody .appFormCard {
+  margin-bottom: 0;
+}
+
+.appSettingsGroupBody .appSectionActions {
+  margin-top: 12px;
+}
+
+/* THE WELCOME BLOCK RIDES THE SAME CENTERED MEASURE AS THE GROUP INTERIORS */
 .appSettingsWelcome {
-  margin-bottom: 20px;
+  width: 100%;
+  max-width: 1040px;
+  margin: 8px auto 0;
 }
 
 .appSettingsWelcome .welcomeTitle {
   font-size: 20px; /* THE CHAT EMPTY-STATE SCALE (28px) SHOUTS IN A FORM */
 }
 
+/* FORM FIELDS SIT IN A CARD DRESSED LIKE THE INFO POPUPS' RECORD CONTAINERS */
+.appFormCard {
+  background: var(--bg-secondary);
+  border-radius: 5px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+/* THE CARD INTERIOR IS A PLAIN STACK - THE FIELD ROWS CARRY THEIR OWN RHYTHM AND HAIRLINES */
 .appSettingsFields {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---- DISCOFLIX (THE SELF APP) ---- */
+
+.dfDiscriminator {
+  color: var(--text-muted);
+  font-weight: 400;
+  font-size: 16px;
+}
+
+.dfOverviewSub {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.appOverviewIdentity img.dfBotAvatar {
+  border-radius: 50%;
+}
+
+.appHealthNotice.good {
+  background-color: rgba(67, 181, 129, 0.1);
+  border-left-color: var(--green);
+}
+
+.dfStatsGrid {
   display: grid;
-  gap: 16px;
-  max-width: 480px; /* DISCORD SETTINGS FORMS RUN NARROW */
+  grid-template-columns: repeat(auto-fit, minmax(110px, 150px));
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.dfStat {
+  background: var(--bg-secondary);
+  border-radius: 5px;
+  padding: 12px;
+  text-align: center;
+}
+
+.dfStatValue {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--header-primary);
+}
+
+.dfStat.attention .dfStatValue {
+  color: var(--yellow);
+}
+
+.dfStatLabel {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+}
+
+.dfAppList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+
+.dfAppRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg-secondary);
+  border-radius: 5px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.dfAppRow:hover {
+  background: var(--bg-modifier-hover);
+}
+
+.dfAppIcon {
+  width: 24px;
+  height: 24px;
+}
+
+.dfAppName {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+  color: var(--header-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---- DISCOFLIX USER CARDS ---- */
+
+/* CARDS SHARE THE DOCUMENT MEASURE AND FILL IT TWO-UP WHEN IT FITS */
+#dfUserList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+
+#dfUserList .appFormCard {
+  margin-bottom: 0;
+}
+
+#dfUserList .appLoadMore,
+#dfUserList .appQueueEmpty {
+  grid-column: 1 / -1;
+}
+
+#dfUserList .appLoadMore {
+  justify-self: center;
+  min-width: 160px;
+}
+
+.dfUserHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--bg-tertiary);
+}
+
+.dfUserAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.dfUserIdent {
+  min-width: 0;
+}
+
+.dfUserName {
+  font-weight: 600;
+  color: var(--header-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dfUserSub {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.dfUserChips {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+.dfUserChip {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: #fff;
+  background-color: var(--interactive-muted);
+}
+
+.dfUserChip.admin { background-color: var(--blurple); }
+.dfUserChip.staff { background-color: var(--cyan); }
+.dfUserChip.inactive { background-color: var(--red); }
+
+.dfUserInfoButton {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: var(--interactive-normal);
+  cursor: pointer;
+}
+
+.dfUserInfoButton:hover {
+  color: var(--interactive-hover);
+}
+
+.dfUserSelfNote {
+  font-size: 13px;
+  color: var(--text-muted);
 }
 
 /* SAVE TOAST RIDES THE TAKEOVER HEADER - SETTINGS-MODAL CONVENTION */
@@ -386,7 +1401,6 @@
 
 .request-section-header.danger {
   color: var(--red);
-  margin-top: 32px;
 }
 
 .appDangerZone {
@@ -472,6 +1486,15 @@
 
 .appPickerKind.download {
   background-color: var(--cyan);
+}
+
+.appPickerKind.media {
+  background-color: var(--green);
+}
+
+.appPickerKind.indexer {
+  background-color: var(--yellow);
+  color: #1e2124;
 }
 
 .appPickerBlurb {

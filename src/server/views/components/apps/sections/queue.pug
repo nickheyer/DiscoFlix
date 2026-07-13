@@ -1,4 +1,22 @@
 //- QUEUE SECTION SHELL - THE INNER LIST (#appQueueList) IS THE WS-PUSHABLE
 //- FRAGMENT (HEARTBEAT + MONITOR SWAP THE WHOLE LIST ON CHANGE)
-.request-section-header Download Queue
+- var headerActions = (queueActions && queueActions.queue) || []
+.request-section-header.queueSectionHeader
+  span Download Queue
+  if headerActions.length
+    .queueHeaderActions
+      if headerActions.includes('pause')
+        button.queueHeaderButton(
+          type="button"
+          hx-post=`/apps/${activeApp.id}/queue-action/pause`
+          hx-swap="none"
+          hx-disabled-elt="this"
+        ) Pause All
+      if headerActions.includes('resume')
+        button.queueHeaderButton(
+          type="button"
+          hx-post=`/apps/${activeApp.id}/queue-action/resume`
+          hx-swap="none"
+          hx-disabled-elt="this"
+        ) Resume All
 include queueBody

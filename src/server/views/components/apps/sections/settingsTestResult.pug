@@ -3,4 +3,4 @@
 //- ALONG OOB IN THE SAME RESPONSE. status: { ok, version|error }
 span#appTestResult
   if status
-    span.appStatusPill(class=status.ok ? 'ok' : 'down')= status.ok ? `Connected - v${status.version}` : (status.error || 'unreachable')
+    span.appStatusPill(class=status.ok ? 'ok' : 'down')= status.ok ? (status.version ? `Connected - v${status.version}` : 'Connected') : (status.error || 'unreachable')

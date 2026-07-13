@@ -1,0 +1,148 @@
+//- IN-CONSOLE LIBRARY ITEM DETAIL - THE ARR DETAIL PAGE'S TWIN, SWAPPED INTO
+//- #appSectionBody BY A POSTER/ROW CLICK. ephemeral = A PRE-ADD LOOKUP VIEW
+//- (READ-ONLY + AN ADD BUTTON THAT UNLOCKS THE REAL THING); backTo='search'
+//- POINTS THE BACK BUTTON AT THE RAIL INPUT'S SEARCH RESULTS INSTEAD OF THE
+//- LIBRARY LISTING. LOCALS: activeApp, detail | detailError, ephemeral?, backTo?
+- var isEphemeral = typeof ephemeral !== 'undefined' && !!ephemeral
+- var backTarget = (typeof backTo === 'string' && backTo === 'search') ? 'search' : 'library'
+if backTarget === 'search'
+  //- RE-RUNS THE TERM STILL SITTING IN THE RAIL INPUT - SAME RESULTS, SAME VIEW
+  button.appDetailBack(
+    type="button"
+    hx-get=`/apps/${activeApp.id}/search`
+    hx-include="#appRailSearchInput"
+    hx-swap="none"
+    hx-disabled-elt="this"
+  )
+    svg(viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true")
+      path(d="M15 19l-7-7 7-7")
+    span Results
+else
+  button.appDetailBack(
+    type="button"
+    hx-post=`/apps/${activeApp.id}/section/library`
+    hx-disabled-elt="this"
+  )
+    svg(viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true")
+      path(d="M15 19l-7-7 7-7")
+    span Library
+
+if detailError || !detail
+  .appQueueEmpty #{activeApp.display_name} didn't answer - #{detailError || 'no detail available'}
+else
+  .appDetailHero(style=detail.fanartUrl ? `background-image: url('${detail.fanartUrl}')` : undefined)
+    .appDetailHeroScrim
+      .appDetailPoster
+        if detail.posterUrl
+          img(src=detail.posterUrl alt=detail.title referrerpolicy="no-referrer")
+        else
+          .posterCardFallback
+            svg(viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true")
+              if detail.contentKind === 'show'
+                rect(x="3" y="7" width="18" height="13" rx="2")
+                path(stroke-linecap="round" stroke-linejoin="round" d="M8 3l4 4 4-4")
+              else
+                rect(x="3" y="5" width="18" height="14" rx="2")
+                path(stroke-linecap="round" d="M3 9h18M8 5v14M16 5v14")
+      .appDetailHeadline
+        .appDetailTitle
+          | #{detail.title}
+          if detail.year
+            span.appDetailYear  (#{detail.year})
+        .appDetailSubMeta
+          if detail.runtime
+            span= detail.runtime
+          if detail.certification
+            span.appDetailCert= detail.certification
+          each genre in detail.genres.slice(0, 5)
+            span.appDetailGenre= genre
+        .appDetailChips
+          if isEphemeral
+            span.appStatusPill.pending Not in library
+          else
+            span.appStatusPill(class=detail.available ? 'ok' : 'down')= detail.availabilityLabel
+            span.appDetailMonitorChip(class=detail.monitored ? 'on' : 'off')= detail.monitored ? 'Monitored' : 'Unmonitored'
+        if detail.ratings.length
+          .appDetailRatings
+            each rating in detail.ratings
+              .appDetailRating(title=rating.votes ? `${rating.votes.toLocaleString()} votes` : undefined)
+                span.appDetailRatingSource= rating.label
+                span.appDetailRatingValue= rating.value
+        .appDetailActions
+          if isEphemeral
+            //- THE ADD UNLOCKS THE REAL DETAIL VIEW AND EVERY ACTION ON IT
+            button.modal-button(
+              hx-post=`/apps/${activeApp.id}/add-media`
+              hx-vals=JSON.stringify({ externalKey: detail.externalKey, title: detail.title, mode: 'detail' })
+              hx-target="#appSectionBody"
+              hx-swap="innerHTML show:#messageContainer:top"
+              hx-disabled-elt="this"
+            ) Add to #{activeApp.display_name}
+          else
+            button.modal-button.button-secondary(
+              hx-post=`/apps/${activeApp.id}/library/item/${detail.id}/monitor`
+              hx-vals=JSON.stringify({ monitored: !detail.monitored, from: backTarget })
+              hx-target="#appSectionBody"
+              hx-swap="innerHTML"
+              hx-disabled-elt="this"
+            )= detail.monitored ? 'Stop Monitoring' : 'Start Monitoring'
+            button.modal-button.button-secondary(
+              hx-post=`/apps/${activeApp.id}/library/item/${detail.id}/search`
+              hx-vals=JSON.stringify({ from: backTarget })
+              hx-target="#appSectionBody"
+              hx-swap="innerHTML"
+              hx-disabled-elt="this"
+            )= detail.contentKind === 'show' ? 'Search All Episodes' : 'Search for Release'
+          each link in detail.links
+            a.appDetailLink(href=link.url target="_blank" rel="noopener noreferrer")= link.label
+
+  .appDetailColumns
+    .appDetailMain
+      if detail.overview
+        .request-section-header Overview
+        p.appDetailOverview= detail.overview
+
+      if detail.file
+        .request-section-header File
+        .appDetailFileCard
+          .appDetailFileName= detail.file.relativePath || 'Unknown file'
+          .appDetailFileChips
+            if detail.file.quality
+              span.appDetailFileChip= detail.file.quality
+            if detail.file.resolution
+              span.appDetailFileChip= detail.file.resolution
+            if detail.file.dynamicRange
+              span.appDetailFileChip= detail.file.dynamicRange
+            if detail.file.videoCodec
+              span.appDetailFileChip= detail.file.videoCodec
+            if detail.file.audioCodec
+              span.appDetailFileChip= detail.file.audioCodec + (detail.file.audioChannels ? ` ${detail.file.audioChannels}` : '')
+            if detail.file.size
+              span.appDetailFileChip= detail.file.size
+          .appDetailFileMeta
+            if detail.file.languages
+              span Audio: #{detail.file.languages}
+            if detail.file.releaseGroup
+              span Group: #{detail.file.releaseGroup}
+            if detail.file.added
+              span Added #{detail.file.added}
+
+      if detail.seasons && detail.seasons.length
+        .request-section-header Seasons
+        .appSeasonTable
+          each season in detail.seasons
+            .appSeasonRow
+              .appSeasonName(class=season.monitored ? '' : 'unmonitored')= season.label
+              .appSeasonProgress
+                .request-progress-track
+                  .request-progress-bar(class=season.percent >= 100 ? 'complete' : undefined style=`width: ${season.percent}%`)
+              .appSeasonCount #{season.episodeFileCount} / #{season.totalEpisodeCount || season.episodeCount}
+              .appSeasonSize= season.size || '0 B'
+
+    .appDetailFacts
+      .request-section-header Details
+      .appDetailFactList
+        each fact in detail.facts
+          .appDetailFact
+            .appDetailFactLabel= fact.label
+            .appDetailFactValue= fact.value

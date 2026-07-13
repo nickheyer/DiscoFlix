@@ -1,0 +1,77 @@
+//- DISCOFLIX OVERVIEW - THE BOT'S OWN HEALTH PANEL: IDENTITY, PROBLEMS,
+//- OPS STATS, AND EVERY CONNECTED APP AT A GLANCE.
+//- sectionData: { bot, problems [{type,message}], stats, apps [rows] }
+- var bot = sectionData.bot
+
+.appOverviewIdentity
+  img.dfBotAvatar(src=bot.avatar || '/images/favicon.png' alt=bot.username referrerpolicy="no-referrer")
+  div
+    .appOverviewName
+      | #{bot.username}
+      span.dfDiscriminator ##{bot.discriminator}
+      |
+      span.appStatusPill(class=bot.online ? 'ok' : 'down')= bot.online ? 'online' : 'offline'
+    .dfOverviewSub= bot.enabled ? 'The bot is powered on' : 'The bot is powered off'
+
+if sectionData.problems.length
+  .request-section-header Needs Attention
+  each item in sectionData.problems
+    .appHealthNotice(class=item.type === 'error' ? 'error' : '')= item.message
+else
+  .appHealthNotice.good All systems go - nothing needs attention.
+
+.request-section-header At a Glance
+.dfStatsGrid
+  .dfStat
+    .dfStatValue= sectionData.stats.servers
+    .dfStatLabel Server#{sectionData.stats.servers === 1 ? '' : 's'}
+  .dfStat
+    .dfStatValue= sectionData.stats.users
+    .dfStatLabel User#{sectionData.stats.users === 1 ? '' : 's'}
+  .dfStat
+    .dfStatValue= sectionData.stats.requests
+    .dfStatLabel Request#{sectionData.stats.requests === 1 ? '' : 's'}
+  .dfStat(class=sectionData.stats.pending ? 'attention' : undefined)
+    .dfStatValue= sectionData.stats.pending
+    .dfStatLabel Pending
+  .dfStat
+    .dfStatValue= sectionData.stats.queueCount
+    .dfStatLabel Downloading
+
+.request-section-header Connected Apps
+if !sectionData.apps.length
+  .appQueueEmpty No apps connected yet - add Radarr, Sonarr, and friends with the green + on the rail.
+else
+  .dfAppList
+    each app in sectionData.apps
+      //- ROW CLICK ENTERS THAT APP'S TAKEOVER
+      .dfAppRow(
+        role="button"
+        tabindex="0"
+        aria-label=`Open ${app.label}`
+        hx-post=`/change-active-app/${app.id}`
+        hx-trigger="click, keyup[key=='Enter']"
+      )
+        img.dfAppIcon(src=app.icon alt=app.label)
+        .dfAppName= app.label
+        span.appStatusPill(class=app.statusClass)= app.statusText
+
+.appSectionActions
+  button.modal-button.button-secondary(
+    hx-get="/modal/requests/dashboard"
+    hx-target="#modals-here"
+    hx-trigger="click"
+    data-bs-toggle="modal"
+    data-bs-target="#modals-here"
+  ) Media Requests
+  if bot.inviteLink
+    button.modal-button.button-secondary(
+      hx-get="/modal/bot/invite"
+      hx-target="#modals-here"
+      hx-trigger="click"
+      data-bs-toggle="modal"
+      data-bs-target="#modals-here"
+    ) Invite Bot
+  button.modal-button.button-secondary(
+    hx-post=`/apps/${activeApp.id}/section/overview`
+  ) Refresh

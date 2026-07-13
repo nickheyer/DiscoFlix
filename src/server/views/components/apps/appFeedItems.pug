@@ -1,13 +1,18 @@
-//- FEED ROWS + REVEALED SENTINEL - INCLUDED BY appFeed AND RETURNED BARE BY GET /apps/:id/feed/page/:n.
+//- FEED ROWS + VIEW MORE BUTTON - INCLUDED BY appFeed AND RETURNED BARE BY GET /apps/:id/feed/page/:n.
 -
   var FEED_KINDS = {
     grabbed:   { label: 'Grabbed' },
     imported:  { label: 'Imported' },
     completed: { label: 'Completed' },
+    added:     { label: 'Added' },
     failed:    { label: 'Failed' },
     deleted:   { label: 'Deleted' },
     renamed:   { label: 'Renamed' },
     ignored:   { label: 'Ignored' },
+    pending:   { label: 'Pending' },
+    approved:  { label: 'Approved' },
+    denied:    { label: 'Denied' },
+    available: { label: 'Available' },
     info:      { label: 'Activity' }
   };
   function timeAgo(value) {
@@ -31,6 +36,8 @@ mixin feedGlyph(kind)
         path(d="M5 13l4 4L19 7")
       when 'completed'
         path(d="M5 13l4 4L19 7")
+      when 'added'
+        path(d="M12 5v14M5 12h14")
       when 'failed'
         path(d="M6 6l12 12M18 6L6 18")
       when 'deleted'
@@ -40,6 +47,17 @@ mixin feedGlyph(kind)
       when 'ignored'
         circle(cx="12" cy="12" r="9")
         path(d="M5.6 5.6l12.8 12.8")
+      when 'pending'
+        circle(cx="12" cy="12" r="9")
+        path(d="M12 7v5l3 3")
+      when 'approved'
+        path(d="M5 13l4 4L19 7")
+      when 'denied'
+        circle(cx="12" cy="12" r="9")
+        path(d="M8.5 8.5l7 7M15.5 8.5l-7 7")
+      when 'available'
+        circle(cx="12" cy="12" r="9")
+        path(d="M8.5 12.5l2.5 2.5 5-5.5")
       default
         path(d="M7 3h7l5 5v12a1 1 0 01-1 1H7a1 1 0 01-1-1V4a1 1 0 011-1zm7 0v5h5")
 
@@ -57,8 +75,12 @@ each row in feedRowList
           span= row.detail
     .appFeedTime= timeAgo(row.at)
 if feed && feed.hasMore
-  .appFeedMore(
+  button.appLoadMore.appFeedMore(
+    type="button"
     hx-get=`/apps/${activeApp.id}/feed/page/${currentFeedPage + 1}`
-    hx-trigger="revealed"
     hx-swap="outerHTML"
-  ) Loading more…
+    hx-disabled-elt="this"
+  )
+    span View More
+    svg.appSpinner(viewBox="0 0 24 24" aria-hidden="true")
+      circle(cx="12" cy="12" r="10")

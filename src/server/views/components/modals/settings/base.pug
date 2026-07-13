@@ -1,15 +1,10 @@
 include ../../../mixins/search
-include ../../../mixins/notification
 
-//- NO FOOTER: X / BACKDROP / ESC ALL CLOSE - THE SAVE TOAST LIVES IN THE HEADER
+//- READ-ONLY INFO POPUP - NO FOOTER, NO FORMS: X / BACKDROP / ESC ALL CLOSE
 .modal-dialog.modal-dialog-centered.modal-dialog-scrollable.modal-lg
   .modal-content
     .modal-header
-      h5.modal-title
-        = title
-        if readonly
-          span.badge.ms-2.bg-secondary.small Read Only
-      +Notification
+      h5.modal-title= title
       button.modal-close-button(type='button' data-bs-dismiss='modal' aria-label='Close') ×
 
     .modal-body

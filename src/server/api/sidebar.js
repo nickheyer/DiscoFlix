@@ -51,8 +51,8 @@ async function changeActiveServers(ctx) {
     await ctx.compileView([
       'sidebar/servers/serverSortableContainer.pug',
       'sidebar/servers/appRail.pug',
+      'sidebar/servers/serverHomeButton.pug',
       'sidebar/servers/serverBannerContainer.pug',
-      'sidebar/userControls/settingsButton.pug',
       'sidebar/channels/channelsLayout.pug',
       'chat/messageChannelHeader.pug',
       'chat/chatBar.pug',
@@ -82,33 +82,9 @@ async function changeActiveChannel(ctx) {
   await ctx.deferToWS();
 }
 
-async function toggleSettings(ctx) {
-  const action = ctx.params.action;
-  if (action === 'open') {
-    await ctx.compileView([
-      'sidebar/servers/serverBannerLabel.pug',
-      'sidebar/settings/settingsLayout.pug',
-      'sidebar/settings/settingsToggleClose.pug',
-      'sidebar/userControls/settingsButtonOpened.pug'
-    ], { settingsToggled: true });
-  } else {
-    const state = await ctx.core.models.state.get();
-    const servers = await ctx.core.render.getServerTemplateObj(null, state);
-    const discordBot = await ctx.core.models.discordBot.get();
-    const apps = await ctx.core.apps.getRailViewModel(state);
-    const activeApp = await ctx.core.apps.getInstance(state.active_app_id);
-    await ctx.compileView('sidebar/sidebarLayout.pug', {
-      state, servers, discordBot, apps, activeApp,
-      ...(activeApp ? buildSectionNav(ctx.core, activeApp) : {})
-    });
-  }
-
-}
-
 module.exports = {
   toggleSidebarState,
   changeActiveServers,
   changeServerSortOrder,
-  changeActiveChannel,
-  toggleSettings
+  changeActiveChannel
 }

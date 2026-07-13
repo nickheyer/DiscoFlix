@@ -193,9 +193,9 @@ class BaseModel {
         const sanitized = { ...existingData };
         const errors = [];
     
-        // PROCESS ALL METADATA FIELDS
+        // PROCESS ALL METADATA FIELDS - readonly ONES NEVER ACCEPT FORM WRITES
         Object.entries(this.metadata.fields).forEach(([key, meta]) => {
-            if (meta.computed || [FIELD_TYPES.RELATION, FIELD_TYPES.ID].includes(meta.type)) return;
+            if (meta.computed || meta.readonly || [FIELD_TYPES.RELATION, FIELD_TYPES.ID].includes(meta.type)) return;
 
             try {
                 const value = key in data ? data[key] : null;
@@ -259,7 +259,8 @@ class BaseModel {
                         required: meta.required,
                         sensitive: meta.sensitive,
                         min: meta.min,
-                        max: meta.max
+                        max: meta.max,
+                        size: meta.size
                     };
                 }
                 return acc;

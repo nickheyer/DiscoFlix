@@ -1,28 +1,24 @@
-//- POSTER CARDS + REVEALED SENTINEL; INCLUDED BY THE LIBRARY SECTION AND RETURNED BARE BY GET /apps/:id/library/page/:n.
+//- LIBRARY PAGE FRAGMENT - COVER CARDS OR DETAILED ROWS PER THE ACTIVE VIEW,
+//- PLUS THE VIEW MORE SENTINEL; INCLUDED BY THE LIBRARY SECTION AND RETURNED
+//- BARE BY GET /apps/:id/library/page/:n. LOCALS: activeApp, library,
+//- contentKind, view
+include ../../mixins/browse
 - var libraryItems = (library && library.items) || []
 - var libraryPage = (library && library.page) || 1
+- var libraryView = typeof view === 'string' ? view : 'covers'
+
 each item in libraryItems
-  .posterCard
-    if item.posterUrl
-      img(src=item.posterUrl alt=item.title loading="lazy" referrerpolicy="no-referrer")
-    else
-      .posterCardFallback
-        svg(viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true")
-          if contentKind === 'show'
-            rect(x="3" y="7" width="18" height="13" rx="2")
-            path(stroke-linecap="round" stroke-linejoin="round" d="M8 3l4 4 4-4")
-          else
-            rect(x="3" y="5" width="18" height="14" rx="2")
-            path(stroke-linecap="round" d="M3 9h18M8 5v14M16 5v14")
-    if item.available
-      .posterBadge(title="On disk")
-    .posterCardInfo
-      .posterCardTitle(title=item.title)= item.title
-      if item.year
-        .posterCardMeta= item.year
+  if libraryView === 'detailed'
+    +libraryBrowseRow(item, activeApp.id, contentKind)
+  else
+    +browsePosterCard({ clickUrl: `/apps/${activeApp.id}/library/item/${item.id}`, title: item.title, year: item.year, posterUrl: item.posterUrl, badge: item.available ? 'available' : null, kind: contentKind })
 if library && library.hasMore
-  .libraryLoadMore(
+  button.appLoadMore.libraryLoadMore(
+    type="button"
     hx-get=`/apps/${activeApp.id}/library/page/${libraryPage + 1}`
-    hx-trigger="revealed"
     hx-swap="outerHTML"
-  ) Loading more…
+    hx-disabled-elt="this"
+  )
+    span View More
+    svg.appSpinner(viewBox="0 0 24 24" aria-hidden="true")
+      circle(cx="12" cy="12" r="10")

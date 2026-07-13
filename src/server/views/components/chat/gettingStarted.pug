@@ -22,10 +22,18 @@
         if step.hint && !step.done
           .gettingStartedHint= step.hint
       if step.cta && isNext
-        button.modal-button.gettingStartedCta(
-          hx-get=step.cta.url
-          hx-target="#modals-here"
-          hx-trigger="click"
-          data-bs-toggle="modal"
-          data-bs-target="#modals-here"
-        )= step.cta.label
+        if step.cta.post
+          //- TAKEOVER CTAs SWAP THE WHOLE CONSOLE, MODAL CTAs POP A DIALOG
+          button.modal-button.gettingStartedCta(
+            hx-post=step.cta.post
+            hx-trigger="click"
+            hx-select-oob="#guildNameBanner"
+          )= step.cta.label
+        else
+          button.modal-button.gettingStartedCta(
+            hx-get=step.cta.url
+            hx-target="#modals-here"
+            hx-trigger="click"
+            data-bs-toggle="modal"
+            data-bs-target="#modals-here"
+          )= step.cta.label

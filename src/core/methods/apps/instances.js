@@ -1,3 +1,6 @@
+// SERVICES APPLY QUEUE VERBS ASYNC - BRIEF PAUSE SO THE RE-PULL SEES THE RESULT
+const QUEUE_SETTLE_MS = 300;
+
 // DB-BACKED INSTANCE HELPERS. AN "INSTANCE" IS AN App ROW; ITS app_type KEYS
 // INTO THE MANIFEST REGISTRY (MERGED INTO THIS NAMESPACE, SO this.getType ETC.)
 module.exports = {
@@ -19,10 +22,43 @@ module.exports = {
   },
 
   // CLIENTS ARE BUILT PER-USE FROM THE ROW SO SETTINGS CHANGES APPLY
-  // IMMEDIATELY. RETURNS null WHEN THE INSTANCE ISN'T FULLY CONFIGURED.
+  // IMMEDIATELY. RETURNS null WHEN THE INSTANCE ISN'T FULLY CONFIGURED OR ITS
+  // MANIFEST HAS NO SERVICE CLIENT AT ALL (THE DISCOFLIX SELF APP).
   getClientForInstance(row) {
     if (!row || !this.isConfigured(row)) return null;
-    return this.getType(row.app_type).buildClient(row, this.logger);
+    const manifest = this.getType(row.app_type);
+    if (typeof manifest.buildClient !== 'function') return null;
+    return manifest.buildClient(row, this.logger);
+  },
+
+  // DISCOFLIX'S OWN App ROW - THE DISCORD BADGE'S TAKEOVER TARGET, CREATED ON
+  // FIRST USE. HIDDEN FROM THE RAIL/PICKER, EXEMPT FROM SORT AND ROUTING.
+  async getSelfInstance() {
+    const existing = await this.core.models.app.get({ app_type: 'discoflix' });
+    if (existing) return existing;
+    return this.core.prisma.app.create({
+      data: {
+        app_type: 'discoflix',
+        display_name: 'DiscoFlix',
+        enabled: true,
+        is_default: false,
+        sort_position: -1,
+        active_section: 'overview'
+      }
+    });
+  },
+
+  // THE HOME BADGE'S ALERT DOT: DEFINITE FAILURES ONLY - THE BOT SUPPOSED TO
+  // BE ON BUT OFFLINE, OR A SERVING INSTANCE THE HEARTBEAT CANNOT REACH
+  countSelfProblems(rows, state) {
+    let problems = 0;
+    if (state.discord_state && !(this.core.client && this.core.client.isReady())) problems++;
+    for (const row of rows) {
+      if (this.getType(row.app_type)?.hidden) continue;
+      if (!row.enabled || !this.isConfigured(row)) continue;
+      if (this.statusCache.get(row.id)?.ok === false) problems++;
+    }
+    return problems;
   },
 
   // ENABLED + CONFIGURED INSTANCES PROVIDING A CONTENT TYPE, ROUTING ORDER:
@@ -144,6 +180,29 @@ module.exports = {
     return this.core.models.app.safeDelete(id);
   },
 
+  // TEMPLATE-FACING VERB LISTS - EMPTY WHEN THE INSTANCE HAS NO USABLE CLIENT
+  queueActionsFor(instance) {
+    const client = this.getClientForInstance(instance);
+    return client ? client.capabilities.queueActions : { item: [], queue: [] };
+  },
+
+  // RUN A QUEUE VERB THEN RE-PULL THE LIVE QUEUE SO EVERY FRAGMENT AGREES
+  async performQueueAction(instance, verb, itemId = null) {
+    const client = this.getClientForInstance(instance);
+    const allowed = client ? client.capabilities.queueActions[itemId ? 'item' : 'queue'] : [];
+    if (!allowed.includes(verb)) {
+      throw new Error(`${instance.display_name} does not support '${verb}' here`);
+    }
+    await client.queueAction(verb, itemId);
+    await new Promise(resolve => setTimeout(resolve, QUEUE_SETTLE_MS));
+    try {
+      this.queueCache.set(instance.id, await client.getQueue());
+    } catch (err) {
+      this.logger.debug(`${instance.display_name} queue re-pull failed: ${err.message}`);
+    }
+    return this.queueCache.get(instance.id) || [];
+  },
+
   async testInstance(rowOrId) {
     const row = typeof rowOrId === 'string' ? await this.getInstance(rowOrId) : rowOrId;
     if (!row) return { ok: false, error: 'App not found' };
@@ -176,23 +235,42 @@ module.exports = {
   },
 
   // RAIL BUBBLE VIEW MODEL. REACHABILITY COMES FROM THE HEARTBEAT'S CACHE -
-  // NEVER LIVE-CHECKED AT RENDER TIME (null = NOT CHECKED YET, BE OPTIMISTIC)
+  // NEVER LIVE-CHECKED AT RENDER TIME (null = NOT CHECKED YET, BE OPTIMISTIC).
+  // HIDDEN ENTRIES NEVER RENDER AS BUBBLES - THE DISCOFLIX ONE FEEDS THE HOME
+  // BADGE (ACTIVE PILL + PROBLEM DOT) AND IS SYNTHESIZED UNTIL ITS ROW EXISTS.
   async getRailViewModel(state = null) {
     if (!state) state = await this.core.models.state.get();
     const rows = await this.getInstalled();
-    return rows.map(row => {
+    const viewModels = rows.map(row => {
       const manifest = this.getType(row.app_type) || {};
       const status = this.statusCache.get(row.id);
       return {
         id: row.id,
         app_type: row.app_type,
+        hidden: !!manifest.hidden,
         label: row.display_name,
         icon: manifest.icon || null,
         configured: this.isConfigured(row),
         enabled: row.enabled,
         reachable: status ? status.ok : null,
-        active: state.active_app_id === row.id
+        active: state.active_app_id === row.id,
+        problems: manifest.hidden ? this.countSelfProblems(rows, state) : 0
       };
     });
+    if (!viewModels.some(vm => vm.app_type === 'discoflix')) {
+      viewModels.push({
+        id: null,
+        app_type: 'discoflix',
+        hidden: true,
+        label: 'DiscoFlix',
+        icon: null,
+        configured: true,
+        enabled: true,
+        reachable: null,
+        active: false,
+        problems: this.countSelfProblems(rows, state)
+      });
+    }
+    return viewModels;
   }
 };

@@ -51,20 +51,18 @@ async function getPaginatedData(model, currentPage, perPage, searchQuery = '') {
     };
 }
 
-async function renderRecordsView(ctx, model, records, currentPage, perPage, totalRecords, searchQuery = null, message = null, fullRender = null) {
+async function renderRecordsView(ctx, model, records, currentPage, perPage, totalRecords, searchQuery = null, fullRender = null) {
     // BASE.PUG ALREADY INCLUDES _RECORDS - RENDERING BOTH DUPLICATES THE RECORDS INTO #modals-here
     const templatesToRender = fullRender ?
-        ['modals/settings/base.pug', 'extra/notification.pug'] :
-        ['modals/settings/_records.pug', 'extra/notification.pug'];
+        ['modals/settings/base.pug'] :
+        ['modals/settings/_records.pug'];
     const templateParams = {
-        title: model.getModelDescription() || `${model.modelName} Settings`,
+        title: model.getModelDescription() || `${model.modelName} Info`,
         type: _.lowerFirst(model?.metadata?.alias || model.modelName),
-        readonly: model.isModelReadonly(),
         isSingleton: model.getModelType() === 'singleton',
         records,
         pg: { currentPage, perPage, totalRecords },
-        searchQuery,
-        ...(message && { message })
+        searchQuery
     };
     return ctx.compileView(templatesToRender, templateParams);
 }
@@ -90,10 +88,9 @@ async function renderModal(ctx) {
             await getPaginatedData(model, currentPage, perPage, searchQuery);
 
         Object.assign(modalParams, {
-            title: model.getModelDescription() || `${modalName} Settings`,
+            title: model.getModelDescription() || `${modalName} Info`,
             type: modalName,
-            readonly: model.isModelReadonly(),
-            records: model.getModelType() === 'singleton' ? 
+            records: model.getModelType() === 'singleton' ?
                 [{ id: data[model.getPrimaryKeyName()]?.value || null, fields: data }] : data,
             isSingleton: model.getModelType() === 'singleton',
             pg: { currentPage: safePage, perPage, totalRecords },
@@ -127,41 +124,6 @@ async function getSettingsPage(ctx) {
     return renderRecordsView(ctx, model, data, safePage, perPage, totalRecords, searchQuery);
 }
 
-async function saveSettings(ctx) {
-    const { type: modelName, id } = ctx.params;
-    const model = ctx.core.models[modelName];
-    if (!model || model.isModelReadonly()) return ctx.status = model ? 403 : 404;
-
-    try {
-        const perPage = getSafePageSize(ctx.request.body['page-size']);
-        const currentPage = getCurrentPage(ctx.request.body['current-page']);
-        const searchQuery = getSearchQuery(ctx);
-
-        const modalData = { ...ctx.request.body };
-        delete modalData['current-page'];
-        delete modalData['page-size'];
-        delete modalData['search'];
-
-        const savedData = await (id ?
-            model.safeUpdateOne(id, modalData) :
-            model.safeUpsertOne(modalData)
-        );
-
-        let { data: formData, totalRecords, currentPage: safePage } = 
-            await getPaginatedData(model, currentPage, perPage, searchQuery);
-
-        if (model.getModelType() === 'singleton') {
-            formData = [{ id: savedData.id, fields: formData }];
-        }
-
-        return renderRecordsView(ctx, model, formData, safePage, perPage, totalRecords, searchQuery, 'Changes Saved');
-    } catch (err) {
-        ctx.core.logger.error('SETTINGS SAVE FAILED:', err);
-        ctx.status = 400;
-        ctx.body = { error: err.message };
-    }
-}
-
 async function searchSettings(ctx) {
     const { type: modelName } = ctx.params;
     const model = ctx.core.models[modelName];
@@ -172,40 +134,15 @@ async function searchSettings(ctx) {
     const currentPage = getCurrentPage(ctx?.query?.['current-page']);
     const includeModal = !!(ctx?.query?.['as-modal']);
 
-    const { data, totalRecords, currentPage: safePage } = 
+    const { data, totalRecords, currentPage: safePage } =
         await getPaginatedData(model, currentPage, perPage, searchQuery);
-    
-    return renderRecordsView(ctx, model, data, safePage, perPage, totalRecords, searchQuery, null, includeModal);
-}
 
-async function deleteRecord(ctx) {
-    const { type: modelName, id } = ctx.params;
-    const model = ctx.core.models[modelName];
-    if (!model) return ctx.status = 404;
-
-    try {
-        await model.safeDelete(id);
-        
-        const perPage = getSafePageSize(ctx.query['page-size']);
-        const currentPage = getCurrentPage(ctx.query['current-page']);
-        const searchQuery = getSearchQuery(ctx);
-
-        const { data, totalRecords, currentPage: safePage } = 
-            await getPaginatedData(model, currentPage, perPage, searchQuery);
-
-        return renderRecordsView(ctx, model, data, safePage, perPage, totalRecords, searchQuery);
-    } catch (err) {
-        ctx.core.logger.error('RECORD DELETE FAILED:', err);
-        ctx.status = 400;
-        ctx.body = { error: err.message };
-    }
+    return renderRecordsView(ctx, model, data, safePage, perPage, totalRecords, searchQuery, includeModal);
 }
 
 module.exports = {
     renderModal,
     getSettingsPage,
-    saveSettings,
     searchSettings,
-    deleteRecord,
     PAGINATION_CONFIG
 };

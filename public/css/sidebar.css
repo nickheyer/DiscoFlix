@@ -71,6 +71,80 @@
   border-radius: 30%;
 }
 
+/* THE BADGE IS DISCOFLIX'S OWN RAIL BUBBLE - PILL/DOT MATCH THE .server SET */
+.homeButton.active {
+  background-color: var(--blurple);
+  border-radius: 30%;
+}
+
+.homeButton:hover .railPill {
+  opacity: 1;
+  height: 20px;
+}
+
+.homeButton.active .railPill {
+  opacity: 1;
+  height: 40px;
+}
+
+.homeButton .statusBubble {
+  visibility: visible;
+  border-color: var(--bg-tertiary);
+}
+
+/* THE COOL SETTINGS COG LIVES HERE NOW - ON BADGE HOVER IT SWAPS IN FOR THE
+   DISCORD LOGO. BOTH ICONS ARE STACKED DEAD-CENTER AND CROSSFADE SO NOTHING
+   EVER SHIFTS. THE COG ELEMENT STAYS SMALLER THAN THE BADGE SO THE RING
+   AROUND IT STILL CLICKS THROUGH TO THE TAKEOVER; THE COG ITSELF = SETTINGS */
+.homeButton .homeIcon {
+  transition: opacity 0.15s ease-out;
+}
+
+.homeButton:hover .homeIcon,
+.homeButton:has(.homeSettingsCog:focus-visible) .homeIcon {
+  opacity: 0;
+}
+
+/* SELECTOR MUST OUTRANK (0,2,0) IF THE COG EVER GETS TOOLTIP ATTRS BACK:
+   COOLTIPZ'S HOST RULE [aria-label][data-cooltipz-dir] SETS position:relative
+   AT (0,2,0), WHICH ONCE BEAT THE BARE CLASS AND DUMPED THE COG BACK INTO THE
+   FLEX FLOW (LOGO SHOVED LEFT, COG HANGING OFF THE RIGHT). cursor IS EXPLICIT
+   BECAUSE COOLTIPZ NO LONGER PROVIDES IT */
+.homeButton div.homeSettingsCog {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease-out;
+}
+
+.homeButton:hover .homeSettingsCog,
+.homeButton:has(.homeSettingsCog:focus-visible) .homeSettingsCog {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.homeSettingsCog svg {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+}
+
+.homeSettingsCog:hover svg {
+  transition: transform 1.4s cubic-bezier(0.5, 0, 0, 1);
+  transform: rotate(360deg);
+}
+
+
 .server {
   position: relative;
   background-color: var(--bg-primary);

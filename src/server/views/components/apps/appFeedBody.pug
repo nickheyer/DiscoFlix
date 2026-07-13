@@ -1,0 +1,11 @@
+//- FEED ROWS FRAGMENT - THE HEARTBEAT'S OOB TARGET, SWAPPED ALONE SO LIVE
+//- FEED PUSHES LEAVE THE RAIL SEARCH INPUT (AND ITS FOCUS) UNTOUCHED.
+//- LOCALS: activeApp, feed { rows, hasMore, error? }
+- var feedRows = (feed && feed.rows) || []
+#appFeedBody(
+  hx-select-oob="#appFeedBody"
+  hx-swap-oob="outerHTML"
+)
+  if feedRows.length
+    .memberListHeader Recent Activity
+    include appFeedItems

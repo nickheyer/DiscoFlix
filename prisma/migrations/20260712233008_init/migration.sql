@@ -266,4 +266,3 @@ CREATE UNIQUE INDEX "_UserMediaRequests_AB_unique" ON "_UserMediaRequests"("A", 
 
 -- CreateIndex
 CREATE INDEX "_UserMediaRequests_B_index" ON "_UserMediaRequests"("B");
-

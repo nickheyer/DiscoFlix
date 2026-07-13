@@ -26,12 +26,8 @@ const STATE_LABELS = {
 // QBIT REPORTS ETA 8640000 (100 DAYS) AS "INFINITE"
 function formatEta(seconds) {
   const num = Number(seconds);
-  if (isNaN(num) || num <= 0 || num >= 8640000) return null;
-  const hours = Math.floor(num / 3600);
-  const minutes = Math.floor((num % 3600) / 60);
-  if (hours >= 24) return `${Math.floor(hours / 24)}d ${hours % 24}h`;
-  if (hours > 0) return `${hours}h ${minutes}m`;
-  return `${minutes}m`;
+  if (isNaN(num) || num >= 8640000) return null;
+  return BaseClient.humanEta(num);
 }
 
 // QBITTORRENT WEBUI API v2 - COOKIE-SESSION AUTH (POST /auth/login -> SID)
@@ -99,6 +95,23 @@ class QbittorrentClient extends BaseClient {
     }
   }
 
+  async _post(path, form = {}, retried = false) {
+    const sid = await this._ensureSession();
+    try {
+      const { data } = await this.http.post(path, new URLSearchParams(form).toString(), {
+        headers: { Cookie: sid, 'Content-Type': 'application/x-www-form-urlencoded' }
+      });
+      return data;
+    } catch (err) {
+      // STALE/REVOKED SID → RE-LOGIN AND RETRY EXACTLY ONCE
+      if (err.response?.status === 403 && !retried) {
+        SESSIONS.delete(this.cacheKey);
+        return this._post(path, form, true);
+      }
+      throw this._normalizeError(err);
+    }
+  }
+
   async getStatus() {
     const version = await this._request('/api/v2/app/version');
     return { version: String(version).replace(/^v/, '') };
@@ -112,11 +125,22 @@ class QbittorrentClient extends BaseClient {
       .map(torrent => ({
         id: torrent.hash,
         title: torrent.name || 'Unknown',
+        subtitle: null,
         status: STATE_LABELS[torrent.state] || torrent.state || 'queued',
         percent: BaseClient.clampPercent(torrent.progress * 100),
         timeleft: formatEta(torrent.eta),
         size: torrent.size || null,
         sizeleft: torrent.amount_left ?? null,
+        sizeHuman: BaseClient.humanSize(torrent.size),
+        sizeleftHuman: BaseClient.humanSize(torrent.amount_left),
+        quality: null,
+        protocol: 'torrent',
+        downloadClient: null,
+        indexer: null,
+        category: torrent.category || null,
+        speed: torrent.dlspeed > 0 ? BaseClient.humanSpeed(torrent.dlspeed) : null,
+        seeds: typeof torrent.num_seeds === 'number' ? `${torrent.num_seeds}/${torrent.num_leechs ?? 0}` : null,
+        warnings: torrent.state === 'missingFiles' ? ['Files are missing on disk'] : [],
         raw: torrent
       }));
   }
@@ -140,12 +164,32 @@ class QbittorrentClient extends BaseClient {
     };
   }
 
-  async getTransferInfo() {
-    return this._request('/api/v2/transfer/info');
+  // NULL id TARGETS EVERY TORRENT, remove KEEPS THE DOWNLOADED FILES ON DISK
+  async queueAction(verb, id = null) {
+    const hashes = id || 'all';
+    if (verb === 'pause' || verb === 'resume') {
+      try {
+        return await this._post(`/api/v2/torrents/${verb}`, { hashes });
+      } catch (err) {
+        // qBIT 5 RENAMED pause/resume TO stop/start - FALL BACK ON 404
+        if (err.cause?.response?.status !== 404) throw err;
+        return this._post(`/api/v2/torrents/${verb === 'pause' ? 'stop' : 'start'}`, { hashes });
+      }
+    }
+    if (verb === 'remove' && id) {
+      return this._post('/api/v2/torrents/delete', { hashes, deleteFiles: false });
+    }
+    throw new Error(`${this.serviceLabel} cannot '${verb}' a queue item`);
   }
 
   get capabilities() {
-    return { search: false, add: false, library: false, health: false, pauseResume: true };
+    return {
+      search: false,
+      add: false,
+      library: false,
+      health: false,
+      queueActions: { item: ['pause', 'resume', 'remove'], queue: ['pause', 'resume'] }
+    };
   }
 }
 

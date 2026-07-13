@@ -6,12 +6,16 @@ module.exports = {
     this.logger.debug('Changing Discord Bot Power State:', discordBot);
 
     const state = await this.core.models.state.update({ discord_state: powerOn });
+    // THE HOME BADGE RIDES ALONG - ITS PROBLEM DOT TRACKS BOT POWER/LOGIN
+    const apps = await this.core.apps.getRailViewModel(state);
     await this.core.sockets.emitCompiled([
       'sidebar/userControls/userControlsLayout.pug',
       'sidebar/servers/addServerButton.pug',
+      'sidebar/servers/serverHomeButton.pug',
     ], {
       discordBot,
-      state
+      state,
+      apps
     });
   },
 
@@ -348,7 +352,8 @@ module.exports = {
       const apps = await this.core.apps.getRailViewModel(state);
       await this.core.sockets.emitCompiled([
         'sidebar/servers/serverSortableContainer.pug',
-        'sidebar/servers/appRail.pug'
+        'sidebar/servers/appRail.pug',
+        'sidebar/servers/serverHomeButton.pug'
       ], { servers, state, apps });
       return;
     }
@@ -368,6 +373,7 @@ module.exports = {
     await this.core.sockets.emitCompiled([
       'sidebar/servers/serverSortableContainer.pug',
       'sidebar/servers/appRail.pug',
+      'sidebar/servers/serverHomeButton.pug',
       'sidebar/servers/serverBannerLabel.pug',
       'sidebar/channels/chatChannels.pug',
       'chat/messageChannelHeader.pug',

@@ -55,7 +55,7 @@
   position: relative;
 }
 
-.botPowerIcon, .serverPowerIcon, .settingsIcon {
+.botPowerIcon, .serverPowerIcon {
   width: 32px;
   height: 32px;
   display: flex;
@@ -66,23 +66,18 @@
   border-radius: 4px;
 }
 
-.botPowerIcon svg, .serverPowerIcon svg, .settingsIcon svg {
+.botPowerIcon svg, .serverPowerIcon svg {
   height: 20px;
   width: 20px;
   fill: var(--interactive-normal);
 }
 
-.botPowerIcon:hover, .serverPowerIcon:hover, .settingsIcon:hover {
+.botPowerIcon:hover, .serverPowerIcon:hover {
   background-color: var(--bg-modifier-selected);
 }
 
-.botPowerIcon:hover svg, .serverPowerIcon:hover svg, .settingsIcon:hover svg {
+.botPowerIcon:hover svg, .serverPowerIcon:hover svg {
   fill: var(--interactive-hover);
-}
-
-.settingsIcon:hover svg {
-  transition: transform 1.4s cubic-bezier(0.5, 0, 0, 1);
-  transform: rotate(360deg);
 }
 
 .iconStrikethrough {

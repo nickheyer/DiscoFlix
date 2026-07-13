@@ -69,12 +69,6 @@ class Configuration extends BaseModel {
     return this.update({ prefix_keyword: prefix });
   }
 
-  async updateTokens({ discord }) {
-    const updates = {};
-    if (discord) updates.discord_token = discord;
-    return this.update(updates);
-  }
-
   async updateLimits({ session, check, results, seasons }) {
     const updates = {};
     if (session) updates.session_timeout = session;

@@ -183,12 +183,20 @@ module.exports = {
 
       const servers = await this.core.render.getServerTemplateObj(serverRows);
 
+      // APP TAKEOVER GUARD: GUILD SYNCS MAY ONLY TOUCH THE RAIL - EMITTING THE
+      // BANNER/HEADER/CHAT BAR HERE RESURRECTS CHAT CHROME OVER THE APP SURFACE
+      const chromeTemplates = state.active_app_id
+        ? []
+        : [
+          'sidebar/servers/serverBannerLabel.pug',
+          'sidebar/channels/chatChannels.pug',
+          'chat/messageChannelHeader.pug',
+          'chat/chatBar.pug'
+        ];
+
       await this.core.sockets.emitCompiled([
         'sidebar/servers/serverSortableContainer.pug',
-        'sidebar/servers/serverBannerLabel.pug',
-        'sidebar/channels/chatChannels.pug',
-        'chat/messageChannelHeader.pug',
-        'chat/chatBar.pug',
+        ...chromeTemplates,
         'modals/bot/power.pug'
       ], {
         servers,

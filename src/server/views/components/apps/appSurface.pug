@@ -6,14 +6,21 @@
   hx-swap-oob="outerHTML"
 )
   .appSectionBody#appSectionBody
+    //- THE DISCOFLIX SELF APP CARRIES ITS OWN OVERVIEW/USERS/SETTINGS BODIES
     case section
       when 'queue'
         include sections/queue
       when 'library'
         include sections/library
-      when 'search'
-        include sections/search
+      when 'users'
+        include sections/dfUsers
       when 'settings'
-        include sections/settings
+        if activeApp.app_type === 'discoflix'
+          include sections/dfSettings
+        else
+          include sections/settings
       default
-        include sections/overview
+        if activeApp.app_type === 'discoflix'
+          include sections/dfOverview
+        else
+          include sections/overview

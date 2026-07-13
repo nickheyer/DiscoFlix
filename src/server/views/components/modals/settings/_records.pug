@@ -1,4 +1,7 @@
-include _form
+//- READ-ONLY RECORD CARDS - INFO POPUPS NEVER TAKE INPUT; EDITS LIVE IN THE
+//- DISCOFLIX AND APP TAKEOVER SURFACES. THE HIDDEN STATE FORM ONLY FEEDS
+//- SEARCH + PAGINATION hx-includes.
+include ../../../mixins/field
 include ../../../mixins/paginate
 
 - const paginationData = { type, currentPage: pg.currentPage, totalRecords: pg.totalRecords, perPage: pg.perPage }
@@ -13,64 +16,17 @@ if !isSingleton
 
 if records && records.length > 0
   each record in records
-    form.record-container(
-        class=readonly ? 'readonly' : ''
-        hx-post=!readonly && `/settings/${type}/save${record.id ? `/${record.id}` : ''}`
-        hx-target='#records-container'
-        hx-swap='innerHTML'
-        hx-trigger=!readonly && 'change, submit'
-        hx-include="#search-input, #state-management [name='current-page'], #state-management [name='page-size']"
-    )
+    .record-container.readonly
       if !isSingleton
         .record-header
           h6.record-title= record.fields[Object.keys(record.fields)[0]].value
-          if !readonly
-            .record-actions
-              button.record-clone-button(
-                type='button'
-                hx-post=`/settings/${type}/save`
-                hx-target='#records-container'
-                hx-swap='innerHTML'
-                hx-include="#search-input, #state-management [name='current-page'], #state-management [name='page-size']"
-                hx-sync="closest form:abort"
-                hx-boost='true'
-              )
-                svg.record-clone-icon(viewBox="0 0 24 24" fill="none")
-                  path(d="M16 3H4v13h12V3zM8 21h12V8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
-                span Clone
-              button.record-delete-button(
-                type='button'
-                hx-delete=`/settings/${type}/delete/${record.id}`
-                hx-target='#records-container'
-                hx-swap='innerHTML'
-                hx-include="#search-input, #state-management [name='current-page'], #state-management [name='page-size']"
-              )
-                svg.record-delete-icon(viewBox="0 0 24 24" fill="none")
-                  path(d="M19 7L18.1327 19.1425C18.0579 20.1891 17.187 21 16.1378 21H7.86224C6.81296 21 5.94208 20.1891 5.86732 19.1425L5 7M10 11V17M14 11V17M15 7V4C15 3.44772 14.5523 3 14 3H10C9.44772 3 9 3.44772 9 4V7M4 7H20" stroke="currentColor" stroke-width="2" stroke-linecap="round")
-                span Delete
-      
       .settings-fields-container
         each field, fieldKey in record.fields
-          +field(field, fieldKey, record.id, readonly)
-
-else if !readonly
-  .empty-state
-    .empty-state-icon
-      svg(width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg")
-        path(d="M3 6.2C3 5.07989 3 4.51984 3.21799 4.09202C3.40973 3.71569 3.71569 3.40973 4.09202 3.21799C4.51984 3 5.07989 3 6.2 3H17.8C18.9201 3 19.4802 3 19.908 3.21799C20.2843 3.40973 20.5903 3.71569 20.782 4.09202C21 4.51984 21 5.07989 21 6.2V17.8C21 18.9201 21 19.4802 20.782 19.908C20.5903 20.2843 20.2843 20.5903 19.908 20.782C19.4802 21 18.9201 21 17.8 21H6.2C5.07989 21 4.51984 21 4.09202 20.782C3.71569 20.5903 3.40973 20.2843 3.21799 19.908C3 19.4802 3 18.9201 3 17.8V6.2Z" stroke="#72767d" stroke-width="2")
-        path(d="M12 8V16M8 12H16" stroke="#72767d" stroke-width="2" stroke-linecap="round")
-    .empty-state-text= searchQuery ? `No records found matching "${searchQuery}"` : 'No records found'
-    if !searchQuery
-      button.empty-state-button.button-primary(
-        hx-post=`/settings/${type}/save`
-        hx-target='#records-container'
-        hx-swap='innerHTML'
-      ) Create New
-
+          +field(field, fieldKey, record.id, true)
 else
   .empty-state
     .empty-state-icon
       svg(width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg")
         path(d="M3 6.2C3 5.07989 3 4.51984 3.21799 4.09202C3.40973 3.71569 3.71569 3.40973 4.09202 3.21799C4.51984 3 5.07989 3 6.2 3H17.8C18.9201 3 19.4802 3 19.908 3.21799C20.2843 3.40973 20.5903 3.71569 20.782 4.09202C21 4.51984 21 5.07989 21 6.2V17.8C21 18.9201 21 19.4802 20.782 19.908C20.5903 20.2843 20.2843 20.5903 19.908 20.782C19.4802 21 18.9201 21 17.8 21H6.2C5.07989 21 4.51984 21 4.09202 20.782C3.71569 20.5903 3.40973 20.2843 3.21799 19.908C3 19.4802 3 18.9201 3 17.8V6.2Z" stroke="#72767d" stroke-width="2")
         path(d="M12 8V16M8 12H16" stroke="#72767d" stroke-width="2" stroke-linecap="round")
-    .empty-state-text No records available
+    .empty-state-text= searchQuery ? `No records found matching "${searchQuery}"` : 'No records found'

@@ -1,5 +1,7 @@
 module.exports = {
   async autoStartBot() {
+    // ENV SEEDING RUNS FIRST SO A HEADLESS FIRST BOOT HAS ITS TOKEN AND APPS
+    await this.core.apps.seedFromEnv();
     this.logger.info('Autostarting Bot');
     const currentState = await this.core.models.state.get();
     const initBotState = currentState['discord_state'];
@@ -18,21 +20,13 @@ module.exports = {
     }
   },
 
-  // ATTEMPT TO USE ALL THREE AVAILABLE TOKEN PROVIDERS
   async startBot(token) {
     try {
-      if (!token) { // TOKEN ARG
+      if (!token) { // TOKEN ARG, ELSE CONFIG (WHICH seedFromEnv FILLS ON FIRST BOOT)
         const config = await this.core.models.configuration.get();
-        token = config.discord_token; // TOKEN CONFIGURATION
+        token = config.discord_token;
         if (!token) {
-          token = process.env.DEV_TOKEN; // TOKEN ENV
-          if (token) {
-            await this.core.models.configuration.updateTokens({
-              discord: token // UPDATE CONFIGURATION DB IF TOKEN IN ENV
-            });
-          } else {
-            throw new Error('Discord bot token is required.');
-          }
+          throw new Error('Discord bot token is required.');
         }
       }
       if (!this.core.client.isReady()) {

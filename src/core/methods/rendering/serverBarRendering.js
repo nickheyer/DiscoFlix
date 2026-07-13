@@ -185,7 +185,8 @@ module.exports = {
         {
           label: 'Add your Discord bot token',
           done: !!config.discord_token,
-          cta: { label: 'Open Configuration', url: '/modal/settings/configuration' }
+          // post CTAs ENTER A TAKEOVER INSTEAD OF OPENING A MODAL
+          cta: { label: 'Open DiscoFlix Settings', post: '/discoflix/section/settings' }
         },
         {
           label: 'Power the bot on',
@@ -205,7 +206,7 @@ module.exports = {
         {
           label: 'Make your first request',
           done: requestCount > 0,
-          hint: `Type ${config.prefix_keyword} movie <title> in Discord, or use an app's Search & Add section`
+          hint: `Type ${config.prefix_keyword} movie <title> in Discord, or search an app's Library from its right-rail search bar`
         }
       ]
     };

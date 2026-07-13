@@ -137,24 +137,67 @@
 }
 
 .settings-fields-container {
-  display: grid;
-  gap: 16px;
   padding: 16px;
   max-width: 100%;
 }
 
+/* EVERY FIELD IS A HAIRLINE ROW - TEXT OWNS THE LEFT, THE CONTROL PINS RIGHT SIZED TO ITS EXPECTED INPUT */
 .settings-field {
   display: flex;
-  flex-direction: column;
-  width: 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 24px;
+  padding: 12px 0;
   min-width: 0;
+}
+
+.settings-field + .settings-field {
+  border-top: 1px solid var(--bg-modifier-accent);
+}
+
+.settings-field:first-child {
+  padding-top: 0;
+}
+
+.settings-field:last-child {
+  padding-bottom: 0;
+}
+
+/* WIDE CONTROLS (SECRETS, URLS) STACK UNDER THEIR LABEL INSTEAD OF PINNING RIGHT */
+.settings-field.stacked {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* THE TEXT BLOCK'S 200px IS A ROW-AXIS BASIS - IN THE COLUMN DIRECTION IT WOULD BECOME HEIGHT */
+.settings-field.stacked .settings-field-text {
+  flex: 0 0 auto;
+}
+
+.settings-field-text {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+.settings-field-control {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.settings-field.stacked .settings-field-control {
+  align-items: stretch;
+  margin-left: 0;
+  width: 100%;
 }
 
 .settings-label {
   color: var(--header-secondary);
   font-size: 12px;
   font-weight: 600;
-  margin-bottom: 6px;
   text-transform: uppercase;
   letter-spacing: 0.02em;
 }
@@ -166,20 +209,14 @@
 .settings-description {
   color: var(--text-muted);
   font-size: 12px;
-  margin-bottom: 6px;
-}
-
-.settings-switch-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 4px 0;
+  margin-top: 4px;
 }
 
 .settings-switch {
   position: relative;
   width: 42px;
   height: 24px;
+  flex-shrink: 0;
 }
 
 .settings-switch input {
@@ -257,12 +294,34 @@
   opacity: 0.8;
 }
 
+/* CONTROL WIDTH TIERS - THE size CLASS COMES OFF THE FIELD DESCRIPTOR */
+.settings-input.size-sm {
+  width: 110px;
+}
+
+.settings-input.size-md {
+  width: 240px;
+}
+
+.settings-input.size-full {
+  width: 100%;
+}
+
+/* READ-ONLY POPUPS FAVOR THE VALUE SIDE - THE BOX FLEXES TO HALF THE ROW AND ELLIPSIZES */
+.record-container.readonly .settings-field.inline .settings-field-control {
+  flex: 1 1 240px;
+  min-width: 0;
+}
+
+.record-container.readonly .settings-field-control .settings-input {
+  width: 100%;
+}
+
 /* SENSITIVE-FIELD CLEAR CHECKBOX */
 .settings-clear-secret {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-top: 6px;
   font-size: 12px;
   color: var(--header-secondary);
   cursor: pointer;
@@ -855,6 +914,10 @@
   background-color: var(--red);
 }
 
+.appStatusPill.pending {
+  background-color: var(--interactive-muted);
+}
+
 .appHealthNotice {
   background-color: rgba(250, 166, 26, 0.1);
   border-left: 4px solid var(--yellow);
@@ -886,9 +949,5 @@
 
   .settings-fields-container {
     padding: 8px;
-  }
-
-  .settings-switch-wrapper {
-    flex-direction: row;
   }
 }

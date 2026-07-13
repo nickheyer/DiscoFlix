@@ -1,5 +1,5 @@
 //- TAKEOVER CHANNEL HEADER - SECTION NAME LEFT, "OPEN <APP>" LINK-OUT RIGHT
-//- (OLD DISCORD KEPT ITS UTILITY ICONS ON THE HEADER'S RIGHT EDGE). THE SAVE
+//- (A CONVENIENCE, NEVER A SUBSTITUTE FOR IN-CONSOLE FEATURES). THE SAVE
 //- TOAST RIDES IN THE HEADER, SAME CONVENTION AS THE SETTINGS MODALS.
 include ../../mixins/notification
 
@@ -8,7 +8,7 @@ include ../../mixins/notification
     hx-swap-oob="outerHTML"
 )
   .messageChannelHeaderContent
-    include ../sidebar/settings/settingsChannelHashIcon
+    include sectionHashIcon
     .messageChannelHeaderText= sectionLabel
   +Notification
   if sectionData && sectionData.appUrl

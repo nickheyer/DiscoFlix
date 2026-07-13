@@ -1,6 +1,26 @@
-//- LOCALS: activeApp, queue (NORMALIZED ROWS). WHOLE-LIST OOB SWAP DODGES THE
-//- "ROW ID THAT DOESN'T EXIST YET" PROBLEM FOR NEW/FINISHED ITEMS; ROW IDS
-//- STAY STABLE SO THE 0.5s WIDTH TRANSITION KEEPS BARS SMOOTH.
+//- LOCALS: activeApp, queue (NORMALIZED ROWS), queueActions {item, queue}. WHOLE-LIST
+//- OOB SWAP DODGES THE "ROW ID THAT DOESN'T EXIST YET" PROBLEM FOR NEW/FINISHED ITEMS;
+//- ROW IDS STAY STABLE SO THE 0.5s WIDTH TRANSITION KEEPS BARS SMOOTH.
+- var actions = queueActions || { item: [], queue: [] }
+
+//- DESTRUCTIVE VERBS ARM A "Sure?" BUTTON FIRST; IT DISARMS ITSELF AFTER 4s
+mixin queueConfirm(verb, label, itemId)
+  .queueRowConfirm
+    button.queueActionButton.danger(
+      type="button"
+      aria-label=label
+      data-cooltipz-dir="top"
+      _="on click add .armed to the closest .queueRowConfirm then wait 4s then remove .armed from the closest .queueRowConfirm"
+    )
+      block
+    button.queueConfirmButton(
+      type="button"
+      hx-post=`/apps/${activeApp.id}/queue-action/${verb}`
+      hx-vals=JSON.stringify({ itemId: itemId })
+      hx-swap="none"
+      hx-disabled-elt="this"
+    ) Sure?
+
 #appQueueList(
   hx-select-oob="#appQueueList"
   hx-swap-oob="outerHTML"
@@ -8,14 +28,69 @@
   - var rows = queue || []
   if rows.length
     each item in rows
-      .request-row(id=`appq-${activeApp.id}-${item.id}`)
+      - var paused = item.status === 'paused'
+      - var chips = [item.quality, item.protocol, item.category, item.downloadClient, item.indexer].filter(function(chip) { return !!chip })
+      .request-row.queueRow(id=`appq-${activeApp.id}-${item.id}`)
         .request-info
-          .request-title= item.title
-          .request-meta= item.status + (item.timeleft ? ` - ${item.timeleft} left` : '')
+          .request-title.queueRowTitle
+            if item.warnings && item.warnings.length
+              span.queueWarning(aria-label=item.warnings.join(' • ') data-cooltipz-dir="top")
+                svg(viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true")
+                  path(d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z")
+                  path(d="M12 9v4M12 17h.01")
+            span= item.title
+          if item.subtitle && item.subtitle !== item.title
+            .queueRowRelease(title=item.subtitle)= item.subtitle
+          if chips.length
+            .queueRowChips
+              each chip in chips
+                span.queueRowChip= chip
+          .request-meta
+            span= item.status
+            if item.timeleft
+              span.request-meta-divider •
+              span #{item.timeleft} left
+            if item.speed
+              span.request-meta-divider •
+              span= item.speed
+            if item.seeds
+              span.request-meta-divider •
+              span #{item.seeds} seeds
         .request-status
           .request-progress
             .request-progress-track
-              .request-progress-bar(style=`width: ${item.percent}%`)
-            .request-progress-text #{item.percent}%
+              .request-progress-bar(class=paused ? 'paused' : undefined style=`width: ${item.percent}%`)
+            .request-progress-text
+              if item.sizeHuman
+                | #{item.percent}% of #{item.sizeHuman}
+              else
+                | #{item.percent}%
+          if actions.item.length
+            .queueRowActions
+              if actions.item.includes(paused ? 'resume' : 'pause')
+                button.queueActionButton(
+                  type="button"
+                  aria-label=paused ? 'Resume' : 'Pause'
+                  data-cooltipz-dir="top"
+                  hx-post=`/apps/${activeApp.id}/queue-action/${paused ? 'resume' : 'pause'}`
+                  hx-vals=JSON.stringify({ itemId: item.id })
+                  hx-swap="none"
+                  hx-disabled-elt="this"
+                )
+                  if paused
+                    svg(viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true")
+                      path(d="M8 5.5v13l11-6.5z")
+                  else
+                    svg(viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true")
+                      path(d="M9 5v14M15 5v14")
+              if actions.item.includes('remove')
+                +queueConfirm('remove', 'Remove download', item.id)
+                  svg(viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true")
+                    path(d="M4 7h16M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2m3 0l-.9 12.1A2 2 0 0115.1 21H8.9a2 2 0 01-2-1.9L6 7")
+              if actions.item.includes('blocklist')
+                +queueConfirm('blocklist', 'Remove and blocklist release', item.id)
+                  svg(viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true")
+                    circle(cx="12" cy="12" r="9")
+                    path(d="M5.6 5.6l12.8 12.8")
   else
     .appQueueEmpty The queue is sleeping - nothing downloading right now.

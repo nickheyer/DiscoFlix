@@ -171,11 +171,21 @@ module.exports = {
   },
 
   async _heartbeatTick() {
-    const rows = (await this.getInstalled())
-      .filter(row => row.enabled && this.isConfigured(row));
+    const installed = await this.getInstalled();
+    // ONLY ROWS WITH A SERVICE CLIENT GET STATUS/QUEUE CHECKS - THE DISCOFLIX
+    // SELF APP HAS NOTHING TO POLL
+    const rows = installed.filter(row =>
+      row.enabled &&
+      this.isConfigured(row) &&
+      typeof this.getType(row.app_type)?.buildClient === 'function'
+    );
 
-    // PRUNE CACHES FOR REMOVED/DISABLED/UNCONFIGURED INSTANCES
+    // PRUNE CACHES FOR REMOVED/DISABLED/UNCONFIGURED INSTANCES - HIDDEN ROWS
+    // STAY LIVE, THEIR FEED CACHE IS FED BY THE BOT'S OWN LEDGER
     const liveIds = new Set(rows.map(row => row.id));
+    for (const row of installed) {
+      if (this.getType(row.app_type)?.hidden) liveIds.add(row.id);
+    }
     for (const cache of [this.statusCache, this.queueCache, this.feedCache, this.libraryCache]) {
       for (const id of [...cache.keys()]) {
         if (!liveIds.has(id)) cache.delete(id);
@@ -231,7 +241,11 @@ module.exports = {
       this._lastRailKey = railKey;
       try {
         const apps = await this.getRailViewModel();
-        await this.core.sockets.emitCompiled(['sidebar/servers/appRail.pug'], { apps });
+        // THE HOME BADGE RIDES ALONG - ITS PROBLEM DOT TRACKS THE SAME CACHE
+        await this.core.sockets.emitCompiled([
+          'sidebar/servers/appRail.pug',
+          'sidebar/servers/serverHomeButton.pug'
+        ], { apps });
       } catch (err) {
         this.logger.debug(`Heartbeat rail push skipped: ${err.message}`);
       }
@@ -259,15 +273,17 @@ module.exports = {
       if (instance.active_section === 'queue') {
         await this.core.sockets.emitCompiled(['apps/sections/queueBody.pug'], {
           activeApp: instance,
-          queue: this.queueCache.get(instance.id) || []
+          queue: this.queueCache.get(instance.id) || [],
+          queueActions: this.queueActionsFor(instance)
         });
       }
 
       // CHANGE-ONLY: refreshFeed RETURNS null WHEN PAGE 1 IS UNCHANGED, SO THE
-      // RAIL (AND ITS SCROLL POSITION) ISN'T STOMPED EVERY TICK
+      // RAIL (AND ITS SCROLL POSITION) ISN'T STOMPED EVERY TICK. THE BODY
+      // FRAGMENT SWAPS ALONE - THE RAIL SEARCH INPUT ABOVE IT KEEPS ITS FOCUS
       const feed = await this.refreshFeed(instance);
       if (feed) {
-        await this.core.sockets.emitCompiled(['apps/appFeed.pug'], { activeApp: instance, feed });
+        await this.core.sockets.emitCompiled(['apps/appFeedBody.pug'], { activeApp: instance, feed });
       }
     } catch (err) {
       this.logger.debug(`Heartbeat takeover push skipped: ${err.message}`);

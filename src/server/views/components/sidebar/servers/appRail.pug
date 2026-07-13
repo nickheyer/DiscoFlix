@@ -15,8 +15,10 @@
     hx-trigger="end"
     hx-swap="none"
   )
-    if apps && apps.length
-      each app in apps
+    //- HIDDEN ENTRIES (THE DISCOFLIX SELF APP) BUBBLE THROUGH THE HOME BADGE
+    - var railApps = (apps || []).filter(function(a) { return !a.hidden; })
+    if railApps.length
+      each app in railApps
         .server.appBubble(
           class=app.active ? 'active' : undefined
           aria-label=app.label

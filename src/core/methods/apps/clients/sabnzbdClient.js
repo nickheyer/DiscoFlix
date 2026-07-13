@@ -44,17 +44,36 @@ class SabnzbdClient extends BaseClient {
 
   async getQueue() {
     const data = await this._call('queue');
-    const slots = data.queue?.slots || [];
-    return slots.map(slot => ({
-      id: slot.nzo_id,
-      title: slot.filename || 'Unknown',
-      status: (slot.status || 'queued').toLowerCase(),
-      percent: BaseClient.clampPercent(slot.percentage),
-      timeleft: slot.timeleft && slot.timeleft !== '0:00:00' ? slot.timeleft : null,
-      size: mbToBytes(slot.mb),
-      sizeleft: mbToBytes(slot.mbleft),
-      raw: slot
-    }));
+    const queue = data.queue || {};
+    const slots = queue.slots || [];
+    // SAB REPORTS ONE GLOBAL RATE - PIN IT ON WHATEVER IS ACTUALLY DOWNLOADING
+    const speed = BaseClient.humanSpeed(Number(queue.kbpersec) * 1024);
+    return slots.map(slot => {
+      const size = mbToBytes(slot.mb);
+      const sizeleft = mbToBytes(slot.mbleft);
+      const downloading = (slot.status || '').toLowerCase() === 'downloading';
+      return {
+        id: slot.nzo_id,
+        title: slot.filename || 'Unknown',
+        subtitle: null,
+        status: (slot.status || 'queued').toLowerCase(),
+        percent: BaseClient.clampPercent(slot.percentage),
+        timeleft: slot.timeleft && slot.timeleft !== '0:00:00' ? slot.timeleft : null,
+        size,
+        sizeleft,
+        sizeHuman: BaseClient.humanSize(size),
+        sizeleftHuman: BaseClient.humanSize(sizeleft),
+        quality: null,
+        protocol: 'usenet',
+        downloadClient: null,
+        indexer: null,
+        category: slot.cat && slot.cat !== '*' ? slot.cat : null,
+        speed: downloading ? speed : null,
+        seeds: null,
+        warnings: [],
+        raw: slot
+      };
+    });
   }
 
   // NORMALIZED FEED ROWS (SEE baseClient CONTRACT) - SAB PAGES VIA start/limit
@@ -82,16 +101,25 @@ class SabnzbdClient extends BaseClient {
     };
   }
 
-  async pauseQueue() {
-    return this._call('pause');
-  }
-
-  async resumeQueue() {
-    return this._call('resume');
+  // NULL id TARGETS THE WHOLE QUEUE, remove ALSO DELETES THE PARTIAL FILES
+  async queueAction(verb, id = null) {
+    if (verb === 'pause' || verb === 'resume') {
+      return id ? this._call('queue', { name: verb, value: id }) : this._call(verb);
+    }
+    if (verb === 'remove' && id) {
+      return this._call('queue', { name: 'delete', value: id, del_files: 1 });
+    }
+    throw new Error(`${this.serviceLabel} cannot '${verb}' a queue item`);
   }
 
   get capabilities() {
-    return { search: false, add: false, library: false, health: false, pauseResume: true };
+    return {
+      search: false,
+      add: false,
+      library: false,
+      health: false,
+      queueActions: { item: ['pause', 'resume', 'remove'], queue: ['pause', 'resume'] }
+    };
   }
 }
 

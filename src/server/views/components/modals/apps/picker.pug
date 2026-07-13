@@ -8,8 +8,16 @@
       h5.modal-title Add an App
       button.modal-close-button(type="button" data-bs-dismiss="modal") ×
     .modal-body
+      -
+        var KIND_META = {
+          'content-manager': { label: 'Content Manager', cls: '' },
+          'download-client': { label: 'Download Client', cls: 'download' },
+          'media-server':    { label: 'Media Server', cls: 'media' },
+          'indexer':         { label: 'Indexer', cls: 'indexer' }
+        };
       .appPickerGrid
         each t in appTypes
+          - var kindMeta = KIND_META[t.kind] || { label: t.kind, cls: '' }
           .appPickerCard(
             role="button"
             aria-label=`Add ${t.label}`
@@ -22,7 +30,7 @@
             .appPickerInfo
               .appPickerName
                 span= t.label
-                span.appPickerKind(class=t.kind === 'download-client' ? 'download' : '')= t.kind === 'download-client' ? 'Download Client' : 'Content Manager'
+                span.appPickerKind(class=kindMeta.cls)= kindMeta.label
               .appPickerBlurb= t.blurb
               if t.installed
                 .appPickerInstalled= `${t.installed} installed`
