@@ -14,22 +14,26 @@
 - try { attachmentList = attachments ? JSON.parse(attachments) : [] } catch (err) {}
 //- CLASSIC DATE DIVIDER - compileMessages FLAGS THE FIRST MESSAGE OF EACH DAY
 if dayDivider
-  .divider.dateDivider
-    span.dividerText= dayDivider
+  include dateDivider
 if isFirstUnread
   .newMessagesDivider
     span.newMessagesTag NEW
 //- requestChip ROWS GET THE OLD-DISCORD MENTION TREATMENT (TINT + LEFT BAR).
 //- oobReplace: EDIT PUSHES REPLACE THE EXISTING ROW IN PLACE OVER THE SOCKET.
+//- grouped ROWS DROP THE AVATAR + AUTHOR HEADER - HOVER REVEALS THE TIME.
 .chatMessageRow(
   id=`msg-${message_id}`
-  class=`${isClient ? "botMsg" : "userMsg"}${requestChip ? " mentioned" : ""}`
+  class=`${isClient ? "botMsg" : "userMsg"}${requestChip ? " mentioned" : ""}${grouped ? " grouped" : ""}`
   hx-swap-oob=oobReplace ? `outerHTML:#msg-${message_id}` : undefined
 )
   .chatContentContainer
-    include message/messageAvatar
+    if grouped
+      .chatGutterStamp= hoverStamp
+    else
+      include message/messageAvatar
     .chatMessageContent()
-      include message/messageAuthor
+      if !grouped
+        include message/messageAuthor
       include message/messageText
       include message/messageEmbed
       include message/messageAttachment

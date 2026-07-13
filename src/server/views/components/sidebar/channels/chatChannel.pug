@@ -1,6 +1,12 @@
+//- STABLE id + oobReplace LET UNREAD-BADGE PUSHES SWAP ONE ROW IN PLACE
 .channelViewOption(
+  id=`chan-${channel_id}`
   class=(isActiveChannel ? 'active' : 'inactive'),
+  role="button"
+  tabindex="0"
   hx-post=!isActiveChannel && `/change-active-channel/${channel_id}`
+  hx-trigger=!isActiveChannel ? "click, keyup[key=='Enter']" : undefined
+  hx-swap-oob=oobReplace ? 'outerHTML' : undefined
 )
   .channelViewOptionInfo
     if (unread_message_count)

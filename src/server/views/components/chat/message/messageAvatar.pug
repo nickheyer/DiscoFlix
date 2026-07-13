@@ -8,9 +8,11 @@ img.userAvatar.chatAuthorAvatar(
     alt="avatar"
     referrerpolicy="no-referrer"
     class=canOpenUser ? 'clickable' : undefined
+    role=canOpenUser ? 'button' : undefined
+    tabindex=canOpenUser ? '0' : undefined
     hx-get=canOpenUser ? `/settings/user/search?search=${userId}&as-modal=true` : undefined
     hx-target=canOpenUser ? '#modals-here' : undefined
-    hx-trigger=canOpenUser ? 'click' : undefined
+    hx-trigger=canOpenUser ? "click, keyup[key=='Enter']" : undefined
     data-bs-toggle=canOpenUser ? 'modal' : undefined
     data-bs-target=canOpenUser ? '#modals-here' : undefined
 )

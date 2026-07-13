@@ -8,6 +8,7 @@ module.exports = {
     const core = client.core;
     await core.discord.refreshBotInfo(true);
     await core.discord.updateServerSortOrder();
+    await core.discord.applyPresence();
 
     try {
       const commands = await client.application.commands.set(await buildSlashCommands(core));

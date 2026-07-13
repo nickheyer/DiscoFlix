@@ -15,9 +15,11 @@ const HISTORY_EVENT_KINDS = {
 
 // SHARED HTTP CLIENT FOR THE *ARR v3 API (CONTENT-MANAGER FAMILY)
 class ArrClient extends BaseClient {
-  constructor({ url, token, logger }) {
+  constructor({ url, token, logger, settings }) {
     super({ url, logger });
     this.serviceLabel = 'Arr';
+    // PER-INSTANCE DEFAULTS OFF App.settings_json (root_folder/quality_profile)
+    this.instanceSettings = settings || {};
     this.http = axios.create({
       baseURL: `${this.baseUrl}/api/v3`,
       timeout: 10000,
@@ -210,9 +212,10 @@ class ArrClient extends BaseClient {
     return this._post('/command', this.searchCommandFor(arrId));
   }
 
-  // ADD TO LIBRARY (MONITORED + SEARCH-ON-ADD), DEFAULTING TO THE FIRST
-  // ROOT FOLDER AND QUALITY PROFILE - PER-REQUEST SELECTION IS BACKLOGGED
-  async add(normalizedResult) {
+  // ADD TO LIBRARY (MONITORED + SEARCH-ON-ADD). INSTANCE SETTINGS PICK THE
+  // ROOT FOLDER AND QUALITY PROFILE; A STALE OR EMPTY SETTING FALLS BACK TO
+  // THE SERVICE'S FIRST. seasons THREADS THROUGH FOR SONARR MONITORING.
+  async add(normalizedResult, { seasons = null } = {}) {
     const [rootFolders, profiles] = await Promise.all([
       this.getRootFolders(),
       this.getQualityProfiles()
@@ -220,9 +223,12 @@ class ArrClient extends BaseClient {
     if (!rootFolders.length) throw new Error(`${this.serviceLabel} has no root folders configured`);
     if (!profiles.length) throw new Error(`${this.serviceLabel} has no quality profiles configured`);
 
+    const wantedRoot = this.instanceSettings.root_folder;
+    const wantedProfile = Number(this.instanceSettings.quality_profile);
     const payload = this.buildAddPayload(normalizedResult.raw, {
-      rootFolderPath: rootFolders[0].path,
-      qualityProfileId: profiles[0].id
+      rootFolderPath: rootFolders.find(folder => folder.path === wantedRoot)?.path || rootFolders[0].path,
+      qualityProfileId: profiles.find(profile => profile.id === wantedProfile)?.id || profiles[0].id,
+      seasons
     });
     return this._post(`/${this.resource}`, payload);
   }

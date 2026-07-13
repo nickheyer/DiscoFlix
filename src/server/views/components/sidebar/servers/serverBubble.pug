@@ -1,10 +1,16 @@
 //- WHILE AN APP TAKEOVER IS ACTIVE (appActive) NO GUILD SHOWS THE ACTIVE
 //- SQUIRCLE AND EVERY BUBBLE IS CLICKABLE - CLICKING THE PREVIOUSLY-ACTIVE
-//- GUILD IS THE WAY BACK TO THE DISCORD MIRROR.
+//- GUILD IS THE WAY BACK TO THE DISCORD MIRROR. STABLE id + oobReplace LET
+//- SCOPED PUSHES SWAP ONE BUBBLE WITHOUT RE-RENDERING THE STRIP.
 div(
+  id=`srv-${id}`
   class=`${serverActive && !appActive ? 'server active' : 'server'}`
+  role="button"
+  tabindex="0"
   hx-post=(!serverActive || appActive) && `/change-active-server/${id}`
+  hx-trigger=(!serverActive || appActive) ? "click, keyup[key=='Enter']" : undefined
   hx-select-oob=(!serverActive || appActive) && "#serverSelector,#guildNameBanner"
+  hx-swap-oob=oobReplace ? 'outerHTML' : undefined
   aria-label=serverName
   data-tooltip-dir='right'
 )

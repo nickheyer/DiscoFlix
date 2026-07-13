@@ -5,15 +5,17 @@
   //- BUBBLING INTO THE ROW'S change-active-channel POST
   svg.btnInter(
     viewBox="0 0 24 24"
-    focusable="false"
+    focusable="true"
     fill="currentColor"
     xmlns="http://www.w3.org/2000/svg"
-    role="img"
+    role="button"
+    tabindex="0"
 
     hx-get=channel_id ? `/settings/discordChannel/search?search=${channel_id}&as-modal=true` : `/modal/settings/discordChannel`
     hx-target="#modals-here"
-    hx-trigger="click"
+    hx-trigger="click, keyup[key=='Enter']"
     hx-on:click="event.stopPropagation()"
+    hx-on:keyup="event.stopPropagation()"
     data-bs-toggle="modal"
     data-bs-target="#modals-here"
   )

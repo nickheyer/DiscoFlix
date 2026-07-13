@@ -1,0 +1,23 @@
+//- LOGS - THE EventLog TABLE THE DB TRANSPORT FEEDS, NEWEST FIRST. LEVEL
+//- FILTER RE-PULLS PAGE 1; THE VIEW MORE SENTINEL PAGES DEEPER.
+//- sectionData: { logs {rows,hasMore,page,level}, logLevels }
+- var logs = sectionData.logs
+- var logLevels = sectionData.logLevels
+
+.appSectionDoc
+  .dfLogControls
+    select.dfLogLevelSelect(
+      name="level"
+      aria-label="Filter by level"
+      hx-get=`/apps/${activeApp.id}/logs`
+      hx-trigger="change"
+      hx-target="#dfLogList"
+      hx-swap="innerHTML"
+      hx-include="this"
+    )
+      option(value="" selected=!logs.level) All levels
+      each lvl in logLevels
+        option(value=lvl selected=logs.level === lvl)= lvl.charAt(0).toUpperCase() + lvl.slice(1)
+
+  #dfLogList
+    include dfLogRows

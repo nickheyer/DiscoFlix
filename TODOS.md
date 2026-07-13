@@ -465,37 +465,175 @@ template fixtures + 24 client checks green - rides THE live pass below):
       detail views gate monitor chips/verbs on detail.monitored/detail.verbs
       so media-server details render read-only
 
+## M11 - Foundations: Reliability, Perf, Logging (built 2026-07-12)
+
+Built same day as staging (fixture renders + stubbed-logic checks + a live
+prisma transport write all green - rides THE live pass with M7-M10):
+
+- [x] Re-arm arr queue watches on boot: new `MediaRequest.arr_id` column
+      (migration `20260713061223_request_arr_id`) stamped at all three add
+      points (bot admin path, dashboard approve, console add);
+      `core.apps.rearmWatches()` rebuilds watches from approved-but-not-
+      imported requests 2s after boot (unref'd, one-off scripts still exit).
+      A re-armed watch's first tick decides silently whether the grab was
+      already announced pre-restart - no duplicate "is downloading" posts
+- [x] Perf: `fetchAuthorProfile` TTL cache (15 min, LRU-capped 500) - the
+      forced profile fetch (only needed for accent color) now happens at most
+      once per user per window, gateway cache trusted in between
+- [x] Scoped ws emits, phase 2: bubbles carry stable `#srv-<id>` ids, channel
+      rows `#chan-<id>`; the message path now pushes ONE bubble (+ one channel
+      row when the active server's sidebar is visible) as an oob swap via
+      `emitUnreadBadges` - the wholesale `serverSortableContainer`/
+      `chatChannels` re-render on every message is gone; self messages emit
+      nothing (no badge changes). Full renders remain for server switches and
+      guild syncs
+- [x] EventLog DB transport + viewer: `PrismaTransport` in logging.js
+      (info-gated, splat -> metadata JSON capped 4k, keep-newest-5000 prune
+      every 200 writes, console-only failure path so a DB problem can never
+      log-loop), wired lazily in CoreService; new read-only Logs section on
+      the DiscoFlix takeover (level filter select + View More pagination,
+      monospace rows, level-colored)
+- [x] Self-host vendor assets: `npm run vendor` (scripts/vendor.js) pins and
+      downloads htmx 1.9.10 + ws ext, hyperscript 0.9.13, sortablejs 1.15.2,
+      sweetalert2 11.14.5 + dark theme, bootstrap bundle 5.3.3, and the full
+      Roboto woff2 set with a localized fonts.css into public/vendor;
+      index.pug now references only local files - zero CDN requests
+- [x] Backlog reconciliation: live download ticker already shipped in M7
+      (strip above chat input, ws-fed) and arr status dots in the userbox are
+      obsolete (app rail heartbeat dots + Test Connection shipped in M7) -
+      both closed with no code
+
+## M12 - Requesting Depth (built 2026-07-12)
+
+Built same day as staging (12 fixture checks green - rides THE live pass):
+
+- [x] Season-level requesting: shows with >1 season detour through a
+      StringSelectMenu picker ("All seasons" + up to 24 listed, Back/Cancel),
+      pick stored as JSON on `MediaRequest.seasons` (migration
+      `m12_requesting_depth`), sonarr add flips per-season `monitored` so
+      search-on-add grabs exactly the pick, approval path replays the stored
+      pick, and `max_seasons_for_non_admin` now applies to the PICKED count -
+      picking fewer seasons is the way under the cap for big shows
+- [x] Root folder / quality profile per instance: radarr/sonarr manifests
+      declare `instanceOptions`, the app Settings section renders them as
+      selects with live-fetched options (unreachable = quiet note), values
+      persist in `App.settings_json` (now `computed` so form semantics can
+      never wipe it, written via partial update), and `ArrClient.add` resolves
+      them with stale-value fallback to the service's first
+- [x] DM request support: DirectMessages intent + Channel partial, prefix
+      commands and slash commands (contexts Guild + BotDM) both work in the
+      bot's DMs, requests store null `madeInId`, monitor notifications and
+      verdicts post back into the DM channel; the mirror stays guild-only
+- [x] Download-complete DM notifications (`is_dm_notifications`, default off,
+      Extras group) - import completion additionally DMs every requester,
+      closed DMs are a debug line never an error
+- [x] `!df status` / `/status`: open requests with live queue state off the
+      heartbeat cache (downloading % + time left / searching / waiting), the
+      last 3 settled, season notes; slash reply is ephemeral
+- [x] Bot presence config: `bot_presence_activity` (None/Playing/Watching/
+      Listening/Competing select - +field mixin gained a select branch riding
+      metadata `options`) + `bot_presence_text`, applied on ready and
+      immediately on settings save
+
+## M13 - Discord-Native Request UX + Access Control (built 2026-07-12)
+
+Built same day as staging (9 fixture checks green - rides THE live pass).
+Note: the flow was already component-based (M1 shipped embeds + prev/next/
+request/cancel buttons); this pass finished the job.
+
+- [x] Request interface finished: jump-to-result select menu above the
+      buttons (every result one pick away, results already capped at 25 by
+      max_results), Prev/Next/Request This/Cancel text buttons, season
+      multi-select from M12 - and EVERY emoji stripped from bot copy
+      (requestFlow, monitor notifications, verdicts, status, timeout/cancel/
+      error lines); the chat mirror's paperclip emoji became an inline SVG
+- [x] Whitelist strategy: `request_access` (open | whitelist select) +
+      `whitelist_role_ids` + per-user `is_whitelisted` flag (new column,
+      editable in the Users section w/ green WHITELISTED chip). In whitelist
+      mode requests need admin/staff/flag/listed-role; denial copy tells the
+      user to ask an admin. New `commands/access.js` owns all of it
+- [x] Role to permission mapping: `staff_role_ids` + `admin_role_ids`
+      (names or ids, comma-separated) - GRANT-ONLY, applied on every guild
+      message sync and again at request time, so holding a mapped role
+      promotes on sight and revocation stays a console decision. New
+      Access Control group on DiscoFlix Settings documents the semantics
+
+## M14 - The Chat Mirror, Round 4 (built 2026-07-13)
+
+Built overnight (12 fixture checks green, incl. one real bug the fixtures
+caught: compileMessages mutates created_at into display text, which broke the
+grouping gap math until the raw timestamp was snapshotted - rides THE live
+pass):
+
+- [x] Message grouping: consecutive same-author messages inside 7 min collapse
+      to bare lines with a hover-revealed time stamp in the avatar gutter -
+      day dividers, the NEW marker, and midnight breaks reset the group;
+      live ws pushes group too (previous-message lookup), and edit re-renders
+      keep their grouped treatment instead of sprouting a header
+- [x] Chat history pagination: a sentinel above the oldest loaded message
+      (`intersect once`) pulls the next 100 into place (GET
+      /chat/history/:channelId?before=), with a fresh sentinel while full
+      pages keep coming. The seam row re-renders oob so its date divider and
+      grouped state stay honest (a script prunes the stale same-day divider -
+      oob swaps can't reach siblings); model getMessages grew the cursor
+- [x] Dashboard deep-link: request rows with a stored origin get a jump icon -
+      POST /requests/:id/jump repoints the mirror (server + channel), responds
+      with the full mirror swap, closes the modal, scrolls to and flashes the
+      row (retry loop covers the swap race; rows older than the loaded page
+      fail soft after ~2s of retries)
+- [x] Members pane phase 2: hoisted-role groups (position-sorted, like old
+      Discord) with Online/Offline buckets and idle/dnd/online dots when the
+      presence intent is on (DF_PRESENCE_INTENT=1 + the dev-portal toggle,
+      documented in .env.example - it is privileged and fails login
+      otherwise); without it, role groups + a generic Members bucket, no fake
+      offline segregation. Offline rows fade instead of wearing a dot
+- [x] Logout button: rides the power-button strip (plain form POST so the
+      browser follows to /login), rendered only when an admin password guards
+      the console - authEnabled threaded through home/sidebar/power renders
+- [x] Keyboard accessibility: channel rows, channel gear, chat avatars, guild
+      bubbles, app bubbles, invite/add-app "+", chat "+", and member rows all
+      carry role="button" + tabindex + Enter triggers (gear stops propagation
+      on key like it does on click)
+
+## M15 - Discovery & Retention (staged 2026-07-12)
+
+- [ ] "Coming Soon" virtual channel: read-only feed rendered from the
+      Radarr/Sonarr calendar endpoints as bot-style messages (releases this
+      week/month) - gives every server a reason to open the console daily
+- [ ] Weekly digest the bot posts to a configured channel ("added this week /
+      now available") - retention hook for end users
+- [ ] Per-guild ops stats inside the Server Info popup: requests this week,
+      top requesters, quota usage per user
+- [ ] Unified media library browser (Media model + poster cache exist) with
+      indexes that let every service link to a common media item by external
+      id (tmdb/imdb/tvdb) or path
+- [ ] Library detail phase 2: per-episode tables for Sonarr seasons,
+      interactive search (pick a release), edit quality profile / root folder,
+      delete item
+
+## M16 - Platform Maturity (staged 2026-07-12)
+
+- [ ] Per-browser-session active server/channel - multi-user UI (today `State`
+      is a global singleton, deliberately single-user)
+- [ ] Mobile layout pass (`mobile.css` exists, unmaintained)
+- [ ] Lidarr/Readarr clients (`arrClient` is already service-generic) for
+      music/book requests - manifests, season/album semantics, picker cards.
+      This requires research done to confirm neither project are stale and/or
+      abandoned. Find alternatives if that be the case.
+
+## M17 - Requests & Interactions (staged 2026-07-12)
+
+- [ ] Do research into discord most recent api, update project deps if needed.
+- [ ] Rewrite the entire discord interaction flow with the end users to use
+      innovative and highly intuitive UX that discord provides beyond just
+      basic components. Improve visible structure of message responses and
+      updates. Use embeds, decorators, imagery, and no emojis.
+- [ ] Make the interaction features (movie, show, status, etc.) infinitely extendable
+      via a standard app interface api, allowing us to open the discord bot
+      and end user interactions up to other solutions in a non request context.
+
 ---
 
 ## Feature Planning (unstaged - promote before working)
 
-- EventLog DB transport + log viewer modal (model + readonly modal support exist; logging.js never wired prisma)
-- Per-browser-session active server/channel - multi-user UI (today `State` is a global singleton, deliberately single-user)
-- Chat history pagination / infinite scroll (`getChannelMessages` already has a `before` cursor)
-- Unified media library browser (Media model + poster cache exist) with indexes that allow all services to link to a common media item by id, file path, or some other common key attribute.
-- Download-complete DM notifications to requesters (v2 feature)
-- Mobile layout pass (`mobile.css` exists, unmaintained)
-- Members pane phase 2: per-user presence + role grouping (pane itself shipped in M5 from tracked users)
-- Discord User/Role Whitelist Strategy - Currently a user is automatically registered and set as an approved requestor if they send a message in a channel the bot has read messages permissions. 
-- Discord role → permission mapping (staff/admin are hand-set in the DiscoFlix Users section today; map guild roles onto them automatically)
-- Message grouping: collapse consecutive same-author messages within ~7min like Discord (each message currently renders a full author header)
-- Bot presence/status line config (playing/watching text)
-- `!df status` / `/status` command - show the caller's open requests + live download state from the arr queue
-- DM request support (`logMessageToInterface` skips DMs entirely; request flow + notifications are guild-channel-only)
-- Complete Discord Request Interface Overhaul - The message based (and others) api/interface provided by discord is very large and full of features and ways to interact or facilitate an interaction, we are using a small fraction of it's capabilities to render a very crude and poorly made interaction full of childish emojis and bad ux for a end user's media request.
-- Re-arm arr queue watches on boot (monitor state is in-memory; open MediaRequests are orphaned by a restart)
-- Root folder / quality profile selection per request (pipeline defaults to first root folder + first profile)
-- Perf: `logMessageToInterface` force-fetches the author from the Discord API on every message (`author.fetch(true)` busts cache); throttle or trust cache
-- Season-level requesting for shows (request whole series only today; v2 allowed picking seasons)
-- Logout button in the user-controls strip (`POST /logout` route already exists, no UI for it)
-- Scoped ws emits, phase 2: per-bubble/per-channel oob swaps instead of container re-renders (`serverSortableContainer` still re-renders wholesale on every message)
-- Library detail phase 2: per-episode tables for Sonarr seasons, interactive search (pick a release), edit quality profile/root folder, delete item
-- Arr status dots in the userbox: likely obsolete - the orphaned `radarrButton.pug`/`sonarrButton.pug` were deleted in the M7 cleanup, and the app rail now ships per-instance heartbeat status dots + a Test Connection pill in app settings
-- "Coming Soon" virtual channel: read-only feed rendered from the Radarr/Sonarr calendar endpoints as bot-style messages (releases this week/month) - gives every server a reason to open the console daily
-- Dashboard request rows deep-link to the originating message in the chat mirror (jump to channel, scroll, flash the mentioned row)
-- Live download ticker: slim strip above the chat input showing active queue progress (the ws push pipeline already feeds the dashboard; surface it in the chat)
-- Per-guild ops stats inside the Server Info modal: requests this week, top requesters, quota usage per user
-- Weekly digest the bot posts to a configured channel ("added this week / now available") - retention hook for end users
-- Scope expansion, someday: Lidarr/Readarr clients (`arrClient` is already service-generic) for music/book requests
-- Keyboard accessibility pass: channel rows, gears, and avatars are click-only divs - needs `role="button"`, `tabindex`, and key triggers
-- Self-host vendor assets (htmx, ws.js, hyperscript, sweetalert2, bootstrap, fonts still come from CDNs; cooltipz already replaced in-repo by M10's tooltip layer) - one `npm` vendor step, works offline, no supply-chain surprises
+(empty - everything promoted into M11-M16 on 2026-07-12)

@@ -23,7 +23,10 @@
           class=app.active ? 'active' : undefined
           aria-label=app.label
           data-tooltip-dir="right"
+          role="button"
+          tabindex="0"
           hx-post=!app.active && `/change-active-app/${app.id}`
+          hx-trigger=!app.active ? "click, keyup[key=='Enter']" : undefined
           hx-select-oob=!app.active && "#serverSelector,#guildNameBanner"
         )
           span.railPill
@@ -36,9 +39,11 @@
   .server.invite.addAppButton(
     aria-label="Add an App"
     data-tooltip-dir="right"
+    role="button"
+    tabindex="0"
     hx-get="/modal/apps/picker"
     hx-target="#modals-here"
-    hx-trigger="click"
+    hx-trigger="click, keyup[key=='Enter']"
     data-bs-toggle="modal"
     data-bs-target="#modals-here"
   )

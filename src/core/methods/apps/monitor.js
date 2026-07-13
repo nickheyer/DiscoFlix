@@ -9,7 +9,7 @@ const HEARTBEAT_BOOT_DELAY_MS = 5 * 1000;
 //   FOR EVERY CONFIGURED+ENABLED INSTANCE AND BROADCASTS RAIL DOTS / TICKER /
 //   QUEUE-SECTION FRAGMENTS WHEN SOMETHING ACTUALLY CHANGED.
 module.exports = {
-  watchRequest({ requestId, appId, arrId, mediaId, title, channelId, requesterIds }) {
+  watchRequest({ requestId, appId, arrId, mediaId, title, channelId, requesterIds, rearmed }) {
     this.watches.set(requestId, {
       requestId,
       appId,
@@ -19,10 +19,43 @@ module.exports = {
       channelId: channelId || null, // null = CONSOLE-INITIATED, NO DISCORD NOTIFY
       requesterIds: requesterIds || [],
       stage: 'pending',
+      rearmed: !!rearmed, // BOOT RE-ARM - FIRST TICK DECIDES IF THE GRAB NOTIFY WAS ALREADY SENT
       startedAt: Date.now()
     });
     this.logger.info(`Watching app queue for request ${requestId} (${title})`);
     this._ensureMonitorTimer();
+  },
+
+  // RESTARTS ORPHAN IN-MEMORY WATCHES - REBUILD THEM FROM APPROVED REQUESTS
+  // WHOSE MEDIA NEVER IMPORTED. arr_id IS STORED AS TEXT; NUMERIC SERVICE IDS
+  // ARE RESTORED SO matchesQueueRecord STRICT-COMPARES CORRECTLY.
+  async rearmWatches() {
+    const open = await this.core.prisma.mediaRequest.findMany({
+      where: {
+        status: true,
+        arr_id: { not: null },
+        appId: { not: null },
+        media: { is_available: false }
+      },
+      include: { media: true, users: true }
+    });
+
+    let armed = 0;
+    for (const request of open) {
+      if (this.watches.has(request.id)) continue;
+      this.watchRequest({
+        requestId: request.id,
+        appId: request.appId,
+        arrId: /^\d+$/.test(request.arr_id) ? Number(request.arr_id) : request.arr_id,
+        mediaId: request.mediaId,
+        title: request.media.title || request.orig_parsed_title,
+        channelId: request.orig_channel_id,
+        requesterIds: (request.users || []).map(user => user.id),
+        rearmed: true
+      });
+      armed++;
+    }
+    if (armed) this.logger.info(`Re-armed ${armed} queue watches from open requests`);
   },
 
   stopWatch(requestId) {
@@ -95,17 +128,25 @@ module.exports = {
       const queueRow = queue.find(row => client.matchesQueueRecord(row, watch.arrId));
       if (queueRow && watch.stage === 'pending') {
         watch.stage = 'grabbed';
-        const eta = queueRow.timeleft ? ` - about \`${queueRow.timeleft}\` remaining` : '';
-        await this._notify(watch, `📥 **${watch.title}** is downloading${eta}.`);
+        // ALREADY MID-DOWNLOAD ON A RE-ARM'S FIRST LOOK = THE GRAB WAS
+        // ANNOUNCED BEFORE THE RESTART - DON'T REPEAT IT
+        if (!watch.rearmed) {
+          const eta = queueRow.timeleft ? ` - about \`${queueRow.timeleft}\` remaining` : '';
+          await this._notify(watch, `**${watch.title}** is downloading${eta}.`);
+        }
       }
+      watch.rearmed = false;
 
       const item = await client.getById(watch.arrId);
       if (client.isImported(item)) {
         await this.core.models.media.update({ id: watch.mediaId }, { is_available: true });
         await this._notify(
           watch,
-          `✅ ${this._mentions(watch)} **${watch.title}** is now available on ${config.media_server_name}!`
+          `${this._mentions(watch)} **${watch.title}** is now available on ${config.media_server_name}!`
         );
+        if (config.is_dm_notifications) {
+          await this._dmRequesters(watch, `**${watch.title}** is now available on ${config.media_server_name}!`);
+        }
         this.watches.delete(watch.requestId);
         await this._pushRowUpdate(watch, null);
         this.core.discord.refreshUI().catch(() => {}); // UPDATE CHAT-MIRROR CHIPS
@@ -120,7 +161,7 @@ module.exports = {
       if (Date.now() - watch.startedAt > config.max_check_time * 1000) {
         await this._notify(
           watch,
-          `⏳ ${this._mentions(watch)} **${watch.title}** is still processing - I'll stop watching it for now, check back later.`
+          `${this._mentions(watch)} **${watch.title}** is still processing - I'll stop watching it for now, check back later.`
         );
         this.watches.delete(watch.requestId);
       }
@@ -152,6 +193,20 @@ module.exports = {
       await channel.send(content);
     } catch (err) {
       this.logger.warn(`App monitor could not notify channel ${watch.channelId}: ${err.message}`);
+    }
+  },
+
+  // CONFIG-GATED COMPLETION DMs - CLOSED DM SETTINGS ARE A DEBUG LINE, NEVER
+  // AN ERROR, AND ONE FAILED DM NEVER BLOCKS THE REST
+  async _dmRequesters(watch, content) {
+    if (!this.core.client || !this.core.client.isReady()) return;
+    for (const userId of watch.requesterIds) {
+      try {
+        const user = await this.core.client.users.fetch(userId);
+        await user.send(content);
+      } catch (err) {
+        this.logger.debug(`Completion DM to ${userId} failed: ${err.message}`);
+      }
     }
   },
 

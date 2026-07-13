@@ -35,6 +35,8 @@ class CoreService {
     this._httpTerminator = null;
 
     this.logger = require('../../logging')();
+    // DB LOG TRANSPORT FEEDS THE DISCOFLIX TAKEOVER'S LOGS SECTION
+    this.logger.attachDbTransport(() => this.prisma);
     this.models = require('./models')(this);
     this.render = require('./methods/rendering')(this);
     this.sockets = require('./methods/websocket')(this);

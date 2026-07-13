@@ -9,6 +9,9 @@ async function renderHome(ctx) {
   const discordBot = await core.models.discordBot.get();
   const apps = await buildAppRail(core, state);
   const ticker = core.apps.buildTickerAggregate();
+  // THE LOGOUT BUTTON ONLY RENDERS WHEN A PASSWORD GUARDS THE CONSOLE
+  const config = await core.models.configuration.get();
+  const authEnabled = !!config.admin_password;
 
   // APP TAKEOVER SURVIVES RELOAD - THE MIRROR LOCALS ARE SKIPPED ENTIRELY,
   // BACK-OUT RE-RENDERS THEM THROUGH changeActiveServers
@@ -26,11 +29,13 @@ async function renderHome(ctx) {
       members: [],
       apps,
       ticker,
+      authEnabled,
       ...takeover
     });
   }
 
   const messageData = await core.discord.updateMessages(null, state);
+  const history = core.discord.historyCursorOf(messageData);
   const messages = await core.discord.compileMessages(messageData);
   const eomStamp = _.get(_.last(messageData), 'created_at');
   const members = await core.render.getServerMembers(state.active_server_id);
@@ -45,7 +50,9 @@ async function renderHome(ctx) {
     members,
     apps,
     ticker,
-    onboarding
+    onboarding,
+    history,
+    authEnabled
   });
 }
 

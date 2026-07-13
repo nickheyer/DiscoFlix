@@ -4,15 +4,16 @@ const registry = require('../../methods/apps/registry');
 
 // ONLY CONTENT TYPES WITH AN ENABLED+CONFIGURED INSTANCE GET A SLASH COMMAND.
 // RE-RUN ON EVERY ClientReady AND AFTER APP CRUD (core.apps.syncSlashCommands).
+// GUILD + DM CONTEXTS - REQUESTS AND STATUS WORK IN THE BOT'S DMS TOO.
 async function buildSlashCommands(core) {
   const servedTypes = await core.apps.enabledContentTypes();
-  return registry.contentTypeDefs()
+  const commands = registry.contentTypeDefs()
     .filter(def => servedTypes.includes(def.type))
     .map(def =>
       new SlashCommandBuilder()
         .setName(def.slash.name)
         .setDescription(def.slash.description)
-        .setContexts(InteractionContextType.Guild)
+        .setContexts(InteractionContextType.Guild, InteractionContextType.BotDM)
         .addStringOption(option =>
           option
             .setName('title')
@@ -20,6 +21,13 @@ async function buildSlashCommands(core) {
             .setRequired(true)
         )
     );
+  commands.push(
+    new SlashCommandBuilder()
+      .setName('status')
+      .setDescription('Your open requests and their download progress')
+      .setContexts(InteractionContextType.Guild, InteractionContextType.BotDM)
+  );
+  return commands;
 }
 
 function slashContentType(commandName) {
@@ -43,6 +51,8 @@ function parsePrefixCommand(content, prefix) {
   if (!rest) return { type: 'help' };
 
   const [keyword, ...titleParts] = rest.split(/\s+/);
+  if (keyword.toLowerCase() === 'status') return { type: 'status' };
+
   const contentType = registry.aliasIndex()[keyword.toLowerCase()];
   const title = titleParts.join(' ');
   if (!contentType || !title) return { type: 'help' };
@@ -55,7 +65,8 @@ function usageText(prefix) {
   const lines = defs.map(def =>
     `**${prefix} ${def.slash.name} <title>** - ${def.slash.description.charAt(0).toLowerCase()}${def.slash.description.slice(1)}`
   );
-  const slashNames = defs.map(def => `\`/${def.slash.name}\``).join(' and ');
+  lines.push(`**${prefix} status** - your open requests and their download progress`);
+  const slashNames = [...defs.map(def => `\`/${def.slash.name}\``), '`/status`'].join(' and ');
   lines.push(`Slash commands ${slashNames} work too.`);
   return lines.join('\n');
 }

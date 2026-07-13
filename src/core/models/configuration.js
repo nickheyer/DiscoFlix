@@ -12,7 +12,14 @@ class Configuration extends BaseModel {
       max_results: 0,
       max_seasons_for_non_admin: 0,
       is_debug: false,
-      is_trailers_enabled: true
+      is_trailers_enabled: true,
+      is_dm_notifications: false,
+      bot_presence_activity: "none",
+      bot_presence_text: "",
+      request_access: "open",
+      whitelist_role_ids: "",
+      staff_role_ids: "",
+      admin_role_ids: ""
     };
   }
 

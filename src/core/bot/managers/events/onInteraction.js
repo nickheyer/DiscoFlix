@@ -1,6 +1,8 @@
 const { Events } = require('discord.js');
 const { slashContentType } = require('../../commands');
 const { runRequestFlow } = require('../../commands/requestFlow');
+const { buildStatusReply } = require('../../commands/status');
+const { memberRoleTokens } = require('../../commands/access');
 
 module.exports = {
 	name: Events.InteractionCreate,
@@ -9,16 +11,22 @@ module.exports = {
     const core = interaction.client.core;
     if (!interaction.isChatInputCommand()) return;
 
+    // STATUS IS PERSONAL - ALWAYS ANSWERS EPHEMERAL, WORKS IN GUILDS AND DMS
+    if (interaction.commandName === 'status') {
+      try {
+        await interaction.deferReply({ ephemeral: true });
+        await interaction.editReply(await buildStatusReply(core, interaction.user.id));
+      } catch (err) {
+        core.logger.error('Status command failed:', err);
+      }
+      return;
+    }
+
     const contentType = slashContentType(interaction.commandName);
     if (!contentType) return;
 
     try {
-      if (!interaction.guildId) {
-        await interaction.reply({ content: 'Requests only work inside a server.', ephemeral: true });
-        return;
-      }
-
-      // DEFER, THEN FIRST send() FILLS THE DEFERRED REPLY
+      // DEFER, THEN FIRST send() FILLS THE DEFERRED REPLY - DMS WELCOME
       await interaction.deferReply();
       let repliedOnce = false;
       const send = (payload) => {
@@ -34,9 +42,10 @@ module.exports = {
         contentType,
         title,
         discordUser: interaction.user,
-        guildId: interaction.guildId,
+        guildId: interaction.guildId || null,
         channel: interaction.channel,
         origContent: `/${interaction.commandName} ${title}`,
+        roleTokens: memberRoleTokens(interaction.member),
         send
       });
     } catch (err) {

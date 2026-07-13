@@ -131,9 +131,15 @@ class SonarrClient extends ArrClient {
     };
   }
 
-  buildAddPayload(raw, { rootFolderPath, qualityProfileId }) {
+  // A PICKED-SEASONS LIST FLIPS PER-SEASON MONITORING - SEARCH-ON-ADD ONLY
+  // GRABS MONITORED SEASONS, SO THE PICK IS ENFORCED BY SONARR ITSELF
+  buildAddPayload(raw, { rootFolderPath, qualityProfileId, seasons }) {
+    const monitorPicked = Array.isArray(seasons) && seasons.length
+      ? (raw.seasons || []).map(season => ({ ...season, monitored: seasons.includes(season.seasonNumber) }))
+      : raw.seasons;
     return {
       ...raw,
+      seasons: monitorPicked,
       rootFolderPath,
       qualityProfileId,
       languageProfileId: 1, // REQUIRED BY SONARR v3, IGNORED BY v4

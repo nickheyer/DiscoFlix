@@ -730,13 +730,77 @@
 }
 
 .chatAttachmentLink {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   margin-top: 6px;
   font-size: 13px;
   color: var(--text-link);
   text-decoration: none;
 }
 
+.chatAttachmentIcon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
 .chatAttachmentLink:hover {
   text-decoration: underline;
+}
+
+/* ---- GROUPED MESSAGE ROWS (SAME AUTHOR INSIDE THE 7 MIN WINDOW) ---- */
+
+.chatMessageRow.grouped {
+  margin-top: 0;
+  padding-top: 1px;
+  padding-bottom: 1px;
+}
+
+/* THE GUTTER HOLDS THE AVATAR COLUMN'S WIDTH - TIME FADES IN ON HOVER */
+.chatGutterStamp {
+  flex-shrink: 0;
+  width: 40px;
+  margin-right: 16px;
+  font-size: 10px;
+  line-height: 22px;
+  color: var(--text-muted);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  opacity: 0;
+  user-select: none;
+}
+
+.chatMessageRow.grouped:hover .chatGutterStamp {
+  opacity: 1;
+}
+
+/* ---- SCROLL-UP HISTORY SENTINEL ---- */
+
+.chatHistorySentinel {
+  display: flex;
+  justify-content: center;
+  padding: 10px 0;
+  color: var(--text-muted);
+}
+
+.chatHistorySentinel .appSpinner {
+  width: 18px;
+  height: 18px;
+}
+
+/* ---- DEEP-LINK FLASH (DASHBOARD JUMP-TO-MESSAGE) ---- */
+
+.chatMessageRow.flashHighlight {
+  animation: chat-flash-fade 2s ease-out;
+}
+
+@keyframes chat-flash-fade {
+  0%, 40% {
+    background-color: rgba(114, 137, 218, 0.25);
+  }
+  100% {
+    background-color: transparent;
+  }
 }

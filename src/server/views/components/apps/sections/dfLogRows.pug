@@ -1,0 +1,26 @@
+//- LOG ROWS + VIEW MORE - INCLUDED BY dfLogs AND RETURNED BARE BY
+//- GET /apps/:id/logs (LEVEL FILTER AND PAGINATION SHARE THIS FRAGMENT)
+- var logRows = (logs && logs.rows) || []
+- var currentLogsPage = (logs && logs.page) || 1
+
+if !logRows.length
+  .appQueueEmpty= logs && logs.level ? `No ${logs.level} entries recorded yet.` : 'No log entries recorded yet.'
+else
+  each entry in logRows
+    .dfLogRow(class=`dfLogRow-${entry.level}`)
+      span.dfLogWhen= entry.when
+      span.dfLogLevel(class=`dfLogLevel-${entry.level}`)= entry.level
+      .dfLogBody
+        span.dfLogMessage= entry.message
+        if entry.metadata
+          span.dfLogMetadata(title=entry.metadata)= entry.metadata
+  if logs.hasMore
+    button.appLoadMore.dfLogsMore(
+      type="button"
+      hx-get=`/apps/${activeApp.id}/logs?page=${currentLogsPage + 1}&level=${encodeURIComponent(logs.level || '')}`
+      hx-swap="outerHTML"
+      hx-disabled-elt="this"
+    )
+      span View More
+      svg.appSpinner(viewBox="0 0 24 24" aria-hidden="true")
+        circle(cx="12" cy="12" r="10")

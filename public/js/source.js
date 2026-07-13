@@ -169,3 +169,29 @@ function makeRailSortable(containerId) {
     sortable.option('disabled', false);
   });
 }
+
+// ---- CHAT HISTORY + DEEP LINKS ----
+
+// A PREPENDED HISTORY BATCH CAN MAKE THE OLD SEAM DIVIDER A SAME-DAY DUPE -
+// THE OOB ROW SWAP CANNOT REACH SIBLINGS, SO THE BATCH SHIPS THIS CALL
+function dfTrimSeamDivider(rowId) {
+  const row = document.getElementById(rowId);
+  if (!row) return;
+  const prev = row.previousElementSibling;
+  if (prev && prev.classList.contains('dateDivider')) prev.remove();
+}
+
+// DASHBOARD JUMP-TO-MESSAGE: CLOSE THE MODAL, THEN SCROLL + FLASH THE ROW
+// ONCE THE MIRROR SWAP HAS LANDED IT (RETRIES COVER THE SWAP RACE)
+function dfFlashMessage(rowId, attempt) {
+  attempt = attempt || 0;
+  closeModal();
+  const row = document.getElementById(rowId);
+  if (!row) {
+    if (attempt < 20) setTimeout(() => dfFlashMessage(rowId, attempt + 1), 100);
+    return;
+  }
+  row.scrollIntoView({ block: 'center' });
+  row.classList.add('flashHighlight');
+  setTimeout(() => row.classList.remove('flashHighlight'), 2000);
+}

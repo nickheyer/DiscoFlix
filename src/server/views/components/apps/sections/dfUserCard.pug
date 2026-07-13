@@ -25,6 +25,8 @@ mixin dfUserCard(user)
           span.dfUserChip.admin ADMIN
         else if row.is_staff
           span.dfUserChip.staff STAFF
+        else if row.is_whitelisted
+          span.dfUserChip.whitelisted WHITELISTED
         if !row.is_active
           span.dfUserChip.inactive INACTIVE
       svg.dfUserInfoButton(

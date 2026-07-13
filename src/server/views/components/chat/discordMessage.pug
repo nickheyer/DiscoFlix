@@ -1,15 +1,20 @@
 //- LIVE WS-PUSHED MESSAGE. accentColor ARRIVES AS BARE HEX (NO '#').
 //- messageId/userId GIVE THE ROW ITS DOM ID (EDIT SWAPS) AND AVATAR CLICK.
+//- grouped MATCHES THE HISTORY TREATMENT - BARE LINE, TIME ON HOVER.
 - var authorColor = accentColor ? `#${String(accentColor).replace('#', '')}` : null
 .messageWrapper(hx-swap-oob="beforeend:#chatLog")
   .chatMessageRow(
     id=messageId ? `msg-${messageId}` : undefined
-    class=isClient ? "botMsg" : "userMsg"
+    class=`${isClient ? "botMsg" : "userMsg"}${grouped ? " grouped" : ""}`
   )
     .chatContentContainer
-      include message/messageAvatar
+      if grouped
+        .chatGutterStamp= hoverStamp
+      else
+        include message/messageAvatar
       .chatMessageContent()
-        include message/messageAuthor
+        if !grouped
+          include message/messageAuthor
         include message/messageText
         include message/messageEmbed
         include message/messageAttachment

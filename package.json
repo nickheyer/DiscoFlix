@@ -11,6 +11,7 @@
     "inspect": "node --inspect src/server/server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "migrate": "npx prisma migrate dev && npx prisma generate",
+    "vendor": "node scripts/vendor.js",
     "reset": "rm -rf .cache && rm -rf ./prisma/disco.db* ./prisma/migrations && npx prisma migrate dev --name init && npx prisma generate"
   },
   "keywords": [],

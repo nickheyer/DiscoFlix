@@ -29,6 +29,16 @@ mixin field(field, fieldKey, recordId, readonly)
             disabled=readonly || field.readonly
           )
           span.settings-slider(class=(readonly || field.readonly) ? 'readonly' : '')
+      else if field.options && field.options.length
+        select.settings-input.settings-select(
+          class=`size-${size}`
+          name=!readonly && fieldKey
+          id=!readonly && fieldId
+          disabled=readonly || field.readonly
+          class=(readonly || field.readonly) ? 'readonly' : ''
+        )
+          each opt in field.options
+            option(value=opt.value selected=String(field.value == null ? '' : field.value) === String(opt.value))= opt.label
       else
         input.settings-input(
           class=`size-${size}`

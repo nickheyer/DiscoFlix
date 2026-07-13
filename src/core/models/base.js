@@ -260,7 +260,8 @@ class BaseModel {
                         sensitive: meta.sensitive,
                         min: meta.min,
                         max: meta.max,
-                        size: meta.size
+                        size: meta.size,
+                        options: meta.options
                     };
                 }
                 return acc;

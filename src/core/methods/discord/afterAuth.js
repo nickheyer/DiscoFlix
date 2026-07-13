@@ -1,9 +1,34 @@
+const { ActivityType } = require('discord.js');
+
 // GENERATE BOT INVITE LINK
 function genInvite(client) {
   return client.generateInvite({ scopes: ['bot'], permissions: ['1689934407138496'] });
 }
 
+const PRESENCE_ACTIVITY_TYPES = {
+  playing: ActivityType.Playing,
+  watching: ActivityType.Watching,
+  listening: ActivityType.Listening,
+  competing: ActivityType.Competing
+};
+
 module.exports = {
+  // STATUS LINE OFF THE CONFIG - CALLED ON READY AND AFTER SETTINGS SAVES
+  async applyPresence() {
+    try {
+      const config = await this.core.models.configuration.get();
+      const type = PRESENCE_ACTIVITY_TYPES[config.bot_presence_activity];
+      const text = (config.bot_presence_text || '').trim();
+      const activities = type !== undefined && text ? [{ name: text, type }] : [];
+      this.core.client.user.setPresence({ status: 'online', activities });
+      this.logger.info(activities.length
+        ? `Presence set: ${config.bot_presence_activity} ${text}`
+        : 'Presence cleared');
+    } catch (err) {
+      this.logger.warn(`Presence update failed: ${err.message}`);
+    }
+  },
+
   // SYNC ALL SERVERS AND CHANNELS
   async refreshAllDiscordServers() {
     try {

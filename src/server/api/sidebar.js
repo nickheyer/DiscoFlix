@@ -8,15 +8,17 @@ async function toggleSidebarState(ctx) {
       sidebar_exp_state: !currentState.sidebar_exp_state
     });
 
-    const [servers, discordBot, apps, activeApp] = await Promise.all([
+    const [servers, discordBot, apps, activeApp, config] = await Promise.all([
       ctx.core.render.getServerTemplateObj(null, state),
       ctx.core.models.discordBot.get(),
       ctx.core.apps.getRailViewModel(state),
-      ctx.core.apps.getInstance(state.active_app_id)
+      ctx.core.apps.getInstance(state.active_app_id),
+      ctx.core.models.configuration.get()
     ]);
     // DURING A TAKEOVER sidebarLayout INCLUDES THE APP CHANNEL LIST
     await ctx.compileView('sidebar/sidebarLayout.pug', {
       state, servers, discordBot, apps, activeApp,
+      authEnabled: !!config.admin_password,
       ...(activeApp ? buildSectionNav(ctx.core, activeApp) : {})
     });
   } catch (err) {
@@ -45,6 +47,7 @@ async function changeActiveServers(ctx) {
       ctx.core.render.getOnboarding(state)
     ]);
 
+    const history = ctx.core.discord.historyCursorOf(msgObjects);
     const messages = await ctx.core.discord.compileMessages(msgObjects);
     const eomStamp = _.get(_.last(msgObjects), 'created_at');
 
@@ -58,7 +61,7 @@ async function changeActiveServers(ctx) {
       'chat/chatBar.pug',
       'chat/messageContainer.pug',
       'members/membersLayout.pug',
-    ], { servers, discordBot, messages, eomStamp, state, members, apps, onboarding });
+    ], { servers, discordBot, messages, eomStamp, state, members, apps, onboarding, history });
   } catch (err) {
     ctx.core.logger.error('CHANGE_SERVER_FAILED:', err);
     ctx.status = 500;

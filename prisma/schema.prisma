@@ -21,6 +21,14 @@ model Configuration {
   max_seasons_for_non_admin Int      @default(0)
   is_debug                  Boolean  @default(false)
   is_trailers_enabled       Boolean  @default(true)
+  is_dm_notifications       Boolean  @default(false)
+  bot_presence_activity     String   @default("none")
+  bot_presence_text         String   @default("")
+  // open = ANYONE THE BOT CAN READ MAY REQUEST, whitelist = FLAGGED USERS/ROLES ONLY
+  request_access            String   @default("open")
+  whitelist_role_ids        String   @default("")
+  staff_role_ids            String   @default("")
+  admin_role_ids            String   @default("")
   created_at                DateTime @default(now())
   updated_at                DateTime @updatedAt @default(now())
 
@@ -200,6 +208,10 @@ model MediaRequest {
   orig_parsed_type  String?
   orig_channel_id   String?
   orig_message_id   String?
+  // SERVICE-SIDE ITEM ID STAMPED ON ADD SO QUEUE WATCHES SURVIVE A RESTART
+  arr_id            String?
+  // JSON ARRAY OF PICKED SEASON NUMBERS, NULL = ALL SEASONS / NOT A SHOW
+  seasons           String?
   status            Boolean?
   users             User[]        @relation("UserMediaRequests")
   app               App?          @relation(fields: [appId], references: [id], onDelete: SetNull)
@@ -220,6 +232,7 @@ model User {
   is_superuser              Boolean          @default(false)
   is_staff                  Boolean          @default(false)
   is_active                 Boolean          @default(true)
+  is_whitelisted            Boolean          @default(false)
   is_bot                    Boolean          @default(false)
   is_client                 Boolean          @default(false)
   session_timeout           Int              @default(60)

@@ -25,8 +25,15 @@ module.exports = {
     { key: 'url', label: 'URL', type: 'string', required: true, placeholder: 'http://localhost:8989', description: 'Base URL of the Sonarr server' },
     { key: 'api_key', label: 'API Key', type: 'string', required: true, sensitive: true, description: 'Settings → General → API Key' }
   ],
+  // LIVE-FETCHED DEFAULTS STORED IN settings_json - BLANK = SERVICE'S FIRST
+  instanceOptions: [
+    { key: 'root_folder', label: 'Root Folder', description: 'Where new series are stored', fetch: 'rootFolders' },
+    { key: 'quality_profile', label: 'Quality Profile', description: 'Profile applied to new adds', fetch: 'qualityProfiles' }
+  ],
   sections: ['overview', 'queue', 'library', 'settings'],
   buildClient(row, logger) {
-    return new SonarrClient({ url: row.url, token: row.api_key, logger });
+    let settings = {};
+    try { settings = JSON.parse(row.settings_json || '{}'); } catch (err) { settings = {}; }
+    return new SonarrClient({ url: row.url, token: row.api_key, logger, settings });
   }
 };

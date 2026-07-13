@@ -31,6 +31,18 @@ mixin requestRow(req, oob, instanceOptions)
       if req.origMessage
         .request-orig-message= req.origMessage
     .request-status
+      if req.canJump
+        button.request-jump-button(
+          type="button"
+          aria-label="Jump to the original message"
+          data-tooltip-dir="top"
+          hx-post=`/requests/${req.id}/jump`
+          hx-swap="none"
+          hx-select-oob="#serverSelector,#guildNameBanner"
+        )
+          svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true")
+            path(d="M9 10l-5 5 5 5")
+            path(d="M20 4v7a4 4 0 0 1-4 4H4")
       span.requestChip(class=`chip-${req.state}`)= req.stateLabel
       .request-progress(id=`request-progress-${req.id}`)
         if req.progress

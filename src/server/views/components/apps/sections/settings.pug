@@ -4,7 +4,7 @@
 //- AND DROPS THE TOAST IN THE TAKEOVER HEADER. LAYOUT = .appSettingsGroup
 //- ROWS (TITLE+BLURB RAIL | CARD) - SEE apps.css SETTINGS BLOCK.
 //- sectionData: { configured, formFields [+field DESCRIPTORS + key],
-//-               showDefault, contentTypeLabels }
+//-               optionFields, optionsError, showDefault, contentTypeLabels }
 include ../../../mixins/field
 
 include ../sectionTitleDivider
@@ -28,6 +28,13 @@ if !sectionData.configured
         .appSettingsFields
           each f in sectionData.formFields
             +field(f, f.key, activeApp.id, false)
+          //- ADD DEFAULTS (ROOT FOLDER / QUALITY PROFILE) POST WITH THE SAME
+          //- FORM - SEPARATE FORMS WOULD RESET ABSENT FIELDS ON SAVE
+          if sectionData.optionFields && sectionData.optionFields.length
+            each f in sectionData.optionFields
+              +field(f, f.key, activeApp.id, false)
+          else if sectionData.optionsError
+            .appSettingsOptionNote= sectionData.optionsError
     .appSectionActions
       button.modal-button.button-secondary(
         hx-post=`/apps/${activeApp.id}/test`

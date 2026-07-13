@@ -16,6 +16,7 @@ const USER_MUTABLE_FIELDS = [
   'is_superuser',
   'is_staff',
   'is_active',
+  'is_whitelisted',
   'max_requests_in_day',
   'max_results',
   'max_seasons_for_non_admin',
@@ -23,6 +24,8 @@ const USER_MUTABLE_FIELDS = [
   'max_check_time'
 ];
 const USERS_PAGE_SIZE = 20;
+const LOGS_PAGE_SIZE = 50;
+const LOG_LEVELS = ['error', 'warn', 'info'];
 
 // CACHED IMAGES ARE STORED AS BARE RELATIVE PATHS - SERVE THEM ROOT-RELATIVE
 function rootRelative(path) {
@@ -53,14 +56,39 @@ async function buildUsersPage(core, search = '', page = 1) {
   };
 }
 
+// ONE PAGE OF EventLog ROWS FOR THE SELF APP'S LOGS SECTION - NEWEST FIRST,
+// OPTIONAL LEVEL FILTER, VIEW-MORE PAGINATION LIKE EVERY OTHER LONG LIST
+async function buildLogsPage(core, level = '', page = 1) {
+  const where = LOG_LEVELS.includes(level) ? { level } : {};
+  const raw = await core.prisma.eventLog.findMany({
+    where,
+    orderBy: { timestamp: 'desc' },
+    skip: (page - 1) * LOGS_PAGE_SIZE,
+    take: LOGS_PAGE_SIZE + 1
+  });
+  return {
+    rows: raw.slice(0, LOGS_PAGE_SIZE).map(row => {
+      const stamp = new Date(row.timestamp);
+      return {
+        ...row,
+        when: `${stamp.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} ${stamp.toLocaleTimeString('en-US', { hour12: false })}`
+      };
+    }),
+    hasMore: raw.length > LOGS_PAGE_SIZE,
+    page,
+    level: LOG_LEVELS.includes(level) ? level : ''
+  };
+}
+
 // CONFIGURATION FORM GROUPS - EVERY EDITABLE FIELD LANDS IN A NAMED GROUP,
 // UNLISTED NEWCOMERS FALL THROUGH TO 'Other' SO NOTHING SILENTLY VANISHES
 const CONFIG_FIELD_GROUPS = [
   { label: 'General', blurb: 'What your media server goes by and the keyword that wakes the bot in chat.', keys: ['media_server_name', 'prefix_keyword'] },
-  { label: 'Discord', blurb: 'The bot token that connects DiscoFlix to your Discord servers.', keys: ['discord_token'] },
+  { label: 'Discord', blurb: 'The bot token that connects DiscoFlix to your Discord servers, and how the bot presents itself.', keys: ['discord_token', 'bot_presence_activity', 'bot_presence_text'] },
   { label: 'Console Security', blurb: 'Password-protect this console and decide how long idle sessions live.', keys: ['admin_password', 'session_timeout'] },
   { label: 'Request Limits', blurb: 'Caps on lookups and what non-admin users are allowed to request.', keys: ['max_results', 'max_seasons_for_non_admin', 'max_check_time'] },
-  { label: 'Extras', blurb: 'Nice-to-haves and diagnostics.', keys: ['is_trailers_enabled', 'is_debug'] }
+  { label: 'Access Control', blurb: 'Who may request, and which guild roles grant console permissions automatically. Role grants only ever add - revoke people in Users.', keys: ['request_access', 'whitelist_role_ids', 'staff_role_ids', 'admin_role_ids'] },
+  { label: 'Extras', blurb: 'Nice-to-haves and diagnostics.', keys: ['is_trailers_enabled', 'is_dm_notifications', 'is_debug'] }
 ];
 
 function buildConfigGroups(formData) {
@@ -84,6 +112,11 @@ async function buildSelfSectionData(core, instance, section) {
     case 'users': {
       data.users = await buildUsersPage(core);
       data.mutableFields = USER_MUTABLE_FIELDS;
+      break;
+    }
+    case 'logs': {
+      data.logs = await buildLogsPage(core);
+      data.logLevels = LOG_LEVELS;
       break;
     }
     case 'settings': {
@@ -304,6 +337,31 @@ async function buildSectionData(core, instance, section, opts = {}) {
           placeholder: field.placeholder
         }))
       ];
+      // PER-INSTANCE ADD DEFAULTS (ROOT FOLDER / QUALITY PROFILE) - OPTIONS
+      // FETCHED LIVE FROM THE SERVICE, VALUES OFF settings_json, BLANK = FIRST
+      data.optionFields = [];
+      data.optionsError = null;
+      if (manifest.instanceOptions?.length && client) {
+        let saved = {};
+        try { saved = JSON.parse(instance.settings_json || '{}'); } catch (err) { saved = {}; }
+        try {
+          const fetched = {
+            rootFolders: (await client.getRootFolders()).map(folder => ({ value: folder.path, label: folder.path })),
+            qualityProfiles: (await client.getQualityProfiles()).map(profile => ({ value: String(profile.id), label: profile.name }))
+          };
+          data.optionFields = manifest.instanceOptions.map(option => ({
+            key: option.key,
+            type: 'string',
+            label: option.label,
+            description: option.description,
+            value: saved[option.key] || '',
+            options: [{ value: '', label: 'First available (default)' }, ...(fetched[option.fetch] || [])]
+          }));
+        } catch (err) {
+          core.logger.debug(`${instance.display_name} option fetch failed: ${err.message}`);
+          data.optionsError = `${instance.display_name} is unreachable - add defaults appear once it connects`;
+        }
+      }
       // MAKE-DEFAULT ONLY MEANS SOMETHING FOR CONTENT MANAGERS WITH RIVALS
       data.showDefault = false;
       if (manifest.contentTypes.length) {
@@ -410,6 +468,7 @@ async function respondWithMirror(ctx, state) {
     core.render.getOnboarding(state)
   ]);
 
+  const history = core.discord.historyCursorOf(msgObjects);
   const messages = await core.discord.compileMessages(msgObjects);
   const eomStamp = _.get(_.last(msgObjects), 'created_at');
 
@@ -423,7 +482,7 @@ async function respondWithMirror(ctx, state) {
     'chat/chatBar.pug',
     'chat/messageContainer.pug',
     'members/membersLayout.pug'
-  ], { servers, discordBot, messages, eomStamp, state, members, apps, onboarding });
+  ], { servers, discordBot, messages, eomStamp, state, members, apps, onboarding, history });
 }
 
 // ── HANDLERS ─────────────────────────────────────────────────────────────
@@ -479,6 +538,21 @@ async function appUsersPage(ctx) {
     users,
     mutableFields: USER_MUTABLE_FIELDS
   });
+}
+
+// LOGS SECTION FILTER + PAGINATION - RETURNS BARE ROWS (AND THE NEXT VIEW
+// MORE SENTINEL) FOR #dfLogList
+async function appLogsPage(ctx) {
+  const core = ctx.core;
+  const instance = await core.apps.getInstance(ctx.params.id);
+  if (!instance || instance.app_type !== 'discoflix') {
+    ctx.status = 404;
+    return;
+  }
+  const page = Math.max(1, parseInt(ctx.query.page, 10) || 1);
+  const level = String(ctx.query.level || '').trim();
+  const logs = await buildLogsPage(core, level, page);
+  return ctx.compileView('apps/sections/dfLogRows.pug', { activeApp: instance, logs });
 }
 
 // USER CARD SAVE - WHITELISTED MUTABLE SUBSET ONLY; DISCORD-SYNCED IDENTITY
@@ -766,6 +840,7 @@ async function appAddMedia(ctx) {
         mediaId: media.id,
         orig_parsed_title: result.title,
         orig_parsed_type: result.contentType,
+        arr_id: String(added.id), // RESTARTS RE-ARM THE WATCH FROM THIS
         status: true, // CONSOLE = OPERATOR = PRE-APPROVED
         appId: instance.id
       });
@@ -1015,6 +1090,8 @@ async function saveApp(ctx) {
       // THE SELF APP'S SETTINGS FORM WRITES THE Configuration SINGLETON
       const config = await core.models.configuration.get();
       await core.models.configuration.safeUpdateOne(config.id, ctx.request.body);
+      // PRESENCE SETTINGS TAKE EFFECT IMMEDIATELY WHILE THE BOT IS ONLINE
+      if (core.client?.isReady()) core.discord.applyPresence().catch(() => {});
     } else {
       updated = await core.apps.saveInstanceConfig(instance, ctx.request.body);
       core.apps.syncSlashCommands().catch(() => {});
@@ -1133,10 +1210,12 @@ module.exports = {
   buildAppRail,
   buildSectionNav,
   buildTakeoverLocals,
+  respondWithMirror,
   changeActiveApp,
   openDiscoFlix,
   openDiscoFlixSection,
   appUsersPage,
+  appLogsPage,
   saveAppUser,
   changeAppSection,
   appFeedPage,

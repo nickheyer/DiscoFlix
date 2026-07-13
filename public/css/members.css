@@ -79,3 +79,23 @@
 }
 
 /* BOT TAG STYLING COMES FROM THE SHARED .chatMessageTag RULE (chat.css) */
+
+/* PRESENCE DOTS - IDLE AND DND JOIN THE EXISTING GREEN/RED PAIR */
+.statusBubble.idle {
+  background-color: var(--yellow);
+  visibility: visible !important;
+}
+
+.statusBubble.dnd {
+  background-color: var(--red);
+  visibility: visible !important;
+}
+
+/* OFFLINE GROUP ROWS FADE LIKE OLD DISCORD INSTEAD OF WEARING A DOT */
+.memberRow.offlineMember {
+  opacity: 0.4;
+}
+
+.memberRow.offlineMember:hover {
+  opacity: 1;
+}

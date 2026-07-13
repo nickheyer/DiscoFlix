@@ -44,6 +44,8 @@ module.exports = {
       progress: state === 'downloading' ? this.progressOf(queueRecord) : null,
       appId: request.appId || null,
       appLabel: request.app?.display_name || null,
+      // DEEP-LINK BACK TO THE TRIGGERING MESSAGE - ALL THREE OR NOTHING
+      canJump: !!(request.orig_message_id && request.orig_channel_id && request.madeInId),
       // NO USERS + NO GUILD = OPERATOR ADD FROM THE CONSOLE'S SEARCH & ADD
       requestedBy: (request.users || []).map(user => user.display_name || user.username).join(', ')
         || (!request.madeInId ? 'Console' : ''),

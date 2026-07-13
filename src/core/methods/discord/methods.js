@@ -1,6 +1,35 @@
 const _ = require('lodash');
+const { memberRoleTokens, roleGrantsFor } = require('../../bot/commands/access');
+
+// ACCENT COLOR ONLY ARRIVES ON A FORCED PROFILE FETCH - CACHE IT SO BUSY
+// CHANNELS DON'T COST ONE DISCORD API CALL PER MESSAGE
+const AUTHOR_PROFILE_TTL_MS = 15 * 60 * 1000;
+const AUTHOR_PROFILE_CACHE_MAX = 500;
+// CONSECUTIVE SAME-AUTHOR MESSAGES INSIDE THIS WINDOW COLLAPSE LIKE DISCORD
+const GROUP_WINDOW_MS = 7 * 60 * 1000;
+// HISTORY PAGES (INITIAL LOAD + SCROLL-UP BATCHES) SHARE ONE SIZE
+const HISTORY_PAGE_SIZE = 100;
 
 module.exports = {
+  // RETURNS { author, accent } - FORCE-FETCHES AT MOST ONCE PER USER PER TTL,
+  // TRUSTS THE GATEWAY-CACHED USER OBJECT INSIDE THE WINDOW
+  async fetchAuthorProfile(author) {
+    if (!this._authorProfiles) this._authorProfiles = new Map();
+    const hit = this._authorProfiles.get(author.id);
+    if (hit && Date.now() - hit.fetchedAt < AUTHOR_PROFILE_TTL_MS) {
+      return { author, accent: hit.accent };
+    }
+
+    const fetched = await author.fetch(true);
+    const accent = (fetched.hexAccentColor || 'ffffff').replace('#', '');
+    this._authorProfiles.delete(author.id); // RE-INSERT SO MAP ORDER STAYS LRU-ISH
+    this._authorProfiles.set(author.id, { fetchedAt: Date.now(), accent });
+    if (this._authorProfiles.size > AUTHOR_PROFILE_CACHE_MAX) {
+      this._authorProfiles.delete(this._authorProfiles.keys().next().value);
+    }
+    return { author: fetched, accent };
+  },
+
   async updatePowerState(powerOn, discordBotInst = null) {
     const discordBot = discordBotInst || await this.core.models.discordBot.get();
     this.logger.debug('Changing Discord Bot Power State:', discordBot);
@@ -8,6 +37,7 @@ module.exports = {
     const state = await this.core.models.state.update({ discord_state: powerOn });
     // THE HOME BADGE RIDES ALONG - ITS PROBLEM DOT TRACKS BOT POWER/LOGIN
     const apps = await this.core.apps.getRailViewModel(state);
+    const config = await this.core.models.configuration.get();
     await this.core.sockets.emitCompiled([
       'sidebar/userControls/userControlsLayout.pug',
       'sidebar/servers/addServerButton.pug',
@@ -15,7 +45,8 @@ module.exports = {
     ], {
       discordBot,
       state,
-      apps
+      apps,
+      authEnabled: !!config.admin_password
     });
   },
 
@@ -44,11 +75,13 @@ module.exports = {
     isBot,
     isClient,
     timeStamp,
+    hoverStamp,
     avatarUrl,
     messageText,
     accentColor,
     embedList,
-    attachmentList
+    attachmentList,
+    grouped
   }) {
     await this.core.sockets.emitCompiled(['chat/discordMessage.pug'], {
       messageId,
@@ -57,11 +90,13 @@ module.exports = {
       isBot,
       isClient,
       timeStamp,
+      hoverStamp,
       avatarUrl,
       messageText,
       accentColor,
       embedList: embedList || [],
-      attachmentList: attachmentList || []
+      attachmentList: attachmentList || [],
+      grouped: !!grouped
     });
   },
 
@@ -86,9 +121,14 @@ module.exports = {
   async logMessageToInterface(rawDiscMsg) {
     if (!rawDiscMsg.guildId) return; // DMS NOT SUPPORTED (YET)
 
-    const author = await rawDiscMsg.author.fetch(true);
+    const { author, accent: userAccent } = await this.fetchAuthorProfile(rawDiscMsg.author);
     const avatarUrl = author.displayAvatarURL();
-    const userAccent = (author.hexAccentColor || 'ffffff').replace('#', '');
+
+    // GRANT-ONLY ROLE MAPPING RIDES THE SYNC - HOLDING A MAPPED GUILD ROLE
+    // PROMOTES ON SIGHT, THE CONSOLE STAYS THE PLACE TO REVOKE
+    const config = await this.core.models.configuration.get();
+    const roleGrants = roleGrantsFor(config, memberRoleTokens(rawDiscMsg.member));
+
     let targetChannel = await this.core.models.discordChannel.getById(rawDiscMsg.channelId);
 
     if (!targetChannel) {
@@ -137,7 +177,7 @@ module.exports = {
         }
       });
 
-      // UPSERT USER
+      // UPSERT USER - ROLE GRANTS ONLY EVER ADD FLAGS, NEVER CLEAR THEM
       await tx.user.upsert({
         where: { id: author.id },
         create: {
@@ -148,6 +188,7 @@ module.exports = {
           display_name: author.displayName,
           accent_color: userAccent,
           avatar_url: avatarUrl,
+          ...roleGrants,
           discord_servers: {
             connect: { server_id: server.server_id }
           }
@@ -157,6 +198,7 @@ module.exports = {
           display_name: author.displayName,
           accent_color: userAccent,
           avatar_url: avatarUrl,
+          ...roleGrants,
           discord_servers: {
             connect: { server_id: server.server_id }
           }
@@ -184,11 +226,24 @@ module.exports = {
           server: { connect: { server_id: server.server_id } }
         }
       });
-      return { isActiveChannel, isSelf };
+      return {
+        isActiveChannel,
+        isSelf,
+        server,
+        channel,
+        appActive: !!stateRow?.active_app_id,
+        activeServerId: activeServer?.server_id || null
+      };
     });
 
     // UI UPDATES OUTSIDE TRANSACTION
     if (txRes.isActiveChannel) {
+      // GROUPING NEEDS THE MESSAGE BEFORE THIS ONE - SECOND-NEWEST IN CHANNEL
+      const [, previous] = await this.core.prisma.discordMessage.findMany({
+        where: { channel_id: rawDiscMsg.channelId },
+        orderBy: { created_at: 'desc' },
+        take: 2
+      });
       await this.emitMessage({
         messageId: rawDiscMsg.id,
         userId: author.id,
@@ -196,23 +251,44 @@ module.exports = {
         isBot: !!author.bot,
         isClient: txRes.isSelf,
         timeStamp: this.formatTimestamp(rawDiscMsg.createdAt),
+        hoverStamp: this.formatTimeOnly(rawDiscMsg.createdAt),
         avatarUrl,
         messageText: rawDiscMsg.content,
         accentColor: userAccent,
         embedList: richContent.embedList,
-        attachmentList: richContent.attachmentList
+        attachmentList: richContent.attachmentList,
+        grouped: this.isGroupedContinuation(
+          { user_id: author.id, created_at: rawDiscMsg.createdAt },
+          previous
+        )
       });
-    } else {
-      // SCOPE THE CHANNEL LIST EMIT (UNREAD BADGES) - ONLY MATTERS WHEN MESSAGE LANDED IN ACTIVE SERVER, ELSE BUBBLE
-      const servers = await this.core.render.getServerTemplateObj();
-      const isActiveServer = servers.activeServer?.server_id === rawDiscMsg.guildId;
-      await this.core.sockets.emitCompiled(
-        isActiveServer
-          ? ['sidebar/servers/serverSortableContainer.pug', 'sidebar/channels/chatChannels.pug']
-          : ['sidebar/servers/serverSortableContainer.pug'],
-        { servers }
-      );
+    } else if (!txRes.isSelf) {
+      // SCOPED PHASE 2: SWAP ONLY THE AFFECTED BUBBLE (AND THE CHANNEL ROW
+      // WHEN THE MESSAGE LANDED IN THE ACTIVE SERVER'S SIDEBAR) IN PLACE -
+      // SELF MESSAGES CHANGE NO BADGES, SO THEY EMIT NOTHING HERE
+      const rowVisible = !txRes.appActive && txRes.activeServerId === rawDiscMsg.guildId;
+      await this.emitUnreadBadges(txRes.server, rowVisible ? txRes.channel : null, txRes);
     }
+  },
+
+  // PER-BUBBLE/PER-ROW OOB PUSH - THE MESSAGE-VOLUME PATH NEVER RE-RENDERS
+  // THE SERVER STRIP OR CHANNEL LIST WHOLESALE ANYMORE
+  async emitUnreadBadges(serverRow, channelRow = null, { appActive, activeServerId }) {
+    const fragments = [
+      await this.core.render.compile('sidebar/servers/serverBubble.pug', {
+        ...this.core.render.bubbleLocals(serverRow, activeServerId, appActive),
+        oobReplace: true
+      })
+    ];
+    if (channelRow) {
+      // BADGE PUSHES ONLY TARGET INACTIVE CHANNELS - THE ACTIVE ONE MIRRORS LIVE
+      fragments.push(await this.core.render.compile('sidebar/channels/chatChannel.pug', {
+        ...channelRow,
+        isActiveChannel: false,
+        oobReplace: true
+      }));
+    }
+    await this.core.sockets.emit(fragments.join(''));
   },
 
   // MIRRORS DISCORD MESSAGE EDITS: KEEPS THE PRIOR CONTENT FOR THE
@@ -258,6 +334,12 @@ module.exports = {
     const activeServer = await this.core.models.state.getActiveServer();
     if (activeServer?.active_channel_id !== newMsg.channelId) return;
 
+    // AN EDITED ROW KEEPS ITS GROUPED TREATMENT - REBUILD THE CONTEXT
+    const previous = await this.core.prisma.discordMessage.findFirst({
+      where: { channel_id: newMsg.channelId, created_at: { lt: updated.created_at } },
+      orderBy: { created_at: 'desc' }
+    });
+    updated.grouped = this.isGroupedContinuation(updated, previous);
     updated.oobReplace = true;
     const [compiledRow] = await this.compileMessages([updated]);
     await this.core.sockets.emit(compiledRow);
@@ -269,6 +351,7 @@ module.exports = {
 
     const compiledMessages = [];
     let previousDay = null;
+    let previous = null;
     for (const message of messages) {
       // CLASSIC DATE DIVIDER ABOVE THE FIRST MESSAGE OF EACH DAY (SKIPPED ON
       // OOB EDIT PUSHES - A LONE REPLACEMENT ROW HAS NO NEIGHBORS TO DIVIDE)
@@ -278,12 +361,48 @@ module.exports = {
       }
       previousDay = rawDate.toDateString();
 
+      // DISCORD-STYLE GROUPING - SAME AUTHOR INSIDE THE WINDOW COLLAPSES TO A
+      // BARE LINE (HOVER SHOWS THE TIME); DIVIDERS AND UNREAD MARKERS BREAK
+      // IT. A PRE-SET FLAG WINS - OOB RE-RENDERS CARRY THEIR OWN CONTEXT.
+      // SNAPSHOT THE RAW TIMESTAMP - created_at MUTATES TO DISPLAY TEXT BELOW
+      message.grouped = message.grouped ?? this.isGroupedContinuation(message, previous);
+      previous = { user_id: message.user_id, created_at: rawDate };
+
+      message.hoverStamp = this.formatTimeOnly(message.created_at);
       message.created_at = this.formatTimestamp(message.created_at);
       message.requestChip = chips[message.message_id] || null;
       const compiledMessage = await this.core.render.compile('chat/discordMessageShard.pug', message);
       compiledMessages.push(compiledMessage);
     }
     return compiledMessages;
+  },
+
+  // TRUE WHEN message CONTINUES previous - SAME AUTHOR, INSIDE THE WINDOW,
+  // NOT SPLIT BY A DAY DIVIDER OR THE UNREAD MARKER
+  isGroupedContinuation(message, previous) {
+    if (!previous || !message || message.oobReplace) return false;
+    if (message.dayDivider || message.isFirstUnread) return false;
+    if (message.user_id !== previous.user_id) return false;
+    const current = new Date(message.created_at);
+    const prior = new Date(previous.created_at);
+    if (current.toDateString() !== prior.toDateString()) return false;
+    const gap = current - prior;
+    return gap >= 0 && gap < GROUP_WINDOW_MS;
+  },
+
+  formatTimeOnly(timestamp) {
+    return new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
+      .format(new Date(timestamp));
+  },
+
+  // SENTINEL LOCALS FOR SCROLL-UP PAGINATION - null WHEN THE FIRST PAGE
+  // ALREADY HOLDS THE WHOLE CHANNEL. CALL BEFORE compileMessages MUTATES ROWS.
+  historyCursorOf(msgObjects = []) {
+    if (msgObjects.length < this.core.models.discordChannel.historyPageSize) return null;
+    return {
+      channelId: msgObjects[0].channel_id,
+      beforeId: msgObjects[0].message_id
+    };
   },
 
   async updateMessages(active_channel_id, state = null) {
@@ -361,6 +480,7 @@ module.exports = {
     if (messageObjects === null) {
       messageObjects = await this.updateMessages(null, state);
     }
+    const history = this.historyCursorOf(messageObjects);
     const messages = await this.compileMessages(messageObjects);
     const eomStamp = _.get(_.last(messageObjects), 'created_at');
 
@@ -388,7 +508,8 @@ module.exports = {
       state,
       members,
       apps,
-      onboarding
+      onboarding,
+      history
     });
   }
 };

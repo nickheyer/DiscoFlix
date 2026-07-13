@@ -23,5 +23,11 @@ module.exports = (core) => {
   apps._lastRailKey = null;
   apps._lastTickerKey = null;
   apps.startHeartbeat();
+  // DEFERRED + unref'D LIKE THE HEARTBEAT BOOT TICK - ONE-OFF SCRIPTS THAT
+  // REQUIRE THE CORE MUST STILL BE ABLE TO EXIT BEFORE IT FIRES
+  const rearm = setTimeout(() => {
+    apps.rearmWatches().catch(err => apps.logger.warn(`Watch re-arm failed: ${err.message}`));
+  }, 2000);
+  rearm.unref?.();
   return apps;
 };

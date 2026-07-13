@@ -1,9 +1,11 @@
 div.server.invite#serverInviteButton(
   aria-label="Invite Bot to a Server"
   data-tooltip-dir="right"
+  role="button"
+  tabindex="0"
   hx-get="/modal/bot/invite"
   hx-target="#modals-here"
-  hx-trigger="click"
+  hx-trigger="click, keyup[key=='Enter']"
   data-bs-toggle="modal"
   data-bs-target="#modals-here"
 )

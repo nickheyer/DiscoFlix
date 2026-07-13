@@ -18,6 +18,8 @@
         include sections/releases
       when 'users'
         include sections/dfUsers
+      when 'logs'
+        include sections/dfLogs
       when 'settings'
         if activeApp.app_type === 'discoflix'
           include sections/dfSettings

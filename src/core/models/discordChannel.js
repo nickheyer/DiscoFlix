@@ -3,6 +3,8 @@ const BaseModel = require('./base');
 class DiscordServerChannel extends BaseModel {
   constructor(core) {
     super(core, 'DiscordServerChannel');
+    // ONE PAGE SIZE FOR THE INITIAL LOAD AND EVERY SCROLL-UP BATCH
+    this.historyPageSize = 100;
   }
 
   async create(data = {}, include = {}) {
@@ -64,15 +66,16 @@ class DiscordServerChannel extends BaseModel {
     );
   }
 
-  async getMessages(channelId, limit = 100) {
-    // NEWEST N MESSAGES, RETURNED OLDEST-FIRST FOR DISPLAY
+  // NEWEST N MESSAGES (OPTIONALLY OLDER THAN beforeId), RETURNED OLDEST-FIRST
+  async getMessages(channelId, limit = this.historyPageSize, beforeId = null) {
     const messages = await this.prisma.discordMessage.findMany({
       where: { channel_id: channelId },
       include: {
         user: true,  // INCLUDE USER DETAILS
       },
       orderBy: { created_at: 'desc' },
-      take: limit
+      take: limit,
+      ...(beforeId ? { cursor: { message_id: beforeId }, skip: 1 } : {})
     });
     return messages.reverse();
   }

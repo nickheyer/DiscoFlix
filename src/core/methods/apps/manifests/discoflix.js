@@ -10,5 +10,5 @@ module.exports = {
   hidden: true,
   contentTypes: [],
   configFields: [],
-  sections: ['overview', 'users', 'settings']
+  sections: ['overview', 'users', 'logs', 'settings']
 };

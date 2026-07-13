@@ -3,9 +3,11 @@
 .plusButton(
   aria-label="Media Requests"
   data-tooltip-dir="top"
+  role="button"
+  tabindex="0"
   hx-get="/modal/requests/dashboard"
   hx-target="#modals-here"
-  hx-trigger="click"
+  hx-trigger="click, keyup[key=='Enter']"
   data-bs-toggle="modal"
   data-bs-target="#modals-here"
 )

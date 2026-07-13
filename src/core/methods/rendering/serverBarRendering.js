@@ -1,6 +1,22 @@
 const _ = require('lodash');
 
 module.exports = {
+  // ONE BUBBLE'S TEMPLATE LOCALS - SHARED BY THE STRIP RENDER AND THE SCOPED
+  // PER-BUBBLE OOB PUSHES
+  bubbleLocals(serverRow, activeID, appActive) {
+    return {
+      id: serverRow.server_id,
+      serverSortPosition: serverRow.sort_position,
+      serverName: serverRow.server_name,
+      serverTrunc: serverRow.server_name.slice(0, 2),
+      serverActive: serverRow.server_id === activeID,
+      appActive,
+      serverUnread: serverRow.unread_message_count,
+      serverImage: serverRow.server_avatar_url,
+      serverAvailable: serverRow.available
+    };
+  },
+
   async createServerBubbles(serverRows = [], state = null, activeServer = null) {
     const serverBubbles = [];
     state = state || await this.core.models.state.get();
@@ -10,19 +26,9 @@ module.exports = {
 
     for (const serverRow of serverRows) {
       const serverBubbleHTML = await this.compile(
-        [
-          'sidebar/servers/serverBubble.pug'
-        ], {
-        id: serverRow.server_id,
-        serverSortPosition: serverRow.sort_position,
-        serverName: serverRow.server_name,
-        serverTrunc: serverRow.server_name.slice(0, 2),
-        serverActive: serverRow.server_id === activeID,
-        appActive,
-        serverUnread: serverRow.unread_message_count,
-        serverImage: serverRow.server_avatar_url,
-        serverAvailable: serverRow.available
-      });
+        ['sidebar/servers/serverBubble.pug'],
+        this.bubbleLocals(serverRow, activeID, appActive)
+      );
 
       serverBubbles.push(serverBubbleHTML);
     }
@@ -153,19 +159,61 @@ module.exports = {
     };
   },
 
-  // MEMBERS PANE VIEW MODEL - USERS THE APP HAS SEEN ON THE ACTIVE SERVER
-  // (THE JOIN TABLE FILLS AS MESSAGES SYNC). CLIENT BOT SORTS FIRST.
+  // MEMBERS PANE VIEW MODEL, PHASE 2 - TRACKED USERS (THE JOIN TABLE FILLS AS
+  // MESSAGES SYNC) ENRICHED WITH LIVE GUILD DATA WHILE THE BOT IS ONLINE:
+  // HOISTED-ROLE GROUPS LIKE OLD DISCORD, PRESENCE DOTS WHEN THE PRIVILEGED
+  // INTENT IS ON (DF_PRESENCE_INTENT=1 + THE DEV-PORTAL TOGGLE), OFFLINE
+  // MEMBERS SINK TO A FADED OFFLINE GROUP. RETURNS { groups, total }.
   async getServerMembers(serverId) {
     if (!serverId) {
       const activeServer = await this.core.models.state.getActiveServer();
       serverId = activeServer?.server_id;
     }
-    if (!serverId) return [];
-    return this.core.models.user.getMany(
+    if (!serverId) return { groups: [], total: 0 };
+
+    const rows = await this.core.models.user.getMany(
       { discord_servers: { some: { server_id: serverId } } },
       {},
       [{ is_client: 'desc' }, { username: 'asc' }]
     );
+    if (!rows.length) return { groups: [], total: 0 };
+
+    const client = this.core.client;
+    const botOnline = !!(client && client.isReady());
+    const guild = botOnline ? client.guilds.cache.get(serverId) : null;
+    const { GatewayIntentBits } = require('discord.js');
+    const presenceOn = !!guild && client.options.intents.has(GatewayIntentBits.GuildPresences);
+
+    const roleGroups = new Map();
+    const ungrouped = [];
+    const offline = [];
+    for (const row of rows) {
+      const member = guild?.members.cache.get(row.id);
+      const status = row.is_client
+        ? (botOnline ? 'online' : 'offline')
+        : (presenceOn ? (member?.presence?.status || 'offline') : null);
+      const vm = { ...row, status };
+
+      // THE CLIENT BOT ALWAYS SHOWS AT THE TOP OF THE FIRST GROUP
+      if (!row.is_client && presenceOn && status === 'offline') {
+        offline.push(vm);
+        continue;
+      }
+      const hoisted = member?.roles?.hoist || null;
+      if (hoisted && !row.is_client) {
+        if (!roleGroups.has(hoisted.id)) {
+          roleGroups.set(hoisted.id, { label: hoisted.name, position: hoisted.position, members: [] });
+        }
+        roleGroups.get(hoisted.id).members.push(vm);
+      } else {
+        ungrouped.push(vm);
+      }
+    }
+
+    const groups = [...roleGroups.values()].sort((a, b) => b.position - a.position);
+    if (ungrouped.length) groups.push({ label: presenceOn ? 'Online' : 'Members', members: ungrouped });
+    if (offline.length) groups.push({ label: 'Offline', offline: true, members: offline });
+    return { groups, total: rows.length };
   },
 
   // FIRST-RUN CHECKLIST VIEW MODEL - null UNLESS A TOKEN OR SERVER IS STILL MISSING

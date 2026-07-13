@@ -32,6 +32,28 @@ const MODELS_META = {
             max_seasons_for_non_admin: { type: FIELD_TYPES.NUMBER, label: "Max Seasons", description: "Maximum seasons for non-admin users (0 for unlimited)", min: 0 },
             is_debug: { type: FIELD_TYPES.BOOLEAN, label: "Debug Mode", description: "Enable debug logging" },
             is_trailers_enabled: { type: FIELD_TYPES.BOOLEAN, label: "Trailers Enabled", description: "Enable movie trailers" },
+            is_dm_notifications: { type: FIELD_TYPES.BOOLEAN, label: "DM Notifications", description: "Also DM requesters when their download completes" },
+            bot_presence_activity: {
+                type: FIELD_TYPES.STRING, label: "Presence Activity", description: "The verb on the bot's status line",
+                options: [
+                    { value: "none", label: "None" },
+                    { value: "playing", label: "Playing" },
+                    { value: "watching", label: "Watching" },
+                    { value: "listening", label: "Listening to" },
+                    { value: "competing", label: "Competing in" }
+                ]
+            },
+            bot_presence_text: { type: FIELD_TYPES.STRING, label: "Presence Text", description: "What the status line says the bot is doing" },
+            request_access: {
+                type: FIELD_TYPES.STRING, label: "Request Access", description: "Who is allowed to make requests",
+                options: [
+                    { value: "open", label: "Open - anyone the bot can read" },
+                    { value: "whitelist", label: "Whitelist - flagged users and listed roles" }
+                ]
+            },
+            whitelist_role_ids: { type: FIELD_TYPES.STRING, size: "full", label: "Whitelist Roles", description: "Comma-separated role names or ids that may request in whitelist mode" },
+            staff_role_ids: { type: FIELD_TYPES.STRING, size: "full", label: "Staff Roles", description: "Comma-separated role names or ids that grant staff (auto-approve) - grants only, revoke in Users" },
+            admin_role_ids: { type: FIELD_TYPES.STRING, size: "full", label: "Admin Roles", description: "Comma-separated role names or ids that grant admin - grants only, revoke in Users" },
             created_at: { type: FIELD_TYPES.TIMESTAMP, label: "Created At", description: "Timestamp when configuration was created", computed: true, readonly: true },
             updated_at: { type: FIELD_TYPES.TIMESTAMP, label: "Updated At", description: "Timestamp when configuration was last updated", computed: true, readonly: true }
         }
@@ -68,7 +90,8 @@ const MODELS_META = {
             api_key: { type: FIELD_TYPES.STRING, sensitive: true, label: "API Key", description: "Service API key" },
             username: { type: FIELD_TYPES.STRING, label: "Username", description: "Service login username" },
             password: { type: FIELD_TYPES.STRING, sensitive: true, label: "Password", description: "Service login password" },
-            settings_json: { type: FIELD_TYPES.JSON, hidden: true, label: "Settings", description: "Per-type extra settings" },
+            // computed KEEPS FORM SAVES OFF IT - WRITTEN VIA PARTIAL update() ONLY
+            settings_json: { type: FIELD_TYPES.JSON, hidden: true, computed: true, label: "Settings", description: "Per-type extra settings" },
             is_default: { type: FIELD_TYPES.BOOLEAN, computed: true, readonly: true, label: "Default", description: "Wins content-type routing among peer instances" },
             sort_position: { type: FIELD_TYPES.NUMBER, computed: true, readonly: true, label: "Sort Position", description: "Rail order" },
             active_section: { type: FIELD_TYPES.STRING, computed: true, readonly: true, label: "Active Section", description: "Last viewed section of this app's console surface" },
@@ -232,6 +255,8 @@ const MODELS_META = {
             orig_parsed_type: { type: FIELD_TYPES.STRING, label: "Parsed Type", description: "Detected media type" },
             orig_channel_id: { type: FIELD_TYPES.STRING, hidden: true, label: "Origin Channel", description: "Discord channel the request came from" },
             orig_message_id: { type: FIELD_TYPES.STRING, hidden: true, label: "Origin Message", description: "Discord message that triggered the request" },
+            arr_id: { type: FIELD_TYPES.STRING, hidden: true, readonly: true, label: "Service Item ID", description: "The connected service's id for the added item" },
+            seasons: { type: FIELD_TYPES.STRING, hidden: true, readonly: true, label: "Seasons", description: "Picked season numbers as JSON, null = all" },
             status: { type: FIELD_TYPES.BOOLEAN, label: "Status", description: "Request status", readonly: true },
             users: { type: FIELD_TYPES.RELATION, hidden: true, label: "Users", description: "Related user references" }
         }
@@ -257,6 +282,7 @@ const MODELS_META = {
             is_superuser: { type: FIELD_TYPES.BOOLEAN, label: "Superuser", description: "Administrator privileges" },
             is_staff: { type: FIELD_TYPES.BOOLEAN, label: "Staff", description: "Staff privileges" },
             is_active: { type: FIELD_TYPES.BOOLEAN, label: "Active", description: "Account status" },
+            is_whitelisted: { type: FIELD_TYPES.BOOLEAN, label: "Whitelisted", description: "May request when access is whitelist-only" },
             is_bot: { type: FIELD_TYPES.BOOLEAN, readonly: true, label: "Bot", description: "Bot account indicator" },
             is_client: { type: FIELD_TYPES.BOOLEAN, readonly: true, label: "Client", description: "Client user indicator" },
             session_timeout: { type: FIELD_TYPES.NUMBER, label: "Session Timeout", description: "User session timeout", min: 30, max: 3600 },

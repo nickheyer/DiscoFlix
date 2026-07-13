@@ -15,6 +15,7 @@ const SECTION_LABELS = {
   library: 'Library',
   releases: 'Releases',
   users: 'Users',
+  logs: 'Logs',
   settings: 'Settings'
 };
 

@@ -64,8 +64,8 @@ async function postVerdict(core, request, approved) {
     const mentions = (request.users || []).map(user => `<@${user.id}>`).join(' ');
     const title = request.media?.title || request.orig_parsed_title;
     const verdict = approved
-      ? `✅ ${mentions} Your request for **${title}** was approved - I'll post updates here as it downloads.`
-      : `🚫 ${mentions} Your request for **${title}** was denied.`;
+      ? `${mentions} Your request for **${title}** was approved - I'll post updates here as it downloads.`
+      : `${mentions} Your request for **${title}** was denied.`;
     const channel = await core.client.channels.fetch(request.orig_channel_id);
     await channel.send(verdict);
   } catch (err) {
@@ -120,13 +120,20 @@ async function approveRequest(ctx) {
       if (!added) {
         const result = await client.lookupByExternalId(externalKey);
         if (!result) throw new Error(`Lookup found nothing for ${instance.display_name} id ${externalKey}`);
-        added = await client.add(result);
+        // THE REQUESTER'S SEASON PICK RIDES THE ROW - MONITOR EXACTLY THAT
+        let seasons = null;
+        try { seasons = request.seasons ? JSON.parse(request.seasons) : null; } catch (err) { seasons = null; }
+        added = await client.add(result, { seasons });
       }
 
       const imported = client.isImported(added);
       await core.models.mediaRequest.updateStatus(requestId, true);
-      // PERSIST THE RESOLVED INSTANCE - THE ROW MAY HAVE BEEN OVERRIDDEN OR ORPHANED
-      await core.models.mediaRequest.update({ id: requestId }, { appId: instance.id });
+      // PERSIST THE RESOLVED INSTANCE AND SERVICE ITEM ID - THE ROW MAY HAVE
+      // BEEN OVERRIDDEN OR ORPHANED, AND A RESTART RE-ARMS WATCHES FROM THESE
+      await core.models.mediaRequest.update(
+        { id: requestId },
+        { appId: instance.id, arr_id: String(added.id) }
+      );
       await core.models.media.updateMediaInfo(request.media.id, {
         path: added.path || null,
         monitored: true,
@@ -177,8 +184,34 @@ async function denyRequest(ctx) {
   return respondWithRow(ctx, requestId, message);
 }
 
+// JUMP TO THE TRIGGERING MESSAGE: POINT THE MIRROR AT THE ORIGIN SERVER +
+// CHANNEL, RESPOND WITH THE FULL MIRROR SWAP, AND FLASH THE ROW ONCE LANDED
+async function jumpToRequestMessage(ctx) {
+  const core = ctx.core;
+  const request = await core.models.mediaRequest.getWithRelations(ctx.params.id);
+  if (!request || !request.orig_message_id || !request.orig_channel_id || !request.madeInId) {
+    ctx.status = 404;
+    return;
+  }
+
+  await core.models.discordServer.update(
+    { server_id: request.madeInId },
+    { active_channel_id: request.orig_channel_id }
+  );
+  const state = await core.models.state.update({
+    active_server_id: request.madeInId,
+    active_app_id: null
+  });
+
+  const { respondWithMirror } = require('./apps');
+  await respondWithMirror(ctx, state);
+  // THE SCRIPT RIDES AN OOB FRAGMENT SO hx-swap="none" STILL EXECUTES IT
+  ctx.body += `<div hx-swap-oob="beforeend:body"><script>window.dfFlashMessage && dfFlashMessage('msg-${request.orig_message_id}')</script></div>`;
+}
+
 module.exports = {
   renderRequestDashboard,
   approveRequest,
-  denyRequest
+  denyRequest,
+  jumpToRequestMessage
 };

@@ -1319,6 +1319,7 @@
 
 .dfUserChip.admin { background-color: var(--blurple); }
 .dfUserChip.staff { background-color: var(--cyan); }
+.dfUserChip.whitelisted { background-color: var(--green); }
 .dfUserChip.inactive { background-color: var(--red); }
 
 .dfUserInfoButton {
@@ -1675,4 +1676,98 @@
 
 .indexerStatusDot.down {
   background-color: var(--red);
+}
+
+/* ---- DISCOFLIX LOGS ---- */
+
+.dfLogControls {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 16px;
+}
+
+.dfLogLevelSelect {
+  background-color: var(--bg-chat-input);
+  color: var(--text-normal);
+  border: none;
+  border-radius: 5px;
+  padding: 8px 12px;
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+}
+
+.dfLogRow {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.dfLogRow:nth-child(odd) {
+  background-color: var(--bg-secondary);
+}
+
+.dfLogWhen {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.dfLogLevel {
+  flex-shrink: 0;
+  width: 44px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--interactive-normal);
+}
+
+.dfLogLevel-error {
+  color: var(--red);
+}
+
+.dfLogLevel-warn {
+  color: var(--yellow);
+}
+
+.dfLogLevel-info {
+  color: var(--blurple);
+}
+
+.dfLogBody {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.dfLogMessage {
+  color: var(--text-normal);
+  overflow-wrap: anywhere;
+}
+
+.dfLogMetadata {
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+#dfLogList .appLoadMore {
+  margin: 12px auto 0;
+  min-width: 160px;
+  display: flex;
+}
+
+/* UNREACHABLE-SERVICE NOTE WHERE THE ADD-DEFAULT SELECTS WOULD RENDER */
+.appSettingsOptionNote {
+  padding: 10px 0 2px;
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
 }

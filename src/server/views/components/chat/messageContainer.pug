@@ -6,6 +6,9 @@
   .messageContainerInner#chatLog
     // DISCORD MESSAGES WILL GO HERE
     if (messages && messages.length > 0)
+      //- A FULL FIRST PAGE MEANS OLDER HISTORY MAY EXIST - SENTINEL ON TOP
+      if history
+        include historySentinel
       for messageShard in messages
         | !{messageShard}
       .endOfMessagesDiv.divider

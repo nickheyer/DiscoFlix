@@ -195,3 +195,32 @@
   transform: translateY(-50%);
   right: 8px;
 }
+
+/* LOGOUT - RIDES THE POWER-BUTTON GROUP, ONLY RENDERED WHEN AUTH IS ON */
+.logoutForm {
+  display: flex;
+}
+
+.logoutButton {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: none;
+  border-radius: 4px;
+  color: var(--interactive-normal);
+  cursor: pointer;
+}
+
+.logoutButton svg {
+  height: 18px;
+  width: 18px;
+}
+
+.logoutButton:hover {
+  background-color: var(--bg-modifier-selected);
+  color: var(--interactive-hover);
+}

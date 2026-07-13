@@ -1,26 +1,30 @@
-//- MEMBERS PANE - USERS TRACKED FOR THE ACTIVE SERVER (core.render.getServerMembers).
-//- RENDERS EMPTY (AND :empty-HIDES) WHEN THERE ARE NO MEMBERS TO SHOW.
+//- MEMBERS PANE - TRACKED USERS FOR THE ACTIVE SERVER, GROUPED LIKE OLD
+//- DISCORD (core.render.getServerMembers: hoisted-role groups, presence dots
+//- when the intent is on, faded Offline group). RENDERS EMPTY (AND
+//- :empty-HIDES) WHEN THERE IS NOTHING TO SHOW.
 //- APP TAKEOVER: THE SAME RAIL CARRIES THE APP'S ACTIVITY FEED INSTEAD
 if activeApp
   include ../apps/appFeed
 else
-  - var memberList = members || []
-  - var botOnline = state && state.discord_state
+  - var pane = members && members.groups ? members : { groups: [], total: 0 }
   div.memberContainer#memberContainer(
     hx-select-oob="#memberContainer"
     hx-swap-oob="outerHTML"
   )
-    if memberList.length
-      .memberListHeader Members - #{memberList.length}
-      each member in memberList
+    each group in pane.groups
+      .memberListHeader #{group.label} - #{group.members.length}
+      each member in group.members
         - var nameColor = member.accent_color && member.accent_color.toLowerCase() !== 'ffffff' ? `#${member.accent_color}` : null
-        //- CACHED AVATARS ARE STORED AS BARE PATHS (user_images/…) - SERVE ROOT-RELATIVE
+        //- CACHED AVATARS ARE STORED AS BARE PATHS (user_images/...) - SERVE ROOT-RELATIVE
         - var memberAvatarSrc = member.avatar_url ? (/^https?:\/\//.test(member.avatar_url) ? member.avatar_url : `/${member.avatar_url.replace(/^\/+/, '')}`) : "https://cdn.discordapp.com/embed/avatars/0.png"
-        //- ROW CLICK OPENS THE MEMBER'S SETTINGS FORM, LIKE THE CHANNEL GEAR
+        //- ROW CLICK (OR ENTER) OPENS THE MEMBER'S READ-ONLY INFO POPUP
         .memberRow(
+          class=group.offline ? 'offlineMember' : undefined
+          role="button"
+          tabindex="0"
           hx-get=`/settings/user/search?search=${member.id}&as-modal=true`
           hx-target="#modals-here"
-          hx-trigger="click"
+          hx-trigger="click, keyup[key=='Enter']"
           data-bs-toggle="modal"
           data-bs-target="#modals-here"
         )
@@ -30,8 +34,11 @@ else
               alt="avatar"
               referrerpolicy="no-referrer"
             )
-            if member.is_client
-              .statusBubble(class=botOnline ? 'online' : 'offline')
+            //- DOTS ONLY WHERE STATUS IS KNOWN - OFFLINE ROWS FADE INSTEAD
+            if member.status && member.status !== 'offline'
+              .statusBubble(class=member.status)
+            else if member.is_client
+              .statusBubble.offline
           span.memberName(style=nameColor ? `color: ${nameColor}` : undefined)
             = member.display_name || member.username
           if member.is_bot

@@ -20,14 +20,18 @@ const {
 const {
   renderRequestDashboard,
   approveRequest,
-  denyRequest
+  denyRequest,
+  jumpToRequestMessage
 } = require('../api/requests');
+
+const { fetchChatHistory } = require('../api/chat');
 
 const {
   changeActiveApp,
   openDiscoFlix,
   openDiscoFlixSection,
   appUsersPage,
+  appLogsPage,
   saveAppUser,
   changeAppSection,
   appFeedPage,
@@ -59,6 +63,8 @@ router.post('/toggle-bot', toggleBotState);
 router.post('/toggle-power', toggleAppState);
 router.post('/change-active-server/:id', changeActiveServers);
 router.post('/change-active-channel/:id', changeActiveChannel);
+// SCROLL-UP CHAT PAGINATION (READ-ONLY)
+router.get('/chat/history/:channelId', fetchChatHistory);
 // APP TAKEOVER (PSEUDO-GUILDS)
 router.post('/change-active-app/:id', changeActiveApp);
 // THE DISCORD BADGE - DISCOFLIX'S OWN TAKEOVER (HEALTH/USERS/SETTINGS)
@@ -77,6 +83,7 @@ router.get('/apps/:id/search', appSearch);
 // SERVICE ART PROXY - AUTH STAYS SERVER-SIDE (SEE appImage)
 router.get('/apps/:id/image', appImage);
 router.get('/apps/:id/users', appUsersPage);
+router.get('/apps/:id/logs', appLogsPage);
 router.post('/apps/:id/users/:userId/save', saveAppUser);
 router.post('/apps/:id/add-media', appAddMedia);
 router.post('/apps/:id/queue-action/:verb', appQueueAction);
@@ -92,6 +99,7 @@ router.get('/modal/apps/remove/:id', confirmRemoveApp);
 router.get('/modal/requests/dashboard', renderRequestDashboard);
 router.post('/requests/:id/approve', approveRequest);
 router.post('/requests/:id/deny', denyRequest);
+router.post('/requests/:id/jump', jumpToRequestMessage);
 // INFO POPUPS ARE READ-ONLY - NO SAVE/DELETE ROUTES; EDITS LIVE IN THE
 // DISCOFLIX AND APP TAKEOVER SURFACES
 router.get('/modal/:type/:modal', renderModal);

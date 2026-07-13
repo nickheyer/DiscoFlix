@@ -149,7 +149,9 @@ module.exports = {
 
   // MANIFEST-WHITELISTED FORM SAVE. safeUpdateOne ALREADY KEEPS SENSITIVE
   // FIELDS ON BLANK AND CLEARS THEM VIA `<key>__clear`; THE WHITELIST STOPS A
-  // FORM FROM TOUCHING FIELDS ITS APP TYPE DOESN'T DECLARE
+  // FORM FROM TOUCHING FIELDS ITS APP TYPE DOESN'T DECLARE. MANIFEST
+  // instanceOptions LAND IN settings_json VIA PARTIAL UPDATE (computed IN
+  // METADATA, SO FORM SEMANTICS CAN NEVER WIPE THEM)
   async saveInstanceConfig(instance, body) {
     const manifest = this.getType(instance.app_type);
     const allowed = new Set(['display_name', 'enabled']);
@@ -166,7 +168,21 @@ module.exports = {
     if (!data.display_name || !String(data.display_name).trim()) {
       data.display_name = instance.display_name;
     }
-    return this.core.models.app.safeUpdateOne(instance.id, data);
+    await this.core.models.app.safeUpdateOne(instance.id, data);
+
+    const optionKeys = (manifest.instanceOptions || []).map(option => option.key);
+    if (optionKeys.some(key => key in (body || {}))) {
+      let settings = {};
+      try { settings = JSON.parse(instance.settings_json || '{}'); } catch (err) { settings = {}; }
+      for (const key of optionKeys) {
+        if (key in body) settings[key] = String(body[key] || '');
+      }
+      await this.core.models.app.update(
+        { id: instance.id },
+        { settings_json: JSON.stringify(settings) }
+      );
+    }
+    return this.getInstance(instance.id);
   },
 
   // DELETE AN INSTANCE: ITS QUEUE WATCHES AND HEARTBEAT/BROWSE CACHES GO WITH
