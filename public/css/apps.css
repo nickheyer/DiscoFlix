@@ -33,24 +33,42 @@
   height: 22px;
 }
 
-/* ---- OVERVIEW ---- */
+/* ---- OVERVIEW (THE "ABOUT THIS APP" PAGE) ---- */
 
-.appOverviewIdentity {
+/* CENTERED IDENTITY, macOS ABOUT-THIS-MAC STYLE - AIR ABOVE, EVERYTHING ELSE
+   RENDERS BELOW IT ON THE DOCUMENT MEASURE */
+.appAboutBlock {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 20px;
+  text-align: center;
+  gap: 8px;
+  margin: 40px auto 28px;
 }
 
-.appOverviewIdentity img {
-  width: 48px;
-  height: 48px;
+.appAboutBlock img.appAboutIcon {
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
 }
 
-.appOverviewName {
-  font-size: 20px;
+.appAboutBlock img.appAboutIcon.round {
+  border-radius: 50%;
+}
+
+.appAboutName {
+  font-size: 24px;
   font-weight: 700;
   color: var(--header-primary);
+}
+
+.appAboutName .appStatusPill {
+  vertical-align: middle;
+}
+
+.appAboutSub {
+  font-size: 13px;
+  color: var(--text-muted);
 }
 
 .appOverviewUrl {
@@ -64,16 +82,101 @@
   text-decoration: underline;
 }
 
-.appOverviewStats {
-  font-size: 13px;
+/* STAT TILES - THE dfOverview GRID, PROMOTED TO EVERY APP'S AT-A-GLANCE ROW */
+.appStatsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 150px));
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.appStat {
+  background: var(--bg-secondary);
+  border-radius: 5px;
+  padding: 12px;
+  text-align: center;
+}
+
+.appStatValue {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--header-primary);
+}
+
+.appStat.attention .appStatValue {
+  color: var(--yellow);
+}
+
+.appStatLabel {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
   color: var(--text-muted);
-  margin: 12px 0 20px;
+}
+
+/* COLD-CACHE COUNTS RENDER DASHES WITH THIS ONE-LINE EXPLANATION */
+.appStatsHint {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: -12px 0 20px;
+}
+
+/* STORAGE - PER-DISK ROWS WITH A USED-SPACE METER (CONTENT MANAGERS) */
+.appStorageList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+
+.appStorageRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--bg-secondary);
+  border-radius: 5px;
+  padding: 10px 12px;
+}
+
+.appStorageInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.appStorageLabel {
+  font-weight: 600;
+  color: var(--header-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.appStorageMeta {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.appStorageMeter {
+  flex: 0 0 220px;
+}
+
+.appStorageMeter .request-progress-bar.warn {
+  background-color: var(--yellow);
+}
+
+.appStorageMeter .request-progress-bar.danger {
+  background-color: var(--red);
 }
 
 .appSectionActions {
   display: flex;
   gap: 8px;
   margin-top: 20px;
+}
+
+.appSectionActions.centered {
+  justify-content: center;
 }
 
 /* ---- SHARED IN-FLIGHT SPINNER (VIEW MORE, SEARCH, SECTION ROWS) ---- */
@@ -1100,8 +1203,8 @@
   height: 14px;
 }
 
-/* DETAILED ROWS READ BEST ON A BOUNDED MEASURE - THE SAME 1040px DOC THE
-   SETTINGS GROUPS CENTER ON; ULTRAWIDE GETS MARGINS, NOT MILE-LONG ROWS */
+/* DETAILED ROWS ARE JUST THE COLUMN STACK - THE BOUNDED MEASURE IS OWNED BY
+   .appSectionDoc, COMPOSED ON THIS ELEMENT OR AN ANCESTOR BY EVERY CALLER */
 .appBrowseList {
   display: flex;
   flex-direction: column;
@@ -1303,20 +1406,25 @@
 
 /* ---- SETTINGS ---- */
 
-/* CARD-LIST SECTIONS (USERS) BOUND TO THE SAME 1040px MEASURE THE SETTINGS GROUPS CENTER ON */
+/* THE ONE CONTENT MEASURE EVERY SECTION SHARES.
+   CONVENTION: EVERY SECTION INCLUDE WRAPS ITS SWAPPABLE CONTENT IN EXACTLY ONE
+   .appSectionDoc; ONLY FULL-BLEED DECORATIONS (.appSectionTitleDivider,
+   .appSettingsGroup BOXES) SIT OUTSIDE IT AS DIRECT CHILDREN OF
+   #appSectionBody. NEVER CAP #appSectionBody ITSELF - THAT WOULD DRAG THE
+   DECORATIONS IN WITH IT. */
 .appSectionDoc {
   width: 100%;
-  max-width: 1040px;
+  max-width: var(--content-measure);
   margin: 0 auto;
 }
 
-/* GROUP BOXES RUN FULL-BLEED SO THE DIVIDERS DECORATE THE WHOLE SURFACE WHILE THE PADDING FORMULA CENTERS THE RAIL+CARD INTERIOR ON 1040px */
+/* GROUP BOXES RUN FULL-BLEED SO THE DIVIDERS DECORATE THE WHOLE SURFACE WHILE THE PADDING FORMULA CENTERS THE RAIL+CARD INTERIOR ON THE CONTENT MEASURE */
 .appSettingsGroup {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
   gap: 12px 40px;
-  padding: 32px max(0px, calc(50% - 520px));
+  padding: 32px max(0px, calc(50% - var(--content-measure) / 2));
 }
 
 .appSettingsGroup + .appSettingsGroup {
@@ -1325,7 +1433,7 @@
 
 /* A FLEXIBLE RAIL DRIFTS THE LABEL AWAY FROM ITS CARD ON WIDE VIEWS, SO IT STAYS FIXED */
 .appSettingsGroupInfo {
-  flex: 0 0 240px;
+  flex: 0 0 var(--form-rail);
 }
 
 .appSettingsGroupInfo .request-section-header {
@@ -1341,7 +1449,7 @@
 
 .appSettingsGroupBody {
   flex: 1 1 480px;
-  max-width: 760px;
+  max-width: var(--form-body-measure);
   min-width: 0;
 }
 
@@ -1370,7 +1478,7 @@
 /* THE WELCOME BLOCK RIDES THE SAME CENTERED MEASURE AS THE GROUP INTERIORS */
 .appSettingsWelcome {
   width: 100%;
-  max-width: 1040px;
+  max-width: var(--content-measure);
   margin: 8px auto 0;
 }
 
@@ -1400,50 +1508,9 @@
   font-size: 16px;
 }
 
-.dfOverviewSub {
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-.appOverviewIdentity img.dfBotAvatar {
-  border-radius: 50%;
-}
-
 .appHealthNotice.good {
   background-color: rgba(67, 181, 129, 0.1);
   border-left-color: var(--green);
-}
-
-.dfStatsGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(110px, 150px));
-  gap: 8px;
-  margin-bottom: 20px;
-}
-
-.dfStat {
-  background: var(--bg-secondary);
-  border-radius: 5px;
-  padding: 12px;
-  text-align: center;
-}
-
-.dfStatValue {
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--header-primary);
-}
-
-.dfStat.attention .dfStatValue {
-  color: var(--yellow);
-}
-
-.dfStatLabel {
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-  color: var(--text-muted);
 }
 
 .dfAppList {
@@ -1480,6 +1547,137 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* ---- DISCORD BOT TAB (FEATURE MATRIX) ---- */
+
+.dfBotScopeBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin: 8px auto 4px;
+}
+
+.dfBotScopeBar .request-section-header {
+  margin: 0;
+}
+
+.dfBotScopeControls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.dfBotScopeHint {
+  font-size: 12px;
+  color: var(--text-muted);
+  max-width: 420px;
+}
+
+.dfBotProviderIcons {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+/* ROWS STACK INSIDE THE GROUP CARD WITH THE SETTINGS-FIELD HAIRLINE */
+.dfBotFeatureRow {
+  padding: 14px 16px;
+}
+
+.dfBotFeatureRow + .dfBotFeatureRow {
+  border-top: 1px solid var(--bg-modifier-accent);
+}
+
+.dfBotFeatureHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dfBotFeatureText {
+  flex: 1;
+  min-width: 0;
+}
+
+.dfBotFeatureName {
+  font-weight: 600;
+  color: var(--header-primary);
+}
+
+.dfBotFeatureDesc {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.dfBotFeatureTags {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.dfBotTag {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
+}
+
+.dfBotTag.override {
+  background: rgba(114, 137, 218, 0.2);
+  color: var(--blurple);
+}
+
+.dfBotTag.inherited {
+  background: var(--bg-modifier-hover);
+  color: var(--header-secondary);
+}
+
+.dfBotTag.unserved {
+  background: rgba(250, 166, 26, 0.15);
+  color: var(--yellow);
+}
+
+.dfBotFeatureControls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px 16px;
+  margin-top: 12px;
+}
+
+/* "FOLLOWING GLOBAL" ROWS READ AS PREVIEW, NOT EDIT SURFACE */
+.dfBotFeatureControls.inherited {
+  opacity: 0.55;
+}
+
+.dfBotControl {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dfBotControlLabel {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.dfBotFeatureActions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
 }
 
 /* ---- DISCOFLIX USER CARDS ---- */

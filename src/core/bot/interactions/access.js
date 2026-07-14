@@ -1,5 +1,6 @@
-// REQUEST ACCESS CONTROL - THE WHITELIST GATE AND GUILD-ROLE PERMISSION
-// GRANTS. ROLE LISTS ARE COMMA-SEPARATED ROLE NAMES OR IDS, CASE-INSENSITIVE.
+// GUILD-ROLE TOKEN HELPERS + GRANT-ONLY TIER PROMOTION. THE ACCESS GATES
+// THEMSELVES LIVE IN features.js (PER-FEATURE AUDIENCE RULES). ROLE LISTS
+// ARE COMMA-SEPARATED ROLE NAMES OR IDS, CASE-INSENSITIVE.
 
 function parseRoleList(configValue) {
   return String(configValue || '')
@@ -38,19 +39,9 @@ function roleGrantsFor(config, roleTokens) {
   return grants;
 }
 
-// null = ALLOWED, OTHERWISE A USER-PRESENTABLE DENIAL. ADMINS AND STAFF
-// ALWAYS PASS; IN WHITELIST MODE EVERYONE ELSE NEEDS THE FLAG OR A LISTED ROLE
-function checkWhitelist(config, dbUser, roleTokens) {
-  if (config.request_access !== 'whitelist') return null;
-  if (dbUser.is_superuser || dbUser.is_staff || dbUser.is_whitelisted) return null;
-  if (rolesMatch(config.whitelist_role_ids, roleTokens)) return null;
-  return 'Requests are limited to approved members here - ask an admin to whitelist you.';
-}
-
 module.exports = {
   parseRoleList,
   memberRoleTokens,
   rolesMatch,
-  roleGrantsFor,
-  checkWhitelist
+  roleGrantsFor
 };

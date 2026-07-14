@@ -9,23 +9,18 @@ datasource db {
 }
 
 // MODELS
+// BOT BEHAVIOR (LIMITS, ACCESS, PER-FEATURE TOGGLES) LIVES ON BotFeatureRule -
+// CONFIGURATION KEEPS ONLY IDENTITY/INFRA SETTINGS AND THE ROLE->TIER MAPPING
 model Configuration {
   id                        String   @id @default(cuid())
   media_server_name         String   @default("The Server")
   prefix_keyword            String   @default("!df")
   admin_password            String?
   discord_token             String?
-  session_timeout           Int      @default(60)
-  max_check_time            Int      @default(600)
-  max_results               Int      @default(0)
-  max_seasons_for_non_admin Int      @default(0)
   is_debug                  Boolean  @default(false)
-  is_trailers_enabled       Boolean  @default(true)
-  is_dm_notifications       Boolean  @default(false)
   bot_presence_activity     String   @default("none")
   bot_presence_text         String   @default("")
-  // open = ANYONE THE BOT CAN READ MAY REQUEST, whitelist = FLAGGED USERS/ROLES ONLY
-  request_access            String   @default("open")
+  // GRANT-ONLY ROLE->TIER MAPPING (SEE access.js roleGrantsFor)
   whitelist_role_ids        String   @default("")
   staff_role_ids            String   @default("")
   admin_role_ids            String   @default("")
@@ -33,6 +28,31 @@ model Configuration {
   updated_at                DateTime @updatedAt @default(now())
 
   @@map("configuration")
+}
+
+// PER-FEATURE BOT GRANTS - THE DISCORD BOT TAB'S FEATURE MATRIX. ONE ROW PER
+// (feature, scope): server_id NULL = THE GLOBAL RULE, SET = A PER-SERVER
+// OVERRIDE (A FULL CLONE THAT WINS OUTRIGHT). NO ROW = DESCRIPTOR DEFAULTS.
+// SQLITE TREATS NULLS AS DISTINCT IN UNIQUE INDEXES - THE MODEL'S upsertRule
+// (findFirst -> update/create) IS THE REAL GUARD AGAINST DUPLICATE GLOBALS.
+model BotFeatureRule {
+  id           String         @id @default(cuid())
+  feature_id   String
+  server_id    String?
+  enabled      Boolean        @default(true)
+  // MINIMUM TIER: everyone | whitelisted | staff | admin
+  audience     String         @default("everyone")
+  // EXTRA COMMA-SEPARATED DISCORD ROLE NAMES/IDS THAT QUALIFY REGARDLESS OF TIER
+  role_ids     String         @default("")
+  // SPARSE PER-FEATURE PARAMS (JSON), KEYS DECLARED BY THE FEATURE DESCRIPTOR
+  extents_json String?
+  created_at   DateTime       @default(now())
+  updated_at   DateTime       @updatedAt @default(now())
+  server       DiscordServer? @relation(fields: [server_id], references: [server_id], onDelete: Cascade)
+
+  @@unique([feature_id, server_id])
+  @@index([feature_id])
+  @@map("bot_feature_rules")
 }
 
 // GLOBAL PROCESS STATE ONLY - EVERYTHING VIEW-SHAPED LIVES ON ViewSession
@@ -129,6 +149,7 @@ model DiscordServer {
   channels             DiscordServerChannel[]
   messages             DiscordMessage[]
   view_sessions        ViewSession[]
+  feature_rules        BotFeatureRule[]
 
   @@index([sort_position])
   @@map("discord_servers")
@@ -263,8 +284,7 @@ model User {
   access_requested_at       DateTime?
   // LAST BOT SIGHTING (MESSAGE, INTERACTION, OR ROSTER SYNC)
   last_seen_at              DateTime?
-  session_timeout           Int              @default(60)
-  max_check_time            Int              @default(600)
+  // PER-USER EXCEPTIONS - >0 BEATS THE FEATURE RULE'S EXTENT (0 = NO OVERRIDE)
   max_results               Int              @default(0)
   max_seasons_for_non_admin Int              @default(0)
   max_requests_in_day       Int              @default(0)

@@ -3,7 +3,7 @@
 //- USERS THE BOT SERVES) ARE THE DEFAULT LENS; OPEN ACCESS ASKS GET THEIR
 //- OWN TAB WHILE WHITELIST MODE IS ON. LOCALS: activeApp, users, mutableFields
 - var filterTabs = [{ key: 'people', label: 'People' }, { key: 'bots', label: 'Bots' }]
-- if (users.accessMode === 'whitelist' && users.counts.access) filterTabs.push({ key: 'access', label: 'Wants access' })
+- if (users.counts.access) filterTabs.push({ key: 'access', label: 'Wants access' })
 - filterTabs.push({ key: 'all', label: 'All' })
 
 //- THE ACTIVE FILTER RIDES SEARCH REQUESTS VIA hx-include

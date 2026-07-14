@@ -58,6 +58,7 @@ class LidarrClient extends ArrClient {
       overview: raw.overview || '',
       posterUrl: this._albumCoverFrom(raw.images),
       available: (stats.trackFileCount || 0) > 0,
+      monitored: !!raw.monitored,
       kind: 'music',
       // ALBUMS SHARE THE ARTIST FOLDER - A PATH KEY WOULD MERGE A DISCOGRAPHY
       path: null,
@@ -150,22 +151,25 @@ class LidarrClient extends ArrClient {
     };
   }
 
+  // LIDARR ADDS PICK FROM A THIRD LIST - THE METADATA PROFILE
+  async getAddOptions() {
+    const base = await super.getAddOptions();
+    return { ...base, metadataProfiles: await this.getMetadataProfiles() };
+  }
+
   // ADD = POST THE ALBUM WITH ITS ARTIST PAYLOAD - LIDARR CREATES/REUSES THE
   // ARTIST AND SEARCHES FOR EXACTLY THIS ALBUM. NEEDS THE LIDARR-ONLY
-  // METADATA PROFILE ON TOP OF ROOT/QUALITY.
-  async add(normalizedResult) {
-    const [rootFolders, profiles, metadataProfiles] = await Promise.all([
-      this.getRootFolders(),
-      this.getQualityProfiles(),
-      this.getMetadataProfiles()
-    ]);
+  // METADATA PROFILE ON TOP OF ROOT/QUALITY. EXPLICIT OVERRIDES WIN, THEN
+  // INSTANCE SETTINGS, THEN THE SERVICE'S FIRST.
+  async add(normalizedResult, { qualityProfileId = null, rootFolderPath = null, metadataProfileId = null } = {}) {
+    const { rootFolders, profiles, metadataProfiles } = await this.getAddOptions();
     if (!rootFolders.length) throw new Error(`${this.serviceLabel} has no root folders configured`);
     if (!profiles.length) throw new Error(`${this.serviceLabel} has no quality profiles configured`);
     if (!metadataProfiles.length) throw new Error(`${this.serviceLabel} has no metadata profiles configured`);
 
-    const wantedRoot = this.instanceSettings.root_folder;
-    const wantedProfile = Number(this.instanceSettings.quality_profile);
-    const wantedMetadata = Number(this.instanceSettings.metadata_profile);
+    const wantedRoot = rootFolderPath || this.instanceSettings.root_folder;
+    const wantedProfile = Number(qualityProfileId || this.instanceSettings.quality_profile);
+    const wantedMetadata = Number(metadataProfileId || this.instanceSettings.metadata_profile);
     const raw = normalizedResult.raw;
     const payload = {
       ...raw,

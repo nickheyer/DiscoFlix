@@ -174,6 +174,70 @@ login/runtime path so the first live boot after this matters most):
       (console save, mapped role, sync) settles the ask. Dead user model
       helpers deleted; migration m17_user_aggregation.
 
+## M19 - About Pages, Feature Matrix, Request Card (staged + built 2026-07-14)
+
+- [x] Width standardization - layout tokens in variables.css
+      (--content-measure 1040px, --form-rail, --form-body-measure), every
+      section include wraps its swappable content in ONE .appSectionDoc
+      (convention comment on the class), offenders fixed: queue, sessions,
+      library search mode (grid + header now match the hub), libraryDetail,
+      releases, libraryReleases; full-bleed decorations (title dividers,
+      settings group boxes) stay direct children of #appSectionBody and the
+      group padding formula went token-driven.
+- [x] Overview redesign - every app's overview is an "About This App" page:
+      centered identity (96px icon, name + status pill, manifest blurb, url),
+      notices (status error, disabled, health), an At a Glance stat-tile grid
+      (dfStats* promoted to appStats*), one kind section, and section-shortcut
+      actions. Per kind: content managers get library counts (cache-first
+      getLibraryCounts, 1.5s race + warm-up, dash tiles while cold) + Storage
+      meters off new arr getDiskSpace(); download clients get queue stats w/
+      real aggregate speed (numeric speedBps on queue rows, sab/nzbget
+      override aggregateQueueSpeed with max() - their global rate rides every
+      row) + top-3 active downloads; media servers get Streaming Now + library
+      counts + Now Playing rows; jackett gets its indexer roster (nzbhydra2 a
+      search CTA); dfOverview adopted the same header (round avatar,
+      username#discriminator, DiscoFlix version line). View model extracted to
+      appOverview.js.
+- [x] Bot feature matrix (RBAC) - new Discord Bot tab on the DiscoFlix
+      takeover: every bot feature (declared by `feature` descriptors on
+      interaction defs + REQUEST_CAPABILITIES + CORE_FEATURES) renders grouped
+      by providing app w/ per-feature enable, audience tier
+      (everyone<whitelisted<staff<admin off persisted flags), extra role
+      grants, and extent inputs; global rules + per-server overrides
+      (clone-on-override rows, Reset to global, DMs always follow Global).
+      BotFeatureRule model + m19_bot_feature_matrix migration seeds rules from
+      the old Configuration columns (whitelist mode -> whitelisted audience,
+      never wider) then drops them (max_results, max_seasons_for_non_admin,
+      session_timeout, max_check_time, is_trailers_enabled,
+      is_dm_notifications, request_access; users lose dead
+      session_timeout/max_check_time). features.js resolves
+      (rule cache 30s + invalidate-on-save, unknown ids fail open, extent
+      precedence rule -> per-user >0 override -> staff+ exemption); central
+      gateInvocation in both dispatchers (denied asks still raise the
+      access-request hand), help is grant-filtered, monitor reads
+      max_check_time per watch feature/server and DMs per-requester via
+      dm-notifications. dfSettings shrank to identity/infra (moved fields are
+      computed so its full-form save can't wipe them; bot tab writes partial),
+      wantsAccess keys off the stamp alone, auto-approve is a grantable
+      feature (staff default) instead of hardcoded isAdmin.
+- [x] Request card redesign - large aspect-true poster (single-item
+      MediaGallery), availability badge + rating chips line
+      (annotateAvailability batches media-server id-map indexes over the TTL
+      library caches, raced 1.5s; findOnMediaServers now rides the same
+      indexes), genres/certification/status meta, jump-select descriptions
+      carry badges; More Info details view (fanart banner, poster-thumb
+      headline, 1000-char overview, fact block, real per-season stats for
+      in-library shows via deferred getLibraryItemDetail, link buttons
+      IMDb/TMDB/TVDB/MusicBrainz/Trailer); season pick -> quality/root
+      (+ lidarr metadata) picker step for granted users (selects default to
+      instance settings, root options show free space, Confirm sends
+      overrides through client.add's new override params - console/approval
+      call sites untouched); renderView state machine over one collector
+      (idle = selection_timeout extent, 15m hard cap), every capability
+      feature-gated w/ graceful degradation to the old card. Enrichment is
+      lazy normalizeLookupDetail over raws already in memory - zero extra
+      lookup HTTP. New ui.js helpers: linkButtonRow, factLines.
+
 ---
 
 ## Feature Planning (unstaged - promote before working)

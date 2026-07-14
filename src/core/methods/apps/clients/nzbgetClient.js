@@ -68,11 +68,17 @@ class NzbgetClient extends BaseClient {
         indexer: null,
         category: group.Category || null,
         speed: downloading && rate > 0 ? BaseClient.humanSpeed(rate) : null,
+        speedBps: downloading && rate > 0 ? rate : null,
         seeds: null,
         warnings: [],
         raw: group
       };
     });
+  }
+
+  // THE GLOBAL RATE RIDES EVERY DOWNLOADING ROW - max() READS IT BACK ONCE
+  aggregateQueueSpeed(rows) {
+    return Math.max(0, ...(rows || []).map(row => Number(row.speedBps) || 0));
   }
 
   // NORMALIZED FEED ROWS (SEE baseClient CONTRACT) - NZBGET RETURNS THE WHOLE

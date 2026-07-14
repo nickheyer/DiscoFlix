@@ -105,6 +105,7 @@ class RutorrentClient extends BaseClient {
           indexer: null,
           category: String(cols[COL.LABEL] || '') || null,
           speed: rate > 0 ? BaseClient.humanSpeed(rate) : null,
+          speedBps: rate > 0 ? rate : null,
           seeds: null,
           warnings: message ? [message] : [],
           raw: { hash, cols }

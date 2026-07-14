@@ -149,7 +149,9 @@ async function approveRequest(ctx) {
           mediaId: request.media.id,
           title: request.media.title,
           channelId: request.orig_channel_id,
-          requesterIds: (request.users || []).map(user => user.id)
+          requesterIds: (request.users || []).map(user => user.id),
+          featureId: request.orig_parsed_type ? `request.${request.orig_parsed_type}` : null,
+          serverId: request.madeInId
         });
       }
 

@@ -2,6 +2,9 @@
 // BUBBLE SWAPS THE WHOLE CONSOLE TO THE APP'S SECTIONS (QUEUE/LIBRARY/...)
 // USING THE SAME SLOT-SWAP FRAGMENTS THE SETTINGS SIDEBAR ALREADY PROVED.
 const _ = require('lodash');
+const { buildOverviewData } = require('./appOverview');
+const { buildBotMatrix } = require('./botMatrix');
+const { version: DISCOFLIX_VERSION } = require('../../../package.json');
 
 // RAIL VIEW MODEL - EVERY INSTALLED INSTANCE RENDERS A BUBBLE
 async function buildAppRail(core, state = null) {
@@ -19,9 +22,7 @@ const USER_MUTABLE_FIELDS = [
   'is_whitelisted',
   'max_requests_in_day',
   'max_results',
-  'max_seasons_for_non_admin',
-  'session_timeout',
-  'max_check_time'
+  'max_seasons_for_non_admin'
 ];
 const USERS_PAGE_SIZE = 20;
 const LOGS_PAGE_SIZE = 50;
@@ -63,8 +64,6 @@ async function buildUsersPage(core, search = '', page = 1, filter = 'people') {
   const searchWhere = search
     ? { OR: [{ username: { contains: search } }, { display_name: { contains: search } }] }
     : {};
-  const config = await core.models.configuration.get();
-  const accessMode = config.request_access;
 
   const [raw, ...countValues] = await Promise.all([
     core.prisma.user.findMany({
@@ -89,9 +88,9 @@ async function buildUsersPage(core, search = '', page = 1, filter = 'people') {
         ...row,
         avatar_url: rootRelative(row.avatar_url),
         lastSeenLabel: lastSeenLabel(row.last_seen_at),
-        // THE CHIP ONLY MEANS SOMETHING WHILE ACCESS IS WHITELIST-GATED
-        wantsAccess: accessMode === 'whitelist'
-          && !!row.access_requested_at
+        // HANDS ONLY GO UP WHEN A GATE ACTUALLY DENIED SOMEONE, SO THE
+        // STAMP ALONE (MINUS SETTLED GRANTS) KEEPS THE CHIP MEANINGFUL
+        wantsAccess: !!row.access_requested_at
           && !row.is_whitelisted && !row.is_superuser && !row.is_staff
       },
       fields: core.models.user.getFormData(row)
@@ -100,8 +99,7 @@ async function buildUsersPage(core, search = '', page = 1, filter = 'people') {
     page,
     search,
     filter: wantFilter,
-    counts,
-    accessMode
+    counts
   };
 }
 
@@ -131,13 +129,13 @@ async function buildLogsPage(core, level = '', page = 1) {
 
 // CONFIGURATION FORM GROUPS - EVERY EDITABLE FIELD LANDS IN A NAMED GROUP,
 // UNLISTED NEWCOMERS FALL THROUGH TO 'Other' SO NOTHING SILENTLY VANISHES
+// BOT BEHAVIOR (LIMITS, ACCESS, FEATURE TOGGLES, PREFIX, PRESENCE, ROLE
+// MAPPING) LIVES ON THE DISCORD BOT TAB NOW - ONLY IDENTITY/INFRA REMAINS
 const CONFIG_FIELD_GROUPS = [
-  { label: 'General', blurb: 'What your media server goes by and the keyword that wakes the bot in chat.', keys: ['media_server_name', 'prefix_keyword'] },
-  { label: 'Discord', blurb: 'The bot token that connects DiscoFlix to your Discord servers, and how the bot presents itself.', keys: ['discord_token', 'bot_presence_activity', 'bot_presence_text'] },
-  { label: 'Console Security', blurb: 'Password-protect this console and decide how long idle sessions live.', keys: ['admin_password', 'session_timeout'] },
-  { label: 'Request Limits', blurb: 'Caps on lookups and what non-admin users are allowed to request.', keys: ['max_results', 'max_seasons_for_non_admin', 'max_check_time'] },
-  { label: 'Access Control', blurb: 'Who may request, and which guild roles grant console permissions automatically. Role grants only ever add - revoke people in Users.', keys: ['request_access', 'whitelist_role_ids', 'staff_role_ids', 'admin_role_ids'] },
-  { label: 'Extras', blurb: 'Nice-to-haves and diagnostics.', keys: ['is_trailers_enabled', 'is_dm_notifications', 'is_debug'] }
+  { label: 'General', blurb: 'What your media server goes by.', keys: ['media_server_name'] },
+  { label: 'Discord', blurb: 'The bot token that connects DiscoFlix to your Discord servers. How the bot behaves and who may use it lives on the Discord Bot tab.', keys: ['discord_token'] },
+  { label: 'Console Security', blurb: 'Password-protect this console.', keys: ['admin_password'] },
+  { label: 'Extras', blurb: 'Nice-to-haves and diagnostics.', keys: ['is_debug'] }
 ];
 
 function buildConfigGroups(formData) {
@@ -178,6 +176,11 @@ async function buildSelfSectionData(core, instance, section) {
       data.formGroups = buildConfigGroups(await core.models.configuration.getPages());
       break;
     }
+    // THE DISCORD BOT TAB - FEATURE MATRIX + THE MOVED IDENTITY/AUDIENCE FIELDS
+    case 'bot': {
+      data.bot = await buildBotMatrix(core);
+      break;
+    }
     default: {
       const [state, discordBot, config, serverCount, userCount, requestCount, pendingCount, installed] = await Promise.all([
         core.models.state.get(),
@@ -197,7 +200,8 @@ async function buildSelfSectionData(core, instance, section) {
         avatar: rootRelative(discordBot.bot_avatar_url),
         inviteLink: discordBot.bot_invite_link,
         online: botOnline,
-        enabled: state.discord_state
+        enabled: state.discord_state,
+        version: DISCOFLIX_VERSION
       };
 
       data.problems = [];
@@ -264,34 +268,9 @@ async function buildSectionData(core, instance, section, opts = {}) {
   const data = { configured, appUrl: configured ? client.baseUrl : null };
 
   switch (section) {
+    // THE ABOUT-THIS-APP PAGE - VIEW MODEL LIVES IN appOverview.js
     case 'overview': {
-      if (!configured) {
-        data.status = { ok: false, error: `${instance.display_name} is not configured` };
-        data.health = [];
-        data.queueCount = 0;
-        break;
-      }
-      data.status = core.apps.statusCache.get(instance.id)
-        || await core.apps.testInstance(instance);
-      data.health = [];
-      if (data.status.ok && client.capabilities.health) {
-        try {
-          data.health = (await client.getHealth()).map(item => ({
-            type: item.type || 'warning',
-            message: item.message || String(item)
-          }));
-        } catch (err) {
-          core.logger.warn(`${instance.display_name} health fetch failed: ${err.message}`);
-        }
-      }
-      data.queueCount = (core.apps.queueCache.get(instance.id) || []).length;
-      // MEDIA SERVERS TRADE THE QUEUE LINE FOR A LIVE STREAM COUNT
-      data.sessionCount = null;
-      if (data.status.ok && client.capabilities.sessions) {
-        const { sessions } = await core.apps.getSessionsFor(instance);
-        data.sessionCount = sessions.length;
-      }
-      break;
+      return buildOverviewData(core, instance);
     }
     case 'queue': {
       data.queue = core.apps.queueCache.get(instance.id) || [];
@@ -665,7 +644,6 @@ async function saveAppUser(ctx) {
     return;
   }
 
-  const config = await core.models.configuration.get();
   return ctx.compileView(['apps/sections/dfUserCard.pug', 'extra/notification.pug'], {
     activeApp: instance,
     user: {
@@ -673,8 +651,7 @@ async function saveAppUser(ctx) {
         ...fresh,
         avatar_url: rootRelative(fresh.avatar_url),
         lastSeenLabel: lastSeenLabel(fresh.last_seen_at),
-        wantsAccess: config.request_access === 'whitelist'
-          && !!fresh.access_requested_at
+        wantsAccess: !!fresh.access_requested_at
           && !fresh.is_whitelisted && !fresh.is_superuser && !fresh.is_staff
       },
       fields: core.models.user.getFormData(fresh)
@@ -1161,7 +1138,9 @@ async function appAddMedia(ctx) {
           mediaId: media.id,
           title: result.year ? `${result.title} (${result.year})` : result.title,
           channelId: null, // CONSOLE-INITIATED - NO DISCORD NOTIFY
-          requesterIds: []
+          requesterIds: [],
+          featureId: result.contentType ? `request.${result.contentType}` : null,
+          serverId: null
         });
       }
 

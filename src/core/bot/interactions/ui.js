@@ -7,6 +7,8 @@ const {
   MediaGalleryBuilder,
   MediaGalleryItemBuilder,
   ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
   MessageFlags,
   SeparatorSpacingSize
 } = require('discord.js');
@@ -107,6 +109,20 @@ function truncate(value, max) {
   return str.length > max ? `${str.slice(0, max - 3)}...` : str;
 }
 
+// LINK-OUT BUTTONS FROM [{ label, url }] - NO CUSTOM IDS, NEVER HIT A
+// COLLECTOR. DISCORD CAPS ROWS AT 5 BUTTONS.
+function linkButtonRow(links) {
+  const buttons = (links || []).slice(0, 5).map(link =>
+    new ButtonBuilder().setStyle(ButtonStyle.Link).setLabel(truncate(link.label, 80)).setURL(link.url)
+  );
+  return buttons.length ? row(...buttons) : null;
+}
+
+// BOLD-LABEL FACT LINES FROM [{ label, value }] - THE DETAIL VIEWS' FACT BLOCK
+function factLines(facts, { max = 8 } = {}) {
+  return (facts || []).slice(0, max).map(fact => `**${fact.label}** ${fact.value}`);
+}
+
 module.exports = {
   ACCENTS,
   text,
@@ -119,5 +135,7 @@ module.exports = {
   notice,
   progressBar,
   ageOf,
-  truncate
+  truncate,
+  linkButtonRow,
+  factLines
 };

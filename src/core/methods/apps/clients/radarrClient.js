@@ -40,6 +40,7 @@ class RadarrClient extends ArrClient {
       overview: raw.overview || '',
       posterUrl: this.absolutePosterFrom(raw.images),
       available: !!raw.hasFile,
+      monitored: !!raw.monitored,
       kind: 'movie',
       path: raw.path || null,
       externalIds

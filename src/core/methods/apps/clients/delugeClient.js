@@ -129,6 +129,7 @@ class DelugeClient extends BaseClient {
           indexer: null,
           category: null,
           speed: torrent.download_payload_rate > 0 ? BaseClient.humanSpeed(torrent.download_payload_rate) : null,
+          speedBps: torrent.download_payload_rate > 0 ? torrent.download_payload_rate : null,
           seeds: typeof torrent.num_seeds === 'number' ? `${torrent.num_seeds}/${torrent.total_seeds ?? 0}` : null,
           warnings: torrent.message && torrent.message !== 'OK' ? [torrent.message] : [],
           raw: { ...torrent, hash }

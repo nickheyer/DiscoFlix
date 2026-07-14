@@ -1,0 +1,89 @@
+//- ONE MATRIX ROW = ONE AUTO-SAVE FORM (CHANGE-TRIGGERED, SWAPS ITSELF).
+//- SCOPED VIEWS RENDER "FOLLOWING GLOBAL" ROWS DISABLED UNTIL EXPLICITLY
+//- OVERRIDDEN. LOCALS: row, bot, activeApp (INLINE FROM dfBotMatrix OR BARE
+//- FROM THE FEATURE SAVE/RESET ROUTES).
+- var inherited = !!bot.scope && !row.hasOverride
+- var featurePath = `/apps/${activeApp.id}/bot/feature/${encodeURIComponent(row.feature.id)}`
+form.dfBotFeatureRow(
+  id=`bot-feature-${row.slug}`
+  hx-post=featurePath
+  hx-trigger="change"
+  hx-swap="outerHTML"
+)
+  input(type="hidden" name="scope" value=bot.scope || '')
+  .dfBotFeatureHead
+    .dfBotFeatureText
+      .dfBotFeatureName= row.feature.label
+      .dfBotFeatureDesc= row.feature.description
+    .dfBotFeatureTags
+      if !row.served
+        span.dfBotTag.unserved(title="Grants persist, but no connected app serves this right now") not served
+      if bot.scope
+        span.dfBotTag(class=row.hasOverride ? 'override' : 'inherited')= row.hasOverride ? 'server override' : 'following global'
+      else if row.hasOverride
+        span.dfBotTag.override customized
+    label.settings-switch
+      input(
+        type="checkbox"
+        name="enabled"
+        checked=row.effective.enabled
+        disabled=inherited
+      )
+      span.settings-slider(class=inherited ? 'readonly' : '')
+  .dfBotFeatureControls(class=inherited ? 'inherited' : '')
+    .dfBotControl
+      label.dfBotControlLabel(for=`${row.slug}-audience`) Audience
+      select.settings-input.settings-select.size-sm(
+        id=`${row.slug}-audience`
+        name="audience"
+        disabled=inherited
+      )
+        each opt in bot.audienceOptions
+          option(value=opt.value selected=row.effective.audience === opt.value)= opt.label
+    .dfBotControl
+      label.dfBotControlLabel(for=`${row.slug}-roles`) Extra roles
+      input.settings-input.size-md(
+        id=`${row.slug}-roles`
+        type="text"
+        name="role_ids"
+        value=row.effective.role_ids
+        placeholder="role names or ids"
+        autocomplete="off"
+        disabled=inherited
+      )
+    each extent in row.feature.extents
+      .dfBotControl
+        label.dfBotControlLabel(for=`${row.slug}-${extent.key}` title="0 means unlimited")= extent.label
+        input.settings-input.size-sm(
+          id=`${row.slug}-${extent.key}`
+          type="number"
+          name=`extent_${extent.key}`
+          value=row.effective.extents[extent.key]
+          min=extent.min
+          max=extent.max
+          disabled=inherited
+        )
+  if bot.scope || row.hasOverride
+    .dfBotFeatureActions
+      if bot.scope && !row.hasOverride
+        button.modal-button.button-secondary(
+          type="button"
+          hx-post=featurePath
+          hx-vals=JSON.stringify({ scope: bot.scope, clone: 1 })
+          hx-target=`#bot-feature-${row.slug}`
+          hx-swap="outerHTML"
+        ) Override for this server
+      else if bot.scope
+        button.modal-button.button-secondary(
+          type="button"
+          hx-delete=`${featurePath}?scope=${bot.scope}`
+          hx-target=`#bot-feature-${row.slug}`
+          hx-swap="outerHTML"
+        ) Reset to global
+      else
+        button.modal-button.button-secondary(
+          type="button"
+          hx-delete=featurePath
+          hx-target=`#bot-feature-${row.slug}`
+          hx-swap="outerHTML"
+        ) Reset to defaults

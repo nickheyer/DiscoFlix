@@ -165,6 +165,13 @@ class ArrClient extends BaseClient {
     return this._get('/qualityprofile');
   }
 
+  // MOUNTED DISKS AS THE ARR SEES THEM - THE OVERVIEW'S STORAGE SECTION.
+  // RADARR/SONARR v3 AND LIDARR v1 ALL ANSWER GET /diskspace THE SAME WAY:
+  // [{ path, label, freeSpace, totalSpace }]
+  async getDiskSpace() {
+    return this._get('/diskspace');
+  }
+
   async search(term) {
     const results = await this._get(`/${this.resource}/lookup`, { term });
     return (results || []).map(raw => this.normalizeResult(raw));
@@ -288,19 +295,26 @@ class ArrClient extends BaseClient {
     });
   }
 
-  // ADD TO LIBRARY (MONITORED + SEARCH-ON-ADD). INSTANCE SETTINGS PICK THE
-  // ROOT FOLDER AND QUALITY PROFILE; A STALE OR EMPTY SETTING FALLS BACK TO
-  // THE SERVICE'S FIRST. seasons THREADS THROUGH FOR SONARR MONITORING.
-  async add(normalizedResult, { seasons = null } = {}) {
+  // THE OPTION LISTS AN ADD (OR A PRE-ADD PICKER UI) CHOOSES FROM
+  async getAddOptions() {
     const [rootFolders, profiles] = await Promise.all([
       this.getRootFolders(),
       this.getQualityProfiles()
     ]);
+    return { rootFolders, profiles };
+  }
+
+  // ADD TO LIBRARY (MONITORED + SEARCH-ON-ADD). EXPLICIT OVERRIDES WIN, THEN
+  // INSTANCE SETTINGS PICK THE ROOT FOLDER AND QUALITY PROFILE; A STALE OR
+  // EMPTY VALUE FALLS BACK TO THE SERVICE'S FIRST. seasons THREADS THROUGH
+  // FOR SONARR MONITORING.
+  async add(normalizedResult, { seasons = null, qualityProfileId = null, rootFolderPath = null } = {}) {
+    const { rootFolders, profiles } = await this.getAddOptions();
     if (!rootFolders.length) throw new Error(`${this.serviceLabel} has no root folders configured`);
     if (!profiles.length) throw new Error(`${this.serviceLabel} has no quality profiles configured`);
 
-    const wantedRoot = this.instanceSettings.root_folder;
-    const wantedProfile = Number(this.instanceSettings.quality_profile);
+    const wantedRoot = rootFolderPath || this.instanceSettings.root_folder;
+    const wantedProfile = Number(qualityProfileId || this.instanceSettings.quality_profile);
     const payload = this.buildAddPayload(normalizedResult.raw, {
       rootFolderPath: rootFolders.find(folder => folder.path === wantedRoot)?.path || rootFolders[0].path,
       qualityProfileId: profiles.find(profile => profile.id === wantedProfile)?.id || profiles[0].id,
@@ -321,6 +335,7 @@ class ArrClient extends BaseClient {
       libraryEdit: true,
       libraryDelete: true,
       health: true,
+      diskSpace: true,
       // ARRS PAUSE AT THE DOWNLOAD CLIENT, NOT PER QUEUE ITEM
       queueActions: { item: ['remove', 'blocklist'], queue: [] }
     };

@@ -75,6 +75,15 @@ module.exports = {
   aliases: ['status'],
   // STATUS IS PERSONAL - SLASH ANSWERS EPHEMERAL, IN GUILDS AND DMS ALIKE
   ephemeral: true,
+  feature: {
+    id: 'status',
+    label: 'Request status',
+    description: 'Check open requests and their download progress with /status',
+    group: 'core',
+    defaultEnabled: true,
+    defaultAudience: 'everyone',
+    extents: []
+  },
   async available() { return true; },
   async run(ctx) {
     await ctx.send(await buildStatusPayload(ctx.core, ctx.dbUser.id));

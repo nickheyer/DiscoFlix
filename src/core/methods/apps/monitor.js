@@ -11,7 +11,7 @@ const HEARTBEAT_BOOT_DELAY_MS = 5 * 1000;
 //   FOR EVERY CONFIGURED+ENABLED INSTANCE AND BROADCASTS RAIL DOTS / TICKER /
 //   QUEUE-SECTION FRAGMENTS WHEN SOMETHING ACTUALLY CHANGED.
 module.exports = {
-  watchRequest({ requestId, appId, arrId, mediaId, title, channelId, requesterIds, rearmed }) {
+  watchRequest({ requestId, appId, arrId, mediaId, title, channelId, requesterIds, featureId, serverId, rearmed }) {
     this.watches.set(requestId, {
       requestId,
       appId,
@@ -20,6 +20,10 @@ module.exports = {
       title,
       channelId: channelId || null, // null = CONSOLE-INITIATED, NO DISCORD NOTIFY
       requesterIds: requesterIds || [],
+      // FEATURE SCOPE - max_check_time AND dm-notifications RESOLVE AGAINST
+      // THE ORIGINATING FEATURE/SERVER RULE (NULLS FALL BACK TO DEFAULTS)
+      featureId: featureId || null,
+      serverId: serverId || null,
       stage: 'pending',
       rearmed: !!rearmed, // BOOT RE-ARM - FIRST TICK DECIDES IF THE GRAB NOTIFY WAS ALREADY SENT
       startedAt: Date.now()
@@ -53,6 +57,8 @@ module.exports = {
         title: request.media.title || request.orig_parsed_title,
         channelId: request.orig_channel_id,
         requesterIds: (request.users || []).map(user => user.id),
+        featureId: request.orig_parsed_type ? `request.${request.orig_parsed_type}` : null,
+        serverId: request.madeInId,
         rearmed: true
       });
       armed++;
@@ -151,9 +157,7 @@ module.exports = {
           watch,
           ui.notice(`${this._mentions(watch)} **${watch.title}** is now available on ${config.media_server_name}!`, { accent: 'ok' })
         );
-        if (config.is_dm_notifications) {
-          await this._dmRequesters(watch, ui.notice(`**${watch.title}** is now available on ${config.media_server_name}!`, { accent: 'ok' }));
-        }
+        await this._dmRequesters(watch, ui.notice(`**${watch.title}** is now available on ${config.media_server_name}!`, { accent: 'ok' }));
         this.watches.delete(watch.requestId);
         await this._pushRowUpdate(watch, null);
         this.core.discord.refreshUI().catch(() => {}); // UPDATE CHAT-MIRROR CHIPS
@@ -166,7 +170,12 @@ module.exports = {
         await this._editProgressMessage(watch, queueRow);
       }
 
-      if (Date.now() - watch.startedAt > config.max_check_time * 1000) {
+      // WATCH DURATION COMES FROM THE ORIGINATING FEATURE'S RULE (SCOPED TO
+      // THE REQUEST'S SERVER); WATCHES WITHOUT A FEATURE FALL BACK TO 600s
+      const features = require('../../bot/interactions/features');
+      const rule = await features.effectiveRule(this.core, watch.featureId || '', watch.serverId);
+      const maxCheckSeconds = Number(rule.extents.max_check_time) || 600;
+      if (Date.now() - watch.startedAt > maxCheckSeconds * 1000) {
         await this._settleProgressMessage(watch, config, false);
         await this._notify(
           watch,
@@ -258,12 +267,21 @@ module.exports = {
     }
   },
 
-  // CONFIG-GATED COMPLETION DMs - CLOSED DM SETTINGS ARE A DEBUG LINE, NEVER
-  // AN ERROR, AND ONE FAILED DM NEVER BLOCKS THE REST
+  // FEATURE-GATED COMPLETION DMs - THE dm-notifications RULE DECIDES PER
+  // REQUESTER (OFF BY DEFAULT). CLOSED DM SETTINGS ARE A DEBUG LINE, NEVER
+  // AN ERROR, AND ONE FAILED DM NEVER BLOCKS THE REST.
   async _dmRequesters(watch, payload) {
     if (!this.core.client || !this.core.client.isReady()) return;
+    const features = require('../../bot/interactions/features');
     for (const userId of watch.requesterIds) {
       try {
+        const dbUser = await this.core.models.user.findFirst({ id: userId });
+        const gate = await features.resolveFeature(this.core, 'dm-notifications', {
+          dbUser,
+          roleTokens: [],
+          guildId: watch.serverId
+        });
+        if (!gate.allowed) continue;
         const user = await this.core.client.users.fetch(userId);
         await user.send(payload);
       } catch (err) {

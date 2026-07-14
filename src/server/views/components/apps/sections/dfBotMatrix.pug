@@ -1,0 +1,39 @@
+//- THE FEATURE MATRIX - EVERY BOT FEATURE GROUPED BY THE APP THAT PROVIDES
+//- IT, EACH ROW ITS OWN AUTO-SAVE FORM. THE SCOPE BAR SWAPS THIS WHOLE
+//- FRAGMENT (#dfBotMatrix) BETWEEN GLOBAL DEFAULTS AND PER-SERVER OVERRIDES.
+//- RENDERED INLINE BY dfBot.pug (bot OFF sectionData) AND BARE BY THE
+//- GET /apps/:id/bot SCOPE ROUTE (bot AS A LOCAL).
+- var bot = (typeof bot !== 'undefined' && bot) ? bot : sectionData.bot
+
+#dfBotMatrix
+  .appSectionDoc.dfBotScopeBar
+    .request-section-header Feature Matrix
+    .dfBotScopeControls
+      select.settings-input.settings-select.size-md(
+        name="scope"
+        aria-label="Rule scope"
+        hx-get=`/apps/${activeApp.id}/bot`
+        hx-target="#dfBotMatrix"
+        hx-swap="outerHTML"
+      )
+        option(value="" selected=!bot.scope) Global defaults
+        each server in bot.servers
+          option(value=server.id selected=bot.scope === server.id)= server.name
+      .dfBotScopeHint
+        if bot.scope
+          | Overrides for #{bot.scopeName} - everything else follows Global. DMs always follow Global.
+        else
+          | The rules every server (and DMs) follow unless a server overrides them.
+
+  each group in bot.groups
+    .appSettingsGroup
+      .appSettingsGroupInfo
+        .dfBotProviderIcons
+          each provider in group.providers
+            img.dfAppIcon(src=provider.icon alt=provider.label)
+        .request-section-header= group.label
+        .appSettingsGroupBlurb What #{group.label} provides to the bot, and who gets to use it.
+      .appSettingsGroupBody
+        .appFormCard
+          each row in group.features
+            include dfBotFeatureRow

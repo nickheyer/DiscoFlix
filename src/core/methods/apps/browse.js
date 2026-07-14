@@ -142,23 +142,47 @@ module.exports = {
     return cached.items;
   },
 
-  // THE BOT'S AVAILABILITY ANSWER: IS THIS LOOKUP RESULT ALREADY STREAMABLE
-  // ON A CONNECTED MEDIA SERVER? EXTERNAL IDS MATCH FIRST, TITLE+YEAR CATCHES
-  // THE REST. RETURNS { instance, item } OR null; FAILURES NEVER BLOCK A
-  // REQUEST FLOW.
-  async findOnMediaServers(result) {
+  // CACHE-FIRST LIBRARY COUNTS FOR OVERVIEWS - NEVER BLOCKS A RENDER LONGER
+  // THAN timeoutMs. ON A COLD CACHE THE FETCH KEEPS RUNNING TO WARM THE TTL
+  // CACHE, AND THE CALLER RENDERS DASHES UNTIL THE NEXT VISIT. RETURNS
+  // { total, available, missing, monitored, byKind } OR null.
+  async getLibraryCounts(instance, { timeoutMs = 1500 } = {}) {
+    const client = this.getClientForInstance(instance);
+    if (!client || !client.capabilities.library) return null;
+
+    const countItems = items => {
+      const counts = { total: items.length, available: 0, missing: 0, monitored: 0, byKind: {} };
+      for (const item of items) {
+        if (item.available) counts.available++;
+        else counts.missing++;
+        if (item.monitored === true) counts.monitored++;
+        const kind = item.kind || 'other';
+        counts.byKind[kind] = (counts.byKind[kind] || 0) + 1;
+      }
+      return counts;
+    };
+
+    const cached = this.libraryCache.get(instance.id);
+    if (cached && Date.now() - cached.fetchedAt < LIBRARY_TTL_MS) return countItems(cached.items);
+
+    const fetch = this._getFullLibrary(instance, client);
+    fetch.catch(err => this.logger.debug(`${instance.display_name} library warm-up failed: ${err.message}`));
+    const items = await Promise.race([
+      fetch,
+      new Promise(resolve => setTimeout(() => resolve(null), timeoutMs))
+    ]).catch(() => null);
+    return items ? countItems(items) : null;
+  },
+
+  // PER-SERVER LOOKUP INDEXES OVER THE TTL-CACHED LIBRARIES - EXTERNAL-ID
+  // MAPS PLUS A TITLE MAP, SO A BATCH OF RESULTS MATCHES IN O(1) EACH.
+  // FAILURES SKIP THE SERVER, NEVER THE CALLER.
+  async _mediaServerIndexes() {
     const rows = await this.core.models.app.getMany({ enabled: true });
     const servers = rows.filter(row =>
       this.getType(row.app_type)?.kind === 'media-server' && this.isConfigured(row)
     );
-    const wantIds = {
-      tmdb: result.tmdbId ? String(result.tmdbId) : null,
-      imdb: result.imdbId ? String(result.imdbId) : null,
-      tvdb: result.tvdbId ? String(result.tvdbId) : null
-    };
-    const wantKind = result.contentType === 'show' ? 'show' : 'movie';
-    const wantTitle = this.comparableTitle(result.title);
-
+    const indexes = [];
     for (const row of servers) {
       const client = this.getClientForInstance(row);
       if (!client || !client.capabilities.library) continue;
@@ -169,19 +193,83 @@ module.exports = {
         this.logger.debug(`${row.display_name} availability check skipped: ${err.message}`);
         continue;
       }
-      const match = items.find(item => {
-        if (item.kind && item.kind !== wantKind) return false;
+      const byId = { tmdb: new Map(), imdb: new Map(), tvdb: new Map() };
+      const byTitle = new Map();
+      for (const item of items) {
         const ids = item.externalIds || {};
-        if (wantIds.tmdb && ids.tmdb === wantIds.tmdb) return true;
-        if (wantIds.imdb && ids.imdb === wantIds.imdb) return true;
-        if (wantIds.tvdb && ids.tvdb === wantIds.tvdb) return true;
-        return !!wantTitle
-          && this.comparableTitle(item.title) === wantTitle
-          && (!result.year || !item.year || item.year === result.year);
-      });
-      if (match) return { instance: row, item: match };
+        for (const key of ['tmdb', 'imdb', 'tvdb']) {
+          if (ids[key]) byId[key].set(`${item.kind}:${ids[key]}`, item);
+        }
+        const title = this.comparableTitle(item.title);
+        if (title && !byTitle.has(`${item.kind}:${title}`)) byTitle.set(`${item.kind}:${title}`, item);
+      }
+      indexes.push({ instance: row, byId, byTitle });
+    }
+    return indexes;
+  },
+
+  // EXTERNAL IDS MATCH FIRST, TITLE+YEAR CATCHES THE REST
+  _matchInIndexes(indexes, result) {
+    const wantKind = result.contentType === 'show' ? 'show' : 'movie';
+    const wantIds = {
+      tmdb: result.tmdbId ? String(result.tmdbId) : null,
+      imdb: result.imdbId ? String(result.imdbId) : null,
+      tvdb: result.tvdbId ? String(result.tvdbId) : null
+    };
+    const wantTitle = this.comparableTitle(result.title);
+    for (const index of indexes) {
+      for (const key of ['tmdb', 'imdb', 'tvdb']) {
+        const item = wantIds[key] && index.byId[key].get(`${wantKind}:${wantIds[key]}`);
+        if (item) return { instance: index.instance, item };
+      }
+      if (wantTitle) {
+        const item = index.byTitle.get(`${wantKind}:${wantTitle}`);
+        if (item && (!result.year || !item.year || item.year === result.year)) {
+          return { instance: index.instance, item };
+        }
+      }
     }
     return null;
+  },
+
+  // THE BOT'S AVAILABILITY ANSWER: IS THIS LOOKUP RESULT ALREADY STREAMABLE
+  // ON A CONNECTED MEDIA SERVER? RETURNS { instance, item } OR null;
+  // FAILURES NEVER BLOCK A REQUEST FLOW.
+  async findOnMediaServers(result) {
+    return this._matchInIndexes(await this._mediaServerIndexes(), result);
+  },
+
+  // ADVISORY BADGES FOR A BATCH OF LOOKUP RESULTS - ONE STRING (OR null) PER
+  // RESULT, ALIGNED BY INDEX. PRECEDENCE: STREAMABLE > IN LIBRARY > PENDING
+  // REQUEST. THE SELECTION-TIME GUARDS STAY AUTHORITATIVE.
+  async annotateAvailability(results, client) {
+    const badges = new Array(results.length).fill(null);
+    // MUSIC NEVER MATCHES A MEDIA SERVER - THEIR NORMALIZERS ONLY EMIT
+    // movie/show KINDS, SO SKIP THE LIBRARY FETCHES ENTIRELY
+    const indexes = results.some(result => result.contentType !== 'music')
+      ? await this._mediaServerIndexes()
+      : [];
+
+    for (let i = 0; i < results.length; i++) {
+      const result = results[i];
+      if (result.contentType !== 'music') {
+        const streaming = this._matchInIndexes(indexes, result);
+        if (streaming) {
+          badges[i] = `Available on ${streaming.instance.display_name}`;
+          continue;
+        }
+      }
+      if (result.libraryId) {
+        badges[i] = this.safeIsImported(client, result.raw) ? 'In library' : 'In library - waiting';
+        continue;
+      }
+      const media = await this.core.models.media.findByResult(result);
+      if (media) {
+        const open = await this.core.models.mediaRequest.findFirst({ mediaId: media.id, status: null });
+        if (open) badges[i] = 'Requested - pending approval';
+      }
+    }
+    return badges;
   },
 
   // LIVE RELEASE SEARCH FOR INDEXER APPS - THE RELEASES SECTION'S SEARCH MODE

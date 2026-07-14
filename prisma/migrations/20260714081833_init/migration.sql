@@ -5,21 +5,28 @@ CREATE TABLE "configuration" (
     "prefix_keyword" TEXT NOT NULL DEFAULT '!df',
     "admin_password" TEXT,
     "discord_token" TEXT,
-    "session_timeout" INTEGER NOT NULL DEFAULT 60,
-    "max_check_time" INTEGER NOT NULL DEFAULT 600,
-    "max_results" INTEGER NOT NULL DEFAULT 0,
-    "max_seasons_for_non_admin" INTEGER NOT NULL DEFAULT 0,
     "is_debug" BOOLEAN NOT NULL DEFAULT false,
-    "is_trailers_enabled" BOOLEAN NOT NULL DEFAULT true,
-    "is_dm_notifications" BOOLEAN NOT NULL DEFAULT false,
     "bot_presence_activity" TEXT NOT NULL DEFAULT 'none',
     "bot_presence_text" TEXT NOT NULL DEFAULT '',
-    "request_access" TEXT NOT NULL DEFAULT 'open',
     "whitelist_role_ids" TEXT NOT NULL DEFAULT '',
     "staff_role_ids" TEXT NOT NULL DEFAULT '',
     "admin_role_ids" TEXT NOT NULL DEFAULT '',
     "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- CreateTable
+CREATE TABLE "bot_feature_rules" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "feature_id" TEXT NOT NULL,
+    "server_id" TEXT,
+    "enabled" BOOLEAN NOT NULL DEFAULT true,
+    "audience" TEXT NOT NULL DEFAULT 'everyone',
+    "role_ids" TEXT NOT NULL DEFAULT '',
+    "extents_json" TEXT,
+    "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "bot_feature_rules_server_id_fkey" FOREIGN KEY ("server_id") REFERENCES "discord_servers" ("server_id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- CreateTable
@@ -122,6 +129,7 @@ CREATE TABLE "discord_messages" (
     "content" TEXT NOT NULL,
     "embeds" TEXT,
     "attachments" TEXT,
+    "components" TEXT,
     "previous_content" TEXT,
     "edited_at" DATETIME,
     "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -193,8 +201,8 @@ CREATE TABLE "users" (
     "is_whitelisted" BOOLEAN NOT NULL DEFAULT false,
     "is_bot" BOOLEAN NOT NULL DEFAULT false,
     "is_client" BOOLEAN NOT NULL DEFAULT false,
-    "session_timeout" INTEGER NOT NULL DEFAULT 60,
-    "max_check_time" INTEGER NOT NULL DEFAULT 600,
+    "access_requested_at" DATETIME,
+    "last_seen_at" DATETIME,
     "max_results" INTEGER NOT NULL DEFAULT 0,
     "max_seasons_for_non_admin" INTEGER NOT NULL DEFAULT 0,
     "max_requests_in_day" INTEGER NOT NULL DEFAULT 0,
@@ -217,6 +225,12 @@ CREATE TABLE "_UserMediaRequests" (
     CONSTRAINT "_UserMediaRequests_A_fkey" FOREIGN KEY ("A") REFERENCES "media_requests" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT "_UserMediaRequests_B_fkey" FOREIGN KEY ("B") REFERENCES "users" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+-- CreateIndex
+CREATE INDEX "bot_feature_rules_feature_id_idx" ON "bot_feature_rules"("feature_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "bot_feature_rules_feature_id_server_id_key" ON "bot_feature_rules"("feature_id", "server_id");
 
 -- CreateIndex
 CREATE INDEX "view_sessions_last_seen_at_idx" ON "view_sessions"("last_seen_at");

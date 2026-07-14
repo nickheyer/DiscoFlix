@@ -117,6 +117,7 @@ class UtorrentClient extends BaseClient {
           indexer: null,
           category: row[COL.LABEL] || null,
           speed: rate > 0 ? BaseClient.humanSpeed(rate) : null,
+          speedBps: rate > 0 ? rate : null,
           seeds: typeof row[COL.SEEDS_CONNECTED] === 'number' ? `${row[COL.SEEDS_CONNECTED]}/${row[COL.SEEDS_SWARM] ?? 0}` : null,
           warnings: [],
           raw: row

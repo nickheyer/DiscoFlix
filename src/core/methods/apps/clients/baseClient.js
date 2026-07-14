@@ -3,7 +3,9 @@
 // ARRAY OF NORMALIZED QUEUE ROWS:
 //   { id, title, subtitle?, status, percent (0-100 int), timeleft, size,
 //     sizeleft, sizeHuman?, sizeleftHuman?, quality?, protocol?, category?,
-//     downloadClient?, indexer?, speed?, seeds?, warnings [], raw }
+//     downloadClient?, indexer?, speed?, speedBps?, seeds?, warnings [], raw }
+// speed IS THE HUMANIZED STRING; speedBps IS THE NUMERIC RATE (BYTES/SEC,
+// null WHEN IDLE) THAT aggregateQueueSpeed FOLDS INTO OVERVIEW STATS.
 // THE NORMALIZED SHAPE IS SHARED BY THE MONITOR, THE DOWNLOAD TICKER, AND
 // EVERY QUEUE UI - ONLY matchesQueueRecord IMPLEMENTATIONS MAY REACH INTO raw.
 // getHistory(page) -> { rows, hasMore } OF NORMALIZED FEED ROWS:
@@ -89,6 +91,13 @@ class BaseClient {
   static humanSpeed(bytesPerSecond) {
     const size = BaseClient.humanSize(bytesPerSecond);
     return size ? `${size}/s` : null;
+  }
+
+  // TOTAL DOWNLOAD RATE ACROSS NORMALIZED QUEUE ROWS. PER-ITEM CLIENTS SUM;
+  // CLIENTS THAT PIN ONE GLOBAL RATE ON EVERY ROW (SABNZBD, NZBGET) OVERRIDE
+  // WITH max() SO THE FIGURE ISN'T MULTIPLIED BY QUEUE LENGTH.
+  aggregateQueueSpeed(rows) {
+    return (rows || []).reduce((sum, row) => sum + (Number(row.speedBps) || 0), 0);
   }
 
   // SECONDS -> COMPACT ETA ("2d 4h", "3h 12m", "9m") FOR QUEUE ROWS

@@ -48,6 +48,11 @@
   --scrollbar-thumb: #202225;
   --scrollbar-track: transparent;
 
+  /* LAYOUT MEASURES - THE TAKEOVER'S DOCUMENT WIDTH FAMILY */
+  --content-measure: 1040px;   /* .appSectionDoc and centered group interiors */
+  --form-rail: 240px;          /* settings group label rail */
+  --form-body-measure: 760px;  /* settings group card body (rail + gap + body = measure) */
+
   --font-family: 'Roboto', sans-serif;
 
   /* LEGACY ALIASES - OLD NAMES STILL REFERENCED ANYWHERE MAP ONTO THE TOKENS ABOVE */

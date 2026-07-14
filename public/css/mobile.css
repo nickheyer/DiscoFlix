@@ -64,6 +64,20 @@
     padding: 12px 12px 20px;
   }
 
+  /* ABOUT-THIS-APP HEADER SCALES DOWN - LESS AIR, SMALLER ICON */
+  .appAboutBlock {
+    margin: 24px auto 20px;
+  }
+
+  .appAboutBlock img.appAboutIcon {
+    width: 72px;
+    height: 72px;
+  }
+
+  .appStorageMeter {
+    flex: 0 0 140px;
+  }
+
   .posterGrid {
     grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
     gap: 8px;

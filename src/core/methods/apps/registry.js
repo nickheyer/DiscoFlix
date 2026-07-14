@@ -10,6 +10,7 @@ const APP_TYPES = require('./manifests');
 // THE RAIL'S SEARCH BAR DRIVES THE LIBRARY (OR RELEASES) SECTION'S SEARCH MODE.
 const SECTION_LABELS = {
   overview: 'Overview',
+  bot: 'Discord Bot',
   queue: 'Queue',
   sessions: 'Now Playing',
   library: 'Library',

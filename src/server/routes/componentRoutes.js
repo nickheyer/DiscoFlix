@@ -27,6 +27,13 @@ const {
 const { fetchChatHistory } = require('../api/chat');
 
 const {
+  appBotMatrix,
+  saveBotConfig,
+  saveBotFeature,
+  resetBotFeature
+} = require('../api/botMatrix');
+
+const {
   changeActiveApp,
   openDiscoFlix,
   openDiscoFlixSection,
@@ -82,6 +89,12 @@ router.post('/discoflix/section/:section', openDiscoFlixSection);
 router.post('/apps/add/:type', addApp);
 router.post('/apps/:id/section/:section', changeAppSection);
 router.get('/apps/:id/feed/page/:page', appFeedPage);
+// THE DISCORD BOT TAB - MATRIX SCOPE SWAPS AND PER-FEATURE RULE WRITES
+// (ALL HANDLERS 404 UNLESS THE INSTANCE IS THE DISCOFLIX SELF APP)
+router.get('/apps/:id/bot', appBotMatrix);
+router.post('/apps/:id/bot/config', saveBotConfig);
+router.post('/apps/:id/bot/feature/:featureId', saveBotFeature);
+router.delete('/apps/:id/bot/feature/:featureId', resetBotFeature);
 // THE UNIFIED LIBRARY (SELF APP) - FILTER SWAPS AND VIEW MORE PAGINATION
 router.get('/apps/:id/unified', appUnifiedLibrary);
 router.get('/apps/:id/unified/page/:page', appUnifiedLibraryPage);

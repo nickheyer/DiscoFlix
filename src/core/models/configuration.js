@@ -4,19 +4,14 @@ const { hashPassword, isHashed } = require('./passwords');
 class Configuration extends BaseModel {
   constructor(core) {
     super(core, 'Configuration');
+    // BOT BEHAVIOR (LIMITS, ACCESS, TOGGLES) LIVES ON BotFeatureRule NOW -
+    // ONLY IDENTITY/INFRA SETTINGS AND THE ROLE->TIER MAPPING REMAIN HERE
     this.defaults = {
       media_server_name: "The Server",
       prefix_keyword: "!df",
-      session_timeout: 60,
-      max_check_time: 600,
-      max_results: 0,
-      max_seasons_for_non_admin: 0,
       is_debug: false,
-      is_trailers_enabled: true,
-      is_dm_notifications: false,
       bot_presence_activity: "none",
       bot_presence_text: "",
-      request_access: "open",
       whitelist_role_ids: "",
       staff_role_ids: "",
       admin_role_ids: ""
@@ -61,28 +56,6 @@ class Configuration extends BaseModel {
   async toggleDebug() {
     const config = await this.get();
     return this.update({ is_debug: !config.is_debug });
-  }
-
-  async toggleTrailers() {
-    const config = await this.get();
-    return this.update({ is_trailers_enabled: !config.is_trailers_enabled });
-  }
-
-  async updateMediaServer(name) {
-    return this.update({ media_server_name: name });
-  }
-
-  async updatePrefixKeyword(prefix) {
-    return this.update({ prefix_keyword: prefix });
-  }
-
-  async updateLimits({ session, check, results, seasons }) {
-    const updates = {};
-    if (session) updates.session_timeout = session;
-    if (check) updates.max_check_time = check;
-    if (results) updates.max_results = results;
-    if (seasons) updates.max_seasons_for_non_admin = seasons;
-    return this.update(updates);
   }
 }
 

@@ -1,34 +1,36 @@
 //- QUEUE SECTION SHELL - THE INNER LIST (#appQueueList) IS THE WS-PUSHABLE
-//- FRAGMENT (HEARTBEAT + MONITOR SWAP THE WHOLE LIST ON CHANGE)
+//- FRAGMENT (HEARTBEAT + MONITOR SWAP THE WHOLE LIST ON CHANGE); IT SWAPS BY
+//- ID INSIDE THE .appSectionDoc SO PUSHES LAND ON THE BOUNDED MEASURE
 - var headerActions = (queueActions && queueActions.queue) || []
-.request-section-header.queueSectionHeader
-  span Download Queue
-  if headerActions.length
-    .queueHeaderActions
-      if headerActions.includes('pause')
-        button.queueHeaderButton(
-          type="button"
-          hx-post=`/apps/${activeApp.id}/queue-action/pause`
-          hx-swap="none"
-          hx-disabled-elt="this"
-        ) Pause All
-      if headerActions.includes('resume')
-        button.queueHeaderButton(
-          type="button"
-          hx-post=`/apps/${activeApp.id}/queue-action/resume`
-          hx-swap="none"
-          hx-disabled-elt="this"
-        ) Resume All
-//- PASTE-A-LINK ADD - MAGNETS, TORRENT URLS, OR NZB LINKS GO STRAIGHT TO THE
-//- CLIENT; THE RESPONSE RE-SWAPS THE LIST + TICKER AND TOASTS THE HEADER
-if sectionData && sectionData.canAddByUrl
-  form.queueAddForm(hx-post=`/apps/${activeApp.id}/queue-add` hx-swap="none" hx-disabled-elt="find button" _="on htmx:afterRequest call me.reset()")
-    input.queueAddInput(
-      type="text"
-      name="url"
-      placeholder="Paste a magnet or download link..."
-      autocomplete="off"
-      spellcheck="false"
-    )
-    button.queueHeaderButton(type="submit") Add
-include queueBody
+.appSectionDoc
+  .request-section-header.queueSectionHeader
+    span Download Queue
+    if headerActions.length
+      .queueHeaderActions
+        if headerActions.includes('pause')
+          button.queueHeaderButton(
+            type="button"
+            hx-post=`/apps/${activeApp.id}/queue-action/pause`
+            hx-swap="none"
+            hx-disabled-elt="this"
+          ) Pause All
+        if headerActions.includes('resume')
+          button.queueHeaderButton(
+            type="button"
+            hx-post=`/apps/${activeApp.id}/queue-action/resume`
+            hx-swap="none"
+            hx-disabled-elt="this"
+          ) Resume All
+  //- PASTE-A-LINK ADD - MAGNETS, TORRENT URLS, OR NZB LINKS GO STRAIGHT TO THE
+  //- CLIENT; THE RESPONSE RE-SWAPS THE LIST + TICKER AND TOASTS THE HEADER
+  if sectionData && sectionData.canAddByUrl
+    form.queueAddForm(hx-post=`/apps/${activeApp.id}/queue-add` hx-swap="none" hx-disabled-elt="find button" _="on htmx:afterRequest call me.reset()")
+      input.queueAddInput(
+        type="text"
+        name="url"
+        placeholder="Paste a magnet or download link..."
+        autocomplete="off"
+        spellcheck="false"
+      )
+      button.queueHeaderButton(type="submit") Add
+  include queueBody

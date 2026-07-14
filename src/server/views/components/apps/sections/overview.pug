@@ -1,54 +1,142 @@
-//- OVERVIEW - IDENTITY, STATUS PILL (HEARTBEAT CACHE), HEALTH, QUICK STATS.
-//- sectionData: { configured, status {ok, version?, error?}, health [{type,message}],
-//-               queueCount, appUrl }
-if !sectionData.configured
-  .welcomeBlock
-    .welcomeHashCircle
-      img(src=appManifest.icon alt=activeApp.display_name style="width: 40px; height: 40px;")
-    .welcomeTitle Welcome to #{activeApp.display_name}!
-    .welcomeSubtitle It isn't connected yet - set its URL and credentials to bring it online.
-    .appSectionActions
+//- OVERVIEW - THE "ABOUT THIS APP" PAGE EVERY SERVICE SHARES: CENTERED
+//- IDENTITY UP TOP, THEN NOTICES -> STAT TILES -> ONE KIND-SPECIFIC SECTION
+//- -> ACTIONS. sectionData IS BUILT BY src/server/api/appOverview.js:
+//- { configured, appUrl, kind, blurb, disabled, status, notices, stats,
+//-   countsWarming?, storage?, activeDownloads?, nowPlaying?, indexers? }
+include ../../../mixins/overview
+
+.appSectionDoc
+  if !sectionData.configured
+    +aboutApp({ icon: appManifest.icon, name: activeApp.display_name, pill: { text: 'not configured', class: 'pending' }, sub: "It isn't connected yet - set its URL and credentials to bring it online." })
+    .appSectionActions.centered
       button.modal-button(
         hx-post=`/apps/${activeApp.id}/section/settings`
       ) Open Settings
-else
-  .appOverviewIdentity
-    img(src=appManifest.icon alt=activeApp.display_name)
-    div
-      .appOverviewName
-        | #{activeApp.display_name}
-        |
-        //- SOME SERVICES NEVER SURRENDER A VERSION NUMBER - 'online' STILL READS TRUE
-        span.appStatusPill(class=sectionData.status.ok ? 'ok' : 'down')= sectionData.status.ok ? (sectionData.status.version ? `v${sectionData.status.version}` : 'online') : 'unreachable'
-      if sectionData.appUrl
-        a.appOverviewUrl(href=sectionData.appUrl target="_blank" rel="noopener noreferrer")= sectionData.appUrl
+  else
+    - var status = sectionData.status
+    //- SOME SERVICES NEVER SURRENDER A VERSION NUMBER - 'online' STILL READS TRUE
+    - var pill = status.ok ? { text: status.version ? `v${status.version}` : 'online', class: 'ok' } : { text: 'unreachable', class: 'down' }
+    - if (sectionData.disabled) pill = { text: 'disabled', class: 'down' }
+    +aboutApp({ icon: appManifest.icon, name: activeApp.display_name, pill: pill, sub: sectionData.blurb, url: sectionData.appUrl })
 
-  if !sectionData.status.ok
-    .appHealthNotice.error= sectionData.status.error
+    +overviewNotices(sectionData.notices)
 
-  if sectionData.health && sectionData.health.length
-    .request-section-header Health
-    each item in sectionData.health
-      .appHealthNotice(class=item.type === 'error' ? 'error' : '')= item.message
+    if sectionData.stats.length
+      .request-section-header At a Glance
+      .appStatsGrid
+        each stat in sectionData.stats
+          +statTile(stat.value, stat.label, stat.attention)
+      if sectionData.countsWarming
+        .appStatsHint Library stats are still warming up - refresh in a moment.
 
-  //- THE QUEUE LINE ONLY MAKES SENSE FOR APPS THAT ACTUALLY HAVE ONE; MEDIA
-  //- SERVERS SHOW THEIR LIVE STREAM COUNT INSTEAD
-  - var hasQueue = appManifest.sections.includes('queue')
-  - var hasSessions = typeof sectionData.sessionCount === 'number'
-  if hasQueue || hasSessions || !activeApp.enabled
-    .appOverviewStats
-      if hasQueue
-        | #{sectionData.queueCount} item#{sectionData.queueCount === 1 ? '' : 's'} in the download queue
-        if !activeApp.enabled
-          |  • this app is currently disabled
-      else if hasSessions
-        | #{sectionData.sessionCount} stream#{sectionData.sessionCount === 1 ? '' : 's'} playing right now
-        if !activeApp.enabled
-          |  • this app is currently disabled
+    //- KIND SECTIONS - THE VIEW MODEL ONLY FILLS THE ONE THAT APPLIES
+    if sectionData.storage && sectionData.storage.length
+      .request-section-header Storage
+      .appStorageList
+        each disk in sectionData.storage
+          .appStorageRow
+            .appStorageInfo
+              .appStorageLabel= disk.label
+              .appStorageMeta #{disk.freeHuman} free of #{disk.totalHuman}
+            .appStorageMeter
+              .request-progress-track
+                .request-progress-bar(class=disk.level || undefined style=`width: ${disk.percentUsed}%`)
+              .request-progress-text #{disk.percentUsed}% used
+
+    if sectionData.activeDownloads
+      .request-section-header Active Downloads
+      if sectionData.activeDownloads.length
+        each item in sectionData.activeDownloads
+          .request-row.queueRow
+            .request-info
+              .request-title.queueRowTitle
+                span= item.title
+              .request-meta
+                span= item.status
+                if item.timeleft
+                  span.request-meta-divider •
+                  span #{item.timeleft} left
+                if item.speed
+                  span.request-meta-divider •
+                  span= item.speed
+            .request-status
+              .request-progress
+                .request-progress-track
+                  .request-progress-bar(class=item.status === 'paused' ? 'paused' : undefined style=`width: ${item.percent}%`)
+                .request-progress-text
+                  if item.sizeHuman
+                    | #{item.percent}% of #{item.sizeHuman}
+                  else
+                    | #{item.percent}%
       else
-        | This app is currently disabled
+        .appQueueEmpty The queue is sleeping - nothing downloading right now.
 
-  .appSectionActions
-    button.modal-button.button-secondary(
-      hx-post=`/apps/${activeApp.id}/section/overview`
-    ) Refresh
+    if sectionData.nowPlaying
+      .request-section-header Now Playing
+      if sectionData.nowPlaying.length
+        each item in sectionData.nowPlaying
+          - var paused = item.state === 'paused'
+          .request-row.queueRow.sessionRow
+            .sessionStateGlyph(class=paused ? 'paused' : '')
+              if paused
+                svg(viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true")
+                  path(d="M9 5v14M15 5v14")
+              else
+                svg(viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true")
+                  path(d="M8 5.5v13l11-6.5z")
+            .request-info
+              .request-title.queueRowTitle
+                span= item.title
+                if item.subtitle
+                  span.sessionSubtitle= item.subtitle
+              .request-meta
+                span= item.user
+                if item.device
+                  span.request-meta-divider •
+                  span= item.device
+            .request-status
+              .request-progress
+                .request-progress-track
+                  .request-progress-bar(class=paused ? 'paused' : undefined style=`width: ${item.percent}%`)
+                .request-progress-text #{item.percent}% watched
+      else
+        .appQueueEmpty Nobody is streaming right now.
+
+    if sectionData.kind === 'indexer'
+      if sectionData.indexers && sectionData.indexers.length
+        .request-section-header Indexers - #{sectionData.indexers.length}
+        each indexer in sectionData.indexers
+          .request-row.releaseIndexerRow
+            .indexerStatusDot(class=indexer.error ? 'down' : 'ok')
+            .request-info
+              .request-title= indexer.name
+              if indexer.error
+                .request-orig-message= indexer.error
+            if indexer.kind
+              span.queueRowChip= indexer.kind
+      else
+        //- NO ROSTER (NZBHYDRA2, OR A LOCKED ADMIN API) - POINT AT THE SEARCH
+        .welcomeBlock
+          .welcomeTitle Search every indexer at once
+          .welcomeSubtitle Type in the search bar on the right - releases from #{activeApp.display_name} can be sent straight to a connected download client.
+
+    .appSectionActions
+      if appManifest.sections.includes('queue')
+        button.modal-button.button-secondary(
+          hx-post=`/apps/${activeApp.id}/section/queue`
+        ) Open Queue
+      if appManifest.sections.includes('sessions')
+        button.modal-button.button-secondary(
+          hx-post=`/apps/${activeApp.id}/section/sessions`
+        ) Now Playing
+      if appManifest.sections.includes('library')
+        button.modal-button.button-secondary(
+          hx-post=`/apps/${activeApp.id}/section/library`
+        ) Browse Library
+      if appManifest.sections.includes('releases')
+        button.modal-button.button-secondary(
+          hx-post=`/apps/${activeApp.id}/section/releases`
+        ) Search Releases
+      button.modal-button.button-secondary(
+        hx-post=`/apps/${activeApp.id}/section/overview`
+      ) Refresh

@@ -9,6 +9,15 @@ module.exports = {
   options: [],
   aliases: ['whatsnew', 'new', 'latest'],
   ephemeral: true,
+  feature: {
+    id: 'whatsnew',
+    label: "What's new",
+    description: 'List recently added media-server titles with /whatsnew',
+    group: 'core',
+    defaultEnabled: true,
+    defaultAudience: 'everyone',
+    extents: []
+  },
   async run(ctx) {
     const { core, instances, send, ui } = ctx;
     if (!instances.length) {

@@ -139,6 +139,7 @@ class QbittorrentClient extends BaseClient {
         indexer: null,
         category: torrent.category || null,
         speed: torrent.dlspeed > 0 ? BaseClient.humanSpeed(torrent.dlspeed) : null,
+        speedBps: torrent.dlspeed > 0 ? torrent.dlspeed : null,
         seeds: typeof torrent.num_seeds === 'number' ? `${torrent.num_seeds}/${torrent.num_leechs ?? 0}` : null,
         warnings: torrent.state === 'missingFiles' ? ['Files are missing on disk'] : [],
         raw: torrent

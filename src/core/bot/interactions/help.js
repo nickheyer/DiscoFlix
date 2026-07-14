@@ -1,10 +1,18 @@
 const ui = require('./ui');
 
 // COMMAND LIST BUILT OFF THE LIVE REGISTRY - ANYTHING SERVED SHOWS UP, IN
-// BOTH ITS SLASH AND PREFIX FORMS
-async function buildHelpPayload(core, config) {
+// BOTH ITS SLASH AND PREFIX FORMS. WITH AN INVOCATION ON HAND THE LIST IS
+// GRANT-FILTERED TO WHAT THAT USER MAY ACTUALLY USE.
+async function buildHelpPayload(core, config, invocation = null) {
   const { availableDefs } = require('./index');
-  const defs = await availableDefs(core);
+  const features = require('./features');
+  let defs = await availableDefs(core);
+  if (invocation) {
+    const gates = await Promise.all(defs.map(def =>
+      def.feature ? features.resolveFeature(core, def.feature.id, invocation) : { allowed: true }
+    ));
+    defs = defs.filter((_, i) => gates[i].allowed);
+  }
   const prefix = config.prefix_keyword;
 
   const lines = defs
@@ -30,9 +38,18 @@ module.exports = {
   options: [],
   aliases: ['help', 'commands'],
   ephemeral: true,
+  feature: {
+    id: 'help',
+    label: 'Help',
+    description: 'List the bot\'s commands with /help',
+    group: 'core',
+    defaultEnabled: true,
+    defaultAudience: 'everyone',
+    extents: []
+  },
   async available() { return true; },
   async run(ctx) {
-    await ctx.send(await buildHelpPayload(ctx.core, ctx.config));
+    await ctx.send(await buildHelpPayload(ctx.core, ctx.config, ctx));
   },
   buildHelpPayload
 };

@@ -5,10 +5,13 @@ const { requestInteractionFor } = require('./request');
 const statusInteraction = require('./status');
 const helpInteraction = require('./help');
 const { memberRoleTokens, roleGrantsFor } = require('./access');
+const features = require('./features');
 
 // THE INTERACTION REGISTRY - EVERY BOT FEATURE (BUILT-IN OR APP-CONTRIBUTED)
-// IS ONE DEF: { id, slash, options, aliases, ephemeral, available, run }.
-// MANIFESTS EXTEND THE BOT BY DECLARING `interactions` - ZERO CORE EDITS.
+// IS ONE DEF: { id, slash, options, aliases, ephemeral, available, run,
+// feature }. MANIFESTS EXTEND THE BOT BY DECLARING `interactions` - ZERO
+// CORE EDITS. THE `feature` DESCRIPTOR PUTS THE DEF ON THE DISCORD BOT TAB'S
+// MATRIX AND GATES IT AT DISPATCH (SEE features.js).
 
 // SERVING = ENABLED + FULLY CONFIGURED, DEFAULT-FIRST LIKE CONTENT ROUTING
 async function servingInstancesFor(core, appTypes) {
@@ -125,6 +128,31 @@ async function buildInvocation(core, config, base) {
   return { core, config, dbUser, roleTokens, ui, ...base };
 }
 
+// THE CENTRAL RBAC GATE - EVERY FEATURED DEF PASSES THROUGH resolveFeature
+// BEFORE run(). RETURNS null WHEN ALLOWED (THE GATE RIDES invocation.feature
+// SO THE FLOW CAN READ ITS EXTENTS), OTHERWISE THE DENIAL PAYLOAD TO SEND.
+// SLASH COMMANDS STAY REGISTERED EVEN WHEN DENIED-FOR-EVERYONE - A CLEAR
+// DENIAL AT DISPATCH BEATS COMMANDS THAT SILENTLY VANISH PER GRANT CHANGE.
+async function gateInvocation(invocation, def) {
+  if (!def.feature) return null;
+  const gate = await features.resolveFeature(invocation.core, def.feature.id, invocation);
+  invocation.feature = gate;
+  if (gate.allowed) return null;
+
+  // A DENIED AUDIENCE ON AN ASK-CAPABLE FEATURE RAISES A HAND THE CONSOLE'S
+  // USERS SECTION CAN SEE - FIRST DENIAL FLAGS, REPEATS POINT AT THE ASK
+  if (gate.reason === 'audience' && def.feature.accessAskOnDeny) {
+    const isNewAsk = await invocation.core.models.user.flagAccessRequest(invocation.dbUser.id);
+    return ui.notice(
+      isNewAsk
+        ? 'Requests are limited to approved members here - the admins have been flagged that you\'d like access.'
+        : 'Requests are limited to approved members here - your access ask is still waiting on an admin.',
+      { accent: 'danger' }
+    );
+  }
+  return ui.notice(gate.denialMessage, { accent: 'danger' });
+}
+
 async function dispatchSlash(core, interaction) {
   if (!interaction.isChatInputCommand()) return;
   const def = allDefs().find(candidate => candidate.slash?.name === interaction.commandName);
@@ -161,6 +189,11 @@ async function dispatchSlash(core, interaction) {
       options,
       send
     });
+    const denial = await gateInvocation(invocation, def);
+    if (denial) {
+      await send(denial);
+      return;
+    }
     await def.run(invocation);
   } catch (err) {
     core.logger.error(`Slash command '${interaction.commandName}' failed:`, err);
@@ -173,11 +206,6 @@ async function dispatchPrefix(core, message) {
   const parsed = parsePrefix(message.content, config.prefix_keyword);
   if (!parsed) return false;
 
-  if (parsed.help) {
-    await message.channel.send(await helpInteraction.buildHelpPayload(core, config));
-    return true;
-  }
-
   const invocation = await buildInvocation(core, config, {
     source: 'prefix',
     discordUser: message.author,
@@ -186,9 +214,22 @@ async function dispatchPrefix(core, message) {
     channel: message.channel,
     messageId: message.id,
     origContent: message.content,
-    options: parsed.options,
+    options: parsed.help ? {} : parsed.options,
     send: (payload) => message.channel.send(payload)
   });
+
+  // BARE PREFIX / UNKNOWN KEYWORD - HELP, GRANT-FILTERED TO WHAT THIS USER
+  // MAY ACTUALLY USE (THE INVOCATION CARRIES THE AUDIENCE CONTEXT)
+  if (parsed.help) {
+    await message.channel.send(await helpInteraction.buildHelpPayload(core, config, invocation));
+    return true;
+  }
+
+  const denial = await gateInvocation(invocation, parsed.def);
+  if (denial) {
+    await message.channel.send(denial);
+    return true;
+  }
   await parsed.def.run(invocation);
   return true;
 }

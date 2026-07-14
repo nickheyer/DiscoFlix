@@ -47,7 +47,8 @@ class SabnzbdClient extends BaseClient {
     const queue = data.queue || {};
     const slots = queue.slots || [];
     // SAB REPORTS ONE GLOBAL RATE - PIN IT ON WHATEVER IS ACTUALLY DOWNLOADING
-    const speed = BaseClient.humanSpeed(Number(queue.kbpersec) * 1024);
+    const speedBps = Number(queue.kbpersec) * 1024;
+    const speed = BaseClient.humanSpeed(speedBps);
     return slots.map(slot => {
       const size = mbToBytes(slot.mb);
       const sizeleft = mbToBytes(slot.mbleft);
@@ -69,11 +70,17 @@ class SabnzbdClient extends BaseClient {
         indexer: null,
         category: slot.cat && slot.cat !== '*' ? slot.cat : null,
         speed: downloading ? speed : null,
+        speedBps: downloading && speedBps > 0 ? speedBps : null,
         seeds: null,
         warnings: [],
         raw: slot
       };
     });
+  }
+
+  // THE GLOBAL RATE RIDES EVERY DOWNLOADING ROW - max() READS IT BACK ONCE
+  aggregateQueueSpeed(rows) {
+    return Math.max(0, ...(rows || []).map(row => Number(row.speedBps) || 0));
   }
 
   // NORMALIZED FEED ROWS (SEE baseClient CONTRACT) - SAB PAGES VIA start/limit

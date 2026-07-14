@@ -77,6 +77,7 @@ class SonarrClient extends ArrClient {
       overview: raw.overview || '',
       posterUrl: this.absolutePosterFrom(raw.images),
       available: (stats.episodeFileCount || 0) > 0,
+      monitored: !!raw.monitored,
       kind: 'show',
       path: raw.path || null,
       externalIds

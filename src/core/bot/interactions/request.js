@@ -1,13 +1,130 @@
 const { ButtonBuilder, ButtonStyle, StringSelectMenuBuilder } = require('discord.js');
 const ui = require('./ui');
-const { checkRequestAllowance, checkSeasonLimit, effectiveMaxResults, isAdmin } = require('./limits');
-const { checkWhitelist } = require('./access');
+const { countRequestsSince } = require('./limits');
+const { resolveForCtx } = require('./features');
 
 // DISCORD SELECT MENUS CAP AT 25 OPTIONS - "ALL" TAKES ONE SLOT
 const MAX_LISTED_SEASONS = 24;
+const MAX_DETAIL_FACTS = 8;
+const MAX_DETAIL_SEASON_ROWS = 12;
+// COLLECTOR LIFETIME: selection_timeout IS AN IDLE TIMER (EACH CLICK RESETS
+// IT - MULTI-STEP PICKS MUST NOT DIE MID-FLOW), THE HARD CAP ENDS IMMORTAL
+// SESSIONS
+const COLLECTOR_HARD_CAP_MS = 15 * 60 * 1000;
+
+// ── FEATURE DESCRIPTORS ──────────────────────────────────────────────────
+
+// ONE FEATURE PER CONTENT TYPE (request.movie / request.show / request.music)
+// - THE MATRIX ROW EVERY GATE AND EXTENT FOR THAT COMMAND HANGS OFF.
+// EVERYWHERE IN EXTENTS, 0 MEANS UNLIMITED.
+function featureFor(contentDef) {
+  const extents = [
+    { key: 'max_results', label: 'Max results', type: 'number', min: 0, default: 0, userOverride: 'max_results' }
+  ];
+  if (contentDef.type === 'show') {
+    extents.push({ key: 'max_seasons', label: 'Max seasons', type: 'number', min: 0, default: 0, userOverride: 'max_seasons_for_non_admin', adminExempt: true });
+  }
+  extents.push(
+    { key: 'max_requests_per_day', label: 'Daily request cap', type: 'number', min: 0, default: 0, userOverride: 'max_requests_in_day', adminExempt: true },
+    { key: 'selection_timeout', label: 'Selection timeout (s)', type: 'number', min: 30, max: 3600, default: 60 },
+    { key: 'max_check_time', label: 'Watch duration (s)', type: 'number', min: 60, max: 3600, default: 600 }
+  );
+  return {
+    id: `request.${contentDef.type}`,
+    label: `Request ${contentDef.label}s`,
+    description: `Search for and request ${contentDef.label}s with /${contentDef.slash.name}`,
+    group: 'requests',
+    defaultEnabled: true,
+    defaultAudience: 'everyone',
+    // A DENIED AUDIENCE RAISES A HAND THE CONSOLE'S USERS SECTION CAN SEE
+    accessAskOnDeny: true,
+    extents: extents
+  };
+}
+
+// GRANTABLE REQUEST-CARD CAPABILITIES - NO SLASH COMMANDS OF THEIR OWN, THE
+// FLOW RESOLVES THEM PER USER AT START AND THE CARD DEGRADES GRACEFULLY
+const REQUEST_CAPABILITIES = [
+  {
+    id: 'request.trailers',
+    label: 'Trailer links',
+    description: 'Show a trailer link on request cards',
+    group: 'requests',
+    providers: ['discoflix'],
+    defaultEnabled: true,
+    defaultAudience: 'everyone',
+    extents: []
+  },
+  {
+    id: 'request.details',
+    label: 'Details view',
+    description: 'The "More info" button - ratings, facts, season stats, and external links',
+    group: 'requests',
+    providers: ['discoflix'],
+    defaultEnabled: true,
+    defaultAudience: 'everyone',
+    extents: []
+  },
+  {
+    id: 'request.fanart',
+    label: 'Fanart backdrop',
+    description: 'Show the wide fanart banner on the details view',
+    group: 'requests',
+    providers: ['discoflix'],
+    defaultEnabled: true,
+    defaultAudience: 'everyone',
+    extents: []
+  },
+  {
+    id: 'request.availability',
+    label: 'Availability badges',
+    description: 'Badge every result that is already streamable, in the library, or pending',
+    group: 'requests',
+    providers: ['discoflix'],
+    defaultEnabled: true,
+    defaultAudience: 'everyone',
+    extents: []
+  },
+  {
+    id: 'request.quality-picker',
+    label: 'Quality & folder picker',
+    description: 'Pick the quality profile and root folder before the request is sent',
+    group: 'requests',
+    providers: ['discoflix'],
+    defaultEnabled: true,
+    defaultAudience: 'staff',
+    extents: []
+  },
+  {
+    id: 'request.auto-approve',
+    label: 'Auto-approve requests',
+    description: 'Requests skip the approval queue and go straight to the app',
+    group: 'requests',
+    providers: ['discoflix'],
+    defaultEnabled: true,
+    defaultAudience: 'staff',
+    extents: []
+  }
+];
+
+// ── CARD PIECES ──────────────────────────────────────────────────────────
 
 function displayTitle(result) {
   return result.year ? `${result.title} (${result.year})` : result.title;
+}
+
+// LOOKUP DETAIL IS PURE CPU OVER THE RAW ALREADY IN MEMORY - MEMOIZED PER
+// RESULT SO PAGING NEVER RE-NORMALIZES
+function detailOf(flow, index) {
+  if (!(index in flow.details)) {
+    try {
+      flow.details[index] = flow.client.normalizeLookupDetail(flow.results[index].raw);
+    } catch (err) {
+      flow.core.logger.debug(`Lookup detail normalize failed: ${err.message}`);
+      flow.details[index] = null;
+    }
+  }
+  return flow.details[index];
 }
 
 // THE PER-TYPE FACT STRIP UNDER THE OVERVIEW
@@ -30,46 +147,64 @@ function metaEntriesOf(result) {
   return entries;
 }
 
-// TITLE + OVERVIEW + FACTS WITH THE POSTER RIDING THE RIGHT EDGE
-function resultParts(flow, index) {
-  const result = flow.results[index];
-  const lines = [`### ${displayTitle(result)}`];
-  if (result.overview) lines.push(ui.truncate(result.overview, 350));
-  if (flow.config.is_trailers_enabled && result.trailerUrl) {
-    lines.push(`[Watch the trailer](${result.trailerUrl})`);
+// AVAILABILITY BADGE + RATING CHIPS ON ONE LINE - THE CARD'S SECOND LINE
+function badgeLineOf(flow, index) {
+  const entries = [];
+  const badge = flow.badges?.[index];
+  if (badge) entries.push(`**${badge}**`);
+  const detail = detailOf(flow, index);
+  for (const rating of detail?.ratings || []) {
+    entries.push(`${rating.label} ${rating.value}`);
   }
-
-  const parts = [];
-  if (result.posterUrl) parts.push(ui.section(lines, result.posterUrl));
-  else parts.push(...lines.map(line => ui.text(line)));
-
-  const meta = metaEntriesOf(result);
-  if (meta.length) parts.push(ui.text(`-# ${meta.join(' • ')}`));
-  return parts;
+  return entries.length ? entries.join(' • ') : null;
 }
 
-function footerOf(flow, index) {
-  return ui.text(`-# Result ${index + 1} of ${flow.results.length} • Requested by ${flow.requesterName}`);
+// GENRES/CERTIFICATION/STATUS RIDE THE SMALL META LINE WITH THE TYPE FACTS
+function metaLineOf(flow, index) {
+  const result = flow.results[index];
+  const detail = detailOf(flow, index);
+  const entries = [];
+  const genres = (detail?.genres || []).slice(0, 3).join(', ');
+  if (genres) entries.push(genres);
+  if (detail?.certification) entries.push(detail.certification);
+  if (detail?.status) entries.push(detail.status);
+  entries.push(...metaEntriesOf(result));
+  return entries.length ? entries.join(' • ') : null;
 }
 
-function buttonRow(index, total) {
-  return ui.row(
-    new ButtonBuilder().setCustomId('df-prev').setLabel('Prev').setStyle(ButtonStyle.Secondary).setDisabled(index === 0),
-    new ButtonBuilder().setCustomId('df-next').setLabel('Next').setStyle(ButtonStyle.Secondary).setDisabled(index >= total - 1),
+function footerOf(flow) {
+  return ui.text(`-# Result ${flow.index + 1} of ${flow.results.length} • Requested by ${flow.requesterName}`);
+}
+
+function browseButtons(flow) {
+  const buttons = [
+    new ButtonBuilder().setCustomId('df-prev').setLabel('Prev').setStyle(ButtonStyle.Secondary).setDisabled(flow.index === 0),
+    new ButtonBuilder().setCustomId('df-next').setLabel('Next').setStyle(ButtonStyle.Secondary).setDisabled(flow.index >= flow.results.length - 1)
+  ];
+  if (flow.features.details) {
+    buttons.push(new ButtonBuilder().setCustomId('df-details').setLabel('More Info').setStyle(ButtonStyle.Secondary));
+  }
+  buttons.push(
     new ButtonBuilder().setCustomId('df-select').setLabel('Request This').setStyle(ButtonStyle.Success),
     new ButtonBuilder().setCustomId('df-cancel').setLabel('Cancel').setStyle(ButtonStyle.Danger)
   );
+  return ui.row(...buttons);
 }
 
 // JUMP-TO-RESULT SELECT - EVERY RESULT IS ONE PICK AWAY INSTEAD OF A BUTTON
-// WALK. DISCORD CAPS OPTIONS AT 25; RESULTS ARE ALREADY CAPPED BY max_results.
-function jumpSelect(flow, index) {
-  const options = flow.results.slice(0, 25).map((result, i) => ({
-    label: ui.truncate(displayTitle(result), 100),
-    description: ui.truncate(result.overview || '', 100) || undefined,
-    value: String(i),
-    default: i === index
-  }));
+// WALK. DISCORD CAPS OPTIONS AT 25; RESULTS ARE ALREADY CAPPED BY max_results
+// BUT THE SLICE STAYS AS A HARD GUARD.
+function jumpSelect(flow) {
+  const options = flow.results.slice(0, 25).map((result, i) => {
+    const badge = flow.badges?.[i];
+    const description = [badge, result.overview].filter(Boolean).join(' - ');
+    return {
+      label: ui.truncate(displayTitle(result), 100),
+      description: ui.truncate(description, 100) || undefined,
+      value: String(i),
+      default: i === flow.index
+    };
+  });
   return ui.row(
     new StringSelectMenuBuilder()
       .setCustomId('df-pick')
@@ -78,11 +213,94 @@ function jumpSelect(flow, index) {
   );
 }
 
-function browsePayload(flow, index) {
-  const parts = [...resultParts(flow, index), ui.separator()];
-  if (flow.results.length > 1) parts.push(jumpSelect(flow, index));
-  parts.push(buttonRow(index, flow.results.length));
-  parts.push(footerOf(flow, index));
+// THE BROWSE CARD - LARGE POSTER (SINGLE-ITEM GALLERY RENDERS BIG AND
+// ASPECT-TRUE), BADGES + RATING CHIPS, OVERVIEW, META STRIP, CONTROLS
+function browsePayload(flow) {
+  const result = flow.results[flow.index];
+  const parts = [];
+  if (result.posterUrl) parts.push(ui.gallery([result.posterUrl]));
+  parts.push(ui.text(`### ${displayTitle(result)}`));
+  const badgeLine = badgeLineOf(flow, flow.index);
+  if (badgeLine) parts.push(ui.text(badgeLine));
+  if (result.overview) parts.push(ui.text(ui.truncate(result.overview, 350)));
+  // WITH NO DETAILS VIEW TO HOLD IT, THE TRAILER LINK STAYS INLINE
+  if (!flow.features.details && flow.features.trailers && result.trailerUrl) {
+    parts.push(ui.text(`[Watch the trailer](${result.trailerUrl})`));
+  }
+  const meta = metaLineOf(flow, flow.index);
+  if (meta) parts.push(ui.text(`-# ${meta}`));
+  parts.push(ui.separator());
+  if (flow.results.length > 1) parts.push(jumpSelect(flow));
+  parts.push(browseButtons(flow));
+  parts.push(footerOf(flow));
+  return ui.payload(ui.container(parts));
+}
+
+// IN-LIBRARY SHOWS RENDER REAL PER-SEASON STATS (FETCHED LAZILY ON ENTRY);
+// LOOKUP-ONLY SHOWS GET THE HONEST ONE-LINER - LOOKUPS CARRY NO SEASON STATS
+function seasonBlockOf(flow, index) {
+  const result = flow.results[index];
+  if (result.contentType !== 'show') return null;
+  const library = flow.libraryDetails[index];
+  if (library?.seasons?.length) {
+    const rows = library.seasons.slice(0, MAX_DETAIL_SEASON_ROWS).map(season => {
+      const total = season.totalEpisodeCount || season.episodeCount || 0;
+      const size = season.size ? ` • ${season.size}` : '';
+      return `${season.label} - ${season.episodeFileCount}/${total} episodes${size}`;
+    });
+    const more = library.seasons.length > MAX_DETAIL_SEASON_ROWS
+      ? `\n-# ...and ${library.seasons.length - MAX_DETAIL_SEASON_ROWS} more`
+      : '';
+    return `**Seasons**\n${rows.join('\n')}${more}`;
+  }
+  return result.seasonCount ? `**Seasons** ${result.seasonCount}` : null;
+}
+
+function detailLinksOf(flow, index) {
+  const result = flow.results[index];
+  const detail = detailOf(flow, index);
+  const links = [...(detail?.links || [])];
+  if (flow.features.trailers && result.trailerUrl && !links.some(link => link.label === 'Trailer')) {
+    links.push({ label: 'Trailer', url: result.trailerUrl });
+  }
+  return links;
+}
+
+// THE DETAILS VIEW - FANART BANNER, POSTER-THUMBED HEADLINE, LONG OVERVIEW,
+// FACT BLOCK, SEASON STATS, AND LINK-OUT BUTTONS
+function detailsPayload(flow) {
+  const result = flow.results[flow.index];
+  const detail = detailOf(flow, flow.index);
+  const parts = [];
+  if (flow.features.fanart && detail?.fanartUrl) parts.push(ui.gallery([detail.fanartUrl]));
+
+  const headLines = [`### ${displayTitle(result)}`];
+  const badgeLine = badgeLineOf(flow, flow.index);
+  if (badgeLine) headLines.push(badgeLine);
+  const sub = [
+    (detail?.genres || []).slice(0, 3).join(', '),
+    detail?.certification,
+    detail?.runtime
+  ].filter(Boolean).join(' • ');
+  if (sub) headLines.push(`-# ${sub}`);
+  if (result.posterUrl) parts.push(ui.section(headLines, result.posterUrl));
+  else parts.push(...headLines.map(line => ui.text(line)));
+
+  if (result.overview) parts.push(ui.text(ui.truncate(result.overview, 1000)));
+  const facts = ui.factLines(detail?.facts, { max: MAX_DETAIL_FACTS });
+  if (facts.length) parts.push(ui.text(facts.join('\n')));
+  const seasonBlock = seasonBlockOf(flow, flow.index);
+  if (seasonBlock) parts.push(ui.text(seasonBlock));
+
+  parts.push(ui.separator());
+  const linkRow = ui.linkButtonRow(detailLinksOf(flow, flow.index));
+  if (linkRow) parts.push(linkRow);
+  parts.push(ui.row(
+    new ButtonBuilder().setCustomId('df-back').setLabel('Back').setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder().setCustomId('df-select').setLabel('Request This').setStyle(ButtonStyle.Success),
+    new ButtonBuilder().setCustomId('df-cancel').setLabel('Cancel').setStyle(ButtonStyle.Danger)
+  ));
+  parts.push(footerOf(flow));
   return ui.payload(ui.container(parts));
 }
 
@@ -91,8 +309,8 @@ function needsSeasonPick(result) {
   return result.contentType === 'show' && (result.seasonCount || 0) > 1;
 }
 
-function seasonPayload(flow, index) {
-  const result = flow.results[index];
+function seasonPayload(flow) {
+  const result = flow.results[flow.index];
   const listed = Math.min(result.seasonCount, MAX_LISTED_SEASONS);
   const options = [{
     label: 'All seasons',
@@ -110,20 +328,128 @@ function seasonPayload(flow, index) {
     .setMaxValues(options.length)
     .addOptions(options);
 
-  const parts = [
-    ...resultParts(flow, index),
+  const parts = [];
+  if (result.posterUrl) parts.push(ui.gallery([result.posterUrl]));
+  parts.push(ui.text(`### ${displayTitle(result)}`));
+  const badgeLine = badgeLineOf(flow, flow.index);
+  if (badgeLine) parts.push(ui.text(badgeLine));
+  parts.push(
     ui.separator(),
     ui.row(select),
     ui.row(
       new ButtonBuilder().setCustomId('df-back').setLabel('Back').setStyle(ButtonStyle.Secondary),
       new ButtonBuilder().setCustomId('df-cancel').setLabel('Cancel').setStyle(ButtonStyle.Danger)
     ),
-    footerOf(flow, index)
-  ];
+    footerOf(flow)
+  );
   return ui.payload(ui.container(parts));
 }
 
-// OUTCOME CARD - THE HEADLINE KEEPS THE POSTER SO THE CHANNEL READS AT A GLANCE
+// ── OPTIONS (QUALITY/ROOT PICKER) ────────────────────────────────────────
+
+// SERVER OPTION LISTS FETCHED ONCE PER FLOW, ONLY WHEN THE PICKER IS ENTERED
+async function loadAddOptions(flow) {
+  if (flow.addOptions) return flow.addOptions;
+  flow.addOptions = await flow.client.getAddOptions();
+  return flow.addOptions;
+}
+
+function pickedQualityId(flow) {
+  const profiles = flow.addOptions?.profiles || [];
+  if (flow.picks.qualityProfileId && profiles.some(profile => profile.id === flow.picks.qualityProfileId)) {
+    return flow.picks.qualityProfileId;
+  }
+  const wanted = Number(flow.client.instanceSettings.quality_profile);
+  return profiles.find(profile => profile.id === wanted)?.id ?? profiles[0]?.id ?? null;
+}
+
+function pickedRootPath(flow) {
+  const roots = flow.addOptions?.rootFolders || [];
+  if (flow.picks.rootFolderPath && roots.some(root => root.path === flow.picks.rootFolderPath)) {
+    return flow.picks.rootFolderPath;
+  }
+  const wanted = flow.client.instanceSettings.root_folder;
+  return roots.find(root => root.path === wanted)?.path ?? roots[0]?.path ?? null;
+}
+
+function pickedMetadataId(flow) {
+  const profiles = flow.addOptions?.metadataProfiles || [];
+  if (!profiles.length) return null;
+  if (flow.picks.metadataProfileId && profiles.some(profile => profile.id === flow.picks.metadataProfileId)) {
+    return flow.picks.metadataProfileId;
+  }
+  const wanted = Number(flow.client.instanceSettings.metadata_profile);
+  return profiles.find(profile => profile.id === wanted)?.id ?? profiles[0]?.id ?? null;
+}
+
+// ONE CARD IS BOTH PICKER AND CONFIRM STEP - SELECTS DEFAULT TO THE INSTANCE
+// SETTINGS SO "JUST HIT CONFIRM" EQUALS TODAY'S AUTOMATIC BEHAVIOR
+function optionsPayload(flow) {
+  const result = flow.results[flow.index];
+  const lines = [`### Requesting: ${displayTitle(result)}`];
+  if (flow.seasons) lines.push(`-# Season${flow.seasons.length === 1 ? '' : 's'} ${flow.seasons.join(', ')}`);
+  lines.push(`-# Sends to ${flow.instance.display_name}`);
+
+  const parts = [];
+  if (result.posterUrl) parts.push(ui.section(lines, result.posterUrl));
+  else parts.push(...lines.map(line => ui.text(line)));
+  parts.push(ui.separator());
+
+  const qualityId = pickedQualityId(flow);
+  parts.push(ui.row(new StringSelectMenuBuilder()
+    .setCustomId('df-quality')
+    .setPlaceholder('Quality profile')
+    .addOptions((flow.addOptions.profiles || []).slice(0, 25).map(profile => ({
+      label: ui.truncate(profile.name, 100),
+      value: String(profile.id),
+      default: profile.id === qualityId
+    })))));
+
+  const rootPath = pickedRootPath(flow);
+  parts.push(ui.row(new StringSelectMenuBuilder()
+    .setCustomId('df-root')
+    .setPlaceholder('Root folder')
+    .addOptions((flow.addOptions.rootFolders || []).slice(0, 25).map(root => ({
+      label: ui.truncate(root.path, 100),
+      description: root.freeSpace ? `${flow.client.constructor.humanSize(root.freeSpace)} free` : undefined,
+      value: root.path,
+      default: root.path === rootPath
+    })))));
+
+  if (flow.addOptions.metadataProfiles?.length) {
+    const metadataId = pickedMetadataId(flow);
+    parts.push(ui.row(new StringSelectMenuBuilder()
+      .setCustomId('df-metadata')
+      .setPlaceholder('Metadata profile')
+      .addOptions(flow.addOptions.metadataProfiles.slice(0, 25).map(profile => ({
+        label: ui.truncate(profile.name, 100),
+        value: String(profile.id),
+        default: profile.id === metadataId
+      })))));
+  }
+
+  parts.push(ui.row(
+    new ButtonBuilder().setCustomId('df-confirm').setLabel('Confirm Request').setStyle(ButtonStyle.Success),
+    new ButtonBuilder().setCustomId('df-back').setLabel('Back').setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder().setCustomId('df-cancel').setLabel('Cancel').setStyle(ButtonStyle.Danger)
+  ));
+  parts.push(ui.text('-# Leave the selects as-is to use the server defaults'));
+  return ui.payload(ui.container(parts));
+}
+
+// ONE DISPATCHER MAPS VIEW STATE -> PAYLOAD; EVERY COLLECTOR CASE MUTATES
+// flow AND RE-RENDERS THROUGH IT
+function renderView(flow) {
+  switch (flow.view) {
+    case 'details': return detailsPayload(flow);
+    case 'seasons': return seasonPayload(flow);
+    case 'options': return optionsPayload(flow);
+    default: return browsePayload(flow);
+  }
+}
+
+// OUTCOME CARD - THE HEADLINE KEEPS THE POSTER THUMB SO THE CHANNEL READS AT
+// A GLANCE (RECEIPTS STAY COMPACT - THE BROWSE CARD WAS THE SIZE PROBLEM)
 function outcomeCard(result, headline, accent, subtext = null) {
   const parts = [];
   if (result.posterUrl) parts.push(ui.section([headline], result.posterUrl));
@@ -139,25 +465,37 @@ function parseSeasonValues(values) {
   return picked.length ? picked : null;
 }
 
-// USER PICKS RESULT (+ SEASONS FOR SHOWS) -> VALIDATE -> ADD -> RECORD
-// MEDIA/MEDIA-REQUEST -> HAND TO QUEUE. seasons null = ALL / NOT A SHOW.
-async function handleSelection(interaction, result, flow, seasons = null) {
+// ── FULFILLMENT ──────────────────────────────────────────────────────────
+
+// VALIDATE -> ADD -> RECORD MEDIA/MEDIA-REQUEST -> HAND TO QUEUE WATCH.
+// flow.seasons null = ALL / NOT A SHOW; flow.picks CARRIES QUALITY/ROOT
+// OVERRIDES WHEN THE PICKER RAN (EMPTY = INSTANCE DEFAULTS, TODAY'S PATH).
+async function finalizeSelection(interaction, flow) {
   const { core, config, dbUser, client, instance } = flow;
+  const result = flow.results[flow.index];
+  const seasons = flow.seasons;
   const name = displayTitle(result);
+  // A DEFERRED INTERACTION (FAILED OPTIONS FETCH) MUST EDIT, NOT UPDATE
+  const redraw = (payload) => interaction.deferred ? interaction.editReply(payload) : interaction.update(payload);
 
   // THE PICKED COUNT IS WHAT LIMITS APPLY TO - PICKING FEWER SEASONS IS THE
-  // WAY UNDER THE CAP FOR BIG SHOWS
+  // WAY UNDER THE CAP FOR BIG SHOWS. staff+ ARE EXEMPT (THE RESOLVER ZEROES
+  // THE EXTENT FOR THEM).
+  const seasonLimit = Number(flow.extents.max_seasons) || 0;
   const effectiveSeasonCount = seasons ? seasons.length : (result.seasonCount || 0);
-  const seasonDenial = checkSeasonLimit(config, dbUser, effectiveSeasonCount);
-  if (seasonDenial) {
-    await interaction.update(ui.notice(seasonDenial, { accent: 'danger' }));
+  if (seasonLimit > 0 && effectiveSeasonCount > seasonLimit) {
+    await redraw(ui.notice(
+      `That show has ${effectiveSeasonCount} seasons - you can only request shows with up to ${seasonLimit}.`,
+      { accent: 'danger' }
+    ));
     return;
   }
 
-  await interaction.update(ui.notice(`Working on **${name}**...`));
+  await redraw(ui.notice(`Working on **${name}**...`));
 
   // ALREADY STREAMABLE? A CONNECTED MEDIA SERVER ANSWERS BEFORE ANYTHING IS
-  // REQUESTED - GUARDED, A DEAD SERVER MUST NEVER BLOCK THE FLOW
+  // REQUESTED - GUARDED, A DEAD SERVER MUST NEVER BLOCK THE FLOW. BADGES ARE
+  // ADVISORY; THIS CHECK STAYS AUTHORITATIVE.
   try {
     const streaming = await core.apps.findOnMediaServers(result);
     if (streaming) {
@@ -190,9 +528,10 @@ async function handleSelection(interaction, result, flow, seasons = null) {
 
   const seasonNote = seasons ? ` (season${seasons.length === 1 ? '' : 's'} ${seasons.join(', ')})` : '';
 
-  // ADMIN/STAFF REQUESTS GO STRAIGHT TO THE APP
-  if (isAdmin(dbUser)) {
-    const added = await client.add(result, { seasons });
+  // AUTO-APPROVED REQUESTS GO STRAIGHT TO THE APP (staff+ BY DEFAULT, BUT
+  // THE MATRIX CAN GRANT IT TO ANY AUDIENCE OR ROLE)
+  if (flow.features.autoApprove) {
+    const added = await client.add(result, { seasons, ...flow.picks });
     const media = await core.models.media.upsertFromResult(result, added);
     const request = await createRequestRow(core, flow, media, true, added.id, seasons);
 
@@ -203,15 +542,20 @@ async function handleSelection(interaction, result, flow, seasons = null) {
       mediaId: media.id,
       title: name,
       channelId: flow.channel.id,
-      requesterIds: [dbUser.id]
+      requesterIds: [dbUser.id],
+      featureId: `request.${flow.contentType}`,
+      serverId: flow.guildId
     });
 
+    const pickNote = flow.picks.qualityProfileId || flow.picks.rootFolderPath
+      ? pickSummaryOf(flow)
+      : null;
     core.logger.info(`Media request created: ${name}${seasonNote} (${instance.display_name}) by ${dbUser.username}`);
     await flow.channel.send(outcomeCard(
       result,
       `**${name}**${seasonNote} has been requested.`,
       'ok',
-      `Sent to ${instance.display_name} • Updates will land here as it downloads`
+      [`Sent to ${instance.display_name}`, pickNote, 'Updates will land here as it downloads'].filter(Boolean).join(' • ')
     ));
   } else {
     const media = await core.models.media.upsertFromResult(result);
@@ -225,6 +569,14 @@ async function handleSelection(interaction, result, flow, seasons = null) {
     ));
   }
   core.discord.refreshUI().catch(() => {}); // UPDATE CHAT-MIRROR CHIPS
+}
+
+function pickSummaryOf(flow) {
+  const parts = [];
+  const profile = (flow.addOptions?.profiles || []).find(p => p.id === flow.picks.qualityProfileId);
+  if (profile) parts.push(`Quality: ${profile.name}`);
+  if (flow.picks.rootFolderPath) parts.push(`Root: ${flow.picks.rootFolderPath}`);
+  return parts.join(' • ') || null;
 }
 
 async function createRequestRow(core, flow, media, status, arrId = null, seasons = null) {
@@ -246,10 +598,36 @@ async function createRequestRow(core, flow, media, status, arrId = null, seasons
   });
 }
 
-// THE FLOW BODY SHARED BY PREFIX AND SLASH - THE DISPATCHER ALREADY RESOLVED
-// dbUser (PROFILE SYNC + ROLE GRANTS), SO ONLY THE REQUEST GATES RUN HERE
+// ── THE FLOW BODY ────────────────────────────────────────────────────────
+
+// SELECTION ROUTING: SEASON PICK (SHOWS) -> QUALITY/ROOT PICKER (WHEN
+// GRANTED) -> FINALIZE. THE PICKER'S OPTION LISTS ARE LIVE HTTP, SO ENTRY
+// DEFERS FIRST AND FALLS THROUGH TO DEFAULTS IF THE ARR WON'T ANSWER.
+async function nextAfterSelect(interaction, flow, collector) {
+  if (flow.features.qualityPicker) {
+    if (!flow.addOptions) {
+      await interaction.deferUpdate();
+      try {
+        await loadAddOptions(flow);
+      } catch (err) {
+        flow.core.logger.warn(`Add options fetch failed, using defaults: ${err.message}`);
+      }
+    }
+    if (flow.addOptions) {
+      flow.view = 'options';
+      if (interaction.deferred) await interaction.editReply(renderView(flow));
+      else await interaction.update(renderView(flow));
+      return;
+    }
+  }
+  collector.stop('handled');
+  await finalizeSelection(interaction, flow);
+}
+
+// THE FLOW BODY SHARED BY PREFIX AND SLASH - THE DISPATCHER ALREADY GATED
+// THE FEATURE (ctx.feature CARRIES ITS EXTENTS) AND RESOLVED dbUser
 async function runRequest(ctx, contentDef) {
-  const { core, config, dbUser, discordUser, roleTokens, send } = ctx;
+  const { core, config, dbUser, discordUser, send } = ctx;
   const label = contentDef.label;
   const title = ctx.options.title;
 
@@ -261,33 +639,38 @@ async function runRequest(ctx, contentDef) {
       return;
     }
     const client = core.apps.getClientForInstance(instance);
+    const extents = ctx.feature?.extents || {};
 
-    // A DENIED ASK RAISES A HAND THE CONSOLE'S USERS SECTION CAN SEE - THE
-    // FIRST DENIAL FLAGS, REPEATS JUST POINT AT THE PENDING ASK
-    if (checkWhitelist(config, dbUser, roleTokens)) {
-      const isNewAsk = await core.models.user.flagAccessRequest(dbUser.id);
-      await send(ui.notice(
-        isNewAsk
-          ? 'Requests are limited to approved members here - the admins have been flagged that you\'d like access.'
-          : 'Requests are limited to approved members here - your access ask is still waiting on an admin.',
-        { accent: 'danger' }
-      ));
-      return;
-    }
-
-    const denial = await checkRequestAllowance(core, dbUser);
-    if (denial) {
-      await send(ui.notice(denial, { accent: 'danger' }));
-      return;
+    // DAILY CAP - AN EXTENT NOW (staff+ EXEMPT VIA adminExempt)
+    const dailyLimit = Number(extents.max_requests_per_day) || 0;
+    if (dailyLimit > 0) {
+      const recentCount = await countRequestsSince(core, dbUser);
+      if (recentCount >= dailyLimit) {
+        await send(ui.notice(
+          `You've hit your limit of ${dailyLimit} request${dailyLimit === 1 ? '' : 's'} per day - try again later.`,
+          { accent: 'danger' }
+        ));
+        return;
+      }
     }
 
     let results = await client.search(title);
-    const maxResults = effectiveMaxResults(config, dbUser);
+    const maxResults = Number(extents.max_results) || 0;
     if (maxResults > 0) results = results.slice(0, maxResults);
     if (!results.length) {
       await send(ui.notice(`No ${label} results found for **${title}**.`, { accent: 'warn' }));
       return;
     }
+
+    // GRANTABLE CARD CAPABILITIES, RESOLVED ONCE PER FLOW
+    const [trailers, details, fanart, availability, qualityPicker, autoApprove] = await Promise.all([
+      resolveForCtx(ctx, 'request.trailers'),
+      resolveForCtx(ctx, 'request.details'),
+      resolveForCtx(ctx, 'request.fanart'),
+      resolveForCtx(ctx, 'request.availability'),
+      resolveForCtx(ctx, 'request.quality-picker'),
+      resolveForCtx(ctx, 'request.auto-approve')
+    ]);
 
     const flow = {
       core, config, dbUser, client, instance, results,
@@ -297,13 +680,44 @@ async function runRequest(ctx, contentDef) {
       guildId: ctx.guildId,
       channel: ctx.channel,
       origContent: ctx.origContent,
-      messageId: ctx.messageId || null
+      messageId: ctx.messageId || null,
+      extents,
+      features: {
+        trailers: trailers.allowed,
+        details: details.allowed,
+        fanart: fanart.allowed,
+        availability: availability.allowed,
+        qualityPicker: qualityPicker.allowed,
+        autoApprove: autoApprove.allowed
+      },
+      view: 'browse',
+      index: 0,
+      details: {},
+      libraryDetails: {},
+      badges: null,
+      addOptions: null,
+      seasons: null,
+      picks: {}
     };
 
-    let index = 0;
-    const message = await send(browsePayload(flow, index));
+    // AVAILABILITY BADGES - CACHE-BACKED AND RACED SO A COLD MEDIA-SERVER
+    // LIBRARY NEVER DELAYS FIRST PAINT; THE MEMOIZED RESULT LANDS ON THE
+    // NEXT RE-RENDER
+    if (flow.features.availability) {
+      const badgesPromise = core.apps.annotateAvailability(results, client)
+        .then(badges => { flow.badges = badges; return badges; })
+        .catch(err => {
+          core.logger.debug(`Availability badges skipped: ${err.message}`);
+          return null;
+        });
+      await Promise.race([badgesPromise, new Promise(resolve => setTimeout(resolve, 1500))]);
+    }
+
+    const selectionTimeout = Number(extents.selection_timeout) || 60;
+    const message = await send(renderView(flow));
     const collector = message.createMessageComponentCollector({
-      time: config.session_timeout * 1000
+      idle: selectionTimeout * 1000,
+      time: COLLECTOR_HARD_CAP_MS
     });
 
     collector.on('collect', async (interaction) => {
@@ -312,21 +726,53 @@ async function runRequest(ctx, contentDef) {
           await interaction.reply(ui.notice('This selection belongs to someone else - start your own request.', { accent: 'danger', ephemeral: true }));
           return;
         }
+        const result = flow.results[flow.index];
         switch (interaction.customId) {
           case 'df-prev':
-            index = Math.max(0, index - 1);
-            await interaction.update(browsePayload(flow, index));
+            flow.index = Math.max(0, flow.index - 1);
+            flow.view = 'browse';
+            await interaction.update(renderView(flow));
             break;
           case 'df-next':
-            index = Math.min(results.length - 1, index + 1);
-            await interaction.update(browsePayload(flow, index));
-            break;
-          case 'df-back':
-            await interaction.update(browsePayload(flow, index));
+            flow.index = Math.min(results.length - 1, flow.index + 1);
+            flow.view = 'browse';
+            await interaction.update(renderView(flow));
             break;
           case 'df-pick':
-            index = Math.max(0, Math.min(results.length - 1, Number(interaction.values[0]) || 0));
-            await interaction.update(browsePayload(flow, index));
+            flow.index = Math.max(0, Math.min(results.length - 1, Number(interaction.values[0]) || 0));
+            flow.view = 'browse';
+            await interaction.update(renderView(flow));
+            break;
+          case 'df-details': {
+            // DEFENSE IN DEPTH - THE BUTTON ONLY RENDERS WHEN GRANTED, BUT A
+            // STALE MESSAGE CAN STILL DELIVER THE CLICK
+            if (!flow.features.details) {
+              await interaction.reply(ui.notice("You don't have access to the details view here.", { accent: 'danger', ephemeral: true }));
+              break;
+            }
+            // IN-LIBRARY SHOWS FETCH REAL SEASON STATS - LIVE HTTP, SO DEFER
+            // FIRST (THE 3s ACK WINDOW IS SHORTER THAN A SLOW ARR)
+            if (result.contentType === 'show' && result.libraryId && !(flow.index in flow.libraryDetails)) {
+              await interaction.deferUpdate();
+              try {
+                flow.libraryDetails[flow.index] = await client.getLibraryItemDetail(result.libraryId);
+              } catch (err) {
+                core.logger.debug(`Library detail fetch failed: ${err.message}`);
+                flow.libraryDetails[flow.index] = null;
+              }
+              flow.view = 'details';
+              await interaction.editReply(renderView(flow));
+              break;
+            }
+            flow.view = 'details';
+            await interaction.update(renderView(flow));
+            break;
+          }
+          case 'df-back':
+            // VIEW-AWARE: THE PICKER BACKS OUT TO THE SEASON STEP WHEN ONE
+            // HAPPENED, EVERYTHING ELSE RETURNS TO BROWSE
+            flow.view = flow.view === 'options' && needsSeasonPick(result) ? 'seasons' : 'browse';
+            await interaction.update(renderView(flow));
             break;
           case 'df-cancel':
             collector.stop('handled');
@@ -334,19 +780,34 @@ async function runRequest(ctx, contentDef) {
             break;
           case 'df-select':
             // SHOWS DETOUR THROUGH THE SEASON PICKER - THE COLLECTOR STAYS UP
-            if (needsSeasonPick(results[index])) {
-              await interaction.update(seasonPayload(flow, index));
+            if (needsSeasonPick(result)) {
+              flow.view = 'seasons';
+              await interaction.update(renderView(flow));
               break;
             }
-            collector.stop('handled');
-            await handleSelection(interaction, results[index], flow);
+            flow.seasons = null;
+            await nextAfterSelect(interaction, flow, collector);
             break;
-          case 'df-seasons': {
-            collector.stop('handled');
-            const seasons = parseSeasonValues(interaction.values);
-            await handleSelection(interaction, results[index], flow, seasons);
+          case 'df-seasons':
+            flow.seasons = parseSeasonValues(interaction.values);
+            await nextAfterSelect(interaction, flow, collector);
             break;
-          }
+          case 'df-quality':
+            flow.picks.qualityProfileId = Number(interaction.values[0]) || null;
+            await interaction.update(renderView(flow));
+            break;
+          case 'df-root':
+            flow.picks.rootFolderPath = interaction.values[0] || null;
+            await interaction.update(renderView(flow));
+            break;
+          case 'df-metadata':
+            flow.picks.metadataProfileId = Number(interaction.values[0]) || null;
+            await interaction.update(renderView(flow));
+            break;
+          case 'df-confirm':
+            collector.stop('handled');
+            await finalizeSelection(interaction, flow);
+            break;
         }
       } catch (err) {
         core.logger.error('Request selection failed:', err);
@@ -373,6 +834,9 @@ function requestInteractionFor(contentDef) {
     options: [{ name: 'title', description: 'Title to search for', type: 'string', required: true }],
     aliases: contentDef.aliases,
     ephemeral: false,
+    // PROVIDER ATTRIBUTION FOR THE FEATURE MATRIX (radarr/sonarr/lidarr)
+    appTypes: contentDef.appTypes,
+    feature: featureFor(contentDef),
     async available(core) {
       return (await core.apps.enabledContentTypes()).includes(contentDef.type);
     },
@@ -380,4 +844,4 @@ function requestInteractionFor(contentDef) {
   };
 }
 
-module.exports = { requestInteractionFor };
+module.exports = { requestInteractionFor, REQUEST_CAPABILITIES };

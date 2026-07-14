@@ -83,6 +83,7 @@ class TransmissionClient extends BaseClient {
           indexer: null,
           category: null,
           speed: torrent.rateDownload > 0 ? BaseClient.humanSpeed(torrent.rateDownload) : null,
+          speedBps: torrent.rateDownload > 0 ? torrent.rateDownload : null,
           seeds: typeof torrent.peersSendingToUs === 'number' ? `${torrent.peersSendingToUs}/${torrent.peersConnected ?? 0}` : null,
           warnings: torrent.errorString ? [torrent.errorString] : [],
           raw: torrent

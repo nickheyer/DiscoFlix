@@ -12,6 +12,9 @@
         include sections/queue
       when 'sessions'
         include sections/sessions
+      //- THE FEATURE MATRIX - DISCOFLIX ONLY (THE MANIFEST IS THE GUARD)
+      when 'bot'
+        include sections/dfBot
       //- EVERY LIBRARY IS THE ONE UNIFIED COMPONENT (SCOPED PER INSTANCE);
       //- ONLY LIVE SEARCH RESULTS KEEP THEIR OWN SURFACE
       when 'library'

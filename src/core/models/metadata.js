@@ -23,18 +23,15 @@ const MODELS_META = {
         fields: {
             id: { type: FIELD_TYPES.ID, immutable: true, readonly: true, label: "ID", description: "Unique identifier for configuration" },
             media_server_name: { type: FIELD_TYPES.STRING, label: "Server Name", description: "Name of the media server" },
-            prefix_keyword: { type: FIELD_TYPES.STRING, label: "Command Prefix", description: "Bot command prefix" },
             admin_password: { type: FIELD_TYPES.STRING, label: "Admin Password", description: "Setting this locks the web console behind a login (blank = open)", sensitive: true },
             discord_token: { type: FIELD_TYPES.STRING, label: "Discord Token", description: "Authentication token for Discord bot", sensitive: true },
-            session_timeout: { type: FIELD_TYPES.NUMBER, label: "Session Timeout", description: "Session timeout in seconds", min: 30, max: 3600 },
-            max_check_time: { type: FIELD_TYPES.NUMBER, label: "Max Check Time", description: "Maximum check time in seconds", min: 60, max: 3600 },
-            max_results: { type: FIELD_TYPES.NUMBER, label: "Max Results", description: "Maximum number of results (0 for unlimited)", min: 0 },
-            max_seasons_for_non_admin: { type: FIELD_TYPES.NUMBER, label: "Max Seasons", description: "Maximum seasons for non-admin users (0 for unlimited)", min: 0 },
             is_debug: { type: FIELD_TYPES.BOOLEAN, label: "Debug Mode", description: "Enable debug logging" },
-            is_trailers_enabled: { type: FIELD_TYPES.BOOLEAN, label: "Trailers Enabled", description: "Enable movie trailers" },
-            is_dm_notifications: { type: FIELD_TYPES.BOOLEAN, label: "DM Notifications", description: "Also DM requesters when their download completes" },
+            // THE FIELDS BELOW LIVE ON THE DISCORD BOT TAB, NOT dfSettings -
+            // computed KEEPS THE dfSettings FULL-FORM SAVE (_sanitizeData) FROM
+            // WIPING THEM; THE BOT TAB WRITES THEM VIA PARTIAL update() ONLY
+            prefix_keyword: { type: FIELD_TYPES.STRING, computed: true, label: "Command Prefix", description: "The keyword that wakes the bot in chat" },
             bot_presence_activity: {
-                type: FIELD_TYPES.STRING, label: "Presence Activity", description: "The verb on the bot's status line",
+                type: FIELD_TYPES.STRING, computed: true, label: "Presence Activity", description: "The verb on the bot's status line",
                 options: [
                     { value: "none", label: "None" },
                     { value: "playing", label: "Playing" },
@@ -43,17 +40,10 @@ const MODELS_META = {
                     { value: "competing", label: "Competing in" }
                 ]
             },
-            bot_presence_text: { type: FIELD_TYPES.STRING, label: "Presence Text", description: "What the status line says the bot is doing" },
-            request_access: {
-                type: FIELD_TYPES.STRING, label: "Request Access", description: "Who is allowed to make requests",
-                options: [
-                    { value: "open", label: "Open - anyone the bot can read" },
-                    { value: "whitelist", label: "Whitelist - flagged users and listed roles" }
-                ]
-            },
-            whitelist_role_ids: { type: FIELD_TYPES.STRING, size: "full", label: "Whitelist Roles", description: "Comma-separated role names or ids that may request in whitelist mode" },
-            staff_role_ids: { type: FIELD_TYPES.STRING, size: "full", label: "Staff Roles", description: "Comma-separated role names or ids that grant staff (auto-approve) - grants only, revoke in Users" },
-            admin_role_ids: { type: FIELD_TYPES.STRING, size: "full", label: "Admin Roles", description: "Comma-separated role names or ids that grant admin - grants only, revoke in Users" },
+            bot_presence_text: { type: FIELD_TYPES.STRING, computed: true, label: "Presence Text", description: "What the status line says the bot is doing" },
+            whitelist_role_ids: { type: FIELD_TYPES.STRING, computed: true, size: "full", label: "Whitelist Roles", description: "Comma-separated role names or ids that grant the whitelisted tier - grants only, revoke in Users" },
+            staff_role_ids: { type: FIELD_TYPES.STRING, computed: true, size: "full", label: "Staff Roles", description: "Comma-separated role names or ids that grant staff - grants only, revoke in Users" },
+            admin_role_ids: { type: FIELD_TYPES.STRING, computed: true, size: "full", label: "Admin Roles", description: "Comma-separated role names or ids that grant admin - grants only, revoke in Users" },
             created_at: { type: FIELD_TYPES.TIMESTAMP, label: "Created At", description: "Timestamp when configuration was created", computed: true, readonly: true },
             updated_at: { type: FIELD_TYPES.TIMESTAMP, label: "Updated At", description: "Timestamp when configuration was last updated", computed: true, readonly: true }
         }
@@ -300,16 +290,42 @@ const MODELS_META = {
             is_client: { type: FIELD_TYPES.BOOLEAN, readonly: true, label: "Client", description: "Client user indicator" },
             access_requested_at: { type: FIELD_TYPES.TIMESTAMP, readonly: true, label: "Access Requested", description: "When the user asked to request while whitelist-gated" },
             last_seen_at: { type: FIELD_TYPES.TIMESTAMP, readonly: true, label: "Last Seen", description: "Most recent message, interaction, or roster sighting" },
-            session_timeout: { type: FIELD_TYPES.NUMBER, label: "Session Timeout", description: "User session timeout", min: 30, max: 3600 },
-            max_check_time: { type: FIELD_TYPES.NUMBER, label: "Max Check Time", description: "Maximum check time", min: 60, max: 3600 },
-            max_results: { type: FIELD_TYPES.NUMBER, label: "Max Results", description: "Maximum search results", min: 0 },
-            max_seasons_for_non_admin: { type: FIELD_TYPES.NUMBER, label: "Max Seasons", description: "Maximum seasons allowed", min: 0 },
-            max_requests_in_day: { type: FIELD_TYPES.NUMBER, label: "Daily Request Limit", description: "Maximum requests per day", min: 0 },
+            // PER-USER EXCEPTIONS - >0 BEATS THE FEATURE RULE'S EXTENT
+            max_results: { type: FIELD_TYPES.NUMBER, label: "Max Results", description: "Maximum search results (0 = follow the feature rule)", min: 0 },
+            max_seasons_for_non_admin: { type: FIELD_TYPES.NUMBER, label: "Max Seasons", description: "Maximum seasons allowed (0 = follow the feature rule)", min: 0 },
+            max_requests_in_day: { type: FIELD_TYPES.NUMBER, label: "Daily Request Limit", description: "Maximum requests per day (0 = follow the feature rule)", min: 0 },
             created_at: { type: FIELD_TYPES.TIMESTAMP, computed: true, readonly: true, label: "Created At", description: "Account creation timestamp" },
             updated_at: { type: FIELD_TYPES.TIMESTAMP, computed: true, readonly: true, label: "Updated At", description: "Account update timestamp" },
             discord_servers: { type: FIELD_TYPES.RELATION, hidden: true, label: "Discord Servers", description: "Associated server references" },
             requests: { type: FIELD_TYPES.RELATION, hidden: true, label: "Requests", description: "User's media requests" },
             messages: { type: FIELD_TYPES.RELATION, hidden: true, label: "Messages", description: "User's messages" }
+        }
+    },
+    BotFeatureRule: {
+        type: MODEL_TYPES.ENTITY,
+        description: "Per-feature bot grants - the Discord Bot tab's feature matrix",
+        readonly: false,
+        fields: {
+            id: { type: FIELD_TYPES.ID, immutable: true, readonly: true, label: "ID", description: "Unique identifier for this rule" },
+            feature_id: { type: FIELD_TYPES.STRING, computed: true, label: "Feature", description: "Stable feature id from the interaction registry (request.movie, status, ...)" },
+            server_id: { type: FIELD_TYPES.RELATION, computed: true, label: "Server", description: "NULL = the global rule; set = a per-server override that wins outright" },
+            enabled: { type: FIELD_TYPES.BOOLEAN, label: "Enabled", description: "Disabled features deny everyone at dispatch" },
+            audience: {
+                type: FIELD_TYPES.STRING, label: "Audience", description: "Minimum tier that may use this feature",
+                options: [
+                    { value: "everyone", label: "Everyone" },
+                    { value: "whitelisted", label: "Whitelisted" },
+                    { value: "staff", label: "Staff" },
+                    { value: "admin", label: "Admins" }
+                ]
+            },
+            role_ids: { type: FIELD_TYPES.STRING, size: "full", label: "Extra Roles", description: "Comma-separated role names or ids that qualify regardless of tier" },
+            // computed KEEPS GENERIC FORM WRITES OFF THE JSON - THE BOT TAB'S
+            // SAVE ROUTE COERCES EXTENTS BY DESCRIPTOR AND WRITES PARTIALLY
+            extents_json: { type: FIELD_TYPES.JSON, hidden: true, computed: true, label: "Extents", description: "Sparse per-feature params, keys declared by the feature descriptor" },
+            created_at: { type: FIELD_TYPES.TIMESTAMP, computed: true, readonly: true, label: "Created At", description: "Timestamp when this rule was created" },
+            updated_at: { type: FIELD_TYPES.TIMESTAMP, computed: true, readonly: true, label: "Updated At", description: "Timestamp when this rule was last updated" },
+            server: { type: FIELD_TYPES.RELATION, hidden: true, label: "Server Reference", description: "Reference to the scoped Discord server" }
         }
     }
 };
