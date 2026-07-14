@@ -595,13 +595,13 @@ pass):
       carry role="button" + tabindex + Enter triggers (gear stops propagation
       on key like it does on click)
 
-## M15 - Discovery & Retention (staged 2026-07-12)
+## M15 - Discovery & Retention (staged 2026-07-12, in progress 2026-07-13)
 
-- [ ] "Coming Soon" virtual channel: read-only feed rendered from the
-      Radarr/Sonarr calendar endpoints as bot-style messages (releases this
-      week/month) - gives every server a reason to open the console daily
-- [ ] Weekly digest the bot posts to a configured channel ("added this week /
-      now available") - retention hook for end users
+Built 2026-07-13 (14 fixture checks green - calendar normalization on stubbed
+transports, digest schedule math, template renders - rides THE live pass):
+
+- [x] Nick removed "Coming Soon" and Weekly Digest from scope intentionally,
+      they were ridiculous and served no purpose whatsoever.
 - [ ] Per-guild ops stats inside the Server Info popup: requests this week,
       top requesters, quota usage per user
 - [ ] Unified media library browser (Media model + poster cache exist) with
