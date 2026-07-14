@@ -1,5 +1,5 @@
-// RELAY A BROWSER CHAT MESSAGE INTO THE ACTIVE CHANNEL AS THE BOT
-async function relayChatMessage(core, text) {
+// RELAY A BROWSER CHAT MESSAGE INTO THE SENDER'S ACTIVE CHANNEL AS THE BOT
+async function relayChatMessage(core, text, sessionId) {
   const content = String(text).trim().slice(0, 2000);
   if (!content) return;
 
@@ -8,8 +8,11 @@ async function relayChatMessage(core, text) {
     return;
   }
 
-  const activeServer = await core.models.state.getActiveServer();
-  const channelId = activeServer?.active_channel_id;
+  const view = await core.models.viewSession.viewStateOf(sessionId);
+  const serverRow = view.active_server_id
+    ? await core.models.discordServer.getById(view.active_server_id)
+    : null;
+  const channelId = core.models.viewSession.channelPickFor(view, serverRow);
   if (!channelId) {
     core.logger.warn('Chat relay skipped: no active channel');
     return;
@@ -31,11 +34,11 @@ function parseCookies(header = '') {
 module.exports = (core) => {
   core.wss.on('connection', async (ws, req) => {
     // WS CARRIES THE WHOLE UI - IT HONORS THE SAME SESSION AS HTTP
+    const cookies = parseCookies(req.headers.cookie);
     try {
       const config = await core.models.configuration.get();
       if (config.admin_password) {
         const { isValidSession, SESSION_COOKIE } = require('../../server/middlewares/authHandler');
-        const cookies = parseCookies(req.headers.cookie);
         if (!isValidSession(cookies[SESSION_COOKIE])) {
           core.logger.warn('Unauthenticated ws connection rejected');
           ws.close(4401, 'Authentication required');
@@ -48,14 +51,17 @@ module.exports = (core) => {
       return;
     }
 
-    const metadata = core.sockets.addClient(ws);
+    // THE VIEW COOKIE TIES THE SOCKET TO ITS BROWSER'S VIEW SESSION SO
+    // PER-VIEW EMITS REACH THE RIGHT TABS
+    const { VIEW_COOKIE } = require('../../server/middlewares/viewSessionHandler');
+    const metadata = core.sockets.addClient(ws, cookies[VIEW_COOKIE] || null);
     core.logger.info('Browser client connected:', metadata);
 
     ws.on('message', async (messageAsString) => {
       try {
         const data = JSON.parse(messageAsString);
         if (data.chatMessage) {
-          await relayChatMessage(core, data.chatMessage);
+          await relayChatMessage(core, data.chatMessage, metadata.sessionId);
           return;
         }
         core.logger.debug('WS message received:', data);

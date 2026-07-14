@@ -7,12 +7,6 @@ const RELEASE_RESULT_CAP = 30;
 const BROWSE_VIEWS = ['covers', 'detailed'];
 const BROWSE_VIEW_DEFAULTS = { library: 'covers', search: 'detailed' };
 
-// TITLE MATCHING FALLBACK FOR AVAILABILITY ANSWERS - EXTERNAL IDS WIN, THIS
-// ONLY CATCHES ITEMS THE MEDIA SERVER NEVER GOT AN ID FOR
-function comparableTitle(title) {
-  return String(title || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
-}
-
 // READ-ONLY BROWSING SURFACES FOR THE TAKEOVER: THE ACTIVITY FEED (RIGHT RAIL,
 // REPLACES THE MEMBERS PANE - AND THE OLD HISTORY SECTION) AND LIBRARY POSTER
 // PAGES. BOTH RIDE SMALL CACHES SO SECTION SWITCHES AND REVEALED-SENTINEL
@@ -20,6 +14,12 @@ function comparableTitle(title) {
 module.exports = {
   FEED_PAGE_SIZE,
   LIBRARY_PAGE_SIZE,
+
+  // TITLE MATCHING FALLBACK FOR IDENTITY ANSWERS - EXTERNAL IDS WIN, THIS
+  // ONLY CATCHES ITEMS A SERVICE NEVER GOT AN ID FOR
+  comparableTitle(title) {
+    return String(title || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  },
 
   // STICKY PER-INSTANCE VIEW STYLE FOR THE LIBRARY SURFACE, KEYED BY MODE
   // (BROWSE DEFAULTS TO COVERS, SEARCH TO DETAILED). IN-MEMORY BY DESIGN -
@@ -183,7 +183,7 @@ module.exports = {
       tvdb: result.tvdbId ? String(result.tvdbId) : null
     };
     const wantKind = result.contentType === 'show' ? 'show' : 'movie';
-    const wantTitle = comparableTitle(result.title);
+    const wantTitle = this.comparableTitle(result.title);
 
     for (const row of servers) {
       const client = this.getClientForInstance(row);
@@ -202,7 +202,7 @@ module.exports = {
         if (wantIds.imdb && ids.imdb === wantIds.imdb) return true;
         if (wantIds.tvdb && ids.tvdb === wantIds.tvdb) return true;
         return !!wantTitle
-          && comparableTitle(item.title) === wantTitle
+          && this.comparableTitle(item.title) === wantTitle
           && (!result.year || !item.year || item.year === result.year);
       });
       if (match) return { instance: row, item: match };

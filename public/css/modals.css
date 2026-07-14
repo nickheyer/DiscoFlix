@@ -468,6 +468,108 @@
   color: #ffffff;
 }
 
+/* PER-GUILD OPS PANEL - REQUEST ACTIVITY RIDING THE SERVER INFO RECORD CARD */
+.record-ops {
+  border-top: 1px solid var(--bg-tertiary);
+  padding: 14px 16px 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.record-ops-heading {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+
+.record-ops-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.record-ops-stat {
+  background: var(--bg-tertiary);
+  border-radius: 4px;
+  padding: 10px 12px;
+  text-align: center;
+}
+
+.record-ops-stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--header-primary);
+  line-height: 1.2;
+}
+
+.record-ops-stat-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-top: 2px;
+}
+
+.record-ops-list {
+  display: grid;
+  gap: 6px;
+}
+
+.record-ops-list-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--header-secondary);
+}
+
+.record-ops-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.record-ops-row-name {
+  color: var(--text-normal);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 0 1 auto;
+  min-width: 90px;
+}
+
+.record-ops-row-meter {
+  flex: 1 1 auto;
+  min-width: 60px;
+}
+
+.record-ops-row-meter .request-progress-track {
+  width: 100%;
+}
+
+.record-ops-row-detail {
+  color: var(--text-muted);
+  font-size: 12px;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.record-ops-row-meter ~ .record-ops-row-detail {
+  margin-left: 0;
+}
+
+.record-ops .request-progress-bar.maxed {
+  background-color: var(--red);
+}
+
+.record-ops-more,
+.record-ops-empty {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
 .record-clone-icon,
 .record-delete-icon {
   width: 14px;

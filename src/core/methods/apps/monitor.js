@@ -295,12 +295,15 @@ module.exports = {
     if (railKey !== this._lastRailKey) {
       this._lastRailKey = railKey;
       try {
-        const apps = await this.getRailViewModel();
-        // THE HOME BADGE RIDES ALONG - ITS PROBLEM DOT TRACKS THE SAME CACHE
-        await this.core.sockets.emitCompiled([
-          'sidebar/servers/appRail.pug',
-          'sidebar/servers/serverHomeButton.pug'
-        ], { apps });
+        // PER VIEW - EACH BROWSER'S RAIL KEEPS ITS OWN ACTIVE PILL, AND THE
+        // HOME BADGE'S PROBLEM DOT TRACKS THE SAME CACHE
+        await this.core.sockets.emitPerView(async (view) => {
+          const apps = await this.getRailViewModel(view);
+          return this.core.render.compile([
+            'sidebar/servers/appRail.pug',
+            'sidebar/servers/serverHomeButton.pug'
+          ], { apps });
+        });
       } catch (err) {
         this.logger.debug(`Heartbeat rail push skipped: ${err.message}`);
       }
@@ -317,41 +320,52 @@ module.exports = {
       }
     }
 
-    // LIVE TAKEOVER SURFACES - THE ACTIVE APP'S QUEUE SECTION, PLUS ITS
-    // ACTIVITY FEED RAIL (WHICH RIDES ALONG IN EVERY SECTION)
+    // LIVE TAKEOVER SURFACES - EVERY APP SOME CONNECTED BROWSER HAS OPEN GETS
+    // ITS QUEUE/NOW PLAYING/FEED PUSHES, SENT ONLY TO THE SESSIONS INSIDE IT
     try {
-      const state = await this.core.models.state.get();
-      if (!state.active_app_id) return;
-      const instance = await this.getInstance(state.active_app_id);
-      if (!instance) return;
-
-      if (instance.active_section === 'queue') {
-        await this.core.sockets.emitCompiled(['apps/sections/queueBody.pug'], {
-          activeApp: instance,
-          queue: this.queueCache.get(instance.id) || [],
-          queueActions: this.queueActionsFor(instance)
-        });
+      const views = (await this.core.sockets.connectedViews())
+        .filter(view => view.id && view.active_app_id);
+      const sessionsByApp = new Map();
+      for (const view of views) {
+        if (!sessionsByApp.has(view.active_app_id)) sessionsByApp.set(view.active_app_id, []);
+        sessionsByApp.get(view.active_app_id).push(view.id);
       }
 
-      // AN OPEN NOW PLAYING SECTION GETS FRESH STREAMS EVERY TICK - CHANGE-ONLY
-      // SO IDLE SERVERS DON'T RE-SWAP THE LIST FOR NOTHING
-      if (instance.active_section === 'sessions') {
-        const before = JSON.stringify(this.sessionsCache.get(instance.id) || []);
-        const { sessions } = await this.getSessionsFor(instance);
-        if (JSON.stringify(sessions) !== before) {
-          await this.core.sockets.emitCompiled(['apps/sections/sessionsBody.pug'], {
+      for (const [appId, sessionIds] of sessionsByApp) {
+        const instance = await this.getInstance(appId);
+        if (!instance) continue;
+
+        if (instance.active_section === 'queue') {
+          const html = await this.core.render.compile(['apps/sections/queueBody.pug'], {
             activeApp: instance,
-            sessions
+            queue: this.queueCache.get(instance.id) || [],
+            queueActions: this.queueActionsFor(instance)
           });
+          await this.core.sockets.emitToSessions(sessionIds, html);
         }
-      }
 
-      // CHANGE-ONLY: refreshFeed RETURNS null WHEN PAGE 1 IS UNCHANGED, SO THE
-      // RAIL (AND ITS SCROLL POSITION) ISN'T STOMPED EVERY TICK. THE BODY
-      // FRAGMENT SWAPS ALONE - THE RAIL SEARCH INPUT ABOVE IT KEEPS ITS FOCUS
-      const feed = await this.refreshFeed(instance);
-      if (feed) {
-        await this.core.sockets.emitCompiled(['apps/appFeedBody.pug'], { activeApp: instance, feed });
+        // AN OPEN NOW PLAYING SECTION GETS FRESH STREAMS EVERY TICK - CHANGE-ONLY
+        // SO IDLE SERVERS DON'T RE-SWAP THE LIST FOR NOTHING
+        if (instance.active_section === 'sessions') {
+          const before = JSON.stringify(this.sessionsCache.get(instance.id) || []);
+          const { sessions } = await this.getSessionsFor(instance);
+          if (JSON.stringify(sessions) !== before) {
+            const html = await this.core.render.compile(['apps/sections/sessionsBody.pug'], {
+              activeApp: instance,
+              sessions
+            });
+            await this.core.sockets.emitToSessions(sessionIds, html);
+          }
+        }
+
+        // CHANGE-ONLY: refreshFeed RETURNS null WHEN PAGE 1 IS UNCHANGED, SO THE
+        // RAIL (AND ITS SCROLL POSITION) ISN'T STOMPED EVERY TICK. THE BODY
+        // FRAGMENT SWAPS ALONE - THE RAIL SEARCH INPUT ABOVE IT KEEPS ITS FOCUS
+        const feed = await this.refreshFeed(instance);
+        if (feed) {
+          const html = await this.core.render.compile(['apps/appFeedBody.pug'], { activeApp: instance, feed });
+          await this.core.sockets.emitToSessions(sessionIds, html);
+        }
       }
     } catch (err) {
       this.logger.debug(`Heartbeat takeover push skipped: ${err.message}`);

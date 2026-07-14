@@ -37,21 +37,27 @@ async function getPaginatedData(model, currentPage, perPage, searchQuery = '') {
     const safePage = Math.min(Math.max(1, currentPage), maxPage || 1);
     const skip = (safePage - 1) * perPage;
     const data = await model.getPages(
-        searchCriteria.where || {}, 
-        {}, 
-        {}, 
-        skip, 
+        searchCriteria.where || {},
+        {},
+        {},
+        skip,
         perPage
     );
 
-    return { 
-        data, 
+    // OPT-IN PER-RECORD OPS PANELS (GUILD REQUEST STATS ON THE SERVER INFO POPUP)
+    const opsPanels = model.getModelType() !== 'singleton' && typeof model.getOpsPanels === 'function'
+        ? await model.getOpsPanels((data || []).map(record => record.id))
+        : null;
+
+    return {
+        data,
         totalRecords,
-        currentPage: safePage 
+        currentPage: safePage,
+        opsPanels
     };
 }
 
-async function renderRecordsView(ctx, model, records, currentPage, perPage, totalRecords, searchQuery = null, fullRender = null) {
+async function renderRecordsView(ctx, model, records, currentPage, perPage, totalRecords, searchQuery = null, fullRender = null, opsPanels = null) {
     // BASE.PUG ALREADY INCLUDES _RECORDS - RENDERING BOTH DUPLICATES THE RECORDS INTO #modals-here
     const templatesToRender = fullRender ?
         ['modals/settings/base.pug'] :
@@ -62,7 +68,8 @@ async function renderRecordsView(ctx, model, records, currentPage, perPage, tota
         isSingleton: model.getModelType() === 'singleton',
         records,
         pg: { currentPage, perPage, totalRecords },
-        searchQuery
+        searchQuery,
+        opsPanels
     };
     return ctx.compileView(templatesToRender, templateParams);
 }
@@ -84,7 +91,7 @@ async function renderModal(ctx) {
         const currentPage = getCurrentPage(ctx.query['current-page']);
         const searchQuery = getSearchQuery(ctx);
 
-        const { data, totalRecords, currentPage: safePage } = 
+        const { data, totalRecords, currentPage: safePage, opsPanels } =
             await getPaginatedData(model, currentPage, perPage, searchQuery);
 
         Object.assign(modalParams, {
@@ -94,7 +101,8 @@ async function renderModal(ctx) {
                 [{ id: data[model.getPrimaryKeyName()]?.value || null, fields: data }] : data,
             isSingleton: model.getModelType() === 'singleton',
             pg: { currentPage: safePage, perPage, totalRecords },
-            searchQuery
+            searchQuery,
+            opsPanels
         });
         modalTemplate = 'modals/settings/base.pug';
     
@@ -118,10 +126,10 @@ async function getSettingsPage(ctx) {
     const currentPage = getCurrentPage(page);
     const searchQuery = getSearchQuery(ctx);
 
-    const { data, totalRecords, currentPage: safePage } = 
+    const { data, totalRecords, currentPage: safePage, opsPanels } =
         await getPaginatedData(model, currentPage, perPage, searchQuery);
 
-    return renderRecordsView(ctx, model, data, safePage, perPage, totalRecords, searchQuery);
+    return renderRecordsView(ctx, model, data, safePage, perPage, totalRecords, searchQuery, null, opsPanels);
 }
 
 async function searchSettings(ctx) {
@@ -134,10 +142,10 @@ async function searchSettings(ctx) {
     const currentPage = getCurrentPage(ctx?.query?.['current-page']);
     const includeModal = !!(ctx?.query?.['as-modal']);
 
-    const { data, totalRecords, currentPage: safePage } =
+    const { data, totalRecords, currentPage: safePage, opsPanels } =
         await getPaginatedData(model, currentPage, perPage, searchQuery);
 
-    return renderRecordsView(ctx, model, data, safePage, perPage, totalRecords, searchQuery, includeModal);
+    return renderRecordsView(ctx, model, data, safePage, perPage, totalRecords, searchQuery, includeModal, opsPanels);
 }
 
 module.exports = {

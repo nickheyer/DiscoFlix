@@ -1,8 +1,105 @@
 const BaseModel = require('./base');
 
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+const DAY_MS = 24 * 60 * 60 * 1000;
+const TOP_REQUESTER_COUNT = 5;
+const QUOTA_ROW_CAP = 10;
+
 class DiscordServer extends BaseModel {
     constructor(core) {
         super(core, 'DiscordServer');
+    }
+
+    // OPS PANELS FOR THE SERVER INFO POPUP - ONE PER RENDERED GUILD CARD
+    async getOpsPanels(serverIds = []) {
+        const panels = {};
+        for (const serverId of serverIds) {
+            if (!serverId) continue;
+            try {
+                panels[serverId] = await this._buildOpsPanel(serverId);
+            } catch (err) {
+                this.logger.warn(`Ops stats failed for guild ${serverId}: ${err.message}`);
+            }
+        }
+        return panels;
+    }
+
+    // REQUEST ACTIVITY + QUOTA USAGE - THE 24h WINDOW MIRRORS limits.js, WHICH
+    // COUNTS A USER'S REQUESTS ACROSS EVERY GUILD, AND ADMINS ARE EXEMPT
+    async _buildOpsPanel(server_id) {
+        const now = Date.now();
+        const weekAgo = new Date(now - WEEK_MS);
+        const dayAgo = new Date(now - DAY_MS);
+        const [weekCount, pendingCount, totalCount, requesters, quotaUsers] = await Promise.all([
+            this.prisma.mediaRequest.count({ where: { madeInId: server_id, created_at: { gte: weekAgo } } }),
+            this.prisma.mediaRequest.count({ where: { madeInId: server_id, status: null } }),
+            this.prisma.mediaRequest.count({ where: { madeInId: server_id } }),
+            this.prisma.user.findMany({
+                where: { requests: { some: { madeInId: server_id } } },
+                select: {
+                    display_name: true,
+                    username: true,
+                    _count: { select: { requests: { where: { madeInId: server_id } } } }
+                }
+            }),
+            this.prisma.user.findMany({
+                where: {
+                    discord_servers: { some: { server_id } },
+                    is_active: true,
+                    is_bot: false,
+                    is_superuser: false,
+                    is_staff: false,
+                    max_requests_in_day: { gt: 0 }
+                },
+                select: {
+                    display_name: true,
+                    username: true,
+                    max_requests_in_day: true,
+                    _count: { select: { requests: { where: { created_at: { gte: dayAgo } } } } }
+                }
+            })
+        ]);
+
+        const requesterRows = requesters
+            .map(user => ({ name: user.display_name || user.username, count: user._count.requests }))
+            .filter(row => row.count > 0)
+            .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
+            .slice(0, TOP_REQUESTER_COUNT)
+            .map(row => ({ name: row.name, detail: `${row.count} request${row.count === 1 ? '' : 's'}` }));
+
+        const quotaRows = quotaUsers
+            .map(user => {
+                const used = user._count.requests;
+                const limit = user.max_requests_in_day;
+                return {
+                    name: user.display_name || user.username,
+                    detail: `${used} of ${limit} in the last 24h`,
+                    percent: Math.min(100, Math.round((used / limit) * 100))
+                };
+            })
+            .sort((a, b) => b.percent - a.percent || a.name.localeCompare(b.name));
+
+        return {
+            heading: 'Request Activity',
+            stats: [
+                { label: 'This Week', value: weekCount },
+                { label: 'Pending', value: pendingCount },
+                { label: 'All Time', value: totalCount }
+            ],
+            lists: [
+                {
+                    label: 'Top Requesters',
+                    empty: 'No requests from this server yet',
+                    rows: requesterRows
+                },
+                {
+                    label: 'Daily Quota Usage',
+                    empty: 'No members carry a daily request limit',
+                    rows: quotaRows.slice(0, QUOTA_ROW_CAP),
+                    moreCount: Math.max(0, quotaRows.length - QUOTA_ROW_CAP)
+                }
+            ]
+        };
     }
 
     // OVERRIDE CRUD METHODS

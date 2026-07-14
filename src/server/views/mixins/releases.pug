@@ -58,3 +58,56 @@ mixin releaseRow(release, appId, grabTargets)
               aria-label=`Connect a ${release.protocol} download client to send releases from here`
               data-tooltip-dir="left"
             ) No client
+
+//- ONE INTERACTIVE-SEARCH ROW - AN ARR /release CANDIDATE. GRABS GO BACK
+//- THROUGH THE ARR SO ITS OWN DOWNLOAD CLIENT AND HISTORY DO THE WORK.
+//- rowState: undefined (grabbable) | grabbed | error
+mixin interactiveReleaseRow(release, appId, itemId)
+  .request-row.releaseRow.libraryReleaseRow(class=release.rejected ? 'rejected' : '')
+    .request-info
+      .request-title.releaseTitle(title=release.title)= release.title
+      .queueRowChips
+        if release.indexer
+          span.queueRowChip= release.indexer
+        span.queueRowChip= release.protocol
+        if release.quality
+          span.queueRowChip= release.quality
+        if release.languages
+          span.queueRowChip= release.languages
+      .request-meta
+        if release.sizeHuman
+          span= release.sizeHuman
+        if release.age
+          span.request-meta-divider •
+          span #{release.age} old
+        if release.seeders != null
+          span.request-meta-divider •
+          span #{release.seeders} seeders
+    .request-status
+      if release.rejected
+        span.requestChip.chip-missing(title=(release.rejections || []).join(' / ') || 'Rejected') Rejected
+      case release.rowState
+        when 'grabbed'
+          span.requestChip.chip-downloading Grabbed - watch the Queue
+        when 'error'
+          span.requestChip.chip-denied(title=release.error)= release.error || 'Grab failed'
+        default
+          form.releaseGrabForm
+            input(type="hidden" name="guid" value=release.guid)
+            input(type="hidden" name="indexerId" value=release.indexerId)
+            input(type="hidden" name="title" value=release.title)
+            input(type="hidden" name="indexer" value=release.indexer || '')
+            input(type="hidden" name="quality" value=release.quality || '')
+            input(type="hidden" name="protocol" value=release.protocol)
+            input(type="hidden" name="sizeHuman" value=release.sizeHuman || '')
+            input(type="hidden" name="seeders" value=release.seeders != null ? release.seeders : '')
+            input(type="hidden" name="age" value=release.age || '')
+            input(type="hidden" name="languages" value=release.languages || '')
+            button.request-approve-button(
+              type="button"
+              hx-post=`/apps/${appId}/library/item/${itemId}/grab`
+              hx-include="closest form"
+              hx-target="closest .libraryReleaseRow"
+              hx-swap="outerHTML"
+              hx-disabled-elt="this"
+            ) Grab

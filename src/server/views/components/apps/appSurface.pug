@@ -13,7 +13,10 @@
       when 'sessions'
         include sections/sessions
       when 'library'
-        include sections/library
+        if activeApp.app_type === 'discoflix'
+          include sections/dfLibrary
+        else
+          include sections/library
       when 'releases'
         include sections/releases
       when 'users'

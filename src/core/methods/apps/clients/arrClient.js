@@ -5,15 +5,20 @@ const BaseClient = require('./baseClient');
 const HISTORY_EVENT_KINDS = {
   grabbed: 'grabbed',
   downloadFolderImported: 'imported',
+  trackFileImported: 'imported',
   downloadFailed: 'failed',
+  albumImportIncomplete: 'failed',
   downloadIgnored: 'ignored',
   movieFileDeleted: 'deleted',
   episodeFileDeleted: 'deleted',
+  trackFileDeleted: 'deleted',
   movieFileRenamed: 'renamed',
-  episodeFileRenamed: 'renamed'
+  episodeFileRenamed: 'renamed',
+  trackFileRenamed: 'renamed'
 };
 
-// SHARED HTTP CLIENT FOR THE *ARR v3 API (CONTENT-MANAGER FAMILY)
+// SHARED HTTP CLIENT FOR THE *ARR API (CONTENT-MANAGER FAMILY). RADARR/SONARR
+// SPEAK v3, LIDARR STILL SHIPS v1 - apiVersion IS THE SUBCLASS HOOK.
 class ArrClient extends BaseClient {
   constructor({ url, token, logger, settings }) {
     super({ url, logger });
@@ -21,15 +26,17 @@ class ArrClient extends BaseClient {
     // PER-INSTANCE DEFAULTS OFF App.settings_json (root_folder/quality_profile)
     this.instanceSettings = settings || {};
     this.http = axios.create({
-      baseURL: `${this.baseUrl}/api/v3`,
+      baseURL: `${this.baseUrl}/api/${this.apiVersion}`,
       timeout: 10000,
       headers: { 'X-Api-Key': token }
     });
   }
 
-  async _get(path, params = {}) {
+  get apiVersion() { return 'v3'; }
+
+  async _get(path, params = {}, config = {}) {
     try {
-      const { data } = await this.http.get(path, { params });
+      const { data } = await this.http.get(path, { params, ...config });
       return data;
     } catch (err) {
       throw this._normalizeError(err);
@@ -174,14 +181,26 @@ class ArrClient extends BaseClient {
     return this._get(`/${this.resource}/${arrId}`);
   }
 
-  // FULL LIBRARY-ITEM DETAIL - THE RECORD PLUS THE PROFILE NAME IT POINTS AT
+  // FULL LIBRARY-ITEM DETAIL - THE RECORD, THE PROFILE NAME IT POINTS AT, AND
+  // THE MANAGE PANEL'S OPTION LISTS (PROFILES + ROOTS WITH CURRENT VALUES)
   async getLibraryItemDetail(arrId) {
-    const [raw, profiles] = await Promise.all([
+    const [raw, profiles, rootFolders] = await Promise.all([
       this.getById(arrId),
-      this.getQualityProfiles()
+      this.getQualityProfiles(),
+      this.getRootFolders()
     ]);
     const profile = profiles.find(p => p.id === raw.qualityProfileId);
-    return this.normalizeDetail(raw, { profileName: profile?.name || null });
+    const detail = this.normalizeDetail(raw, { profileName: profile?.name || null });
+    const roots = rootFolders.map(folder => ArrClient.trimTrailingSlashes(folder.path));
+    detail.editOptions = {
+      profiles: profiles.map(p => ({ id: p.id, name: p.name })),
+      rootFolders: roots,
+      currentProfileId: raw.qualityProfileId || null,
+      currentRootFolder: ArrClient.trimTrailingSlashes(raw.rootFolderPath)
+        || roots.find(root => String(raw.path || '').startsWith(root))
+        || null
+    };
+    return detail;
   }
 
   // DETAIL VIEW MODEL FROM A LOOKUP RESULT - THE EPHEMERAL PRE-ADD TWIN OF
@@ -212,6 +231,63 @@ class ArrClient extends BaseClient {
     return this._post('/command', this.searchCommandFor(arrId));
   }
 
+  // INTERACTIVE SEARCH - THE ARR SWEEPS ITS INDEXERS LIVE AND RETURNS EVERY
+  // CANDIDATE RELEASE. SLOW BY NATURE, SO THIS CALL GETS ITS OWN LONG TIMEOUT.
+  async getInteractiveReleases(scope = {}) {
+    const releases = await this._get('/release', this.releaseParamsFor(scope), { timeout: 90000 });
+    return (releases || [])
+      .map(raw => this._normalizeInteractiveRelease(raw))
+      .sort((a, b) => (a.rejected ? 1 : 0) - (b.rejected ? 1 : 0) || (b.seeders || 0) - (a.seeders || 0));
+  }
+
+  _normalizeInteractiveRelease(raw) {
+    return {
+      guid: raw.guid,
+      indexerId: raw.indexerId,
+      title: raw.title || 'Unknown release',
+      indexer: raw.indexer || null,
+      quality: raw.quality?.quality?.name || null,
+      protocol: raw.protocol === 'usenet' ? 'usenet' : 'torrent',
+      sizeHuman: ArrClient.humanSize(raw.size),
+      seeders: raw.seeders ?? null,
+      age: ArrClient.humanAge(raw.publishDate) || (raw.age != null ? `${raw.age}d` : null),
+      languages: (raw.languages || []).map(lang => lang.name).filter(Boolean).join(', ') || null,
+      rejected: !!raw.rejected,
+      rejections: raw.rejections || []
+    };
+  }
+
+  // HAND A PICKED RELEASE BACK TO THE ARR - IT GRABS VIA ITS OWN CLIENTS
+  async grabRelease(guid, indexerId) {
+    return this._post('/release', { guid, indexerId, shouldOverride: false });
+  }
+
+  // EDIT THE LIBRARY-OWNED SETTINGS (QUALITY PROFILE / ROOT FOLDER). A ROOT
+  // MOVE RECOMPUTES path FROM THE OLD FOLDER NAME, moveFiles RIDES THE QUERY.
+  async updateItemSettings(arrId, { qualityProfileId, rootFolderPath, moveFiles = false } = {}) {
+    const raw = await this.getById(arrId);
+    const body = { ...raw };
+    if (qualityProfileId) body.qualityProfileId = Number(qualityProfileId);
+    const wantedRoot = rootFolderPath ? ArrClient.trimTrailingSlashes(rootFolderPath) : null;
+    // A ROOT THE ITEM ALREADY LIVES UNDER IS A NO-OP, NEVER A MOVE
+    if (wantedRoot && !String(raw.path || '').startsWith(wantedRoot)) {
+      const separator = wantedRoot.includes('\\') ? '\\' : '/';
+      const folderName = String(raw.path || '').replace(/[\\/]+$/, '').split(/[\\/]/).pop();
+      body.rootFolderPath = wantedRoot;
+      if (folderName) body.path = `${wantedRoot}${separator}${folderName}`;
+    }
+    return this._put(`/${this.resource}/${raw.id}?moveFiles=${moveFiles ? 'true' : 'false'}`, body);
+  }
+
+  // DROP THE ITEM FROM THE LIBRARY - FILE DELETION AND LIST EXCLUSION ARE THE
+  // OPERATOR'S EXPLICIT CALLS, NEVER DEFAULTS
+  async deleteItem(arrId, { deleteFiles = false, addExclusion = false } = {}) {
+    return this._delete(`/${this.resource}/${arrId}`, {
+      deleteFiles: !!deleteFiles,
+      [this.exclusionParam]: !!addExclusion
+    });
+  }
+
   // ADD TO LIBRARY (MONITORED + SEARCH-ON-ADD). INSTANCE SETTINGS PICK THE
   // ROOT FOLDER AND QUALITY PROFILE; A STALE OR EMPTY SETTING FALLS BACK TO
   // THE SERVICE'S FIRST. seasons THREADS THROUGH FOR SONARR MONITORING.
@@ -240,6 +316,10 @@ class ArrClient extends BaseClient {
       add: true,
       library: true,
       libraryDetail: true,
+      // DETAIL PHASE 2 - RELEASE PICKING, SETTINGS EDIT, AND ITEM REMOVAL
+      interactiveSearch: true,
+      libraryEdit: true,
+      libraryDelete: true,
       health: true,
       // ARRS PAUSE AT THE DOWNLOAD CLIENT, NOT PER QUEUE ITEM
       queueActions: { item: ['remove', 'blocklist'], queue: [] }
@@ -249,6 +329,8 @@ class ArrClient extends BaseClient {
   // SUBCLASS CONTRACT
   get resource() { throw new Error('NOT_IMPLEMENTED'); }
   get externalIdField() { throw new Error('NOT_IMPLEMENTED'); } // Media COLUMN HOLDING THE ARR'S KEY
+  get exclusionParam() { throw new Error('NOT_IMPLEMENTED'); } // DELETE'S ADD-EXCLUSION QUERY FLAG
+  releaseParamsFor() { throw new Error('NOT_IMPLEMENTED'); } // ({ arrId, season, episodeId }) -> /release PARAMS
   get historyIncludeParams() { return {}; } // /history EXPANSION FLAGS (includeMovie/includeSeries)
   get queueIncludeParams() { return {}; } // /queue EXPANSION FLAGS (includeMovie/includeSeries)
   historyTitleOf() { return null; } // MEDIA TITLE OFF AN EXPANDED HISTORY RECORD
@@ -261,6 +343,10 @@ class ArrClient extends BaseClient {
   getByExternalId() { throw new Error('NOT_IMPLEMENTED'); }
   matchesQueueRecord() { throw new Error('NOT_IMPLEMENTED'); } // (normalizedRow, arrId)
   isImported() { throw new Error('NOT_IMPLEMENTED'); }
+
+  static trimTrailingSlashes(value) {
+    return String(value || '').replace(/[\\/]+$/, '');
+  }
 
   // POSTER HELPER FOR normalizeResult
   static posterFrom(images = []) {

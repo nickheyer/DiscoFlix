@@ -198,7 +198,9 @@ async function jumpToRequestMessage(ctx) {
     { server_id: request.madeInId },
     { active_channel_id: request.orig_channel_id }
   );
-  const state = await core.models.state.update({
+  // THE JUMP ONLY REPOINTS THE ACTING BROWSER'S VIEW
+  await core.models.viewSession.setChannelPick(ctx.view.id, request.madeInId, request.orig_channel_id);
+  const state = await ctx.updateView({
     active_server_id: request.madeInId,
     active_app_id: null
   });

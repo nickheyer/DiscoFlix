@@ -17,12 +17,10 @@ module.exports = {
     };
   },
 
-  async createServerBubbles(serverRows = [], state = null, activeServer = null) {
+  async createServerBubbles(serverRows = [], view = null) {
     const serverBubbles = [];
-    state = state || await this.core.models.state.get();
-    activeServer = activeServer || await this.core.models.state.getActiveServer(state);
-    const activeID = activeServer ? activeServer.server_id : null;
-    const appActive = !!state.active_app_id;
+    const activeID = view?.active_server_id || null;
+    const appActive = !!view?.active_app_id;
 
     for (const serverRow of serverRows) {
       const serverBubbleHTML = await this.compile(
@@ -81,62 +79,44 @@ module.exports = {
     return channelElems;
   },
 
-  async getOneServerTemplate(serverID) {
-    const targetId = serverID ||
-      (await this.core.models.state.getActiveServer())?.server_id;
-    const activeServer = targetId
-      ? await this.core.models.discordServer.getComplete(targetId)
-      : null;
-
-    if (activeServer?.channels) {
-      const validChannelIds = activeServer.channels
-        .filter(ch => ch.isTextChannel)
-        .map(ch => ch.channel_id);
-
-      const currentChannelView = await this.ensureActiveChannel(activeServer, validChannelIds);
-      activeServer.active_channel_id = currentChannelView;
-
-      const activeChannel = _.find(activeServer.channels, ['channel_id', currentChannelView]);
-      const channels = await this.createActiveChannels(activeServer.channels, currentChannelView);
-
-      return {
-        activeServer,
-        channels,
-        activeChannel
-      };
+  // A VIEW WITHOUT A SERVER LANDS ON THE FIRST ONE - PERSISTED WHEN THE VIEW
+  // IS A REAL SESSION, IN-MEMORY ONLY FOR THE ANONYMOUS DEFAULT SHAPE
+  async ensureViewServer(view, serverRows = []) {
+    if (view.active_server_id || _.isEmpty(serverRows)) return view;
+    const firstId = serverRows[0].server_id;
+    if (view.id) {
+      return this.core.models.viewSession.updateView(view.id, { active_server_id: firstId });
     }
-
-    return {
-      activeServer: {},
-      channels: [],
-      activeChannel: {}
-    };
+    return { ...view, active_server_id: firstId, activeServer: serverRows[0] };
   },
 
-  async getServerTemplateObj(serverRows = [], state = null) {
+  // THE MIRROR'S WHOLE VIEW MODEL FOR ONE BROWSER SESSION - THE SESSION'S
+  // CHANNEL PICK WINS, THE SERVER ROW'S GLOBAL DEFAULT CATCHES THE REST
+  async getServerTemplateObj(serverRows = [], view = null) {
     if (_.isEmpty(serverRows)) {
       serverRows = await this.core.models.discordServer.getSorted();
     }
 
-    if (!_.isEmpty(serverRows)) {
-      await this.ensureActiveServer(serverRows[0].server_id);
-    }
+    view = await this.ensureViewServer(view || {}, serverRows);
 
     let channels = [];
-    let activeServer = await this.core.models.state.getActiveServer();
+    let activeServer = null;
     let activeChannel = null;
 
-    if (activeServer) {
+    if (view.active_server_id) {
       // ONE getComplete PER RENDER PASS; ensureActiveChannel WORKS ON THE
       // ALREADY-LOADED RECORD
-      activeServer = await this.core.models.discordServer.getComplete(activeServer.server_id);
+      activeServer = await this.core.models.discordServer.getComplete(view.active_server_id);
 
       if (activeServer?.channels) {
         const validChannelIds = activeServer.channels
           .filter(ch => ch.isTextChannel)
           .map(ch => ch.channel_id);
 
-        const currentChannelView = await this.ensureActiveChannel(activeServer, validChannelIds);
+        const sessionPick = this.core.models.viewSession.channelMapOf(view)[activeServer.server_id];
+        const currentChannelView = sessionPick && validChannelIds.includes(sessionPick)
+          ? sessionPick
+          : await this.ensureActiveChannel(activeServer, validChannelIds);
         activeServer.active_channel_id = currentChannelView;
 
         activeChannel = _.find(activeServer.channels, ['channel_id', currentChannelView]);
@@ -144,11 +124,7 @@ module.exports = {
       }
     }
 
-    const serverBubbles = await this.createServerBubbles(
-      serverRows,
-      state,
-      activeServer
-    );
+    const serverBubbles = await this.createServerBubbles(serverRows, view);
 
     return {
       serverBubbles,
@@ -165,10 +141,6 @@ module.exports = {
   // INTENT IS ON (DF_PRESENCE_INTENT=1 + THE DEV-PORTAL TOGGLE), OFFLINE
   // MEMBERS SINK TO A FADED OFFLINE GROUP. RETURNS { groups, total }.
   async getServerMembers(serverId) {
-    if (!serverId) {
-      const activeServer = await this.core.models.state.getActiveServer();
-      serverId = activeServer?.server_id;
-    }
     if (!serverId) return { groups: [], total: 0 };
 
     const rows = await this.core.models.user.getMany(
@@ -283,13 +255,5 @@ module.exports = {
       { active_channel_id: firstTextChannel.channel_id }
     );
     return firstTextChannel.channel_id;
-  },
-
-  async ensureActiveServer(defaultServerId) {
-    const activeServer = await this.core.models.state.getActiveServer();
-    if (!activeServer) {
-      this.logger.info(`No active server detected, setting active to: ${defaultServerId}`);
-      await this.core.models.state.changeActive(defaultServerId);
-    }
   },
 };

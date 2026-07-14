@@ -7,6 +7,7 @@ module.exports = (core) => {
     require('./instances'),
     require('./monitor'),
     require('./browse'),
+    require('./unifiedLibrary'),
     require('./requestViews'),
     require('./envSeed')
   );

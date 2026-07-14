@@ -13,6 +13,10 @@ mixin browsePoster(posterUrl, kind)
           if kind === 'show'
             rect(x="3" y="7" width="18" height="13" rx="2" stroke-width="2")
             path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 3l4 4 4-4")
+          else if kind === 'music'
+            path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 18V5l12-2v13")
+            circle(cx="6" cy="18" r="3" stroke-width="2")
+            circle(cx="18" cy="16" r="3" stroke-width="2")
           else
             rect(x="3" y="5" width="18" height="14" rx="2" stroke-width="2")
             path(stroke-linecap="round" stroke-width="2" d="M3 9h18M8 5v14M16 5v14")
@@ -29,7 +33,7 @@ mixin searchBrowseRow(result, appId)
     hx-swap="innerHTML show:#messageContainer:top"
     hx-trigger="click, keyup[key=='Enter']"
   )
-    +browsePoster(result.posterUrl, result.contentType === 'show' ? 'show' : 'movie')
+    +browsePoster(result.posterUrl, result.contentType)
     .request-info
       .request-title= result.year ? `${result.title} (${result.year})` : result.title
       if result.overview
@@ -95,6 +99,10 @@ mixin browsePosterCard(entry)
           if entry.kind === 'show'
             rect(x="3" y="7" width="18" height="13" rx="2")
             path(stroke-linecap="round" stroke-linejoin="round" d="M8 3l4 4 4-4")
+          else if entry.kind === 'music'
+            path(stroke-linecap="round" stroke-linejoin="round" d="M9 18V5l12-2v13")
+            circle(cx="6" cy="18" r="3")
+            circle(cx="18" cy="16" r="3")
           else
             rect(x="3" y="5" width="18" height="14" rx="2")
             path(stroke-linecap="round" d="M3 9h18M8 5v14M16 5v14")

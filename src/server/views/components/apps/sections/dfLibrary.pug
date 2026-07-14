@@ -1,0 +1,28 @@
+//- UNIFIED LIBRARY - EVERY SERVICE'S LISTING MERGED INTO COMMON MEDIA ITEMS
+//- BY EXTERNAL ID (tmdb/imdb/tvdb), PATH, OR TITLE+YEAR. THE FILTER INPUT
+//- LIVES OUTSIDE #dfLibraryBody SO SWAPS NEVER STEAL ITS FOCUS.
+//- sectionData: { unified, view }
+- var unified = sectionData.unified
+- var view = sectionData.view || 'covers'
+
+.appSectionDoc.appLibraryHub
+  .appSearchBar
+    input.appSearchInput#dfLibrarySearch(
+      type="search"
+      name="term"
+      value=unified.term || ''
+      placeholder="Filter the library..."
+      autocomplete="off"
+      hx-get=`/apps/${activeApp.id}/unified`
+      hx-include="#dfLibKind"
+      hx-trigger="keyup changed delay:400ms, search"
+      hx-target="#dfLibraryBody"
+      hx-swap="innerHTML"
+      hx-indicator=".appSearchIndicator"
+    )
+    .appSearchIndicator
+      svg.appSpinner(viewBox="0 0 24 24" aria-hidden="true")
+        circle(cx="12" cy="12" r="10")
+
+  #dfLibraryBody
+    include dfLibraryBody

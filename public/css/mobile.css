@@ -1,27 +1,35 @@
-/* STYLING FOR MOBILE */
+/* MOBILE LAYOUT PASS (M16) - PHONES AND SMALL TABLETS. THE SIDEBAR TOGGLE
+   BECOMES A DRAWER: EXPANDED = THE GUILD RAIL + CHANNEL COLUMN OWN THE
+   SCREEN, COLLAPSED = A SLIM STRIP BESIDE FULL-BLEED CONTENT. IMPORTED LAST
+   FROM style.css SO EQUAL-SPECIFICITY OVERRIDES WIN THE CASCADE. */
 
 @media (max-width: 768px) {
+  /* MOBILE BROWSER CHROME EATS 100vh - dvh TRACKS THE REAL VIEWPORT */
+  .rootDiv,
+  #serverSideBar {
+    height: 100dvh;
+  }
+
+  /* ---- NAVIGATION DRAWER ---- */
   #serverSideBar.expanded {
-    flex: auto;
-    width: 100%;
+    flex: 1 1 auto;
+    width: auto;
   }
 
   #serverSideBar.expanded ~ .chatContainer {
+    flex: 0 0 0;
     width: 0;
+    min-width: 0;
     visibility: collapse;
     overflow: hidden;
   }
 
-  .chatContainer * {
-    font-size: .9rem;
+  /* COLLAPSED = CONTENT MODE - THE GUILD RAIL YIELDS ITS 72px TO THE CONTENT */
+  .rootDiv:has(#serverSideBar:not(.expanded)) .servers {
+    display: none;
   }
 
-  .servers {
-    order: 1;
-    height: 100vh;
-  }
-
-  /* MEMBERS PANE IS A STUB - NEVER LET IT OVERLAY THE RAIL ON MOBILE */
+  /* MEMBERS/ACTIVITY RAIL CANNOT SHARE A PHONE WITH THE CONTENT COLUMN */
   .memberContainer {
     display: none;
   }
@@ -37,7 +45,110 @@
     }
   }
 
+  /* CHANNEL ROWS GET REAL TOUCH TARGETS */
   .channelViewOption {
-    padding: 8px;
+    padding: 10px 8px;
+  }
+
+  /* ---- CHAT DENSITY ---- */
+  .chatMessageRow {
+    padding: 4px 12px;
+  }
+
+  .messageChannelHeader {
+    padding: 0 12px;
+  }
+
+  /* ---- TAKEOVER SURFACES ---- */
+  .messageContainer.appSurface {
+    padding: 12px 12px 20px;
+  }
+
+  .posterGrid {
+    grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+    gap: 8px;
+  }
+
+  /* DETAIL HERO STACKS - POSTER ABOVE THE HEADLINE, SCRIM GOES VERTICAL */
+  .appDetailHeroScrim {
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+    background: linear-gradient(180deg, rgba(24, 25, 28, 0.94) 0%, rgba(24, 25, 28, 0.86) 60%, rgba(24, 25, 28, 0.78) 100%);
+  }
+
+  .appDetailPoster {
+    width: 120px;
+  }
+
+  .appLibraryHeader,
+  .appLibraryHeaderTools {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* ---- MODALS ---- */
+  .modal-dialog {
+    margin: 8px;
+  }
+
+  .settings-records-container {
+    padding: 12px 8px;
+  }
+}
+
+@media (max-width: 640px) {
+  /* LONG ROWS WRAP INSTEAD OF CRUSHING THEIR STATE COLUMN */
+  .request-row {
+    flex-wrap: wrap;
+  }
+
+  .request-row .request-status {
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  /* SEASON TABLES DROP THE SIZE COLUMN - COLUMN COUNTS TRACK VISIBLE CELLS */
+  .appSeasonRow {
+    grid-template-columns: minmax(80px, 130px) 1fr 60px;
+    gap: 10px;
+  }
+
+  .appSeasonRow .appSeasonSize {
+    display: none;
+  }
+
+  .appSeasonRow.expandable {
+    grid-template-columns: 14px minmax(72px, 120px) 1fr 56px auto;
+  }
+
+  /* EPISODE TABLES DROP THE AIR DATE */
+  .appEpisodeRow {
+    grid-template-columns: 34px 1fr auto 24px;
+  }
+
+  .appEpisodeRow .appEpisodeAir {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .posterGrid {
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  }
+
+  .appDetailPoster {
+    width: 100px;
+  }
+
+  .appEpisodeRow .appEpisodeSize {
+    display: none;
+  }
+
+  /* STAT TILES SHRINK BEFORE THEY WRAP */
+  .record-ops-stat-value {
+    font-size: 16px;
   }
 }

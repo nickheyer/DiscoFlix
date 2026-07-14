@@ -1,0 +1,35 @@
+//- ONE SEASON'S EPISODE TABLE - SWAPPED INTO THE SEASON GROUP'S CONTAINER ON
+//- FIRST EXPAND. EVERY ROW CARRIES ITS OWN RELEASE PICKER SO A STUCK EPISODE
+//- IS ONE CLICK FROM A MANUAL GRAB. LOCALS: activeApp, itemId, season, from,
+//- episodes | episodesError
+if episodesError
+  .appEpisodeEmpty #{activeApp.display_name} didn't answer - #{episodesError}
+else if !episodes.length
+  .appEpisodeEmpty No episodes on record for this season.
+else
+  each episode in episodes
+    .appEpisodeRow(class=episode.monitored ? '' : 'unmonitored')
+      .appEpisodeCode= episode.code
+      .appEpisodeTitle(title=episode.title)= episode.title
+      .appEpisodeAir= episode.airDate || ''
+      .appEpisodeState
+        if episode.hasFile
+          span.requestChip.chip-available= episode.quality || 'Downloaded'
+          if episode.size
+            span.appEpisodeSize= episode.size
+        else if !episode.aired
+          span.appEpisodeUnaired Unaired
+        else
+          span.requestChip.chip-missing Missing
+      button.appEpisodeSearch(
+        type="button"
+        aria-label=`Browse releases for ${episode.code}`
+        data-tooltip-dir="left"
+        hx-get=`/apps/${activeApp.id}/library/item/${itemId}/releases?episode=${episode.id}&from=${from}&label=${encodeURIComponent(`S${String(season).padStart(2, '0')}${episode.code} - ${episode.title}`)}`
+        hx-target="#appSectionBody"
+        hx-swap="innerHTML show:#messageContainer:top"
+        hx-disabled-elt="this"
+      )
+        svg(viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true")
+          circle(cx="11" cy="11" r="7")
+          path(d="M21 21l-4.35-4.35")

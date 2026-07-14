@@ -32,6 +32,11 @@ function buildResultEmbed(result, index, total, config, requesterName) {
     if (result.runtime) fields.push({ name: 'Runtime', value: `${result.runtime} min`, inline: true });
     if (result.network) fields.push({ name: 'Studio', value: result.network, inline: true });
     if (result.inTheaters) fields.push({ name: 'In Theaters', value: result.inTheaters.slice(0, 10), inline: true });
+  } else if (result.contentType === 'music') {
+    if (result.network) fields.push({ name: 'Artist', value: result.network, inline: true });
+    if (result.albumType) fields.push({ name: 'Type', value: result.albumType, inline: true });
+    if (result.firstAired) fields.push({ name: 'Released', value: result.firstAired.slice(0, 10), inline: true });
+    if (result.trackCount) fields.push({ name: 'Tracks', value: `${result.trackCount}`, inline: true });
   } else {
     if (result.seasonCount) fields.push({ name: 'Seasons', value: `${result.seasonCount}`, inline: true });
     if (result.network) fields.push({ name: 'Network', value: result.network, inline: true });

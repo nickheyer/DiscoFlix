@@ -34,19 +34,21 @@ module.exports = {
     const discordBot = discordBotInst || await this.core.models.discordBot.get();
     this.logger.debug('Changing Discord Bot Power State:', discordBot);
 
-    const state = await this.core.models.state.update({ discord_state: powerOn });
-    // THE HOME BADGE RIDES ALONG - ITS PROBLEM DOT TRACKS BOT POWER/LOGIN
-    const apps = await this.core.apps.getRailViewModel(state);
+    await this.core.models.state.update({ discord_state: powerOn });
     const config = await this.core.models.configuration.get();
-    await this.core.sockets.emitCompiled([
-      'sidebar/userControls/userControlsLayout.pug',
-      'sidebar/servers/addServerButton.pug',
-      'sidebar/servers/serverHomeButton.pug',
-    ], {
-      discordBot,
-      state,
-      apps,
-      authEnabled: !!config.admin_password
+    // EVERY BROWSER'S CONTROLS FLIP - THE HOME BADGE'S PILL/DOT ARE PER-VIEW
+    await this.core.sockets.emitPerView(async (view) => {
+      const apps = await this.core.apps.getRailViewModel(view);
+      return this.core.render.compile([
+        'sidebar/userControls/userControlsLayout.pug',
+        'sidebar/servers/addServerButton.pug',
+        'sidebar/servers/serverHomeButton.pug'
+      ], {
+        discordBot,
+        state: { ...view, discord_state: powerOn },
+        apps,
+        authEnabled: !!config.admin_password
+      });
     });
   },
 
@@ -68,7 +70,8 @@ module.exports = {
     }
   },
 
-  async emitMessage({
+  // ONE COMPILE, SENT ONLY TO THE SESSIONS ACTUALLY VIEWING THE CHANNEL
+  async emitMessage(sessionIds, {
     messageId,
     userId,
     username,
@@ -83,7 +86,7 @@ module.exports = {
     attachmentList,
     grouped
   }) {
-    await this.core.sockets.emitCompiled(['chat/discordMessage.pug'], {
+    const html = await this.core.render.compile(['chat/discordMessage.pug'], {
       messageId,
       userId,
       username,
@@ -98,6 +101,7 @@ module.exports = {
       attachmentList: attachmentList || [],
       grouped: !!grouped
     });
+    await this.core.sockets.emitToSessions(sessionIds, html);
   },
 
   // SERIALIZE DISCORD EMBEDS/ATTACHMENTS FOR PERSISTENCE + MIRROR RENDERING
@@ -143,26 +147,30 @@ module.exports = {
 
     const richContent = this.extractRichContent(rawDiscMsg);
 
+    // WHICH CONNECTED BROWSERS HAVE THIS EXACT CHANNEL ON SCREEN - THEY GET
+    // THE ROW, EVERYONE ELSE GETS BADGES, UNREADS ONLY ACCRUE WHEN NOBODY SAW IT
+    const serverRow = await this.core.models.discordServer.getById(rawDiscMsg.guildId);
+    const connectedViews = await this.core.sockets.connectedViews();
+    const viewerIds = connectedViews
+      .filter(view => view.id
+        && !view.active_app_id
+        && view.active_server_id === rawDiscMsg.guildId
+        && this.core.models.viewSession.channelPickFor(view, serverRow) === rawDiscMsg.channelId)
+      .map(view => view.id);
+
     // ONLY DB OPS HERE, EASY TO MESS UP
     const txRes = await this.core.prisma.$transaction(async (tx) => {
       const bot = await tx.discordBot.findFirst();
-      const stateRow = await tx.state.findFirst({
-        include: { activeServer: true }
-      });
-      const activeServer = stateRow?.activeServer;
 
       const isSelf = author.id === bot.bot_id;
-      // DURING AN APP TAKEOVER NOTHING IS "ACTIVE" - MESSAGES ACCRUE UNREAD
-      // BADGES INSTEAD OF BEING EMITTED INTO A SURFACE THAT ISN'T SHOWING THEM
-      const isActiveChannel = !stateRow?.active_app_id
-        && activeServer?.active_channel_id === rawDiscMsg.channelId;
+      const isViewed = viewerIds.length > 0;
 
       // UPDATE SERVER
       const server = await tx.discordServer.update({
         where: { server_id: rawDiscMsg.guildId },
         data: {
           unread_message_count: {
-            increment: (!isSelf && !isActiveChannel) ? 1 : 0
+            increment: (!isSelf && !isViewed) ? 1 : 0
           }
         }
       });
@@ -172,7 +180,7 @@ module.exports = {
         where: { channel_id: rawDiscMsg.channelId },
         data: {
           unread_message_count: {
-            increment: (!isSelf && !isActiveChannel) ? 1 : 0
+            increment: (!isSelf && !isViewed) ? 1 : 0
           }
         }
       });
@@ -227,24 +235,22 @@ module.exports = {
         }
       });
       return {
-        isActiveChannel,
+        isViewed,
         isSelf,
         server,
-        channel,
-        appActive: !!stateRow?.active_app_id,
-        activeServerId: activeServer?.server_id || null
+        channel
       };
     });
 
     // UI UPDATES OUTSIDE TRANSACTION
-    if (txRes.isActiveChannel) {
+    if (viewerIds.length) {
       // GROUPING NEEDS THE MESSAGE BEFORE THIS ONE - SECOND-NEWEST IN CHANNEL
       const [, previous] = await this.core.prisma.discordMessage.findMany({
         where: { channel_id: rawDiscMsg.channelId },
         orderBy: { created_at: 'desc' },
         take: 2
       });
-      await this.emitMessage({
+      await this.emitMessage(viewerIds, {
         messageId: rawDiscMsg.id,
         userId: author.id,
         username: author.displayName,
@@ -262,33 +268,41 @@ module.exports = {
           previous
         )
       });
-    } else if (!txRes.isSelf) {
+    }
+    if (!txRes.isSelf && !txRes.isViewed) {
       // SCOPED PHASE 2: SWAP ONLY THE AFFECTED BUBBLE (AND THE CHANNEL ROW
-      // WHEN THE MESSAGE LANDED IN THE ACTIVE SERVER'S SIDEBAR) IN PLACE -
-      // SELF MESSAGES CHANGE NO BADGES, SO THEY EMIT NOTHING HERE
-      const rowVisible = !txRes.appActive && txRes.activeServerId === rawDiscMsg.guildId;
-      await this.emitUnreadBadges(txRes.server, rowVisible ? txRes.channel : null, txRes);
+      // WHERE A SESSION'S SIDEBAR SHOWS IT) IN PLACE - SELF MESSAGES CHANGE
+      // NO BADGES, SO THEY EMIT NOTHING HERE
+      await this.emitUnreadBadges(txRes.server, txRes.channel);
     }
   },
 
-  // PER-BUBBLE/PER-ROW OOB PUSH - THE MESSAGE-VOLUME PATH NEVER RE-RENDERS
-  // THE SERVER STRIP OR CHANNEL LIST WHOLESALE ANYMORE
-  async emitUnreadBadges(serverRow, channelRow = null, { appActive, activeServerId }) {
-    const fragments = [
-      await this.core.render.compile('sidebar/servers/serverBubble.pug', {
-        ...this.core.render.bubbleLocals(serverRow, activeServerId, appActive),
-        oobReplace: true
-      })
-    ];
-    if (channelRow) {
-      // BADGE PUSHES ONLY TARGET INACTIVE CHANNELS - THE ACTIVE ONE MIRRORS LIVE
-      fragments.push(await this.core.render.compile('sidebar/channels/chatChannel.pug', {
-        ...channelRow,
-        isActiveChannel: false,
-        oobReplace: true
-      }));
-    }
-    await this.core.sockets.emit(fragments.join(''));
+  // PER-BUBBLE/PER-ROW OOB PUSH, COMPILED PER VIEW - EACH BROWSER'S BUBBLE
+  // KEEPS ITS OWN ACTIVE RING, THE CHANNEL ROW ONLY LANDS WHERE ITS SIDEBAR
+  // IS ON SCREEN. exceptSessionId SKIPS A SESSION THAT JUST GOT FULL CHROME.
+  async emitUnreadBadges(serverRow, channelRow = null, exceptSessionId = null) {
+    await this.core.sockets.emitPerView(async (view) => {
+      if (exceptSessionId && view.id === exceptSessionId) return null;
+      const fragments = [
+        await this.core.render.compile('sidebar/servers/serverBubble.pug', {
+          ...this.core.render.bubbleLocals(serverRow, view.active_server_id, !!view.active_app_id),
+          oobReplace: true
+        })
+      ];
+      // BADGE PUSHES ONLY TARGET INACTIVE CHANNELS - A SESSION WHOSE OWN PICK
+      // IS THIS CHANNEL MIRRORS LIVE AND MUST KEEP ITS ACTIVE HIGHLIGHT
+      if (channelRow
+        && !view.active_app_id
+        && view.active_server_id === serverRow.server_id
+        && this.core.models.viewSession.channelPickFor(view, serverRow) !== channelRow.channel_id) {
+        fragments.push(await this.core.render.compile('sidebar/channels/chatChannel.pug', {
+          ...channelRow,
+          isActiveChannel: false,
+          oobReplace: true
+        }));
+      }
+      return fragments.join('');
+    });
   },
 
   // MIRRORS DISCORD MESSAGE EDITS: KEEPS THE PRIOR CONTENT FOR THE
@@ -330,9 +344,16 @@ module.exports = {
       include: { user: true }
     });
 
-    // ONLY THE ACTIVE CHANNEL IS MIRRORED LIVE
-    const activeServer = await this.core.models.state.getActiveServer();
-    if (activeServer?.active_channel_id !== newMsg.channelId) return;
+    // ONLY BROWSERS VIEWING THAT CHANNEL GET THE IN-PLACE ROW SWAP
+    const serverRow = await this.core.models.discordServer.getById(newMsg.guildId);
+    const connectedViews = await this.core.sockets.connectedViews();
+    const viewerIds = connectedViews
+      .filter(view => view.id
+        && !view.active_app_id
+        && view.active_server_id === newMsg.guildId
+        && this.core.models.viewSession.channelPickFor(view, serverRow) === newMsg.channelId)
+      .map(view => view.id);
+    if (!viewerIds.length) return;
 
     // AN EDITED ROW KEEPS ITS GROUPED TREATMENT - REBUILD THE CONTEXT
     const previous = await this.core.prisma.discordMessage.findFirst({
@@ -342,7 +363,7 @@ module.exports = {
     updated.grouped = this.isGroupedContinuation(updated, previous);
     updated.oobReplace = true;
     const [compiledRow] = await this.compileMessages([updated]);
-    await this.core.sockets.emit(compiledRow);
+    await this.core.sockets.emitToSessions(viewerIds, compiledRow);
   },
 
   async compileMessages(messages = []) {
@@ -405,19 +426,17 @@ module.exports = {
     };
   },
 
-  async updateMessages(active_channel_id, state = null) {
-    if (!state) {
-      state = await this.core.models.state.get();
-    }
-
-    if (!state.active_server_id) {
+  // ONE VIEW'S MESSAGE LOAD - ZEROES THE CHANNEL'S GLOBAL UNREADS (SOMEONE IS
+  // LOOKING AT IT) AND RECORDS THE PICK ON BOTH THE SESSION MAP AND THE
+  // SERVER ROW'S GLOBAL DEFAULT
+  async updateMessages(active_channel_id, view) {
+    if (!view || !view.active_server_id) {
       return [];
     }
 
     if (!active_channel_id) {
-      const activeServer = await this.core.models.state.getActiveServer();
-
-      active_channel_id = activeServer.active_channel_id;
+      const serverRow = await this.core.models.discordServer.getById(view.active_server_id);
+      active_channel_id = this.core.models.viewSession.channelPickFor(view, serverRow);
       if (!active_channel_id) {
         return [];
       }
@@ -434,7 +453,7 @@ module.exports = {
     );
 
     // UPDATE UNREAD MESSAGES FOR SERVER
-    const server = await this.core.models.discordServer.getWithChannels(state.active_server_id);
+    const server = await this.core.models.discordServer.getWithChannels(view.active_server_id);
 
     const unreadServerMsgCount = server.channels.reduce(
       (total, channel) => total + channel.unread_message_count,
@@ -442,9 +461,12 @@ module.exports = {
     );
 
     await this.core.models.discordServer.update(
-      { server_id: state.active_server_id },
+      { server_id: view.active_server_id },
       { active_channel_id, unread_message_count: unreadServerMsgCount }
     );
+    if (view.id) {
+      await this.core.models.viewSession.setChannelPick(view.id, view.active_server_id, active_channel_id);
+    }
 
     // GET ALL MESSAGES TO BE DISPLAYED
     const messages = await this.core.models.discordChannel.getMessages(active_channel_id);
@@ -459,38 +481,24 @@ module.exports = {
     return messages;
   },
 
-  // EMITS A TEMPLATE OF AN UPDATED GUILD/SERVER/CHANNELS/ETC
-  // `null` = "fetch for me"; `[]` IS A VALID RESULT (EMPTY CHANNEL), DON'T REFETCH
-  async refreshUI(messageObjects = null) {
-    const state = await this.core.models.state.get();
-
-    // APP TAKEOVER GUARD: NEVER STOMP THE APP SURFACE - ONLY THE RAILS KEEP
-    // FLOWING (GUILD UNREAD BADGES + APP STATUS DOTS)
-    if (state.active_app_id) {
-      const servers = await this.core.render.getServerTemplateObj(null, state);
-      const apps = await this.core.apps.getRailViewModel(state);
-      await this.core.sockets.emitCompiled([
-        'sidebar/servers/serverSortableContainer.pug',
-        'sidebar/servers/appRail.pug',
-        'sidebar/servers/serverHomeButton.pug'
-      ], { servers, state, apps });
-      return;
-    }
-
+  // THE FULL MIRROR CHROME FOR ONE VIEW - SHARED BY refreshUI'S PER-VIEW
+  // BROADCAST AND THE CHANNEL SWITCH (WHICH TARGETS JUST THE ACTING SESSION).
+  // `[]` IS A VALID messageObjects RESULT (EMPTY CHANNEL), null = FETCH.
+  async buildMirrorFragments(view, messageObjects = null) {
     if (messageObjects === null) {
-      messageObjects = await this.updateMessages(null, state);
+      messageObjects = await this.updateMessages(null, view);
     }
     const history = this.historyCursorOf(messageObjects);
     const messages = await this.compileMessages(messageObjects);
     const eomStamp = _.get(_.last(messageObjects), 'created_at');
 
     const discordBot = await this.core.models.discordBot.get();
-    const servers = await this.core.render.getServerTemplateObj(null, state);
-    const members = await this.core.render.getServerMembers(state.active_server_id);
-    const apps = await this.core.apps.getRailViewModel(state);
-    const onboarding = await this.core.render.getOnboarding(state);
+    const servers = await this.core.render.getServerTemplateObj(null, view);
+    const members = await this.core.render.getServerMembers(view.active_server_id);
+    const apps = await this.core.apps.getRailViewModel(view);
+    const onboarding = await this.core.render.getOnboarding(view);
 
-    await this.core.sockets.emitCompiled([
+    return this.core.render.compile([
       'sidebar/servers/serverSortableContainer.pug',
       'sidebar/servers/appRail.pug',
       'sidebar/servers/serverHomeButton.pug',
@@ -505,11 +513,29 @@ module.exports = {
       messages,
       discordBot,
       eomStamp,
-      state,
+      state: view,
       members,
       apps,
       onboarding,
       history
+    });
+  },
+
+  // PER-VIEW UI REFRESH - EVERY CONNECTED BROWSER GETS ITS OWN WORLD: RAILS
+  // ONLY DURING A TAKEOVER (NEVER STOMP THE APP SURFACE), FULL MIRROR CHROME
+  // OTHERWISE
+  async refreshUI() {
+    await this.core.sockets.emitPerView(async (view) => {
+      if (view.active_app_id) {
+        const servers = await this.core.render.getServerTemplateObj(null, view);
+        const apps = await this.core.apps.getRailViewModel(view);
+        return this.core.render.compile([
+          'sidebar/servers/serverSortableContainer.pug',
+          'sidebar/servers/appRail.pug',
+          'sidebar/servers/serverHomeButton.pug'
+        ], { servers, state: view, apps });
+      }
+      return this.buildMirrorFragments(view);
     });
   }
 };

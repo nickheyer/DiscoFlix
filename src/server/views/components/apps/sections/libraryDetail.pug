@@ -4,7 +4,7 @@
 //- POINTS THE BACK BUTTON AT THE RAIL INPUT'S SEARCH RESULTS INSTEAD OF THE
 //- LIBRARY LISTING. LOCALS: activeApp, detail | detailError, ephemeral?, backTo?
 - var isEphemeral = typeof ephemeral !== 'undefined' && !!ephemeral
-- var backTarget = (typeof backTo === 'string' && backTo === 'search') ? 'search' : 'library'
+- var backTarget = (typeof backTo === 'string' && ['search', 'hub'].includes(backTo)) ? backTo : 'library'
 if backTarget === 'search'
   //- RE-RUNS THE TERM STILL SITTING IN THE RAIL INPUT - SAME RESULTS, SAME VIEW
   button.appDetailBack(
@@ -17,6 +17,16 @@ if backTarget === 'search'
     svg(viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true")
       path(d="M15 19l-7-7 7-7")
     span Results
+else if backTarget === 'hub'
+  //- BACK TO THE UNIFIED LIBRARY ON THE DISCOFLIX TAKEOVER
+  button.appDetailBack(
+    type="button"
+    hx-post="/discoflix/section/library"
+    hx-disabled-elt="this"
+  )
+    svg(viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true")
+      path(d="M15 19l-7-7 7-7")
+    span Library
 else
   button.appDetailBack(
     type="button"
@@ -41,6 +51,10 @@ else
               if detail.contentKind === 'show'
                 rect(x="3" y="7" width="18" height="13" rx="2")
                 path(stroke-linecap="round" stroke-linejoin="round" d="M8 3l4 4 4-4")
+              else if detail.contentKind === 'music'
+                path(stroke-linecap="round" stroke-linejoin="round" d="M9 18V5l12-2v13")
+                circle(cx="6" cy="18" r="3")
+                circle(cx="18" cy="16" r="3")
               else
                 rect(x="3" y="5" width="18" height="14" rx="2")
                 path(stroke-linecap="round" d="M3 9h18M8 5v14M16 5v14")
@@ -100,6 +114,23 @@ else
                 hx-swap="innerHTML"
                 hx-disabled-elt="this"
               )= detail.contentKind === 'show' ? 'Search All Episodes' : 'Search for Release'
+            //- INTERACTIVE SEARCH - MOVIES SWEEP WHOLE, SHOWS PICK PER SEASON/EPISODE BELOW
+            if detailVerbs.includes('interactive-search') && detail.contentKind !== 'show'
+              button.modal-button.button-secondary(
+                hx-get=`/apps/${activeApp.id}/library/item/${detail.id}/releases?from=${backTarget}&label=${encodeURIComponent(detail.year ? `${detail.title} (${detail.year})` : detail.title)}`
+                hx-target="#appSectionBody"
+                hx-swap="innerHTML show:#messageContainer:top"
+                hx-disabled-elt="this"
+              ) Browse Releases
+            if detailVerbs.includes('delete')
+              button.modal-button.appDetailDanger(
+                type="button"
+                hx-get=`/modal/apps/library-delete/${activeApp.id}/${detail.id}?title=${encodeURIComponent(detail.title)}`
+                hx-target="#modals-here"
+                hx-trigger="click"
+                data-bs-toggle="modal"
+                data-bs-target="#modals-here"
+              ) Remove
           each link in detail.links
             a.appDetailLink(href=link.url target="_blank" rel="noopener noreferrer")= link.label
 
@@ -136,17 +167,61 @@ else
 
       if detail.seasons && detail.seasons.length
         .request-section-header= detail.seasonsLabel || 'Seasons'
+        //- ARR SEASONS EXPAND INTO LAZY-LOADED EPISODE TABLES AND CARRY A
+        //- PER-SEASON RELEASE PICKER; MEDIA-SERVER SEASONS STAY FLAT
+        - var canExpand = !isEphemeral && !!detail.seasonsExpandable
+        - var canPickReleases = !isEphemeral && (detail.verbs || []).includes('interactive-search')
         .appSeasonTable
           each season in detail.seasons
-            .appSeasonRow
-              .appSeasonName(class=season.monitored ? '' : 'unmonitored')= season.label
-              .appSeasonProgress
-                .request-progress-track
-                  .request-progress-bar(class=season.percent >= 100 ? 'complete' : undefined style=`width: ${season.percent}%`)
-              .appSeasonCount #{season.episodeFileCount} / #{season.totalEpisodeCount || season.episodeCount}
-              //- MEDIA-SERVER SEASONS CARRY NO SIZE - THE CELL DROPS OUT
-              if season.size
-                .appSeasonSize= season.size
+            if canExpand
+              .appSeasonGroup
+                .appSeasonRow.expandable(
+                  role="button"
+                  tabindex="0"
+                  aria-label=`Toggle ${season.label} episodes`
+                  hx-get=`/apps/${activeApp.id}/library/item/${detail.id}/season/${season.number}?from=${backTarget}`
+                  hx-target=`#season-eps-${detail.id}-${season.number}`
+                  hx-swap="innerHTML"
+                  hx-trigger="click once"
+                  _="on keyup[key is 'Enter'] trigger click on me end on click toggle .open on the closest .appSeasonGroup"
+                )
+                  svg.appSeasonChevron(viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true")
+                    path(d="M9 5l7 7-7 7")
+                  .appSeasonName(class=season.monitored ? '' : 'unmonitored')= season.label
+                  .appSeasonProgress
+                    .request-progress-track
+                      .request-progress-bar(class=season.percent >= 100 ? 'complete' : undefined style=`width: ${season.percent}%`)
+                  .appSeasonCount #{season.episodeFileCount} / #{season.totalEpisodeCount || season.episodeCount}
+                  .appSeasonSize= season.size || ''
+                  if canPickReleases
+                    button.appSeasonBrowse(
+                      type="button"
+                      aria-label=`Browse releases for ${season.label}`
+                      data-tooltip-dir="left"
+                      hx-get=`/apps/${activeApp.id}/library/item/${detail.id}/releases?season=${season.number}&from=${backTarget}&label=${encodeURIComponent(`${detail.title} - ${season.label}`)}`
+                      hx-target="#appSectionBody"
+                      hx-swap="innerHTML show:#messageContainer:top"
+                      hx-disabled-elt="this"
+                      hx-on:click="event.stopPropagation()"
+                    )
+                      svg(viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true")
+                        circle(cx="11" cy="11" r="7")
+                        path(d="M21 21l-4.35-4.35")
+                .appSeasonEpisodes(id=`season-eps-${detail.id}-${season.number}`)
+                  .appEpisodeLoading
+                    svg.appSpinner(viewBox="0 0 24 24" aria-hidden="true")
+                      circle(cx="12" cy="12" r="10")
+                    span Loading episodes
+            else
+              .appSeasonRow
+                .appSeasonName(class=season.monitored ? '' : 'unmonitored')= season.label
+                .appSeasonProgress
+                  .request-progress-track
+                    .request-progress-bar(class=season.percent >= 100 ? 'complete' : undefined style=`width: ${season.percent}%`)
+                .appSeasonCount #{season.episodeFileCount} / #{season.totalEpisodeCount || season.episodeCount}
+                //- MEDIA-SERVER SEASONS CARRY NO SIZE - THE CELL DROPS OUT
+                if season.size
+                  .appSeasonSize= season.size
 
     .appDetailFacts
       .request-section-header Details
@@ -155,3 +230,32 @@ else
           .appDetailFact
             .appDetailFactLabel= fact.label
             .appDetailFactValue= fact.value
+
+      //- MANAGE - THE LIBRARY-OWNED SETTINGS THE ARR LETS US EDIT IN PLACE
+      if !isEphemeral && (detail.verbs || []).includes('edit') && detail.editOptions
+        .request-section-header Manage
+        form.appManageForm(
+          hx-post=`/apps/${activeApp.id}/library/item/${detail.id}/edit`
+          hx-target="#appSectionBody"
+          hx-swap="innerHTML"
+          hx-disabled-elt="find button"
+        )
+          input(type="hidden" name="from" value=backTarget)
+          label.appManageLabel(for=`manage-profile-${detail.id}`) Quality Profile
+          select.settings-input.settings-select.appManageSelect(
+            id=`manage-profile-${detail.id}`
+            name="qualityProfileId"
+          )
+            each profile in detail.editOptions.profiles
+              option(value=profile.id selected=profile.id === detail.editOptions.currentProfileId)= profile.name
+          label.appManageLabel(for=`manage-root-${detail.id}`) Root Folder
+          select.settings-input.settings-select.appManageSelect(
+            id=`manage-root-${detail.id}`
+            name="rootFolderPath"
+          )
+            each root in detail.editOptions.rootFolders
+              option(value=root selected=root === detail.editOptions.currentRootFolder)= root
+          label.appManageMove
+            input(type="checkbox" name="moveFiles")
+            span Move files if the root folder changes
+          button.modal-button.button-secondary.appManageSave(type="submit") Save Changes

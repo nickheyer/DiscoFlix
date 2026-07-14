@@ -38,6 +38,10 @@ class Media extends BaseModel {
             const byTvdb = await this.findFirst({ tvdb_id: result.tvdbId });
             if (byTvdb) return byTvdb;
         }
+        if (result.musicbrainzId) {
+            const byMb = await this.findFirst({ musicbrainz_id: result.musicbrainzId });
+            if (byMb) return byMb;
+        }
         return null;
     }
 
@@ -59,6 +63,7 @@ class Media extends BaseModel {
             tvdb_id: result.tvdbId || null,
             tmdb_id: result.tmdbId || null,
             imdb_id: result.imdbId || null,
+            musicbrainz_id: result.musicbrainzId || null,
             first_aired: result.firstAired,
             series_type: result.seriesType,
             in_theaters: result.inTheaters,
@@ -89,10 +94,39 @@ class Media extends BaseModel {
             case 'tvdb':
                 where.tvdb_id = id;
                 break;
+            case 'tmdb':
+                where.tmdb_id = id;
+                break;
+            case 'musicbrainz':
+                where.musicbrainz_id = id;
+                break;
+            case 'path':
+                where.path = id;
+                break;
             default:
                 throw new Error(`Invalid external ID type: ${type}`);
         }
         return this.findFirst(where);
+    }
+
+    // THE FULL LEDGER WITH REQUEST STATUSES - THE UNIFIED BROWSER LINKS EVERY
+    // SERVICE ITEM BACK TO THESE ROWS BY EXTERNAL ID OR PATH
+    async getLinkLedger() {
+        return this.prisma.media.findMany({
+            select: {
+                id: true,
+                title: true,
+                year: true,
+                poster_url: true,
+                path: true,
+                tmdb_id: true,
+                tvdb_id: true,
+                imdb_id: true,
+                musicbrainz_id: true,
+                is_available: true,
+                requests: { select: { status: true } }
+            }
+        });
     }
 
     async toggleMonitored(mediaId) {

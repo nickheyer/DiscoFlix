@@ -36,9 +36,17 @@ const {
   changeAppSection,
   appFeedPage,
   appLibraryPage,
+  appUnifiedLibrary,
+  appUnifiedLibraryPage,
   appLibraryItem,
   appLookupDetail,
   appLibraryItemAction,
+  appSeasonEpisodes,
+  appItemReleases,
+  appGrabItemRelease,
+  appEditLibraryItem,
+  confirmLibraryDelete,
+  appDeleteLibraryItem,
   appSearch,
   appAddMedia,
   appImage,
@@ -75,7 +83,17 @@ router.post('/apps/add/:type', addApp);
 router.post('/apps/:id/section/:section', changeAppSection);
 router.get('/apps/:id/feed/page/:page', appFeedPage);
 router.get('/apps/:id/library/page/:page', appLibraryPage);
+// THE UNIFIED LIBRARY (SELF APP) - FILTER SWAPS AND VIEW MORE PAGINATION
+router.get('/apps/:id/unified', appUnifiedLibrary);
+router.get('/apps/:id/unified/page/:page', appUnifiedLibraryPage);
 router.get('/apps/:id/library/item/:itemId', appLibraryItem);
+// DETAIL PHASE 2 - EPISODE TABLES, RELEASE PICKING, EDIT, AND REMOVAL. THE
+// NAMED POSTS REGISTER BEFORE THE GENERIC :verb ROUTE SO THEY WIN THE MATCH.
+router.get('/apps/:id/library/item/:itemId/season/:season', appSeasonEpisodes);
+router.get('/apps/:id/library/item/:itemId/releases', appItemReleases);
+router.post('/apps/:id/library/item/:itemId/grab', appGrabItemRelease);
+router.post('/apps/:id/library/item/:itemId/edit', appEditLibraryItem);
+router.post('/apps/:id/library/item/:itemId/delete', appDeleteLibraryItem);
 router.post('/apps/:id/library/item/:itemId/:verb', appLibraryItemAction);
 // EPHEMERAL PRE-ADD DETAIL FOR SEARCH RESULTS NOT YET IN THE LIBRARY
 router.get('/apps/:id/lookup/:externalKey', appLookupDetail);
@@ -96,6 +114,7 @@ router.delete('/apps/:id', removeApp);
 // REGISTERED BEFORE THE GENERIC MODAL ROUTE SO THEY WIN THE MATCH
 router.get('/modal/apps/picker', renderAppPicker);
 router.get('/modal/apps/remove/:id', confirmRemoveApp);
+router.get('/modal/apps/library-delete/:id/:itemId', confirmLibraryDelete);
 router.get('/modal/requests/dashboard', renderRequestDashboard);
 router.post('/requests/:id/approve', approveRequest);
 router.post('/requests/:id/deny', denyRequest);

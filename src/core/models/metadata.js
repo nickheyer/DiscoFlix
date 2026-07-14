@@ -65,13 +65,25 @@ const MODELS_META = {
         fields: {
             id: { type: FIELD_TYPES.ID, immutable: true, readonly: true, label: "ID", description: "Unique identifier for state" },
             discord_state: { type: FIELD_TYPES.BOOLEAN, label: "Discord State", description: "Discord connection state" },
-            sidebar_exp_state: { type: FIELD_TYPES.BOOLEAN, label: "Sidebar Expanded", description: "Sidebar expansion state" },
-            active_server_id: { type: FIELD_TYPES.RELATION, label: "Active Server", description: "Currently selected server identifier" },
-            active_app_id: { type: FIELD_TYPES.RELATION, label: "Active App", description: "App instance currently taking over the console (null = Discord mirror)" },
             created_at: { type: FIELD_TYPES.TIMESTAMP, label: "Created At", description: "Timestamp when state was created", computed: true },
-            updated_at: { type: FIELD_TYPES.TIMESTAMP, label: "Updated At", description: "Timestamp when state was last updated", computed: true },
-            activeServer: { type: FIELD_TYPES.RELATION, label: "Active Server Reference", description: "Reference to the currently active server", hidden: true },
-            activeApp: { type: FIELD_TYPES.RELATION, label: "Active App Reference", description: "Reference to the active app instance", hidden: true }
+            updated_at: { type: FIELD_TYPES.TIMESTAMP, label: "Updated At", description: "Timestamp when state was last updated", computed: true }
+        }
+    },
+    ViewSession: {
+        type: MODEL_TYPES.ENTITY,
+        description: "Per-browser view sessions",
+        readonly: true,
+        fields: {
+            id: { type: FIELD_TYPES.ID, immutable: true, readonly: true, label: "ID", description: "View session identifier (df_view cookie)" },
+            sidebar_exp_state: { type: FIELD_TYPES.BOOLEAN, label: "Sidebar Expanded", description: "This browser's sidebar expansion state" },
+            active_server_id: { type: FIELD_TYPES.RELATION, label: "Active Server", description: "Server this browser is viewing" },
+            active_app_id: { type: FIELD_TYPES.RELATION, label: "Active App", description: "App takeover this browser is inside (null = Discord mirror)" },
+            active_channels: { type: FIELD_TYPES.JSON, hidden: true, label: "Channel Picks", description: "JSON map of per-server channel picks" },
+            last_seen_at: { type: FIELD_TYPES.TIMESTAMP, computed: true, label: "Last Seen", description: "Last request from this browser" },
+            created_at: { type: FIELD_TYPES.TIMESTAMP, computed: true, label: "Created At", description: "Timestamp when this session was created" },
+            updated_at: { type: FIELD_TYPES.TIMESTAMP, computed: true, label: "Updated At", description: "Timestamp when this session was last updated" },
+            activeServer: { type: FIELD_TYPES.RELATION, hidden: true, label: "Active Server Reference", description: "Reference to the viewed server" },
+            activeApp: { type: FIELD_TYPES.RELATION, hidden: true, label: "Active App Reference", description: "Reference to the active app instance" }
         }
     },
     App: {
@@ -227,6 +239,7 @@ const MODELS_META = {
             tvdb_id: { type: FIELD_TYPES.STRING, label: "TVDB ID", description: "TVDB identifier" },
             tmdb_id: { type: FIELD_TYPES.STRING, label: "TMDB ID", description: "TMDB identifier" },
             imdb_id: { type: FIELD_TYPES.STRING, label: "IMDB ID", description: "IMDB identifier" },
+            musicbrainz_id: { type: FIELD_TYPES.STRING, label: "MusicBrainz ID", description: "MusicBrainz release group identifier" },
             first_aired: { type: FIELD_TYPES.STRING, label: "First Aired", description: "Original air date" },
             series_type: { type: FIELD_TYPES.STRING, label: "Series Type", description: "Type of series classification" },
             in_theaters: { type: FIELD_TYPES.STRING, label: "In Theaters", description: "Theatrical release date" },

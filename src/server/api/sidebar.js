@@ -3,9 +3,8 @@ const { buildSectionNav } = require('./apps');
 
 async function toggleSidebarState(ctx) {
   try {
-    const currentState = await ctx.core.models.state.get();
-    const state = await ctx.core.models.state.update({
-      sidebar_exp_state: !currentState.sidebar_exp_state
+    const state = await ctx.updateView({
+      sidebar_exp_state: !ctx.viewState.sidebar_exp_state
     });
 
     const [servers, discordBot, apps, activeApp, config] = await Promise.all([
@@ -22,13 +21,9 @@ async function toggleSidebarState(ctx) {
       ...(activeApp ? buildSectionNav(ctx.core, activeApp) : {})
     });
   } catch (err) {
-    if (err.code === 'P2002') { // PRISMA CONSTRAINT CODE
-      return toggleSidebarState(ctx);
-    } else {
-      ctx.core.logger.error('TOGGLE_SIDEBAR_FAILED:', err);
-      ctx.status = 500;
-      return { error: 'Failed to toggle sidebar' };
-    }
+    ctx.core.logger.error('TOGGLE_SIDEBAR_FAILED:', err);
+    ctx.status = 500;
+    return { error: 'Failed to toggle sidebar' };
   }
 }
 
@@ -36,7 +31,7 @@ async function changeActiveServers(ctx) {
   try {
     const active_server_id = ctx.params.id;
     // CLICKING A GUILD IS ALSO THE WAY OUT OF AN APP TAKEOVER
-    const state = await ctx.core.models.state.update({ active_server_id, active_app_id: null });
+    const state = await ctx.updateView({ active_server_id, active_app_id: null });
 
     const [msgObjects, servers, discordBot, members, apps, onboarding] = await Promise.all([
       ctx.core.discord.updateMessages(null, state),
@@ -71,17 +66,30 @@ async function changeActiveServers(ctx) {
 
 async function changeServerSortOrder(ctx) {
   const newSortOrder = await ctx.core.models.discordServer.reorder(ctx.request.body.item);
-  const servers = await ctx.core.render.getServerTemplateObj(newSortOrder);
+  const servers = await ctx.core.render.getServerTemplateObj(newSortOrder, ctx.viewState);
   await ctx.compileView([
     'sidebar/servers/serverSortableContainer.pug'
   ], { servers });
 }
 
 async function changeActiveChannel(ctx) {
-  const state = await ctx.core.models.state.get();
+  const core = ctx.core;
   const active_channel_id = `${ctx.params.id}`;
-  const messages = await ctx.core.discord.updateMessages(active_channel_id, state);
-  await ctx.core.discord.refreshUI(messages);
+  const messages = await core.discord.updateMessages(active_channel_id, ctx.viewState);
+
+  // THE PICK JUST PERSISTED - RE-MERGE SO THE CHROME COMPILE SEES IT
+  const view = await core.models.viewSession.viewStateOf(ctx.view.id);
+  const html = await core.discord.buildMirrorFragments(view, messages);
+  await core.sockets.emitToSession(ctx.view.id, html);
+
+  // READING THE CHANNEL LOWERED ITS BADGES - EVERY OTHER BROWSER CATCHES UP
+  const [serverRow, channelRow] = await Promise.all([
+    core.models.discordServer.getById(view.active_server_id),
+    core.models.discordChannel.getById(active_channel_id)
+  ]);
+  if (serverRow) {
+    await core.discord.emitUnreadBadges(serverRow, channelRow, ctx.view.id);
+  }
   await ctx.deferToWS();
 }
 

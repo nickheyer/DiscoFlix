@@ -35,18 +35,33 @@ model Configuration {
   @@map("configuration")
 }
 
+// GLOBAL PROCESS STATE ONLY - EVERYTHING VIEW-SHAPED LIVES ON ViewSession
 model State {
+  id            String   @id @default(cuid())
+  discord_state Boolean  @default(false)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt @default(now())
+
+  @@map("state")
+}
+
+// ONE ROW PER BROWSER (df_view COOKIE) - EACH OPERATOR BROWSES INDEPENDENTLY.
+// active_channels IS A JSON MAP server_id -> channel_id OF THE SESSION'S
+// CHANNEL PICKS; DiscordServer.active_channel_id STAYS THE GLOBAL FALLBACK.
+model ViewSession {
   id                String         @id @default(cuid())
-  discord_state     Boolean        @default(false)
   sidebar_exp_state Boolean        @default(true)
-  active_server_id  String?        @unique
-  active_app_id     String?        @unique
+  active_server_id  String?
+  active_app_id     String?
+  active_channels   String?
+  last_seen_at      DateTime       @default(now())
   created_at        DateTime       @default(now())
   updated_at        DateTime       @updatedAt @default(now())
   activeServer      DiscordServer? @relation(fields: [active_server_id], references: [server_id], onDelete: SetNull)
   activeApp         App?           @relation(fields: [active_app_id], references: [id], onDelete: SetNull)
 
-  @@map("state")
+  @@index([last_seen_at])
+  @@map("view_sessions")
 }
 
 // INSTALLED APP INSTANCES (RADARR/SONARR/SABNZBD/QBITTORRENT...). MULTI-INSTANCE:
@@ -68,7 +83,7 @@ model App {
   created_at     DateTime       @default(now())
   updated_at     DateTime       @updatedAt @default(now())
   requests       MediaRequest[]
-  state          State?
+  view_sessions  ViewSession[]
 
   @@index([app_type])
   @@index([sort_position])
@@ -113,7 +128,7 @@ model DiscordServer {
   requests             MediaRequest[]         @relation("DiscordServerRequests")
   channels             DiscordServerChannel[]
   messages             DiscordMessage[]
-  state                State?
+  view_sessions        ViewSession[]
 
   @@index([sort_position])
   @@map("discord_servers")
@@ -180,6 +195,8 @@ model Media {
   tvdb_id      String?
   tmdb_id      String?
   imdb_id      String?        @unique
+  // MUSICBRAINZ RELEASE-GROUP ID - LIDARR'S EXTERNAL KEY FOR ALBUMS
+  musicbrainz_id String?
   first_aired  String?
   series_type  String?
   in_theaters  String?
@@ -190,7 +207,12 @@ model Media {
   updated_at   DateTime       @updatedAt @default(now())
   requests     MediaRequest[]
 
+  // EVERY SERVICE LINKS TO A COMMON MEDIA ROW BY EXTERNAL ID OR PATH
   @@index([imdb_id])
+  @@index([tmdb_id])
+  @@index([tvdb_id])
+  @@index([musicbrainz_id])
+  @@index([path])
   @@map("media")
 }
 

@@ -10,7 +10,43 @@ class SonarrClient extends ArrClient {
 
   get externalIdField() { return 'tvdb_id'; }
 
+  get exclusionParam() { return 'addImportListExclusion'; }
+
+  // EPISODE PICKS WIN, OTHERWISE THE SEASON SWEEP - SONARR HAS NO WHOLE-SERIES
+  // INTERACTIVE SEARCH
+  releaseParamsFor({ arrId, season, episodeId }) {
+    if (episodeId) return { episodeId: Number(episodeId) };
+    return { seriesId: Number(arrId), seasonNumber: Number(season) };
+  }
+
   externalLookupTerm(externalKey) { return `tvdb:${externalKey}`; }
+
+  // ONE SEASON'S EPISODES, TABLE-READY - FILE FACTS (QUALITY/SIZE) JOINED IN
+  async getSeasonEpisodes(seriesId, seasonNumber) {
+    const [episodes, files] = await Promise.all([
+      this._get('/episode', { seriesId: Number(seriesId) }),
+      this._get('/episodefile', { seriesId: Number(seriesId) })
+    ]);
+    const fileById = new Map((files || []).map(file => [file.id, file]));
+    return (episodes || [])
+      .filter(episode => episode.seasonNumber === Number(seasonNumber))
+      .sort((a, b) => a.episodeNumber - b.episodeNumber)
+      .map(episode => {
+        const file = episode.episodeFileId ? fileById.get(episode.episodeFileId) : null;
+        return {
+          id: String(episode.id),
+          number: episode.episodeNumber,
+          code: `E${String(episode.episodeNumber).padStart(2, '0')}`,
+          title: episode.title || 'TBA',
+          airDate: ArrClient.formatDate(episode.airDateUtc),
+          aired: !!episode.airDateUtc && new Date(episode.airDateUtc) <= new Date(),
+          monitored: !!episode.monitored,
+          hasFile: !!episode.hasFile,
+          quality: file?.quality?.quality?.name || null,
+          size: ArrClient.humanSize(file?.size)
+        };
+      });
+  }
 
   get historyIncludeParams() { return { includeSeries: true }; }
 
@@ -29,6 +65,10 @@ class SonarrClient extends ArrClient {
 
   normalizeLibraryItem(raw) {
     const stats = raw.statistics || {};
+    const externalIds = {};
+    if (raw.tvdbId) externalIds.tvdb = String(raw.tvdbId);
+    if (raw.imdbId) externalIds.imdb = String(raw.imdbId);
+    if (raw.tmdbId) externalIds.tmdb = String(raw.tmdbId);
     return {
       id: String(raw.id),
       title: raw.title,
@@ -36,7 +76,10 @@ class SonarrClient extends ArrClient {
       year: raw.year || null,
       overview: raw.overview || '',
       posterUrl: this.absolutePosterFrom(raw.images),
-      available: (stats.episodeFileCount || 0) > 0
+      available: (stats.episodeFileCount || 0) > 0,
+      kind: 'show',
+      path: raw.path || null,
+      externalIds
     };
   }
 
@@ -72,7 +115,7 @@ class SonarrClient extends ArrClient {
       monitored: !!raw.monitored,
       available: (stats.episodeFileCount || 0) > 0,
       availabilityLabel: `${stats.episodeFileCount || 0} of ${stats.episodeCount || 0} episodes`,
-      verbs: ['monitor', 'search'],
+      verbs: ['monitor', 'search', 'interactive-search', 'edit', 'delete'],
       status: raw.status || null,
       genres: raw.genres || [],
       runtime: ArrClient.formatRuntime(raw.runtime),
@@ -97,6 +140,8 @@ class SonarrClient extends ArrClient {
       ].filter(fact => fact.value),
       file: null,
       seasons,
+      // SEASON ROWS EXPAND INTO EPISODE TABLES (getSeasonEpisodes BACKS THEM)
+      seasonsExpandable: true,
       raw
     };
   }

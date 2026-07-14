@@ -7,6 +7,7 @@ const debugHandler = require('./middlewares/debugHandler');
 const { defermentMiddleware } = require('./middlewares/defermentHandler');
 const { compileMiddleware } = require('./middlewares/compiler');
 const { authHandler } = require('./middlewares/authHandler');
+const { viewSessionHandler } = require('./middlewares/viewSessionHandler');
 const routes = require('./routes');
 const Pug = require('koa-pug');
 const pug = new Pug({
@@ -26,6 +27,8 @@ app.use(serve('.cache'));
 
 // AUTH SITS AFTER STATIC - LOGIN PAGE ASSETS STAY REACHABLE
 app.use(authHandler());
+// EVERY ROUTE PAST AUTH KNOWS WHICH BROWSER IT SERVES (df_view COOKIE)
+app.use(viewSessionHandler());
 
 // Routes
 app.use(routes.routes()).use(routes.allowedMethods());

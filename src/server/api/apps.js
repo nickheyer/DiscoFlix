@@ -114,6 +114,12 @@ async function buildSelfSectionData(core, instance, section) {
       data.mutableFields = USER_MUTABLE_FIELDS;
       break;
     }
+    // THE UNIFIED LIBRARY - EVERY SERVICE'S LISTING MERGED BY EXTERNAL ID/PATH
+    case 'library': {
+      data.unified = await core.apps.getUnifiedPage({});
+      data.view = core.apps.getBrowseView(instance.id, 'library');
+      break;
+    }
     case 'logs': {
       data.logs = await buildLogsPage(core);
       data.logLevels = LOG_LEVELS;
@@ -347,7 +353,11 @@ async function buildSectionData(core, instance, section, opts = {}) {
         try {
           const fetched = {
             rootFolders: (await client.getRootFolders()).map(folder => ({ value: folder.path, label: folder.path })),
-            qualityProfiles: (await client.getQualityProfiles()).map(profile => ({ value: String(profile.id), label: profile.name }))
+            qualityProfiles: (await client.getQualityProfiles()).map(profile => ({ value: String(profile.id), label: profile.name })),
+            // LIDARR-ONLY THIRD SELECT - ONLY FETCHED WHERE THE CLIENT HAS IT
+            ...(typeof client.getMetadataProfiles === 'function' ? {
+              metadataProfiles: (await client.getMetadataProfiles()).map(profile => ({ value: String(profile.id), label: profile.name }))
+            } : {})
           };
           data.optionFields = manifest.instanceOptions.map(option => ({
             key: option.key,
@@ -494,7 +504,7 @@ async function changeActiveApp(ctx) {
     ctx.status = 404;
     return;
   }
-  const state = await core.models.state.update({ active_app_id: instance.id });
+  const state = await ctx.updateView({ active_app_id: instance.id });
   return respondWithTakeover(ctx, instance, state);
 }
 
@@ -503,7 +513,7 @@ async function changeActiveApp(ctx) {
 async function openDiscoFlix(ctx) {
   const core = ctx.core;
   const instance = await core.apps.getSelfInstance();
-  const state = await core.models.state.update({ active_app_id: instance.id });
+  const state = await ctx.updateView({ active_app_id: instance.id });
   return respondWithTakeover(ctx, instance, state);
 }
 
@@ -517,7 +527,7 @@ async function openDiscoFlixSection(ctx) {
     : 'overview';
   await core.models.app.update({ id: instance.id }, { active_section: section });
   instance.active_section = section;
-  const state = await core.models.state.update({ active_app_id: instance.id });
+  const state = await ctx.updateView({ active_app_id: instance.id });
   return respondWithTakeover(ctx, instance, state);
 }
 
@@ -614,9 +624,9 @@ async function changeAppSection(ctx) {
   await core.models.app.update({ id: instance.id }, { active_section: section });
   instance.active_section = section;
 
-  let state = await core.models.state.get();
+  let state = ctx.viewState;
   if (state.active_app_id !== instance.id) {
-    state = await core.models.state.update({ active_app_id: instance.id });
+    state = await ctx.updateView({ active_app_id: instance.id });
     return respondWithTakeover(ctx, instance, state);
   }
 
@@ -663,6 +673,49 @@ async function appLibraryPage(ctx) {
   });
 }
 
+// UNIFIED LIBRARY FILTERS (SELF APP ONLY) - TERM/KIND/VIEW CHANGES SWAP THE
+// WHOLE BODY SO THE TABS, COUNTS, AND GRID ALWAYS AGREE
+async function appUnifiedLibrary(ctx) {
+  const core = ctx.core;
+  const instance = await core.apps.getInstance(ctx.params.id);
+  if (!instance || instance.app_type !== 'discoflix') {
+    ctx.status = 404;
+    return;
+  }
+  const view = String(ctx.query.view || '').trim();
+  if (view) core.apps.setBrowseView(instance.id, 'library', view);
+  const unified = await core.apps.getUnifiedPage({
+    kind: String(ctx.query.kind || 'all').trim(),
+    term: String(ctx.query.term || '').trim()
+  });
+  return ctx.compileView('apps/sections/dfLibraryBody.pug', {
+    activeApp: instance,
+    unified,
+    view: core.apps.getBrowseView(instance.id, 'library')
+  });
+}
+
+// UNIFIED LIBRARY PAGINATION - THE VIEW MORE SENTINEL SWAPS ITSELF FOR THE
+// NEXT PAGE OF CARDS (FILTERS RIDE THE QUERY STRING)
+async function appUnifiedLibraryPage(ctx) {
+  const core = ctx.core;
+  const instance = await core.apps.getInstance(ctx.params.id);
+  if (!instance || instance.app_type !== 'discoflix') {
+    ctx.status = 404;
+    return;
+  }
+  const unified = await core.apps.getUnifiedPage({
+    page: Math.max(1, parseInt(ctx.params.page, 10) || 1),
+    kind: String(ctx.query.kind || 'all').trim(),
+    term: String(ctx.query.term || '').trim()
+  });
+  return ctx.compileView('apps/unifiedCards.pug', {
+    activeApp: instance,
+    unified,
+    view: core.apps.getBrowseView(instance.id, 'library')
+  });
+}
+
 // LIBRARY ITEM DETAIL - CLICKING A POSTER SWAPS THE SECTION BODY FOR THE
 // IN-CONSOLE EQUIVALENT OF THE ARR'S OWN DETAIL PAGE (NO LINK-OUTS, EVER).
 // from=search KEEPS THE BACK BUTTON POINTED AT THE SEARCH RESULTS.
@@ -678,7 +731,7 @@ async function appLibraryItem(ctx) {
     activeApp: instance,
     detail: detail || null,
     detailError: error || null,
-    backTo: ctx.query.from === 'search' ? 'search' : 'library'
+    backTo: ['search', 'hub'].includes(ctx.query.from) ? ctx.query.from : 'library'
   });
 }
 
@@ -751,9 +804,199 @@ async function appLibraryItemAction(ctx) {
     activeApp: instance,
     detail: detail || null,
     detailError: error || null,
-    backTo: ctx.request.body?.from === 'search' ? 'search' : 'library',
+    backTo: ['search', 'hub'].includes(ctx.request.body?.from) ? ctx.request.body.from : 'library',
     message
   });
+}
+
+// ONE SEASON'S EPISODE TABLE - LAZY-LOADED WHEN A DETAIL SEASON ROW EXPANDS
+async function appSeasonEpisodes(ctx) {
+  const core = ctx.core;
+  const instance = await core.apps.getInstance(ctx.params.id);
+  const client = instance && core.apps.getClientForInstance(instance);
+  if (!client || typeof client.getSeasonEpisodes !== 'function') {
+    ctx.status = 404;
+    return;
+  }
+  const locals = {
+    activeApp: instance,
+    itemId: ctx.params.itemId,
+    season: parseInt(ctx.params.season, 10),
+    from: ['search', 'hub'].includes(ctx.query.from) ? ctx.query.from : 'library',
+    episodes: [],
+    episodesError: null
+  };
+  try {
+    locals.episodes = await client.getSeasonEpisodes(ctx.params.itemId, locals.season);
+  } catch (err) {
+    core.logger.warn(`${instance.display_name} episode fetch failed: ${err.message}`);
+    locals.episodesError = err.message;
+  }
+  return ctx.compileView('apps/sections/seasonEpisodes.pug', locals);
+}
+
+// INTERACTIVE SEARCH - THE ARR SWEEPS ITS INDEXERS AND THE OPERATOR PICKS THE
+// RELEASE. SCOPE COMES FROM THE QUERY (WHOLE MOVIE / SEASON / EPISODE); THE
+// CALLER-PROVIDED label KEEPS THE HEADING HONEST WITHOUT A SECOND DETAIL PULL.
+async function appItemReleases(ctx) {
+  const core = ctx.core;
+  const instance = await core.apps.getInstance(ctx.params.id);
+  const client = instance && core.apps.getClientForInstance(instance);
+  if (!client || !client.capabilities.interactiveSearch) {
+    ctx.status = 404;
+    return;
+  }
+  const locals = {
+    activeApp: instance,
+    itemId: ctx.params.itemId,
+    label: String(ctx.query.label || '').slice(0, 120),
+    from: ['search', 'hub'].includes(ctx.query.from) ? ctx.query.from : 'library',
+    releases: [],
+    releasesError: null
+  };
+  try {
+    locals.releases = await client.getInteractiveReleases({
+      arrId: ctx.params.itemId,
+      season: ctx.query.season != null && ctx.query.season !== '' ? Number(ctx.query.season) : null,
+      episodeId: ctx.query.episode || null
+    });
+  } catch (err) {
+    core.logger.warn(`${instance.display_name} interactive search failed: ${err.message}`);
+    locals.releasesError = err.message;
+  }
+  return ctx.compileView('apps/sections/libraryReleases.pug', locals);
+}
+
+// GRAB A PICKED RELEASE - THE ARR ROUTES IT TO ITS OWN DOWNLOAD CLIENT. THE
+// RESPONSE REBUILDS THE CLICKED ROW FROM THE POSTED DISPLAY FIELDS AND TOASTS.
+async function appGrabItemRelease(ctx) {
+  const core = ctx.core;
+  const instance = await core.apps.getInstance(ctx.params.id);
+  const client = instance && core.apps.getClientForInstance(instance);
+  if (!client || !client.capabilities.interactiveSearch) {
+    ctx.status = 404;
+    return;
+  }
+  const body = ctx.request.body || {};
+  const release = {
+    guid: String(body.guid || ''),
+    indexerId: body.indexerId ? Number(body.indexerId) : null,
+    title: String(body.title || 'Unknown release'),
+    indexer: body.indexer || null,
+    quality: body.quality || null,
+    protocol: body.protocol === 'usenet' ? 'usenet' : 'torrent',
+    sizeHuman: body.sizeHuman || null,
+    seeders: body.seeders ? Number(body.seeders) : null,
+    age: body.age || null,
+    languages: body.languages || null,
+    rejected: false,
+    rejections: []
+  };
+  try {
+    if (!release.guid || !release.indexerId) throw new Error('This release is missing its grab handle');
+    await client.grabRelease(release.guid, release.indexerId);
+    release.rowState = 'grabbed';
+  } catch (err) {
+    core.logger.warn(`Release grab failed on ${instance.display_name}: ${err.message}`);
+    release.rowState = 'error';
+    release.error = err.message;
+  }
+  return ctx.compileView(['apps/libraryReleaseRow.pug', 'extra/notification.pug'], {
+    activeApp: instance,
+    release,
+    itemId: ctx.params.itemId,
+    message: release.rowState === 'grabbed'
+      ? `Grabbed - ${instance.display_name} is sending it to its download client`
+      : release.error
+  });
+}
+
+// MANAGE PANEL SAVE (QUALITY PROFILE / ROOT FOLDER) - MUTATE, RE-PULL,
+// RE-RENDER SO THE VIEW SHOWS WHAT THE ARR NOW BELIEVES
+async function appEditLibraryItem(ctx) {
+  const core = ctx.core;
+  const instance = await core.apps.getInstance(ctx.params.id);
+  const client = instance && core.apps.getClientForInstance(instance);
+  if (!client || !client.capabilities.libraryEdit) {
+    ctx.status = 404;
+    return;
+  }
+  const body = ctx.request.body || {};
+  let message;
+  try {
+    await client.updateItemSettings(ctx.params.itemId, {
+      qualityProfileId: body.qualityProfileId || null,
+      rootFolderPath: body.rootFolderPath || null,
+      moveFiles: String(body.moveFiles) === 'on' || String(body.moveFiles) === 'true'
+    });
+    message = 'Saved';
+    core.apps.libraryCache.delete(instance.id);
+  } catch (err) {
+    core.logger.warn(`Library edit failed on ${instance.display_name}: ${err.message}`);
+    message = err.message;
+  }
+  const { detail, error } = await core.apps.getLibraryItemDetail(instance, ctx.params.itemId);
+  return ctx.compileView(['apps/sections/libraryDetail.pug', 'extra/notification.pug'], {
+    activeApp: instance,
+    detail: detail || null,
+    detailError: error || null,
+    backTo: ['search', 'hub'].includes(body.from) ? body.from : 'library',
+    message
+  });
+}
+
+// DANGER CONFIRM FOR REMOVING A LIBRARY ITEM - FILE DELETION AND LIST
+// EXCLUSION ARE EXPLICIT CHECKBOXES, NEVER DEFAULTS
+async function confirmLibraryDelete(ctx) {
+  const core = ctx.core;
+  const instance = await core.apps.getInstance(ctx.params.id);
+  const client = instance && core.apps.getClientForInstance(instance);
+  if (!client || !client.capabilities.libraryDelete) {
+    ctx.status = 404;
+    return;
+  }
+  return ctx.compileView('modals/apps/libraryDelete.pug', {
+    app: instance,
+    itemId: ctx.params.itemId,
+    itemTitle: String(ctx.query.title || 'this item').slice(0, 120)
+  });
+}
+
+// DROP THE ITEM AND RESTORE WHATEVER TAKEOVER SURFACE THE OPERATOR IS ON -
+// THE ARR LIBRARY OR THE UNIFIED HUB BOTH RE-RENDER WITHOUT THE ITEM
+async function appDeleteLibraryItem(ctx) {
+  const core = ctx.core;
+  const instance = await core.apps.getInstance(ctx.params.id);
+  const client = instance && core.apps.getClientForInstance(instance);
+  if (!client || !client.capabilities.libraryDelete) {
+    ctx.status = 404;
+    return;
+  }
+  const body = ctx.request.body || {};
+  let message;
+  try {
+    await client.deleteItem(ctx.params.itemId, {
+      deleteFiles: String(body.deleteFiles) === 'on',
+      addExclusion: String(body.addExclusion) === 'on'
+    });
+    message = `Removed from ${instance.display_name}`;
+    core.apps.libraryCache.delete(instance.id);
+    core.apps.feedCache.delete(instance.id);
+  } catch (err) {
+    core.logger.warn(`Library delete failed on ${instance.display_name}: ${err.message}`);
+    message = err.message;
+  }
+
+  const state = ctx.viewState;
+  const current = state.active_app_id ? await core.apps.getInstance(state.active_app_id) : null;
+  if (!current) return respondWithMirror(ctx, state);
+  const takeover = await buildTakeoverLocals(core, current);
+  return ctx.compileView([
+    'apps/appChannelsLayout.pug',
+    'apps/appHeader.pug',
+    'apps/appSurface.pug',
+    'extra/notification.pug'
+  ], { state, message, ...takeover });
 }
 
 // THE RAIL SEARCH BAR'S ROUTE: A TERM DROPS THE TAKEOVER INTO THE APP'S
@@ -780,7 +1023,7 @@ async function appSearch(ctx) {
     core.apps.setBrowseView(instance.id, term ? 'search' : 'library', view);
   }
 
-  let state = await core.models.state.get();
+  let state = ctx.viewState;
   // CLEARING THE BOX ONLY MEANS SOMETHING ON THE SEARCH SURFACE - FROM ANY
   // OTHER SECTION AN EMPTY TERM MUST NOT YANK THE VIEW AROUND
   if (!term && !view && (state.active_app_id !== instance.id || instance.active_section !== searchSection)) {
@@ -794,7 +1037,7 @@ async function appSearch(ctx) {
   }
 
   if (state.active_app_id !== instance.id) {
-    state = await core.models.state.update({ active_app_id: instance.id });
+    state = await ctx.updateView({ active_app_id: instance.id });
     return respondWithTakeover(ctx, instance, state, { searchTerm: term });
   }
 
@@ -1071,7 +1314,7 @@ async function addApp(ctx) {
     return;
   }
   core.apps.syncSlashCommands().catch(() => {});
-  const state = await core.models.state.update({ active_app_id: instance.id });
+  const state = await ctx.updateView({ active_app_id: instance.id });
   return respondWithTakeover(ctx, instance, state);
 }
 
@@ -1111,7 +1354,7 @@ async function saveApp(ctx) {
     return;
   }
 
-  const state = await core.models.state.get();
+  const state = ctx.viewState;
   const [apps, takeover] = await Promise.all([
     core.apps.getRailViewModel(state),
     buildTakeoverLocals(core, updated)
@@ -1162,7 +1405,7 @@ async function setDefaultApp(ctx) {
     return;
   }
 
-  const state = await core.models.state.get();
+  const state = ctx.viewState;
   const takeover = await buildTakeoverLocals(core, instance);
   return ctx.compileView([
     'apps/appChannelsLayout.pug',
@@ -1200,9 +1443,10 @@ async function removeApp(ctx) {
   await core.apps.removeInstance(instance.id);
   core.apps.syncSlashCommands().catch(() => {});
 
-  // THE FK ALREADY SetNull'D active_app_id; THE EXPLICIT UPDATE JUST GETS US
-  // A FRESH state ROW AND COVERS REMOVING A NON-ACTIVE APP THE SAME WAY
-  const state = await core.models.state.update({ active_app_id: null });
+  // THE FK ALREADY SetNull'D EVERY SESSION INSIDE THIS TAKEOVER; THE EXPLICIT
+  // UPDATE COVERS THE ACTING SESSION REMOVING A NON-ACTIVE APP THE SAME WAY.
+  // OTHER SESSIONS' SURFACES SELF-HEAL ON THEIR NEXT NAVIGATION OR RELOAD.
+  const state = await ctx.updateView({ active_app_id: null });
   return respondWithMirror(ctx, state);
 }
 
@@ -1220,9 +1464,17 @@ module.exports = {
   changeAppSection,
   appFeedPage,
   appLibraryPage,
+  appUnifiedLibrary,
+  appUnifiedLibraryPage,
   appLibraryItem,
   appLookupDetail,
   appLibraryItemAction,
+  appSeasonEpisodes,
+  appItemReleases,
+  appGrabItemRelease,
+  appEditLibraryItem,
+  confirmLibraryDelete,
+  appDeleteLibraryItem,
   appSearch,
   appAddMedia,
   appImage,

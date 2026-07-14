@@ -26,13 +26,22 @@ CREATE TABLE "configuration" (
 CREATE TABLE "state" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "discord_state" BOOLEAN NOT NULL DEFAULT false,
+    "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- CreateTable
+CREATE TABLE "view_sessions" (
+    "id" TEXT NOT NULL PRIMARY KEY,
     "sidebar_exp_state" BOOLEAN NOT NULL DEFAULT true,
     "active_server_id" TEXT,
     "active_app_id" TEXT,
+    "active_channels" TEXT,
+    "last_seen_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT "state_active_server_id_fkey" FOREIGN KEY ("active_server_id") REFERENCES "discord_servers" ("server_id") ON DELETE SET NULL ON UPDATE CASCADE,
-    CONSTRAINT "state_active_app_id_fkey" FOREIGN KEY ("active_app_id") REFERENCES "apps" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+    CONSTRAINT "view_sessions_active_server_id_fkey" FOREIGN KEY ("active_server_id") REFERENCES "discord_servers" ("server_id") ON DELETE SET NULL ON UPDATE CASCADE,
+    CONSTRAINT "view_sessions_active_app_id_fkey" FOREIGN KEY ("active_app_id") REFERENCES "apps" ("id") ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 -- CreateTable
@@ -139,6 +148,7 @@ CREATE TABLE "media" (
     "tvdb_id" TEXT,
     "tmdb_id" TEXT,
     "imdb_id" TEXT,
+    "musicbrainz_id" TEXT,
     "first_aired" TEXT,
     "series_type" TEXT,
     "in_theaters" TEXT,
@@ -209,10 +219,7 @@ CREATE TABLE "_UserMediaRequests" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "state_active_server_id_key" ON "state"("active_server_id");
-
--- CreateIndex
-CREATE UNIQUE INDEX "state_active_app_id_key" ON "state"("active_app_id");
+CREATE INDEX "view_sessions_last_seen_at_idx" ON "view_sessions"("last_seen_at");
 
 -- CreateIndex
 CREATE INDEX "apps_app_type_idx" ON "apps"("app_type");
@@ -252,6 +259,18 @@ CREATE UNIQUE INDEX "media_imdb_id_key" ON "media"("imdb_id");
 
 -- CreateIndex
 CREATE INDEX "media_imdb_id_idx" ON "media"("imdb_id");
+
+-- CreateIndex
+CREATE INDEX "media_tmdb_id_idx" ON "media"("tmdb_id");
+
+-- CreateIndex
+CREATE INDEX "media_tvdb_id_idx" ON "media"("tvdb_id");
+
+-- CreateIndex
+CREATE INDEX "media_musicbrainz_id_idx" ON "media"("musicbrainz_id");
+
+-- CreateIndex
+CREATE INDEX "media_path_idx" ON "media"("path");
 
 -- CreateIndex
 CREATE INDEX "media_requests_madeInId_idx" ON "media_requests"("madeInId");

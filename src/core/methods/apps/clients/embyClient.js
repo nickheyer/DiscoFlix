@@ -98,7 +98,7 @@ class EmbyClient extends BaseClient {
       Recursive: true,
       SortBy: 'SortName',
       SortOrder: 'Ascending',
-      Fields: 'Overview,ProviderIds,ProductionYear,SortName'
+      Fields: 'Overview,ProviderIds,ProductionYear,SortName,Path'
     });
     return (data?.Items || []).map(item => this.normalizeLibraryItem(item));
   }
@@ -113,6 +113,7 @@ class EmbyClient extends BaseClient {
       posterUrl: this._posterOf(item),
       available: true,
       kind: item.Type === 'Series' ? 'show' : 'movie',
+      path: item.Path || null,
       externalIds: EmbyClient.externalIdsFrom(item)
     };
   }

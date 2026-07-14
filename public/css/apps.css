@@ -713,6 +713,177 @@
   white-space: nowrap;
 }
 
+/* ---- DETAIL PHASE 2 - EXPANDABLE SEASONS, EPISODE TABLES, MANAGE PANEL ---- */
+
+/* EXPANDABLE ARR SEASONS GAIN A CHEVRON COLUMN AND A RELEASE-PICKER COLUMN */
+.appSeasonRow.expandable {
+  grid-template-columns: 14px minmax(90px, 140px) 1fr 70px 80px auto;
+  cursor: pointer;
+}
+
+.appSeasonRow.expandable:hover {
+  background-color: var(--bg-modifier-hover);
+}
+
+.appSeasonChevron {
+  color: var(--interactive-normal);
+  transition: transform 0.15s ease;
+}
+
+.appSeasonGroup.open .appSeasonChevron {
+  transform: rotate(90deg);
+}
+
+.appSeasonEpisodes {
+  display: none;
+}
+
+.appSeasonGroup.open .appSeasonEpisodes {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 4px 0 8px 28px;
+}
+
+.appSeasonBrowse,
+.appEpisodeSearch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--interactive-normal);
+  cursor: pointer;
+}
+
+.appSeasonBrowse:hover,
+.appEpisodeSearch:hover {
+  color: var(--interactive-hover);
+  background-color: var(--bg-modifier-hover);
+}
+
+.appSeasonBrowse:disabled,
+.appEpisodeSearch:disabled {
+  opacity: 0.5;
+  cursor: progress;
+}
+
+/* EPISODE ROWS - CODE / TITLE / AIR DATE / STATE / PICKER */
+.appEpisodeRow {
+  display: grid;
+  grid-template-columns: 34px 1fr auto auto 24px;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  background-color: var(--bg-secondary-alt);
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+.appEpisodeRow.unmonitored {
+  opacity: 0.55;
+}
+
+.appEpisodeCode {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.appEpisodeTitle {
+  color: var(--text-normal);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.appEpisodeAir {
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.appEpisodeState {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.appEpisodeSize,
+.appEpisodeUnaired {
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.appEpisodeLoading,
+.appEpisodeEmpty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.appEpisodeLoading .appSpinner {
+  width: 14px;
+  height: 14px;
+}
+
+/* REJECTED RELEASES STAY GRABBABLE BUT READ AS SECOND-CHOICE */
+.libraryReleaseRow.rejected {
+  opacity: 0.7;
+}
+
+/* MANAGE PANEL - QUALITY/ROOT EDIT IN THE FACTS COLUMN */
+.appManageForm {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.appManageLabel {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
+.appManageForm .appManageSelect {
+  width: 100%;
+}
+
+.appManageMove {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 6px;
+  cursor: pointer;
+}
+
+.appManageSave {
+  align-self: flex-start;
+  margin-top: 8px;
+}
+
+/* DANGER VERB ON THE DETAIL ACTION ROW */
+.modal-button.appDetailDanger {
+  background-color: transparent;
+  color: var(--red);
+  border: 1px solid var(--red);
+}
+
+.modal-button.appDetailDanger:hover {
+  background-color: var(--red);
+  color: #ffffff;
+}
+
 /* ---- ACTIVITY FEED (TAKEOVER RIGHT RAIL - THE MEMBERS PANE'S APP-MODE TWIN,
    REPLACED THE OLD HISTORY SECTION) ---- */
 
@@ -969,20 +1140,6 @@
   background-color: var(--blurple);
 }
 
-/* NARROW SCREENS - THE STATE COLUMN DROPS UNDER THE OVERVIEW */
-@media (max-width: 640px) {
-  .appBrowseRow {
-    flex-wrap: wrap;
-  }
-
-  .appBrowseRow .request-status {
-    flex-direction: row;
-    align-items: center;
-    width: 100%;
-    justify-content: flex-end;
-  }
-}
-
 /* ---- ADD-TO INSTANCE TABS (MULTI-INSTANCE SEARCH) ---- */
 
 .appInstanceTabs {
@@ -1014,6 +1171,89 @@
   color: #ffffff;
   background-color: var(--blurple);
   cursor: default;
+}
+
+/* ---- THE UNIFIED LIBRARY (DISCOFLIX TAKEOVER) ---- */
+
+/* KIND TABS RIDE THE HEADER - KILL THE STANDALONE TAB ROW'S MARGIN */
+.appLibKindTabs {
+  margin-bottom: 0;
+}
+
+/* QUIET PER-SERVICE FAILURE NOTE ABOVE THE LISTING */
+.appLibHubNote {
+  font-size: 12px;
+  color: var(--yellow);
+  margin-bottom: 12px;
+}
+
+/* SOURCE CHIPS - EVERY SERVICE HOLDING THE ITEM, EACH A JUMP TO ITS COPY */
+.unifiedSourceChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.unifiedSourceChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--interactive-normal);
+  background-color: var(--bg-secondary-alt);
+  cursor: pointer;
+  user-select: none;
+}
+
+.unifiedSourceChip:hover {
+  color: var(--interactive-hover);
+  background-color: var(--bg-modifier-hover);
+}
+
+.unifiedSourceChip img {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+}
+
+.unifiedSourceDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.unifiedSourceDot.ok {
+  background-color: var(--green);
+}
+
+.unifiedSourceDot.down {
+  background-color: var(--interactive-muted);
+}
+
+/* COVER CARD META - YEAR LEFT, SOURCE ICON STRIP PINNED RIGHT */
+.unifiedCardMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.unifiedCardIcons {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.unifiedCardIcons img {
+  width: 12px;
+  height: 12px;
+  object-fit: contain;
+  opacity: 0.85;
 }
 
 /* SURFACE-WIDTH FILTER BOX (THE DISCOFLIX USERS SECTION) */
@@ -1398,6 +1638,23 @@
 .appRemoveButton:hover,
 .modal-button.appRemoveConfirm:hover {
   background-color: var(--red-hover);
+}
+
+/* LIBRARY-DELETE CONFIRM - THE EXPLICIT OPT-IN ROWS */
+.libraryDeleteOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.libraryDeleteOption {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--text-normal);
+  cursor: pointer;
 }
 
 .request-section-header.danger {

@@ -10,6 +10,10 @@ class RadarrClient extends ArrClient {
 
   get externalIdField() { return 'tmdb_id'; }
 
+  get exclusionParam() { return 'addImportExclusion'; }
+
+  releaseParamsFor({ arrId }) { return { movieId: Number(arrId) }; }
+
   externalLookupTerm(externalKey) { return `tmdb:${externalKey}`; }
 
   get historyIncludeParams() { return { includeMovie: true }; }
@@ -25,6 +29,9 @@ class RadarrClient extends ArrClient {
   }
 
   normalizeLibraryItem(raw) {
+    const externalIds = {};
+    if (raw.tmdbId) externalIds.tmdb = String(raw.tmdbId);
+    if (raw.imdbId) externalIds.imdb = String(raw.imdbId);
     return {
       id: String(raw.id),
       title: raw.title,
@@ -32,7 +39,10 @@ class RadarrClient extends ArrClient {
       year: raw.year || null,
       overview: raw.overview || '',
       posterUrl: this.absolutePosterFrom(raw.images),
-      available: !!raw.hasFile
+      available: !!raw.hasFile,
+      kind: 'movie',
+      path: raw.path || null,
+      externalIds
     };
   }
 
@@ -50,7 +60,7 @@ class RadarrClient extends ArrClient {
       monitored: !!raw.monitored,
       available: !!raw.hasFile,
       availabilityLabel: raw.hasFile ? 'Downloaded' : 'Missing',
-      verbs: ['monitor', 'search'],
+      verbs: ['monitor', 'search', 'interactive-search', 'edit', 'delete'],
       status: raw.status || null,
       genres: raw.genres || [],
       runtime: ArrClient.formatRuntime(raw.runtime),

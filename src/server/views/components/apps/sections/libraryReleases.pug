@@ -1,0 +1,32 @@
+//- INTERACTIVE SEARCH RESULTS - THE ARR'S LIVE INDEXER SWEEP FOR ONE MOVIE,
+//- SEASON, OR EPISODE; THE OPERATOR PICKS THE RELEASE. SWAPPED INTO
+//- #appSectionBody FROM THE DETAIL VIEW, BACK RETURNS THERE (from RIDES SO
+//- THE DETAIL'S OWN BACK BUTTON STAYS HONEST). LOCALS: activeApp, itemId,
+//- label, from, releases | releasesError
+include ../../../mixins/releases
+
+button.appDetailBack(
+  type="button"
+  hx-get=`/apps/${activeApp.id}/library/item/${itemId}?from=${from}`
+  hx-target="#appSectionBody"
+  hx-swap="innerHTML show:#messageContainer:top"
+  hx-disabled-elt="this"
+)
+  svg(viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true")
+    path(d="M15 19l-7-7 7-7")
+  span Details
+
+.request-section-header.appLibraryHeader
+  if releasesError
+    span Releases#{label ? ` - ${label}` : ''}
+  else
+    span Releases#{label ? ` - ${label}` : ''} - #{releases.length} found
+
+if releasesError
+  .appQueueEmpty #{activeApp.display_name} didn't answer - #{releasesError}
+else if !releases.length
+  .appQueueEmpty The indexers came back empty - try again later or check them in #{activeApp.display_name}.
+else
+  .appBrowseList.appSectionDoc
+    each release in releases
+      +interactiveReleaseRow(release, activeApp.id, itemId)

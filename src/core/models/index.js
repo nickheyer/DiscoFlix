@@ -1,5 +1,6 @@
 const MODELS = {
   state: require('./state'),
+  viewSession: require('./viewSession'),
   configuration: require('./configuration'),
   discordServer: require('./discordServer'),
   discordChannel: require('./discordChannel'),

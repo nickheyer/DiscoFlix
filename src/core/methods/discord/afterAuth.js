@@ -97,9 +97,6 @@ module.exports = {
 
     await Promise.all([...serverOps, ...channelOps]);
 
-    // ENSURE ACTIVE SERVER EXISTS
-    await this.core.render.ensureActiveServer(foundIDs[0]);
-
     return foundIDs;
   },
 
@@ -197,37 +194,39 @@ module.exports = {
     }
   },
 
-  // UPDATE UI AFTER SERVER SORT
+  // UPDATE UI AFTER GUILD SYNCS - COMPILED PER VIEW SO EVERY BROWSER KEEPS
+  // ITS OWN ACTIVE SERVER/CHANNEL
   async updateServerSortOrder() {
     try {
-      const [serverRows, discordBot, state] = await Promise.all([
+      const [serverRows, discordBot] = await Promise.all([
         this.refreshAllDiscordServers(),
-        this.core.models.discordBot.get(),
-        this.core.models.state.get()
+        this.core.models.discordBot.get()
       ]);
 
-      const servers = await this.core.render.getServerTemplateObj(serverRows);
+      await this.core.sockets.emitPerView(async (view) => {
+        const servers = await this.core.render.getServerTemplateObj(serverRows, view);
 
-      // APP TAKEOVER GUARD: GUILD SYNCS MAY ONLY TOUCH THE RAIL - EMITTING THE
-      // BANNER/HEADER/CHAT BAR HERE RESURRECTS CHAT CHROME OVER THE APP SURFACE
-      const chromeTemplates = state.active_app_id
-        ? []
-        : [
-          'sidebar/servers/serverBannerLabel.pug',
-          'sidebar/channels/chatChannels.pug',
-          'chat/messageChannelHeader.pug',
-          'chat/chatBar.pug'
-        ];
+        // APP TAKEOVER GUARD: GUILD SYNCS MAY ONLY TOUCH THE RAIL - EMITTING THE
+        // BANNER/HEADER/CHAT BAR HERE RESURRECTS CHAT CHROME OVER THE APP SURFACE
+        const chromeTemplates = view.active_app_id
+          ? []
+          : [
+            'sidebar/servers/serverBannerLabel.pug',
+            'sidebar/channels/chatChannels.pug',
+            'chat/messageChannelHeader.pug',
+            'chat/chatBar.pug'
+          ];
 
-      await this.core.sockets.emitCompiled([
-        'sidebar/servers/serverSortableContainer.pug',
-        ...chromeTemplates,
-        'modals/bot/power.pug'
-      ], {
-        servers,
-        discordBot,
-        state,
-        loading: false
+        return this.core.render.compile([
+          'sidebar/servers/serverSortableContainer.pug',
+          ...chromeTemplates,
+          'modals/bot/power.pug'
+        ], {
+          servers,
+          discordBot,
+          state: view,
+          loading: false
+        });
       });
     } catch (error) {
       this.logger.error('Failed to update server sort order:', error);

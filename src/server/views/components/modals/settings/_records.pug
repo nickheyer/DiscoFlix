@@ -23,6 +23,32 @@ if records && records.length > 0
       .settings-fields-container
         each field, fieldKey in record.fields
           +field(field, fieldKey, record.id, true)
+      //- OPT-IN OPS PANEL - PER-RECORD STATS THE MODEL COMPUTES (GUILD ACTIVITY)
+      if opsPanels && opsPanels[record.id]
+        - const panel = opsPanels[record.id]
+        .record-ops
+          .record-ops-heading= panel.heading
+          .record-ops-stats
+            each stat in panel.stats
+              .record-ops-stat
+                .record-ops-stat-value= stat.value
+                .record-ops-stat-label= stat.label
+          each list in panel.lists
+            .record-ops-list
+              .record-ops-list-label= list.label
+              if list.rows.length
+                each row in list.rows
+                  .record-ops-row
+                    span.record-ops-row-name= row.name
+                    if typeof row.percent === 'number'
+                      .record-ops-row-meter
+                        .request-progress-track
+                          .request-progress-bar(class=row.percent >= 100 ? 'maxed' : undefined style=`width: ${row.percent}%`)
+                    span.record-ops-row-detail= row.detail
+                if list.moreCount
+                  .record-ops-more #{list.moreCount} more not shown
+              else
+                .record-ops-empty= list.empty
 else
   .empty-state
     .empty-state-icon

@@ -3,6 +3,7 @@ module.exports = {
   discoflix: require('./discoflix'),
   radarr: require('./radarr'),
   sonarr: require('./sonarr'),
+  lidarr: require('./lidarr'),
   sabnzbd: require('./sabnzbd'),
   qbittorrent: require('./qbittorrent'),
   nzbget: require('./nzbget'),

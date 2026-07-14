@@ -292,7 +292,8 @@ module.exports = {
   // HIDDEN ENTRIES NEVER RENDER AS BUBBLES - THE DISCOFLIX ONE FEEDS THE HOME
   // BADGE (ACTIVE PILL + PROBLEM DOT) AND IS SYNTHESIZED UNTIL ITS ROW EXISTS.
   async getRailViewModel(state = null) {
-    if (!state) state = await this.core.models.state.get();
+    // state IS A MERGED VIEW SHAPE - THE ANONYMOUS DEFAULT CARRIES NO ACTIVE APP
+    if (!state) state = await this.core.models.viewSession.viewStateOf(null);
     const rows = await this.getInstalled();
     const viewModels = rows.map(row => {
       const manifest = this.getType(row.app_type) || {};

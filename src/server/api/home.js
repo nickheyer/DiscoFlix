@@ -4,7 +4,7 @@ const { buildAppRail, buildTakeoverLocals } = require('./apps');
 
 async function renderHome(ctx) {
   const core = ctx.core;
-  const state = await core.models.state.get();
+  const state = ctx.viewState;
   const servers = await core.render.getServerTemplateObj(null, state);
   const discordBot = await core.models.discordBot.get();
   const apps = await buildAppRail(core, state);
