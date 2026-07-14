@@ -10,6 +10,9 @@ function getDebouncedRefresh(core) {
     core._guildRefreshDebounced = _.debounce(async () => {
       try {
         await core.discord.refreshDiscordServers();
+        // ROSTER RIDES THE SAME DEBOUNCE - MEMBER JOINS/LEAVES RELINK BEFORE
+        // THE MEMBERS PANE RE-RENDERS
+        await core.discord.syncAllGuildMembers();
         await core.discord.refreshUI();
         core.logger.info('Guild-event refresh completed');
       } catch (err) {

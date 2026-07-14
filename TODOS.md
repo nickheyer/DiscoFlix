@@ -100,25 +100,79 @@ every new template render + route order - rides THE live pass):
       (capabilities off). 10 stubbed-transport + ledger + template fixtures
       green - rides THE live pass (needs a real Lidarr once)
 
-## M17 - Requests & Interactions (staged 2026-07-12)
+## M17 - Requests & Interactions (staged 2026-07-12, built 2026-07-14)
 
-- [ ] Do research into discord most recent api, update project deps if needed.
-      RESEARCH DONE 2026-07-14 (dep update deliberately deferred): discord.js
-      v15 is still PRE-RELEASE (not production safe); v14 stable line is at
-      14.26.x while we pin 14.17.3. The headline API move is Components v2
-      (Mar 2025): Containers/Sections/TextDisplay/MediaGallery/Separators/
-      Thumbnails behind the IS_COMPONENTS_V2 message flag (kills content +
-      embeds on flagged messages) - EXACTLY the "beyond basic components"
-      surface item 2 wants, and it needs the v14 minor bump first. The bump
-      changes the login/runtime path, which fixtures cannot prove - do it at
-      the START of the M17 session with the bot bootable, not blind.
-- [ ] Rewrite the entire discord interaction flow with the end users to use
+Built 2026-07-14 (4 fixture suites green - 49 checks: bump wiring, full
+picker/season/confirm walks, scoped library renders, roster sync + access-ask
+flow on a throwaway db copy - rides THE live pass; the bump changed the
+login/runtime path so the first live boot after this matters most):
+
+- [x] Do research into discord most recent api, update project deps if needed.
+      RESEARCH DONE 2026-07-14: discord.js v15 is still PRE-RELEASE; v14
+      stable line is 14.26.x while we pinned 14.17.3. BUMPED to 14.26.5 -
+      conformance was small because the code was already on v14 builder
+      names: ephemeral option -> flags MessageFlags.Ephemeral (2 sites),
+      generateInvite -> OAuth2Scopes.Bot + BigInt permissions, and
+      Events.ClientReady rides the enum so the 'clientReady' rename came
+      free. Zero deprecation warnings across every fixture run.
+- [x] Rewrite the entire discord interaction flow with the end users to use
       innovative and highly intuitive UX that discord provides beyond just
-      basic components. Improve visible structure of message responses and
-      updates. Use embeds, decorators, imagery, and no emojis.
-- [ ] Make the interaction features (movie, show, status, etc.) infinitely extendable
-      via a standard app interface api, allowing us to open the discord bot
-      and end user interactions up to other solutions in a non request context.
+      basic components - BUILT on Components v2: every bot surface is now an
+      accent-colored Container (interactions/ui.js toolkit - sections w/
+      poster thumbnails, separators, subtext meta strips, media galleries,
+      progress bars, no emojis) behind IsComponentsV2 (no content/embeds
+      anywhere). Request picker = poster section + facts strip + jump select
+      + button rows + footer; season picker matches; every outcome is a
+      poster card (ok/warn/danger accents); status got per-request blocks w/
+      live progress bars off the queue cache; monitor grabs post ONE live
+      download card that EDITS IN PLACE per tick (change-only frames, green
+      100% settle on import, amber on stall) plus mention announces; console
+      verdicts match. The chat mirror keeps up: DiscordMessage.components
+      column (migration m17_message_components) persists CV2 JSON, a
+      recursive messageComponents.pug renders containers/sections/galleries/
+      inert control chips, markdownLite learned ### headings and -# subtext.
+- [x] Make the interaction features (movie, show, status, etc.) infinitely extendable
+      via a standard app interface api - BUILT: src/core/bot/interactions is
+      a registry of defs { id, slash, options, aliases, ephemeral, available,
+      run } - request defs generate per content type off the manifest
+      registry, status/help are built-ins, and MANIFESTS contribute their own
+      via `interactions: [...]` (registry.interactionDefs() merges by id and
+      pools serving instances across app types, availability = some
+      enabled+configured instance). One dispatcher normalizes slash + prefix
+      (shared user sync, role grants, option parsing off the def), slash
+      registration and the help card build themselves from the registry.
+      Proof in a non-request context: /whatsnew (+ `new`/`latest` aliases),
+      shipped by the plex/emby/jellyfin manifests off their normalized
+      recently-added feeds - zero bot-core edits.
+
+## M18 - Owner Asks (staged + built 2026-07-14)
+
+- [x] Per-app library views become filtered views of the unified library
+      component (Nick: the split designs were inconsistent) - getUnifiedPage
+      grew scopeAppId (same merged entries narrowed to one instance's
+      holdings, primary source remapped so cards open THIS app's detail,
+      errors scoped, presentKinds ignores the term so tabs don't flap),
+      /apps/:id/unified[+/page/:n] dropped the discoflix gate, appSurface
+      renders dfLibrary for every browse mode (search mode keeps the live
+      results surface + add-to tabs), back-links: hub -> from=hub, scoped ->
+      from=library. Old per-app listing path deleted (getLibraryPage,
+      libraryCards.pug, libraryBrowseRow, /apps/:id/library/page route);
+      kind tabs now presence-driven (single-kind scopes hide the row).
+- [x] User aggregation + whitelist flow overhaul - the bot now knows every
+      member it serves, not just the ones who have spoken: roster sync
+      (discord/userSync.js) runs on ready and rides the guild-event debounce,
+      bulk-creates rows, refreshes drifted profiles, applies grant-only role
+      promotions, and makes guild links EXACTLY match Discord (leavers
+      unlink, rows + request history survive). One write path for every
+      sighting: user.syncFromDiscord (message mirror, slash, prefix) keeps
+      profiles fresh (DM-only drift fixed), stamps last_seen_at, connects
+      known guilds. Whitelist wall became a flow: a denied ask stamps
+      access_requested_at (first-ask-wins, wording distinguishes new vs
+      pending), the console Users section grew audience tabs
+      (People/Bots/Wants access/All + counts, people default, asks sort
+      first), WANTS ACCESS chip + "seen Xm ago" on cards, and any grant
+      (console save, mapped role, sync) settles the ask. Dead user model
+      helpers deleted; migration m17_user_aggregation.
 
 ---
 

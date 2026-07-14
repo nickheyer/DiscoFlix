@@ -1,7 +1,8 @@
 //- USERS - THE MUTABLE SIDE OF USER MANAGEMENT (PERMISSIONS + LIMITS).
 //- IDENTITY IS DISCORD-SYNCED AND READ-ONLY; THE (i) ON EACH CARD OPENS THE
-//- SAME READ-ONLY INFO POPUP AVATARS DO EVERYWHERE ELSE.
-//- sectionData: { users {rows,hasMore,page,search}, mutableFields }
+//- SAME READ-ONLY INFO POPUP AVATARS DO EVERYWHERE ELSE. THE SEARCH BOX
+//- LIVES OUTSIDE #dfUsersBody SO SWAPS NEVER STEAL ITS FOCUS.
+//- sectionData: { users {rows,hasMore,page,search,filter,counts,accessMode}, mutableFields }
 - var users = sectionData.users
 - var mutableFields = sectionData.mutableFields
 
@@ -13,8 +14,9 @@
       placeholder="Filter users..."
       autocomplete="off"
       hx-get=`/apps/${activeApp.id}/users`
+      hx-include="#dfUserFilter"
       hx-trigger="keyup changed delay:400ms, search"
-      hx-target="#dfUserList"
+      hx-target="#dfUsersBody"
       hx-swap="innerHTML"
       hx-indicator=".appSearchIndicator"
     )
@@ -22,5 +24,5 @@
       svg.appSpinner(viewBox="0 0 24 24" aria-hidden="true")
         circle(cx="12" cy="12" r="10")
 
-  #dfUserList
-    include dfUserCards
+  #dfUsersBody
+    include dfUsersBody

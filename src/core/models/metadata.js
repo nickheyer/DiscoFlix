@@ -298,6 +298,8 @@ const MODELS_META = {
             is_whitelisted: { type: FIELD_TYPES.BOOLEAN, label: "Whitelisted", description: "May request when access is whitelist-only" },
             is_bot: { type: FIELD_TYPES.BOOLEAN, readonly: true, label: "Bot", description: "Bot account indicator" },
             is_client: { type: FIELD_TYPES.BOOLEAN, readonly: true, label: "Client", description: "Client user indicator" },
+            access_requested_at: { type: FIELD_TYPES.TIMESTAMP, readonly: true, label: "Access Requested", description: "When the user asked to request while whitelist-gated" },
+            last_seen_at: { type: FIELD_TYPES.TIMESTAMP, readonly: true, label: "Last Seen", description: "Most recent message, interaction, or roster sighting" },
             session_timeout: { type: FIELD_TYPES.NUMBER, label: "Session Timeout", description: "User session timeout", min: 30, max: 3600 },
             max_check_time: { type: FIELD_TYPES.NUMBER, label: "Max Check Time", description: "Maximum check time", min: 60, max: 3600 },
             max_results: { type: FIELD_TYPES.NUMBER, label: "Max Results", description: "Maximum search results", min: 0 },

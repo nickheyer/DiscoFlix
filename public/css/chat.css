@@ -749,6 +749,141 @@
   text-decoration: underline;
 }
 
+/* ---- COMPONENTS V2 MIRROR (BOT CONTAINERS, INERT CONTROLS) ---- */
+
+.chatMessageComponents {
+  margin-top: 6px;
+}
+
+.chatCv2Container {
+  max-width: 520px;
+  padding: 12px 16px;
+  background-color: var(--bg-secondary);
+  border-left: 4px solid var(--blurple);
+  border-radius: 4px;
+}
+
+.chatCv2Container + .chatCv2Container {
+  margin-top: 6px;
+}
+
+.chatCv2Text {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text-normal);
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+
+.chatCv2Text + .chatCv2Text {
+  margin-top: 6px;
+}
+
+.chatCv2Text a {
+  color: var(--text-link);
+  text-decoration: none;
+}
+
+.chatCv2Text a:hover {
+  text-decoration: underline;
+}
+
+.mdHeading {
+  display: block;
+  font-weight: 700;
+  color: var(--header-primary);
+}
+
+.mdH1 { font-size: 17px; }
+.mdH2 { font-size: 15px; }
+.mdH3 { font-size: 14px; }
+
+.mdSubtext {
+  display: block;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.chatCv2Section {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.chatCv2SectionText {
+  min-width: 0;
+  flex: 1;
+}
+
+.chatCv2Thumb img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.chatCv2Divider {
+  border: none;
+  border-top: 1px solid var(--bg-modifier-accent, rgba(255, 255, 255, 0.1));
+  margin: 8px 0;
+}
+
+.chatCv2Divider.large {
+  margin: 14px 0;
+}
+
+.chatCv2Gallery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.chatCv2Gallery img {
+  width: 104px;
+  height: 104px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+/* INERT CONTROL CHIPS - THE MIRROR SHOWS WHAT DISCORD OFFERED, IT DOES NOT
+   IMPERSONATE THE REQUESTER */
+.chatCv2Row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.chatCv2Button,
+.chatCv2Select {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 3px;
+  color: #fff;
+  background-color: var(--bg-tertiary);
+  cursor: default;
+  user-select: none;
+}
+
+.chatCv2Button.primary { background-color: var(--blurple); }
+.chatCv2Button.secondary { background-color: #4f545c; }
+.chatCv2Button.success { background-color: #3ba55c; }
+.chatCv2Button.danger { background-color: #ed4245; }
+.chatCv2Button.link { background-color: #4f545c; }
+.chatCv2Button.disabled { opacity: 0.45; }
+
+.chatCv2Select {
+  width: 100%;
+  max-width: 280px;
+  color: var(--text-muted);
+  background-color: var(--bg-tertiary);
+  border: 1px solid rgba(0, 0, 0, 0.3);
+}
+
 /* ---- GROUPED MESSAGE ROWS (SAME AUTHOR INSIDE THE 7 MIN WINDOW) ---- */
 
 .chatMessageRow.grouped {

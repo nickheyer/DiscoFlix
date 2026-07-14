@@ -33,26 +33,75 @@ function rootRelative(path) {
   return /^https?:\/\//.test(path) ? path : `/${String(path).replace(/^\/+/, '')}`;
 }
 
+// AUDIENCE FILTERS FOR THE USERS SECTION - PEOPLE ARE THE DEFAULT (THE END
+// USERS THE BOT SERVES), BOTS SIT BEHIND THEIR OWN TAB, OPEN ACCESS ASKS
+// GET A DIRECT LENS
+const USER_FILTERS = {
+  people: { is_bot: false },
+  bots: { is_bot: true },
+  access: { access_requested_at: { not: null }, is_whitelisted: false, is_superuser: false, is_staff: false },
+  all: {}
+};
+
+function lastSeenLabel(timestamp) {
+  if (!timestamp) return null;
+  const ms = Date.now() - new Date(timestamp).getTime();
+  if (!Number.isFinite(ms) || ms < 0) return null;
+  const minutes = ms / 60000;
+  if (minutes < 2) return 'just now';
+  if (minutes < 60) return `${Math.floor(minutes)}m ago`;
+  if (minutes < 60 * 24) return `${Math.floor(minutes / 60)}h ago`;
+  const days = Math.floor(minutes / (60 * 24));
+  return days < 365 ? `${days}d ago` : `${(days / 365).toFixed(1)}y ago`;
+}
+
 // ONE USERS PAGE FOR THE SELF APP'S USERS SECTION - ROW + METADATA-DRIVEN
-// FIELD DESCRIPTORS SO THE +field MIXIN RENDERS THE EDITABLE SUBSET
-async function buildUsersPage(core, search = '', page = 1) {
-  const where = search
+// FIELD DESCRIPTORS SO THE +field MIXIN RENDERS THE EDITABLE SUBSET. OPEN
+// ACCESS ASKS ALWAYS SORT FIRST - THEY ARE THE THING WAITING ON AN ADMIN.
+async function buildUsersPage(core, search = '', page = 1, filter = 'people') {
+  const wantFilter = USER_FILTERS[filter] ? filter : 'people';
+  const searchWhere = search
     ? { OR: [{ username: { contains: search } }, { display_name: { contains: search } }] }
     : {};
-  const raw = await core.prisma.user.findMany({
-    where,
-    orderBy: [{ is_client: 'desc' }, { username: 'asc' }],
-    skip: (page - 1) * USERS_PAGE_SIZE,
-    take: USERS_PAGE_SIZE + 1
-  });
+  const config = await core.models.configuration.get();
+  const accessMode = config.request_access;
+
+  const [raw, ...countValues] = await Promise.all([
+    core.prisma.user.findMany({
+      where: { ...searchWhere, ...USER_FILTERS[wantFilter] },
+      orderBy: [
+        { access_requested_at: { sort: 'desc', nulls: 'last' } },
+        { is_client: 'desc' },
+        { username: 'asc' }
+      ],
+      skip: (page - 1) * USERS_PAGE_SIZE,
+      take: USERS_PAGE_SIZE + 1
+    }),
+    ...Object.keys(USER_FILTERS).map(key =>
+      core.prisma.user.count({ where: { ...searchWhere, ...USER_FILTERS[key] } })
+    )
+  ]);
+  const counts = Object.fromEntries(Object.keys(USER_FILTERS).map((key, index) => [key, countValues[index]]));
+
   return {
     rows: raw.slice(0, USERS_PAGE_SIZE).map(row => ({
-      row: { ...row, avatar_url: rootRelative(row.avatar_url) },
+      row: {
+        ...row,
+        avatar_url: rootRelative(row.avatar_url),
+        lastSeenLabel: lastSeenLabel(row.last_seen_at),
+        // THE CHIP ONLY MEANS SOMETHING WHILE ACCESS IS WHITELIST-GATED
+        wantsAccess: accessMode === 'whitelist'
+          && !!row.access_requested_at
+          && !row.is_whitelisted && !row.is_superuser && !row.is_staff
+      },
       fields: core.models.user.getFormData(row)
     })),
     hasMore: raw.length > USERS_PAGE_SIZE,
     page,
-    search
+    search,
+    filter: wantFilter,
+    counts,
+    accessMode
   };
 }
 
@@ -289,9 +338,8 @@ async function buildSectionData(core, instance, section, opts = {}) {
       }
       break;
     }
-    // ONE SURFACE, TWO SOURCES: THE ARR LISTING (BROWSE) OR LIVE SEARCH
-    // RESULTS WHEN THE RAIL SEARCH BAR CARRIES A TERM - TIMES TWO VIEW
-    // STYLES (COVER GRID / DETAILED ROWS, STICKY PER MODE)
+    // ONE SURFACE, TWO SOURCES: THE UNIFIED LIBRARY SCOPED TO THIS INSTANCE
+    // (BROWSE) OR LIVE SEARCH RESULTS WHEN THE RAIL SEARCH BAR CARRIES A TERM
     case 'library': {
       const manifest = core.apps.getType(instance.app_type);
       data.contentTypeLabel = manifest.contentTypes[0]?.label || manifest.browseLabel || 'item';
@@ -320,9 +368,8 @@ async function buildSectionData(core, instance, section, opts = {}) {
           }
         }
       } else {
-        data.library = configured
-          ? await core.apps.getLibraryPage(instance, 1)
-          : { items: [], total: 0, hasMore: false, page: 1 };
+        // THE SAME GLOBAL COMPONENT EVERY TAKEOVER RENDERS - JUST FILTERED
+        data.unified = await core.apps.getUnifiedPage({ scopeAppId: instance.id });
       }
       break;
     }
@@ -531,8 +578,26 @@ async function openDiscoFlixSection(ctx) {
   return respondWithTakeover(ctx, instance, state);
 }
 
-// USERS SECTION SEARCH + PAGINATION - RETURNS BARE CARDS (AND THE NEXT
-// SENTINEL) FOR #dfUserList
+// USERS SECTION SEARCH + FILTER TABS - SWAPS THE WHOLE BODY SO TABS, COUNTS,
+// AND CARDS ALWAYS AGREE (SAME PATTERN AS THE UNIFIED LIBRARY)
+async function appUsersBody(ctx) {
+  const core = ctx.core;
+  const instance = await core.apps.getInstance(ctx.params.id);
+  if (!instance || instance.app_type !== 'discoflix') {
+    ctx.status = 404;
+    return;
+  }
+  const search = String(ctx.query.search || '').trim();
+  const filter = String(ctx.query.filter || '').trim();
+  const users = await buildUsersPage(core, search, 1, filter);
+  return ctx.compileView('apps/sections/dfUsersBody.pug', {
+    activeApp: instance,
+    users,
+    mutableFields: USER_MUTABLE_FIELDS
+  });
+}
+
+// USERS PAGINATION - THE VIEW MORE SENTINEL SWAPS ITSELF FOR BARE CARDS
 async function appUsersPage(ctx) {
   const core = ctx.core;
   const instance = await core.apps.getInstance(ctx.params.id);
@@ -540,9 +605,10 @@ async function appUsersPage(ctx) {
     ctx.status = 404;
     return;
   }
-  const page = Math.max(1, parseInt(ctx.query.page, 10) || 1);
+  const page = Math.max(1, parseInt(ctx.params.page, 10) || 1);
   const search = String(ctx.query.search || '').trim();
-  const users = await buildUsersPage(core, search, page);
+  const filter = String(ctx.query.filter || '').trim();
+  const users = await buildUsersPage(core, search, page, filter);
   return ctx.compileView('apps/sections/dfUserCards.pug', {
     activeApp: instance,
     users,
@@ -588,6 +654,10 @@ async function saveAppUser(ctx) {
   let fresh;
   try {
     fresh = await core.models.user.safeUpdateOne(user.id, data);
+    // A CONSOLE GRANT SETTLES A PENDING ACCESS ASK
+    if (fresh.access_requested_at && (fresh.is_whitelisted || fresh.is_superuser || fresh.is_staff)) {
+      fresh = await core.models.user.update({ id: fresh.id }, { access_requested_at: null });
+    }
   } catch (err) {
     core.logger.error('USER SAVE FAILED:', err);
     ctx.status = 400;
@@ -595,10 +665,18 @@ async function saveAppUser(ctx) {
     return;
   }
 
+  const config = await core.models.configuration.get();
   return ctx.compileView(['apps/sections/dfUserCard.pug', 'extra/notification.pug'], {
     activeApp: instance,
     user: {
-      row: { ...fresh, avatar_url: rootRelative(fresh.avatar_url) },
+      row: {
+        ...fresh,
+        avatar_url: rootRelative(fresh.avatar_url),
+        lastSeenLabel: lastSeenLabel(fresh.last_seen_at),
+        wantsAccess: config.request_access === 'whitelist'
+          && !!fresh.access_requested_at
+          && !fresh.is_whitelisted && !fresh.is_superuser && !fresh.is_staff
+      },
       fields: core.models.user.getFormData(fresh)
     },
     mutableFields: USER_MUTABLE_FIELDS,
@@ -652,33 +730,18 @@ async function appFeedPage(ctx) {
   return ctx.compileView('apps/appFeedItems.pug', { activeApp: instance, feed, feedPage: page });
 }
 
-// LIBRARY PAGINATION - SAME REVEALED-SENTINEL TRICK AS THE FEED, SLICING THE
-// TTL-CACHED FULL LISTING (SEE core.apps.getLibraryPage). PAGES RENDER IN
-// WHATEVER VIEW STYLE THE BROWSE SURFACE CURRENTLY WEARS.
-async function appLibraryPage(ctx) {
-  const core = ctx.core;
-  const instance = await core.apps.getInstance(ctx.params.id);
-  if (!instance) {
-    ctx.status = 404;
-    return;
-  }
-  const page = Math.max(1, parseInt(ctx.params.page, 10) || 1);
-  const library = await core.apps.getLibraryPage(instance, page);
-  const manifest = core.apps.getType(instance.app_type);
-  return ctx.compileView('apps/libraryCards.pug', {
-    activeApp: instance,
-    library,
-    contentKind: manifest.contentTypes[0]?.type || 'movie',
-    view: core.apps.getBrowseView(instance.id, 'library')
-  });
+// THE HUB (SELF APP) BROWSES EVERYTHING; ANY OTHER TAKEOVER IS THE SAME
+// COMPONENT SCOPED TO THAT INSTANCE'S HOLDINGS
+function unifiedScopeOf(instance) {
+  return instance.app_type === 'discoflix' ? null : instance.id;
 }
 
-// UNIFIED LIBRARY FILTERS (SELF APP ONLY) - TERM/KIND/VIEW CHANGES SWAP THE
-// WHOLE BODY SO THE TABS, COUNTS, AND GRID ALWAYS AGREE
+// UNIFIED LIBRARY FILTERS - TERM/KIND/VIEW CHANGES SWAP THE WHOLE BODY SO
+// THE TABS, COUNTS, AND GRID ALWAYS AGREE
 async function appUnifiedLibrary(ctx) {
   const core = ctx.core;
   const instance = await core.apps.getInstance(ctx.params.id);
-  if (!instance || instance.app_type !== 'discoflix') {
+  if (!instance) {
     ctx.status = 404;
     return;
   }
@@ -686,7 +749,8 @@ async function appUnifiedLibrary(ctx) {
   if (view) core.apps.setBrowseView(instance.id, 'library', view);
   const unified = await core.apps.getUnifiedPage({
     kind: String(ctx.query.kind || 'all').trim(),
-    term: String(ctx.query.term || '').trim()
+    term: String(ctx.query.term || '').trim(),
+    scopeAppId: unifiedScopeOf(instance)
   });
   return ctx.compileView('apps/sections/dfLibraryBody.pug', {
     activeApp: instance,
@@ -700,14 +764,15 @@ async function appUnifiedLibrary(ctx) {
 async function appUnifiedLibraryPage(ctx) {
   const core = ctx.core;
   const instance = await core.apps.getInstance(ctx.params.id);
-  if (!instance || instance.app_type !== 'discoflix') {
+  if (!instance) {
     ctx.status = 404;
     return;
   }
   const unified = await core.apps.getUnifiedPage({
     page: Math.max(1, parseInt(ctx.params.page, 10) || 1),
     kind: String(ctx.query.kind || 'all').trim(),
-    term: String(ctx.query.term || '').trim()
+    term: String(ctx.query.term || '').trim(),
+    scopeAppId: unifiedScopeOf(instance)
   });
   return ctx.compileView('apps/unifiedCards.pug', {
     activeApp: instance,
@@ -1458,12 +1523,12 @@ module.exports = {
   changeActiveApp,
   openDiscoFlix,
   openDiscoFlixSection,
+  appUsersBody,
   appUsersPage,
   appLogsPage,
   saveAppUser,
   changeAppSection,
   appFeedPage,
-  appLibraryPage,
   appUnifiedLibrary,
   appUnifiedLibraryPage,
   appLibraryItem,

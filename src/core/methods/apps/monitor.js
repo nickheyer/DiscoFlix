@@ -1,3 +1,5 @@
+const ui = require('../../bot/interactions/ui');
+
 const POLL_INTERVAL_MS = 15 * 1000;
 const HEARTBEAT_INTERVAL_MS = 60 * 1000;
 const HEARTBEAT_BOOT_DELAY_MS = 5 * 1000;
@@ -131,8 +133,12 @@ module.exports = {
         // ALREADY MID-DOWNLOAD ON A RE-ARM'S FIRST LOOK = THE GRAB WAS
         // ANNOUNCED BEFORE THE RESTART - DON'T REPEAT IT
         if (!watch.rearmed) {
-          const eta = queueRow.timeleft ? ` - about \`${queueRow.timeleft}\` remaining` : '';
-          await this._notify(watch, `**${watch.title}** is downloading${eta}.`);
+          const message = await this._notify(watch, this._progressPayload(watch, queueRow));
+          // THE GRAB CARD BECOMES THE LIVE PROGRESS SURFACE - TICKS EDIT IT
+          if (message) {
+            watch.progressMessage = message;
+            watch.lastProgressFrame = this._progressFrameOf(queueRow);
+          }
         }
       }
       watch.rearmed = false;
@@ -140,12 +146,13 @@ module.exports = {
       const item = await client.getById(watch.arrId);
       if (client.isImported(item)) {
         await this.core.models.media.update({ id: watch.mediaId }, { is_available: true });
+        await this._settleProgressMessage(watch, config, true);
         await this._notify(
           watch,
-          `${this._mentions(watch)} **${watch.title}** is now available on ${config.media_server_name}!`
+          ui.notice(`${this._mentions(watch)} **${watch.title}** is now available on ${config.media_server_name}!`, { accent: 'ok' })
         );
         if (config.is_dm_notifications) {
-          await this._dmRequesters(watch, `**${watch.title}** is now available on ${config.media_server_name}!`);
+          await this._dmRequesters(watch, ui.notice(`**${watch.title}** is now available on ${config.media_server_name}!`, { accent: 'ok' }));
         }
         this.watches.delete(watch.requestId);
         await this._pushRowUpdate(watch, null);
@@ -153,15 +160,17 @@ module.exports = {
         return;
       }
 
-      // LIVE PROGRESS TO ANY OPEN DASHBOARD
+      // LIVE PROGRESS TO ANY OPEN DASHBOARD AND ONTO THE DISCORD GRAB CARD
       if (queueRow) {
         await this._pushRowUpdate(watch, queueRow);
+        await this._editProgressMessage(watch, queueRow);
       }
 
       if (Date.now() - watch.startedAt > config.max_check_time * 1000) {
+        await this._settleProgressMessage(watch, config, false);
         await this._notify(
           watch,
-          `${this._mentions(watch)} **${watch.title}** is still processing - I'll stop watching it for now, check back later.`
+          ui.notice(`${this._mentions(watch)} **${watch.title}** is still processing - I'll stop watching it for now, check back later.`, { accent: 'warn' })
         );
         this.watches.delete(watch.requestId);
       }
@@ -172,6 +181,56 @@ module.exports = {
 
   _mentions(watch) {
     return watch.requesterIds.map(id => `<@${id}>`).join(' ');
+  },
+
+  // THE LIVE DOWNLOAD CARD - ONE MESSAGE PER GRAB, EDITED IN PLACE EVERY TICK
+  _progressPayload(watch, queueRow) {
+    const eta = queueRow?.timeleft ? ` - about ${queueRow.timeleft} remaining` : '';
+    return ui.payload(ui.container([
+      ui.text(`### ${watch.title}`),
+      ui.text(`Downloading${eta}`),
+      ui.text(ui.progressBar(queueRow?.percent || 0))
+    ]));
+  },
+
+  _progressFrameOf(queueRow) {
+    return `${Math.round(queueRow?.percent || 0)}|${queueRow?.timeleft || ''}`;
+  },
+
+  // EDITS ONLY WHEN THE VISIBLE STATE ACTUALLY MOVED - TICKS ARE 15s APART
+  // BUT A STALLED QUEUE MUST NOT RE-EDIT THE SAME FRAME FOREVER
+  async _editProgressMessage(watch, queueRow) {
+    if (!watch.progressMessage) return;
+    const frame = this._progressFrameOf(queueRow);
+    if (frame === watch.lastProgressFrame) return;
+    watch.lastProgressFrame = frame;
+    try {
+      await watch.progressMessage.edit(this._progressPayload(watch, queueRow));
+    } catch (err) {
+      this.logger.debug(`Progress edit failed for '${watch.title}': ${err.message}`);
+      watch.progressMessage = null; // DELETED OR INACCESSIBLE - STOP TRYING
+    }
+  },
+
+  // FINAL FRAME: FULL GREEN BAR ON IMPORT, AMBER HANDOFF NOTE ON TIMEOUT
+  async _settleProgressMessage(watch, config, imported) {
+    if (!watch.progressMessage) return;
+    const payload = imported
+      ? ui.payload(ui.container([
+        ui.text(`### ${watch.title}`),
+        ui.text(`Downloaded and imported - streaming on ${config.media_server_name}`),
+        ui.text(ui.progressBar(100))
+      ], 'ok'))
+      : ui.payload(ui.container([
+        ui.text(`### ${watch.title}`),
+        ui.text('Still processing - no longer watched here')
+      ], 'warn'));
+    try {
+      await watch.progressMessage.edit(payload);
+    } catch (err) {
+      this.logger.debug(`Progress settle failed for '${watch.title}': ${err.message}`);
+    }
+    watch.progressMessage = null;
   },
 
   async _pushRowUpdate(watch, queueRow) {
@@ -185,25 +244,28 @@ module.exports = {
     }
   },
 
-  async _notify(watch, content) {
-    if (!watch.channelId) return; // CONSOLE-INITIATED - NOTHING TO NOTIFY
-    if (!this.core.client || !this.core.client.isReady()) return;
+  // SENDS A UI PAYLOAD TO THE ORIGIN CHANNEL - RETURNS THE MESSAGE SO GRAB
+  // CARDS CAN BE EDITED IN PLACE LATER, null WHEN NOTHING WAS POSTED
+  async _notify(watch, payload) {
+    if (!watch.channelId) return null; // CONSOLE-INITIATED - NOTHING TO NOTIFY
+    if (!this.core.client || !this.core.client.isReady()) return null;
     try {
       const channel = await this.core.client.channels.fetch(watch.channelId);
-      await channel.send(content);
+      return await channel.send(payload);
     } catch (err) {
       this.logger.warn(`App monitor could not notify channel ${watch.channelId}: ${err.message}`);
+      return null;
     }
   },
 
   // CONFIG-GATED COMPLETION DMs - CLOSED DM SETTINGS ARE A DEBUG LINE, NEVER
   // AN ERROR, AND ONE FAILED DM NEVER BLOCKS THE REST
-  async _dmRequesters(watch, content) {
+  async _dmRequesters(watch, payload) {
     if (!this.core.client || !this.core.client.isReady()) return;
     for (const userId of watch.requesterIds) {
       try {
         const user = await this.core.client.users.fetch(userId);
-        await user.send(content);
+        await user.send(payload);
       } catch (err) {
         this.logger.debug(`Completion DM to ${userId} failed: ${err.message}`);
       }

@@ -46,32 +46,22 @@ function contentTypeDefs() {
   return _contentTypeDefs;
 }
 
-// { movie: 'movie', film: 'movie', tv: 'show', ... } - PREFIX KEYWORD LOOKUP
-let _aliasIndex = null;
-function aliasIndex() {
-  if (!_aliasIndex) {
-    _aliasIndex = {};
-    for (const def of contentTypeDefs()) {
-      for (const alias of def.aliases || []) {
-        _aliasIndex[alias.toLowerCase()] = def.type;
+// MANIFEST-CONTRIBUTED BOT FEATURES, MERGED BY id LIKE CONTENT TYPES - APP
+// TYPES SHARING A DEF (E.G. EVERY MEDIA SERVER) POOL THEIR INSTANCES INTO ONE
+// FEATURE. SHARED IDS MUST SHARE ONE DEF OBJECT AND ITS SEMANTICS.
+let _interactionDefs = null;
+function interactionDefs() {
+  if (!_interactionDefs) {
+    const defs = new Map();
+    for (const manifest of Object.values(APP_TYPES)) {
+      for (const def of manifest.interactions || []) {
+        if (!defs.has(def.id)) defs.set(def.id, { ...def, appTypes: [] });
+        defs.get(def.id).appTypes.push(manifest.id);
       }
     }
+    _interactionDefs = [...defs.values()];
   }
-  return _aliasIndex;
-}
-
-// { movie: { contentType: 'movie' }, show: { contentType: 'show' } }
-let _slashDefs = null;
-function slashDefs() {
-  if (!_slashDefs) {
-    _slashDefs = {};
-    for (const def of contentTypeDefs()) {
-      if (def.slash?.name) {
-        _slashDefs[def.slash.name] = { contentType: def.type };
-      }
-    }
-  }
-  return _slashDefs;
+  return _interactionDefs;
 }
 
 module.exports = {
@@ -80,6 +70,5 @@ module.exports = {
   getType,
   allTypes,
   contentTypeDefs,
-  aliasIndex,
-  slashDefs
+  interactionDefs
 };

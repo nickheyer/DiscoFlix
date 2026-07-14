@@ -164,6 +164,8 @@ model DiscordMessage {
   content     String
   embeds      String?
   attachments String?
+  // COMPONENTS V2 JSON - BOT SURFACES MIRROR WITH THEIR REAL STRUCTURE
+  components  String?
   previous_content String?
   edited_at        DateTime?
   created_at DateTime             @default(now())
@@ -257,6 +259,10 @@ model User {
   is_whitelisted            Boolean          @default(false)
   is_bot                    Boolean          @default(false)
   is_client                 Boolean          @default(false)
+  // WHITELIST FLOW - STAMPED WHEN A DENIED USER ASKS TO REQUEST, CLEARED ON GRANT
+  access_requested_at       DateTime?
+  // LAST BOT SIGHTING (MESSAGE, INTERACTION, OR ROSTER SYNC)
+  last_seen_at              DateTime?
   session_timeout           Int              @default(60)
   max_check_time            Int              @default(600)
   max_results               Int              @default(0)

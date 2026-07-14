@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const { memberRoleTokens, roleGrantsFor } = require('../../bot/commands/access');
+const { memberRoleTokens, roleGrantsFor } = require('../../bot/interactions/access');
 
 // ACCENT COLOR ONLY ARRIVES ON A FORCED PROFILE FETCH - CACHE IT SO BUSY
 // CHANNELS DON'T COST ONE DISCORD API CALL PER MESSAGE
@@ -84,6 +84,7 @@ module.exports = {
     accentColor,
     embedList,
     attachmentList,
+    componentList,
     grouped
   }) {
     const html = await this.core.render.compile(['chat/discordMessage.pug'], {
@@ -99,12 +100,13 @@ module.exports = {
       accentColor,
       embedList: embedList || [],
       attachmentList: attachmentList || [],
+      componentList: componentList || [],
       grouped: !!grouped
     });
     await this.core.sockets.emitToSessions(sessionIds, html);
   },
 
-  // SERIALIZE DISCORD EMBEDS/ATTACHMENTS FOR PERSISTENCE + MIRROR RENDERING
+  // SERIALIZE DISCORD EMBEDS/ATTACHMENTS/COMPONENTS FOR PERSISTENCE + MIRROR
   extractRichContent(rawDiscMsg) {
     const embedList = (rawDiscMsg.embeds || []).map(embed =>
       typeof embed.toJSON === 'function' ? embed.toJSON() : embed
@@ -114,11 +116,16 @@ module.exports = {
       name: att.name,
       contentType: att.contentType
     }));
+    const componentList = (rawDiscMsg.components || []).map(component =>
+      typeof component.toJSON === 'function' ? component.toJSON() : component
+    );
     return {
       embedList,
       attachmentList,
+      componentList,
       embedsJson: embedList.length ? JSON.stringify(embedList) : null,
-      attachmentsJson: attachmentList.length ? JSON.stringify(attachmentList) : null
+      attachmentsJson: attachmentList.length ? JSON.stringify(attachmentList) : null,
+      componentsJson: componentList.length ? JSON.stringify(componentList) : null
     };
   },
 
@@ -158,11 +165,17 @@ module.exports = {
         && this.core.models.viewSession.channelPickFor(view, serverRow) === rawDiscMsg.channelId)
       .map(view => view.id);
 
+    // ONE WRITE PATH FOR EVERY USER SIGHTING - PROFILE + GRANTS + GUILD LINK
+    const bot = await this.core.models.discordBot.get();
+    const isSelf = author.id === bot.bot_id;
+    await this.core.models.user.syncFromDiscord(author, {
+      grants: roleGrants,
+      serverId: rawDiscMsg.guildId,
+      extra: { accent_color: userAccent, is_client: isSelf }
+    });
+
     // ONLY DB OPS HERE, EASY TO MESS UP
     const txRes = await this.core.prisma.$transaction(async (tx) => {
-      const bot = await tx.discordBot.findFirst();
-
-      const isSelf = author.id === bot.bot_id;
       const isViewed = viewerIds.length > 0;
 
       // UPDATE SERVER
@@ -185,34 +198,6 @@ module.exports = {
         }
       });
 
-      // UPSERT USER - ROLE GRANTS ONLY EVER ADD FLAGS, NEVER CLEAR THEM
-      await tx.user.upsert({
-        where: { id: author.id },
-        create: {
-          id: author.id,
-          is_bot: author.bot,
-          is_client: isSelf,
-          username: author.username,
-          display_name: author.displayName,
-          accent_color: userAccent,
-          avatar_url: avatarUrl,
-          ...roleGrants,
-          discord_servers: {
-            connect: { server_id: server.server_id }
-          }
-        },
-        update: {
-          username: author.username,
-          display_name: author.displayName,
-          accent_color: userAccent,
-          avatar_url: avatarUrl,
-          ...roleGrants,
-          discord_servers: {
-            connect: { server_id: server.server_id }
-          }
-        }
-      });
-
       // UPSERT MESSAGE
       await tx.discordMessage.upsert({
         where: { message_id: rawDiscMsg.id },
@@ -221,6 +206,7 @@ module.exports = {
           content: rawDiscMsg.content,
           embeds: richContent.embedsJson,
           attachments: richContent.attachmentsJson,
+          components: richContent.componentsJson,
           user: { connect: { id: author.id } },
           channel: { connect: { channel_id: channel.channel_id } },
           server: { connect: { server_id: server.server_id } }
@@ -229,6 +215,7 @@ module.exports = {
           content: rawDiscMsg.content,
           embeds: richContent.embedsJson,
           attachments: richContent.attachmentsJson,
+          components: richContent.componentsJson,
           user: { connect: { id: author.id } },
           channel: { connect: { channel_id: channel.channel_id } },
           server: { connect: { server_id: server.server_id } }
@@ -263,6 +250,7 @@ module.exports = {
         accentColor: userAccent,
         embedList: richContent.embedList,
         attachmentList: richContent.attachmentList,
+        componentList: richContent.componentList,
         grouped: this.isGroupedContinuation(
           { user_id: author.id, created_at: rawDiscMsg.createdAt },
           previous
@@ -336,6 +324,7 @@ module.exports = {
         content: newContent,
         embeds: richContent.embedsJson,
         attachments: richContent.attachmentsJson,
+        components: richContent.componentsJson,
         ...(contentChanged ? {
           previous_content: existing.content,
           edited_at: newMsg.editedAt || new Date()

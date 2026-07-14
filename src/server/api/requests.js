@@ -61,11 +61,12 @@ async function postVerdict(core, request, approved) {
     return;
   }
   try {
+    const ui = require('../../core/bot/interactions/ui');
     const mentions = (request.users || []).map(user => `<@${user.id}>`).join(' ');
     const title = request.media?.title || request.orig_parsed_title;
     const verdict = approved
-      ? `${mentions} Your request for **${title}** was approved - I'll post updates here as it downloads.`
-      : `${mentions} Your request for **${title}** was denied.`;
+      ? ui.notice(`${mentions} Your request for **${title}** was approved.`, { accent: 'ok', subtext: 'Updates will land here as it downloads' })
+      : ui.notice(`${mentions} Your request for **${title}** was denied.`, { accent: 'danger' });
     const channel = await core.client.channels.fetch(request.orig_channel_id);
     await channel.send(verdict);
   } catch (err) {

@@ -15,6 +15,7 @@ module.exports = {
   ],
   Client: PlexClient,
   contentTypes: [],
+  interactions: [require('./interactions/whatsnew')],
   browseLabel: 'title',
   configFields: [
     { key: 'url', label: 'URL', type: 'string', required: true, placeholder: 'http://localhost:32400', description: 'Base URL of the Plex Media Server' },

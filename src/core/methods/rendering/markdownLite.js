@@ -54,6 +54,16 @@ function renderMarkdownLite(text) {
     .replace(/(^|[^a-zA-Z0-9_])_([^_\n]+)_(?![a-zA-Z0-9_])/g, '$1<em>$2</em>')
     .replace(/~~([^~\n]+)~~/g, '<s>$1</s>');
 
+  // LINE-LEVEL FORMS - HEADINGS AND -# SUBTEXT ARRIVE FROM THE BOT'S
+  // COMPONENTS V2 SURFACES AND RENDER LIKE DISCORD DOES
+  out = out.split('\n').map(line => {
+    const heading = line.match(/^(#{1,3}) (.+)$/);
+    if (heading) return `<span class="mdHeading mdH${heading[1].length}">${heading[2]}</span>`;
+    const subtext = line.match(/^-# (.+)$/);
+    if (subtext) return `<span class="mdSubtext">${subtext[1]}</span>`;
+    return line;
+  }).join('\n');
+
   out = out.replace(PH_PATTERN, (m, idx) => codeSpans[Number(idx)] ?? '');
   return out;
 }

@@ -1,15 +1,18 @@
 //- UNIFIED LIBRARY PAGE FRAGMENT - MERGED ITEMS AS COVER CARDS OR DETAILED
 //- ROWS PLUS THE VIEW MORE SENTINEL; INCLUDED BY dfLibraryBody AND RETURNED
-//- BARE BY GET /apps/:id/unified/page/:n. CLICKING AN ITEM OPENS ITS PRIMARY
-//- SOURCE'S DETAIL VIEW (from=hub POINTS BACK HERE); SOURCE CHIPS ON DETAILED
-//- ROWS OPEN EACH SERVICE'S OWN COPY. LOCALS: activeApp, unified, view
+//- BARE BY GET /apps/:id/unified/page/:n. ON THE HUB AN ITEM OPENS ITS
+//- PRIMARY SOURCE'S DETAIL (from=hub POINTS BACK); IN A SCOPED TAKEOVER THE
+//- SCOPE SOURCE LEADS AND BACK RETURNS TO THAT APP'S LIBRARY. SOURCE CHIPS
+//- ON DETAILED ROWS OPEN EACH SERVICE'S OWN COPY. LOCALS: activeApp,
+//- unified, view
 include ../../mixins/browse
 - var unifiedItems = (unified && unified.items) || []
 - var unifiedView = typeof view === 'string' ? view : 'covers'
 - var pageQuery = `kind=${unified.kind}&term=${encodeURIComponent(unified.term || '')}`
+- var backFrom = activeApp.app_type === 'discoflix' ? 'hub' : 'library'
 
 each entry in unifiedItems
-  - var detailUrl = `/apps/${entry.primary.appId}/library/item/${entry.primary.itemId}?from=hub`
+  - var detailUrl = `/apps/${entry.primary.appId}/library/item/${entry.primary.itemId}?from=${backFrom}`
   if unifiedView === 'detailed'
     .request-row.appBrowseRow.unifiedRow(
       role="button"
@@ -32,7 +35,7 @@ each entry in unifiedItems
               tabindex="0"
               aria-label=`Open ${entry.title} on ${source.label}`
               data-tooltip-dir="top"
-              hx-get=`/apps/${source.appId}/library/item/${source.itemId}?from=hub`
+              hx-get=`/apps/${source.appId}/library/item/${source.itemId}?from=${backFrom}`
               hx-target="#appSectionBody"
               hx-swap="innerHTML show:#messageContainer:top"
               hx-trigger="click, keyup[key=='Enter']"

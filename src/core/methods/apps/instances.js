@@ -277,7 +277,7 @@ module.exports = {
   // (ready.js RE-REGISTERS ON EVERY LOGIN ANYWAY)
   async syncSlashCommands() {
     if (!this.core.client || !this.core.client.isReady()) return;
-    const { buildSlashCommands } = require('../../bot/commands');
+    const { buildSlashCommands } = require('../../bot/interactions');
     try {
       const commands = await buildSlashCommands(this.core);
       await this.core.client.application.commands.set(commands);

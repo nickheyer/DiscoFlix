@@ -19,5 +19,6 @@ module.exports = (core) => createNamespace(
   core,
   require('./methods'),
   require('./controller'),
-  requireClientLogin(require('./afterAuth'))
+  requireClientLogin(require('./afterAuth')),
+  requireClientLogin(require('./userSync'))
 );

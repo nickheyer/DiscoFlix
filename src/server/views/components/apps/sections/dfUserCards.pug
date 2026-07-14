@@ -1,19 +1,26 @@
-//- USER CARDS + VIEW MORE - INCLUDED BY dfUsers AND RETURNED BARE BY
-//- GET /apps/:id/users (SEARCH AND PAGINATION SHARE THIS FRAGMENT)
+//- USER CARDS + VIEW MORE - INCLUDED BY dfUsersBody AND RETURNED BARE BY
+//- GET /apps/:id/users/page/:n (PAGINATION KEEPS SEARCH + FILTER)
 include dfUserCard
 
 - var userRows = (users && users.rows) || []
 - var currentUsersPage = (users && users.page) || 1
 
 if !userRows.length
-  .appQueueEmpty= users && users.search ? `No users matching "${users.search}"` : 'No users tracked yet - they appear as people chat in your servers.'
+  if users && users.search
+    .appQueueEmpty No users matching “#{users.search}”
+  else if users && users.filter === 'access'
+    .appQueueEmpty Nobody is waiting on access right now.
+  else if users && users.filter === 'bots'
+    .appQueueEmpty No bot accounts tracked yet.
+  else
+    .appQueueEmpty No users tracked yet - the roster syncs when the bot comes online.
 else
   each u in userRows
     +dfUserCard(u)
   if users.hasMore
     button.appLoadMore.dfUsersMore(
       type="button"
-      hx-get=`/apps/${activeApp.id}/users?page=${currentUsersPage + 1}&search=${encodeURIComponent(users.search || '')}`
+      hx-get=`/apps/${activeApp.id}/users/page/${currentUsersPage + 1}?search=${encodeURIComponent(users.search || '')}&filter=${users.filter}`
       hx-swap="outerHTML"
       hx-disabled-elt="this"
     )

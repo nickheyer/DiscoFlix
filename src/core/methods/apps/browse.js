@@ -1,6 +1,5 @@
 const FEED_PAGE_SIZE = 15;
 const FEED_TTL_MS = 60 * 1000;
-const LIBRARY_PAGE_SIZE = 60;
 const LIBRARY_TTL_MS = 5 * 60 * 1000;
 const SEARCH_RESULT_CAP = 20;
 const RELEASE_RESULT_CAP = 30;
@@ -13,7 +12,6 @@ const BROWSE_VIEW_DEFAULTS = { library: 'covers', search: 'detailed' };
 // PAGINATION DON'T HAMMER THE SERVICES.
 module.exports = {
   FEED_PAGE_SIZE,
-  LIBRARY_PAGE_SIZE,
 
   // TITLE MATCHING FALLBACK FOR IDENTITY ANSWERS - EXTERNAL IDS WIN, THIS
   // ONLY CATCHES ITEMS A SERVICE NEVER GOT AN ID FOR
@@ -142,30 +140,6 @@ module.exports = {
       this.libraryCache.set(instance.id, cached);
     }
     return cached.items;
-  },
-
-  async getLibraryPage(instance, page = 1) {
-    const client = this.getClientForInstance(instance);
-    if (!client || !client.capabilities.library) {
-      return { items: [], total: 0, hasMore: false, page };
-    }
-
-    let items;
-    try {
-      items = await this._getFullLibrary(instance, client);
-    } catch (err) {
-      this.logger.debug(`${instance.display_name} library fetch failed: ${err.message}`);
-      return { items: [], total: 0, hasMore: false, page, error: err.message };
-    }
-
-    const start = (page - 1) * LIBRARY_PAGE_SIZE;
-    const pageItems = items.slice(start, start + LIBRARY_PAGE_SIZE);
-    return {
-      items: pageItems,
-      total: items.length,
-      hasMore: start + pageItems.length < items.length,
-      page
-    };
   },
 
   // THE BOT'S AVAILABILITY ANSWER: IS THIS LOOKUP RESULT ALREADY STREAMABLE

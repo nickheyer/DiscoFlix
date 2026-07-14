@@ -1,1 +1,51 @@
-.chatMessageComponents(data-components)
+//- RENDERS `componentList` (PARSED COMPONENTS V2 JSON) SO THE BOT'S SURFACES
+//- MIRROR WITH REAL STRUCTURE. ALL TEXT ESCAPES THROUGH md(); ONLY http(s)
+//- MEDIA RENDERS. BUTTONS AND SELECTS DRAW AS INERT CHIPS - THE MIRROR IS A
+//- WINDOW, NOT A CONTROLLER.
+mixin dfcNode(node)
+  case node.type
+    when 17
+      - var accent = node.accent_color != null ? `#${Number(node.accent_color).toString(16).padStart(6, '0')}` : '#7289da'
+      .chatCv2Container(style=`border-color: ${accent};`)
+        each child in node.components || []
+          +dfcNode(child)
+    when 10
+      .chatCv2Text !{md(node.content)}
+    when 9
+      .chatCv2Section
+        .chatCv2SectionText
+          each child in node.components || []
+            +dfcNode(child)
+        if node.accessory && node.accessory.type === 11
+          - var thumbUrl = node.accessory.media && /^https?:\/\//i.test(node.accessory.media.url || '') ? node.accessory.media.url : null
+          if thumbUrl
+            .chatCv2Thumb
+              img(src=thumbUrl alt="thumbnail" referrerpolicy="no-referrer")
+        else if node.accessory && node.accessory.type === 2
+          .chatCv2SectionAccessory
+            +dfcNode(node.accessory)
+    when 14
+      if node.divider !== false
+        hr.chatCv2Divider(class=node.spacing === 2 ? 'large' : undefined)
+    when 12
+      .chatCv2Gallery
+        each item in node.items || []
+          - var itemUrl = item.media && /^https?:\/\//i.test(item.media.url || '') ? item.media.url : null
+          if itemUrl
+            img(src=itemUrl alt=item.description || 'media' referrerpolicy="no-referrer")
+    when 1
+      .chatCv2Row
+        each child in node.components || []
+          +dfcNode(child)
+    when 2
+      - var styleClass = ['', 'primary', 'secondary', 'success', 'danger', 'link'][node.style] || 'secondary'
+      span.chatCv2Button(class=`${styleClass}${node.disabled ? ' disabled' : ''}`)= node.label || 'Button'
+    when 3
+      span.chatCv2Select= node.placeholder || 'Select'
+    default
+      //- UNKNOWN NODE KINDS RENDER NOTHING
+
+if componentList && componentList.length
+  .chatMessageComponents
+    each node in componentList
+      +dfcNode(node)

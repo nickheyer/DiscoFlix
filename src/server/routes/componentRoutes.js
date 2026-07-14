@@ -30,12 +30,12 @@ const {
   changeActiveApp,
   openDiscoFlix,
   openDiscoFlixSection,
+  appUsersBody,
   appUsersPage,
   appLogsPage,
   saveAppUser,
   changeAppSection,
   appFeedPage,
-  appLibraryPage,
   appUnifiedLibrary,
   appUnifiedLibraryPage,
   appLibraryItem,
@@ -82,7 +82,6 @@ router.post('/discoflix/section/:section', openDiscoFlixSection);
 router.post('/apps/add/:type', addApp);
 router.post('/apps/:id/section/:section', changeAppSection);
 router.get('/apps/:id/feed/page/:page', appFeedPage);
-router.get('/apps/:id/library/page/:page', appLibraryPage);
 // THE UNIFIED LIBRARY (SELF APP) - FILTER SWAPS AND VIEW MORE PAGINATION
 router.get('/apps/:id/unified', appUnifiedLibrary);
 router.get('/apps/:id/unified/page/:page', appUnifiedLibraryPage);
@@ -100,7 +99,8 @@ router.get('/apps/:id/lookup/:externalKey', appLookupDetail);
 router.get('/apps/:id/search', appSearch);
 // SERVICE ART PROXY - AUTH STAYS SERVER-SIDE (SEE appImage)
 router.get('/apps/:id/image', appImage);
-router.get('/apps/:id/users', appUsersPage);
+router.get('/apps/:id/users', appUsersBody);
+router.get('/apps/:id/users/page/:page', appUsersPage);
 router.get('/apps/:id/logs', appLogsPage);
 router.post('/apps/:id/users/:userId/save', saveAppUser);
 router.post('/apps/:id/add-media', appAddMedia);

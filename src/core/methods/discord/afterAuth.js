@@ -1,8 +1,8 @@
-const { ActivityType } = require('discord.js');
+const { ActivityType, OAuth2Scopes } = require('discord.js');
 
 // GENERATE BOT INVITE LINK
 function genInvite(client) {
-  return client.generateInvite({ scopes: ['bot'], permissions: ['1689934407138496'] });
+  return client.generateInvite({ scopes: [OAuth2Scopes.Bot], permissions: 1689934407138496n });
 }
 
 const PRESENCE_ACTIVITY_TYPES = {

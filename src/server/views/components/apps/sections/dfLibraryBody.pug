@@ -1,10 +1,12 @@
 //- UNIFIED LIBRARY BODY - COUNTS, KIND TABS, VIEW TOGGLE, AND THE LISTING.
 //- SWAPPED WHOLE ON EVERY FILTER CHANGE SO TABS AND GRID ALWAYS AGREE.
-//- LOCALS: activeApp, unified { items, total, hasMore, page, counts, errors,
-//- kind, term }, view
-- var kindTabs = [{ key: 'all', label: 'All' }, { key: 'movie', label: 'Movies' }, { key: 'show', label: 'Shows' }]
-//- MUSIC ONLY EARNS A TAB ONCE A CONNECTED SERVICE ACTUALLY SERVES SOME
-- if (unified.counts.music) kindTabs.push({ key: 'music', label: 'Music' })
+//- RENDERED BY THE HUB AND BY EVERY SCOPED APP TAKEOVER ALIKE. LOCALS:
+//- activeApp, unified { items, total, hasMore, page, counts, presentKinds,
+//- errors, kind, term, scopeAppId }, view
+//- TABS ONLY EARN THEIR ROW WHEN THE (SCOPED) LIBRARY SPANS MULTIPLE KINDS
+- var kindLabels = { movie: 'Movies', show: 'Shows', music: 'Music' }
+- var presentKinds = unified.presentKinds || []
+- var kindTabs = presentKinds.length > 1 ? [{ key: 'all', label: 'All' }].concat(presentKinds.map(function(key) { return { key: key, label: kindLabels[key] } })) : []
 
 //- THE ACTIVE KIND RIDES FILTER REQUESTS VIA hx-include
 input#dfLibKind(type="hidden" name="kind" value=unified.kind)
@@ -15,18 +17,19 @@ input#dfLibKind(type="hidden" name="kind" value=unified.kind)
   else
     span Library - #{unified.total} item#{unified.total === 1 ? '' : 's'}
   .appLibraryHeaderTools
-    .appInstanceTabs.appLibKindTabs
-      each tab in kindTabs
-        .appInstanceTab(
-          role="button"
-          tabindex=unified.kind !== tab.key ? "0" : undefined
-          class=unified.kind === tab.key ? 'active' : ''
-          hx-get=unified.kind !== tab.key ? `/apps/${activeApp.id}/unified?kind=${tab.key}` : undefined
-          hx-include=unified.kind !== tab.key ? '#dfLibrarySearch' : undefined
-          hx-target=unified.kind !== tab.key ? '#dfLibraryBody' : undefined
-          hx-swap=unified.kind !== tab.key ? 'innerHTML' : undefined
-          hx-trigger=unified.kind !== tab.key ? "click, keyup[key=='Enter']" : undefined
-        ) #{tab.label} (#{unified.counts[tab.key]})
+    if kindTabs.length
+      .appInstanceTabs.appLibKindTabs
+        each tab in kindTabs
+          .appInstanceTab(
+            role="button"
+            tabindex=unified.kind !== tab.key ? "0" : undefined
+            class=unified.kind === tab.key ? 'active' : ''
+            hx-get=unified.kind !== tab.key ? `/apps/${activeApp.id}/unified?kind=${tab.key}` : undefined
+            hx-include=unified.kind !== tab.key ? '#dfLibrarySearch' : undefined
+            hx-target=unified.kind !== tab.key ? '#dfLibraryBody' : undefined
+            hx-swap=unified.kind !== tab.key ? 'innerHTML' : undefined
+            hx-trigger=unified.kind !== tab.key ? "click, keyup[key=='Enter']" : undefined
+          ) #{tab.label} (#{unified.counts[tab.key]})
     if unified.items.length
       .appViewToggle(role="group" aria-label="View style")
         button.appViewToggleButton(
@@ -60,11 +63,13 @@ input#dfLibKind(type="hidden" name="kind" value=unified.kind)
             path(d="M4 6h16M4 12h16M4 18h16")
 
 if unified.errors && unified.errors.length
-  .appLibHubNote #{unified.errors.join(' - ')} - showing everything that answered
+  .appLibHubNote #{unified.errors.map(function(error) { return error.message }).join(' - ')} - showing everything that answered
 
 if !unified.items.length
   if unified.term
     .appQueueEmpty No library items match “#{unified.term}”.
+  else if unified.scopeAppId
+    .appQueueEmpty Nothing in #{activeApp.display_name}'s library yet - approved requests and adds land here.
   else
     .appQueueEmpty Nothing to browse yet - connect a media server or content manager and its library lands here.
 else if view === 'detailed'

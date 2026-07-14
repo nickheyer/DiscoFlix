@@ -12,6 +12,8 @@
 - try { embedList = embeds ? JSON.parse(embeds) : [] } catch (err) {}
 - var attachmentList = []
 - try { attachmentList = attachments ? JSON.parse(attachments) : [] } catch (err) {}
+- var componentList = []
+- try { componentList = typeof components !== 'undefined' && components ? JSON.parse(components) : [] } catch (err) {}
 //- CLASSIC DATE DIVIDER - compileMessages FLAGS THE FIRST MESSAGE OF EACH DAY
 if dayDivider
   include dateDivider
@@ -36,6 +38,7 @@ if isFirstUnread
         include message/messageAuthor
       include message/messageText
       include message/messageEmbed
+      include message/messageComponents
       include message/messageAttachment
       if requestChip
         .requestChipRow

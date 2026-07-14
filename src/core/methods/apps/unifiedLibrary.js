@@ -82,7 +82,7 @@ module.exports = {
         items = await this._getFullLibrary(row, client);
       } catch (err) {
         this.logger.debug(`${row.display_name} unified listing skipped: ${err.message}`);
-        errors.push(`${row.display_name} didn't answer`);
+        errors.push({ appId: row.id, message: `${row.display_name} didn't answer` });
         continue;
       }
 
@@ -170,13 +170,30 @@ module.exports = {
   },
 
   // ONE FILTERED PAGE FOR THE BROWSER - COUNTS FOLLOW THE TERM SO THE KIND
-  // TABS ALWAYS DESCRIBE WHAT THE CURRENT FILTER WOULD SHOW
-  async getUnifiedPage({ page = 1, kind = 'all', term = '' } = {}) {
+  // TABS ALWAYS DESCRIBE WHAT THE CURRENT FILTER WOULD SHOW. scopeAppId
+  // NARROWS THE SAME MERGED LIBRARY TO ONE INSTANCE'S HOLDINGS - EVERY APP
+  // TAKEOVER IS A FILTERED VIEW OF THE ONE COMPONENT, NEVER ITS OWN DESIGN.
+  async getUnifiedPage({ page = 1, kind = 'all', term = '', scopeAppId = null } = {}) {
     const { entries, errors } = await this.getUnifiedLibrary();
+
+    // SCOPED ENTRIES LEAD WITH THEIR SCOPE SOURCE - THE CARD CLICK MUST OPEN
+    // THIS INSTANCE'S DETAIL, CROSS-SERVICE CHIPS STAY FOR CONTEXT
+    const scoped = scopeAppId
+      ? entries
+        .filter(entry => entry.sources.some(source => source.appId === scopeAppId))
+        .map(entry => ({ ...entry, primary: entry.sources.find(source => source.appId === scopeAppId) }))
+      : entries;
+    const scopedErrors = scopeAppId
+      ? errors.filter(error => error.appId === scopeAppId)
+      : errors;
+
+    // TAB PRESENCE IGNORES THE TERM - TABS MUST NOT FLAP WHILE TYPING
+    const presentKinds = UNIFIED_KINDS.filter(wanted => scoped.some(entry => entry.kind === wanted));
+
     const cleanTerm = this.comparableTitle(term);
     const searched = cleanTerm
-      ? entries.filter(entry => this.comparableTitle(entry.title).includes(cleanTerm))
-      : entries;
+      ? scoped.filter(entry => this.comparableTitle(entry.title).includes(cleanTerm))
+      : scoped;
     const counts = {
       all: searched.length,
       movie: searched.filter(entry => entry.kind === 'movie').length,
@@ -193,9 +210,11 @@ module.exports = {
       hasMore: start + items.length < filtered.length,
       page: Math.max(1, page),
       counts,
-      errors,
+      presentKinds,
+      errors: scopedErrors,
       kind: wantKind,
-      term: String(term || '').trim()
+      term: String(term || '').trim(),
+      scopeAppId
     };
   }
 };

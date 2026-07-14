@@ -1,5 +1,5 @@
 const { Events } = require('discord.js');
-const { buildSlashCommands } = require('../../commands');
+const { buildSlashCommands } = require('../../interactions');
 
 module.exports = {
 	name: Events.ClientReady,
@@ -8,6 +8,7 @@ module.exports = {
     const core = client.core;
     await core.discord.refreshBotInfo(true);
     await core.discord.updateServerSortOrder();
+    await core.discord.syncAllGuildMembers();
     await core.discord.applyPresence();
 
     try {

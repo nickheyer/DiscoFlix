@@ -15,8 +15,10 @@ mixin dfUserCard(user)
       )
       .dfUserIdent
         .dfUserName(style=nameColor ? `color: ${nameColor}` : undefined)= row.display_name || row.username
-        .dfUserSub= row.username
+        .dfUserSub= row.lastSeenLabel ? `${row.username} • seen ${row.lastSeenLabel}` : row.username
       .dfUserChips
+        if row.wantsAccess
+          span.dfUserChip.wants WANTS ACCESS
         if row.is_client
           span.dfUserChip.client THIS BOT
         else if row.is_bot

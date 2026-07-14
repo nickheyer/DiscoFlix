@@ -15,6 +15,7 @@ module.exports = {
   ],
   Client: EmbyClient,
   contentTypes: [],
+  interactions: [require('./interactions/whatsnew')],
   browseLabel: 'title',
   configFields: [
     { key: 'url', label: 'URL', type: 'string', required: true, placeholder: 'http://localhost:8096', description: 'Base URL of the Emby server' },

@@ -1173,7 +1173,7 @@
   cursor: default;
 }
 
-/* ---- THE UNIFIED LIBRARY (DISCOFLIX TAKEOVER) ---- */
+/* ---- THE UNIFIED LIBRARY (EVERY TAKEOVER - THE HUB BROWSES ALL, APPS BROWSE THEIR SCOPE) ---- */
 
 /* KIND TABS RIDE THE HEADER - KILL THE STANDALONE TAB ROW'S MARGIN */
 .appLibKindTabs {
@@ -1561,6 +1561,10 @@
 .dfUserChip.staff { background-color: var(--cyan); }
 .dfUserChip.whitelisted { background-color: var(--green); }
 .dfUserChip.inactive { background-color: var(--red); }
+.dfUserChip.wants { background-color: var(--yellow, #faa61a); color: #1e1f22; }
+
+/* THE WANTS-ACCESS TAB CARRIES ITS OWN URGENCY TINT */
+.appInstanceTab.dfWantsTab:not(.active) { color: var(--yellow, #faa61a); }
 
 .dfUserInfoButton {
   width: 20px;

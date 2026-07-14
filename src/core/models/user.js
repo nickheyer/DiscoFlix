@@ -5,135 +5,76 @@ class User extends BaseModel {
         super(core, 'User');
     }
 
-    async updateProfile(userId, profile = {}) {
-        const updates = {};
-        if (profile.username) updates.username = profile.username;
-        if (profile.displayName) updates.display_name = profile.displayName;
-        if (profile.accentColor) updates.accent_color = profile.accentColor;
-        if (profile.avatarUrl) updates.avatar_url = profile.avatarUrl;
-        
-        const processedData = await this._processCacheableFields(updates, userId);
-        return this.update({ id: userId }, processedData);
-    }
-
-    // HELPERS
-    async getByUsername(username, include = {}) {
-        return this.findFirst({ username }, include);
-    }
-
-    async getWithRelations(userId, include = {}) {
-        const defaultInclude = {
-            discord_servers: Boolean(include?.servers),
-            requests: Boolean(include?.requests),
-            messages: Boolean(include?.messages),
-            ...include
+    // EVERY BOT TOUCHPOINT LANDS HERE - PROFILE FIELDS TRACK DISCORD ON EACH
+    // SIGHTING (DM-ONLY USERS STOP DRIFTING), GRANTS ONLY EVER ADD FLAGS, AND
+    // A KNOWN GUILD LINK ACCRETES ONTO THE ROW
+    async syncFromDiscord(discordUser, { grants = {}, serverId = null, extra = {} } = {}) {
+        const profile = {
+            username: discordUser.username,
+            display_name: discordUser.displayName,
+            avatar_url: typeof discordUser.displayAvatarURL === 'function'
+                ? discordUser.displayAvatarURL()
+                : discordUser.avatar_url,
+            is_bot: !!discordUser.bot,
+            last_seen_at: new Date(),
+            ...extra
         };
 
-        return this.findFirst({ id: userId }, defaultInclude);
-    }
-
-    async addToServer(userId, serverId) {
-        return this.update(
-            { id: userId },
-            {
-                discord_servers: {
-                    connect: { server_id: serverId }
-                }
-            }
-        );
-    }
-
-    async removeFromServer(userId, serverId) {
-        return this.update(
-            { id: userId },
-            {
-                discord_servers: {
-                    disconnect: { server_id: serverId }
-                }
-            }
-        );
-    }
-
-    async setRole(userId, role) {
-        const updates = {};
-        switch (role.toLowerCase()) {
-            case 'admin':
-                updates.is_superuser = true;
-                updates.is_staff = true;
-                break;
-            case 'staff':
-                updates.is_superuser = false;
-                updates.is_staff = true;
-                break;
-            case 'user':
-                updates.is_superuser = false;
-                updates.is_staff = false;
-                break;
-            default:
-                throw new Error(`Invalid role: ${role}`);
+        // ONLY MIRRORED GUILDS CAN CONNECT - A DM HAS NO SERVER ROW
+        let serverConnect = {};
+        if (serverId) {
+            const server = await this.prisma.discordServer.findUnique({ where: { server_id: serverId } });
+            if (server) serverConnect = { discord_servers: { connect: { server_id: serverId } } };
         }
-        return this.update({ id: userId }, updates);
-    }
 
-    async addRequest(userId, requestId) {
-        return this.update(
-            { id: userId },
-            {
-                requests: {
-                    connect: { id: requestId }
-                }
-            }
-        );
-    }
+        const existing = await this.findFirst({ id: discordUser.id });
+        const granted = Object.keys(grants).filter(key => grants[key] && !existing?.[key]);
+        // ANY ACCESS GRANT SETTLES A PENDING "WANTS ACCESS" ASK
+        const settlesAsk = Object.keys(grants).length ? { access_requested_at: null } : {};
 
-    async removeRequest(userId, requestId) {
-        return this.update(
-            { id: userId },
-            {
-                requests: {
-                    disconnect: { id: requestId }
-                }
-            }
-        );
-    }
-
-    async updateLimits(userId, limits = {}) {
-        const updates = {};
-        if (limits.sessionTimeout) updates.session_timeout = limits.sessionTimeout;
-        if (limits.maxCheckTime) updates.max_check_time = limits.maxCheckTime;
-        if (limits.maxResults) updates.max_results = limits.maxResults;
-        if (limits.maxSeasons) updates.max_seasons_for_non_admin = limits.maxSeasons;
-        if (limits.maxRequests) updates.max_requests_in_day = limits.maxRequests;
-        
-        return this.update({ id: userId }, updates);
-    }
-
-    async toggleActive(userId) {
-        const user = await this.findFirst({ id: userId });
-        return this.update(
-            { id: userId },
-            { is_active: !user.is_active }
-        );
-    }
-
-    async deleteWithRelated(userId) {
-        await this.update(
-            { id: userId },
-            {
-                discord_servers: {
-                    set: []
-                },
-                requests: {
-                    set: []
-                }
-            }
-        );
-
-        await this.prisma.discordMessage.deleteMany({
-            where: { user_id: userId }
+        const row = await this.prisma.user.upsert({
+            where: { id: discordUser.id },
+            create: { id: discordUser.id, ...profile, ...grants, ...serverConnect },
+            update: { ...profile, ...grants, ...settlesAsk, ...serverConnect }
         });
+        if (granted.length) {
+            this.logger.info(`Role mapping granted ${granted.join(', ')} to ${row.username}`);
+        }
+        return row;
+    }
 
-        return this.delete({ id: userId });
+    // WHITELIST FLOW - A DENIED REQUESTER RAISES A HAND THE CONSOLE CAN SEE.
+    // THE FIRST ASK KEEPS ITS TIMESTAMP; RETURNS true WHEN THE ASK IS NEW.
+    async flagAccessRequest(userId) {
+        const result = await this.prisma.user.updateMany({
+            where: { id: userId, access_requested_at: null },
+            data: { access_requested_at: new Date() }
+        });
+        return result.count > 0;
+    }
+
+    // ROSTER SYNC - MAKE ONE GUILD'S MEMBERSHIP LINKS EXACTLY MATCH DISCORD.
+    // ROWS ARE NEVER DELETED (REQUEST HISTORY OUTLIVES MEMBERSHIP); ONLY THE
+    // LINKS MOVE. RETURNS { linked, unlinked }.
+    async setGuildMembership(serverId, memberIds) {
+        const server = await this.prisma.discordServer.findUnique({
+            where: { server_id: serverId },
+            include: { users: { select: { id: true } } }
+        });
+        if (!server) return { linked: 0, unlinked: 0 };
+
+        const wanted = new Set(memberIds);
+        const current = new Set(server.users.map(user => user.id));
+        const connect = memberIds.filter(id => !current.has(id)).map(id => ({ id }));
+        const disconnect = [...current].filter(id => !wanted.has(id)).map(id => ({ id }));
+
+        if (connect.length || disconnect.length) {
+            await this.prisma.discordServer.update({
+                where: { server_id: serverId },
+                data: { users: { connect, disconnect } }
+            });
+        }
+        return { linked: connect.length, unlinked: disconnect.length };
     }
 }
 

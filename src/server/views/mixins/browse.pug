@@ -58,28 +58,6 @@ mixin searchBrowseRow(result, appId)
             hx-on:click="event.stopPropagation()"
           ) Add
 
-//- ONE LIBRARY LISTING ROW - THE DETAILED VIEW'S BROWSE-MODE TWIN
-mixin libraryBrowseRow(item, appId, contentKind)
-  .request-row.appBrowseRow(
-    role="button"
-    tabindex="0"
-    aria-label=`Open ${item.title}`
-    hx-get=`/apps/${appId}/library/item/${item.id}`
-    hx-target="#appSectionBody"
-    hx-swap="innerHTML show:#messageContainer:top"
-    hx-trigger="click, keyup[key=='Enter']"
-  )
-    +browsePoster(item.posterUrl, contentKind)
-    .request-info
-      .request-title= item.year ? `${item.title} (${item.year})` : item.title
-      if item.overview
-        .request-orig-message= item.overview
-    .request-status
-      if item.available
-        span.requestChip.chip-available Available
-      else
-        span.requestChip.chip-missing Missing
-
 //- ONE COVER CARD - entry: { clickUrl, title, year, posterUrl, badge, kind }
 mixin browsePosterCard(entry)
   .posterCard(

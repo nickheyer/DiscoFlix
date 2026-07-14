@@ -12,11 +12,13 @@
         include sections/queue
       when 'sessions'
         include sections/sessions
+      //- EVERY LIBRARY IS THE ONE UNIFIED COMPONENT (SCOPED PER INSTANCE);
+      //- ONLY LIVE SEARCH RESULTS KEEP THEIR OWN SURFACE
       when 'library'
-        if activeApp.app_type === 'discoflix'
-          include sections/dfLibrary
-        else
+        if sectionData.mode === 'search'
           include sections/library
+        else
+          include sections/dfLibrary
       when 'releases'
         include sections/releases
       when 'users'

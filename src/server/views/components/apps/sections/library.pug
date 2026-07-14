@@ -1,28 +1,20 @@
-//- LIBRARY - ONE SURFACE, TWO SOURCES (THE SERVICE LISTING OR LIVE SEARCH
-//- RESULTS FED BY THE RAIL SEARCH BAR) TIMES TWO VIEW STYLES (COVER GRID /
-//- DETAILED ROWS). SEARCH MODE DEFAULTS TO DETAILED, BROWSING TO COVERS;
-//- THE TOGGLE STICKS PER MODE. sectionData: { configured, mode, view,
-//- searchTerm, searchResults?, searchError?, library?, instanceTabs,
-//- contentTypeLabel, contentKind, searchable }
+//- LIVE SEARCH RESULTS FED BY THE RAIL SEARCH BAR - TWO VIEW STYLES (COVER
+//- GRID / DETAILED ROWS, STICKY PER MODE). BROWSING WITHOUT A TERM RENDERS
+//- THE UNIFIED LIBRARY COMPONENT INSTEAD (SEE appSurface). sectionData:
+//- { configured, view, searchTerm, searchResults, searchError, instanceTabs,
+//- contentKind, searchable }
 include ../../../mixins/browse
 
 if !sectionData.configured
   .appQueueEmpty Connect #{activeApp.display_name} in Settings before browsing.
 else
-  - var mode = sectionData.mode || 'library'
-  - var view = sectionData.view || (mode === 'search' ? 'detailed' : 'covers')
-  - var library = sectionData.library || { items: [], total: 0, hasMore: false, page: 1 }
+  - var view = sectionData.view || 'detailed'
   - var results = sectionData.searchResults || []
   - var contentKind = sectionData.contentKind || 'movie'
-  - var label = sectionData.contentTypeLabel || 'item'
-  - var hasItems = mode === 'search' ? results.length : library.items.length
   .request-section-header.appLibraryHeader
-    if mode === 'search'
-      span Results - #{results.length} for “#{sectionData.searchTerm}”
-    else
-      span Library - #{library.total} #{label}#{library.total === 1 ? '' : 's'}
+    span Results - #{results.length} for “#{sectionData.searchTerm}”
     .appLibraryHeaderTools
-      if mode === 'search' && sectionData.instanceTabs.length
+      if sectionData.instanceTabs.length
         .appInstanceTabs
           span Add to:
           each tab in sectionData.instanceTabs
@@ -33,7 +25,7 @@ else
               hx-include=!tab.active ? '#appRailSearchInput' : undefined
               hx-swap=!tab.active ? 'none' : undefined
             )= tab.label
-      if hasItems
+      if results.length
         .appViewToggle(role="group" aria-label="View style")
           button.appViewToggleButton(
             type="button"
@@ -62,29 +54,17 @@ else
           )
             svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true")
               path(d="M4 6h16M4 12h16M4 18h16")
-  if mode === 'search'
-    if sectionData.searchError
-      .appQueueEmpty Search failed - #{sectionData.searchError}
-    else if !results.length
-      .appQueueEmpty No results for “#{sectionData.searchTerm}” on #{activeApp.display_name}.
-    else if view === 'detailed'
-      .appBrowseList.appSectionDoc
-        each result in results
-          +searchBrowseRow(result, activeApp.id)
-    else
-      .posterGrid#posterGrid
-        each result in results
-          - var cardUrl = result.libraryId ? `/apps/${activeApp.id}/library/item/${result.libraryId}?from=search` : `/apps/${activeApp.id}/lookup/${result.externalKey}`
-          - var cardBadge = result.rowState === 'available' ? 'available' : (result.rowState === 'in-library' ? 'in-library' : null)
-          +browsePosterCard({ clickUrl: cardUrl, title: result.title, year: result.year, posterUrl: result.posterUrl, badge: cardBadge, kind: contentKind })
+  if sectionData.searchError
+    .appQueueEmpty Search failed - #{sectionData.searchError}
+  else if !results.length
+    .appQueueEmpty No results for “#{sectionData.searchTerm}” on #{activeApp.display_name}.
+  else if view === 'detailed'
+    .appBrowseList.appSectionDoc
+      each result in results
+        +searchBrowseRow(result, activeApp.id)
   else
-    if library.error
-      .appQueueEmpty #{activeApp.display_name} didn't answer - #{library.error}
-    else if !library.items.length
-      .appQueueEmpty Nothing here yet - approved requests land in the library.
-    else if view === 'detailed'
-      .appBrowseList.appSectionDoc
-        include ../libraryCards
-    else
-      .posterGrid#posterGrid
-        include ../libraryCards
+    .posterGrid#posterGrid
+      each result in results
+        - var cardUrl = result.libraryId ? `/apps/${activeApp.id}/library/item/${result.libraryId}?from=search` : `/apps/${activeApp.id}/lookup/${result.externalKey}`
+        - var cardBadge = result.rowState === 'available' ? 'available' : (result.rowState === 'in-library' ? 'in-library' : null)
+        +browsePosterCard({ clickUrl: cardUrl, title: result.title, year: result.year, posterUrl: result.posterUrl, badge: cardBadge, kind: contentKind })
