@@ -4,6 +4,18 @@
 )
   //- BARE IN TAKEOVER - THE GRID ROW COLLAPSES INSTEAD OF SHOWING A DEAD INPUT
   if !activeApp
+    //- OG-DISCORD ATTACH: HIDDEN MULTIPART FORM + CLIENT-RENDERED PREVIEW
+    //- CHIP (source.js). TEXT-ONLY SEND STAYS ws-send; ENTER ROUTES HERE
+    //- ONLY WHILE A FILE IS STAGED. CHANNEL SWITCHES RE-RENDER #chatBar AND
+    //- DROP THE STAGE - INTENDED, MATCHES DISCORD.
+    form#chatUploadForm(
+      hx-post="/chat/upload"
+      hx-encoding="multipart/form-data"
+      hx-swap="none"
+    )
+      input#chatUploadFile(type="file" name="file" hidden)
+      input#chatUploadContent(type="hidden" name="content")
+    #chatUploadPreview.chatUploadPreview
     .floatingChatBar
       include plusButton
       include chatInput

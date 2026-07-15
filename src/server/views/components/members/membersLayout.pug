@@ -17,12 +17,12 @@ else
         - var nameColor = member.accent_color && member.accent_color.toLowerCase() !== 'ffffff' ? `#${member.accent_color}` : null
         //- CACHED AVATARS ARE STORED AS BARE PATHS (user_images/...) - SERVE ROOT-RELATIVE
         - var memberAvatarSrc = member.avatar_url ? (/^https?:\/\//.test(member.avatar_url) ? member.avatar_url : `/${member.avatar_url.replace(/^\/+/, '')}`) : "https://cdn.discordapp.com/embed/avatars/0.png"
-        //- ROW CLICK (OR ENTER) OPENS THE MEMBER'S READ-ONLY INFO POPUP
+        //- ROW CLICK (OR ENTER) OPENS THE MEMBER'S PROFILE MODAL
         .memberRow(
           class=group.offline ? 'offlineMember' : undefined
           role="button"
           tabindex="0"
-          hx-get=`/settings/user/search?search=${member.id}&as-modal=true`
+          hx-get=`/user/${member.id}/profile`
           hx-target="#modals-here"
           hx-trigger="click, keyup[key=='Enter']"
           data-bs-toggle="modal"

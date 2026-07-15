@@ -1,0 +1,98 @@
+//- ONE LIFECYCLE PIPELINE CARD FOR A MediaRequest VIEW (BUILT WITH stages BY
+//- core.apps.getRequestsPage / pushRequestCard). WITH oob=true THE CARD SWAPS
+//- ITSELF IN PLACE WHEN PUSHED OVER WS. instanceOptions IS THE
+//- contentType -> [{id,label,isDefault}] MAP; WS PUSHES INSTEAD PRE-RESOLVE
+//- req.instanceOptions TO THE CARD'S OWN LIST.
+mixin dfRequestCard(req, instanceOptions, oob)
+  - var posterSrc = req.posterUrl ? (/^https?:\/\//i.test(req.posterUrl) ? req.posterUrl : `/${req.posterUrl}`) : null
+  - var options = req.instanceOptions || (instanceOptions && instanceOptions[req.contentType]) || []
+  .dfRequestCard(id=`df-request-${req.id}` hx-swap-oob=oob ? 'outerHTML' : undefined)
+    .dfRequestTop
+      .request-poster
+        if posterSrc
+          img(src=posterSrc alt="poster" referrerpolicy="no-referrer")
+        else
+          .request-poster-placeholder
+            svg(viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" aria-hidden="true")
+              if req.contentType === 'show'
+                rect(x="3" y="7" width="18" height="13" rx="2" stroke-width="2")
+                path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 3l4 4 4-4")
+              else
+                rect(x="3" y="5" width="18" height="14" rx="2" stroke-width="2")
+                path(stroke-linecap="round" stroke-width="2" d="M3 9h18M8 5v14M16 5v14")
+      .request-info
+        .request-title= req.title
+        .request-meta
+          //- REQUESTER CHIPS OPEN THE USER PROFILE MODAL; CONSOLE ADDS HAVE NONE
+          if req.requesters && req.requesters.length
+            each u in req.requesters
+              span.dfRequesterChip(
+                role="button"
+                tabindex="0"
+                hx-get=`/user/${u.id}/profile`
+                hx-target="#modals-here"
+                hx-trigger="click, keyup[key=='Enter']"
+                data-bs-toggle="modal"
+                data-bs-target="#modals-here"
+              )
+                if u.avatarUrl
+                  img.dfRequesterAvatar(src=u.avatarUrl alt="" referrerpolicy="no-referrer")
+                span= u.name
+          else
+            span= req.requestedBy || 'Unknown user'
+          if req.serverName
+            span.request-meta-divider •
+            span= req.channelName ? `#${req.channelName} · ${req.serverName}` : req.serverName
+          if req.requestedAtLabel
+            span.request-meta-divider •
+            span= req.requestedAtLabel
+          if req.seasonsLabel
+            span.request-meta-divider •
+            span= req.seasonsLabel
+        if req.origMessage
+          .request-orig-message= req.origMessage
+      .request-status
+        if req.canJump
+          button.request-jump-button(
+            type="button"
+            aria-label="Jump to the original message"
+            data-tooltip-dir="top"
+            hx-post=`/requests/${req.id}/jump`
+            hx-swap="none"
+            hx-select-oob="#serverSelector,#guildNameBanner"
+          )
+            svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true")
+              path(d="M9 10l-5 5 5 5")
+              path(d="M20 4v7a4 4 0 0 1-4 4H4")
+        span.requestChip(class=`chip-${req.state}`)= req.stateLabel
+    //- THE PIPELINE STEPPER - A DENIED ROW'S ARRAY ENDS AT THE DECISION STOP,
+    //- SO DEAD PIPELINES NEVER DRAW FUTURE STAGES
+    .dfRequestPipeline
+      each stage, i in (req.stages || [])
+        if i
+          .dfStageBar(class=`stage-${stage.state}`)
+        .dfStage(class=`stage-${stage.state}`)
+          .dfStageDot
+          .dfStageLabel= stage.label
+          if stage.detail
+            .dfStageDetail= stage.detail
+          if stage.progress
+            .request-progress-track
+              .request-progress-bar(style=`width: ${stage.progress.percent}%;`)
+          if stage.atLabel
+            .dfStageWhen= stage.atLabel
+    if req.state === 'pending'
+      .dfRequestActions
+        if options.length > 1
+          select.request-instance-select(name='appId' id=`request-instance-${req.id}`)
+            each opt in options
+              option(value=opt.id selected=(req.appId ? opt.id === req.appId : opt.isDefault))= opt.label
+        button.request-approve-button(
+          hx-post=`/requests/${req.id}/approve`
+          hx-include=options.length > 1 ? `#request-instance-${req.id}` : undefined
+          hx-swap='none'
+        ) Approve
+        button.request-deny-button(
+          hx-post=`/requests/${req.id}/deny`
+          hx-swap='none'
+        ) Deny

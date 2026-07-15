@@ -261,6 +261,7 @@ class BaseModel {
                         min: meta.min,
                         max: meta.max,
                         size: meta.size,
+                        multiline: meta.multiline,
                         options: meta.options
                     };
                 }

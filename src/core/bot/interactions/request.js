@@ -572,24 +572,33 @@ async function finalizeSelection(interaction, flow) {
       ? pickSummaryOf(flow)
       : null;
     core.logger.info(`Media request created: ${name}${seasonNote} (${instance.display_name}) by ${dbUser.username}`);
-    await flow.channel.send(outcomeCard(
+    const sent = await flow.channel.send(outcomeCard(
       result,
       `**${name}**${seasonNote} has been requested.`,
       'ok',
       [`Sent to ${instance.display_name}`, pickNote, 'Updates will land here as it downloads'].filter(Boolean).join(' • ')
     ));
+    // SLASH FLOWS HAVE NO TRIGGERING USER MESSAGE - THE OUTCOME CARD (WHICH
+    // MIRRORS LIKE ANY BOT MESSAGE) BECOMES THE JUMP ANCHOR. refreshUI BELOW
+    // RUNS AFTER THE STAMP, SO THE MIRRORED CARD ROW PICKS IT UP.
+    if (!flow.messageId && sent) {
+      await core.models.mediaRequest.stampAnchor(request.id, sent.id);
+    }
   } else {
     const media = await core.models.media.upsertFromResult(result);
-    await createRequestRow(core, flow, media, null, null, seasons);
+    const request = await createRequestRow(core, flow, media, null, null, seasons);
     core.logger.info(`Media request pending approval: ${name}${seasonNote} (${instance.display_name}) by ${dbUser.username}`);
-    await flow.channel.send(outcomeCard(
+    const sent = await flow.channel.send(outcomeCard(
       result,
       `**${name}**${seasonNote} has been submitted for approval.`,
       'brand',
       'An admin will review it - updates will land here'
     ));
+    if (!flow.messageId && sent) {
+      await core.models.mediaRequest.stampAnchor(request.id, sent.id);
+    }
   }
-  core.discord.refreshUI().catch(() => {}); // UPDATE CHAT-MIRROR CHIPS
+  core.discord.refreshUI().catch(() => {}); // UPDATE CHAT-MIRROR CARDS
 }
 
 function pickSummaryOf(flow) {

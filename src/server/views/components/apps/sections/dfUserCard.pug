@@ -37,9 +37,9 @@ mixin dfUserCard(user)
         stroke="currentColor"
         role="button"
         tabindex="0"
-        aria-label="Full user info"
+        aria-label="User profile"
         data-tooltip-dir="left"
-        hx-get=`/settings/user/search?search=${row.id}&as-modal=true`
+        hx-get=`/user/${row.id}/profile`
         hx-target="#modals-here"
         hx-trigger="click, keyup[key=='Enter']"
         data-bs-toggle="modal"

@@ -80,6 +80,53 @@ class DiscordServerChannel extends BaseModel {
     return messages.reverse();
   }
 
+  // NEXT N MESSAGES NEWER THAN afterId, OLDEST-FIRST (asc NEEDS NO REVERSE) -
+  // THE ANCHORED WINDOW'S SCROLL-DOWN PAGES
+  async getMessagesAfter(channelId, limit = this.historyPageSize, afterId) {
+    return this.prisma.discordMessage.findMany({
+      where: { channel_id: channelId },
+      include: { user: true },
+      orderBy: { created_at: 'asc' },
+      take: limit,
+      cursor: { message_id: afterId },
+      skip: 1
+    });
+  }
+
+  // THE DEEP-LINK WINDOW - radius OLDER + TARGET + radius NEWER, OLDEST-FIRST.
+  // null WHEN THE TARGET WAS NEVER MIRRORED. hasOlder/hasNewer OVER-PROMISE ON
+  // EXACT BOUNDARIES LIKE historyCursorOf - AN EMPTY EXTRA PAGE JUST DISSOLVES.
+  async getMessagesAround(channelId, messageId, radius = 50) {
+    const target = await this.prisma.discordMessage.findUnique({
+      where: { message_id: messageId },
+      include: { user: true }
+    });
+    if (!target || target.channel_id !== channelId) return null;
+
+    const older = await this.prisma.discordMessage.findMany({
+      where: { channel_id: channelId },
+      include: { user: true },
+      orderBy: { created_at: 'desc' },
+      take: radius,
+      cursor: { message_id: messageId },
+      skip: 1
+    });
+    const newer = await this.getMessagesAfter(channelId, radius, messageId);
+
+    return {
+      messages: [...older.reverse(), target, ...newer],
+      hasOlder: older.length === radius,
+      hasNewer: newer.length === radius
+    };
+  }
+
+  // HOW FAR FROM THE LIVE HEAD A MESSAGE SITS - DECIDES ANCHORED VS PLAIN JUMP
+  async countNewerThan(channelId, createdAt) {
+    return this.prisma.discordMessage.count({
+      where: { channel_id: channelId, created_at: { gt: createdAt } }
+    });
+  }
+
   async markAsRead(channel_id) {
     return this.update(
       { channel_id },

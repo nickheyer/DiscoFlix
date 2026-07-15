@@ -11,9 +11,12 @@
         include historySentinel
       for messageShard in messages
         | !{messageShard}
-      .endOfMessagesDiv.divider
-        p.endOfMessagesTime
-          | !{eomStamp || "Previously..."}
+      //- ANCHORED (TIME-TRAVEL) WINDOWS PAGE DOWNWARD TOO - THE FUTURE
+      //- SENTINEL TAKES THE END STAMP'S SLOT UNTIL THE WINDOW CATCHES UP
+      if typeof future !== 'undefined' && future
+        include futureSentinel
+      else
+        include endOfMessages
     else
       //- CLASSIC EMPTY-CHANNEL WELCOME BLOCK (chat.css HIDES IT ONCE A LIVE
       //- MESSAGE LANDS IN #chatLog)

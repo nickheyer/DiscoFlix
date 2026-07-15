@@ -1,10 +1,8 @@
-//- ONE DASHBOARD ROW FOR A MediaRequest VIEW (BUILT BY core.apps.buildRequestView).
-//- WITH oob=true THE ROW SWAPS ITSELF IN PLACE WHEN PUSHED OVER WS.
-//- instanceOptions (OPTIONAL): contentType -> [{id, label, isDefault}] - WHEN MORE
-//- THAN ONE INSTANCE SERVES THE TYPE, PENDING ROWS GET AN "ADD TO" OVERRIDE SELECT.
-mixin requestRow(req, oob, instanceOptions)
+//- ONE COMPACT REQUEST ROW (BUILT BY core.apps.buildRequestView) - THE USER
+//- PROFILE MODAL'S REQUEST HISTORY. READ + JUMP ONLY: APPROVE/DENY LIVE ON
+//- THE REQUESTS SECTION'S PIPELINE CARDS AND THE CHAT MIRROR'S INLINE CARDS.
+mixin requestRow(req, oob)
   - var posterSrc = req.posterUrl ? (/^https?:\/\//i.test(req.posterUrl) ? req.posterUrl : `/${req.posterUrl}`) : null
-  - var options = (instanceOptions && instanceOptions[req.contentType]) || []
   .request-row(id=`request-row-${req.id}` hx-swap-oob=oob ? 'outerHTML' : undefined)
     .request-poster
       if posterSrc
@@ -21,7 +19,8 @@ mixin requestRow(req, oob, instanceOptions)
     .request-info
       .request-title= req.title
       .request-meta
-        span= req.requestedBy || 'Unknown user'
+        if req.requestedAtLabel
+          span= req.requestedAtLabel
         if req.serverName
           span.request-meta-divider •
           span= req.serverName
@@ -44,28 +43,3 @@ mixin requestRow(req, oob, instanceOptions)
             path(d="M9 10l-5 5 5 5")
             path(d="M20 4v7a4 4 0 0 1-4 4H4")
       span.requestChip(class=`chip-${req.state}`)= req.stateLabel
-      .request-progress(id=`request-progress-${req.id}`)
-        if req.progress
-          .request-progress-track
-            .request-progress-bar(style=`width: ${req.progress.percent}%;`)
-          .request-progress-text
-            | #{req.progress.percent}%
-            if req.progress.timeleft
-              |  • #{req.progress.timeleft} left
-      if req.state === 'pending'
-        .request-actions
-          if options.length > 1
-            select.request-instance-select(name='appId' id=`request-instance-${req.id}`)
-              each opt in options
-                option(value=opt.id selected=(req.appId ? opt.id === req.appId : opt.isDefault))= opt.label
-          button.request-approve-button(
-            hx-post=`/requests/${req.id}/approve`
-            hx-include=options.length > 1 ? `#request-instance-${req.id}` : undefined
-            hx-target=`#request-row-${req.id}`
-            hx-swap='outerHTML'
-          ) Approve
-          button.request-deny-button(
-            hx-post=`/requests/${req.id}/deny`
-            hx-target=`#request-row-${req.id}`
-            hx-swap='outerHTML'
-          ) Deny

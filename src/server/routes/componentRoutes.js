@@ -18,13 +18,21 @@ const {
 } = require('../api/modals');
 
 const {
-  renderRequestDashboard,
+  appRequestsBody,
+  appRequestsPage,
   approveRequest,
   denyRequest,
   jumpToRequestMessage
 } = require('../api/requests');
 
-const { fetchChatHistory } = require('../api/chat');
+const { fetchChatHistory, uploadChatMedia, jumpToPresent } = require('../api/chat');
+
+const {
+  getUserProfile,
+  getUserProfileAccess,
+  saveUserProfile,
+  setUserTier
+} = require('../api/userProfile');
 
 const { dismissOnboarding } = require('../api/home');
 
@@ -82,6 +90,10 @@ router.post('/change-active-server/:id', changeActiveServers);
 router.post('/change-active-channel/:id', changeActiveChannel);
 // SCROLL-UP CHAT PAGINATION (READ-ONLY)
 router.get('/chat/history/:channelId', fetchChatHistory);
+// OG-DISCORD ATTACH - THE + STAGES A FILE, SENT TO THE ACTIVE CHANNEL AS THE BOT
+router.post('/chat/upload', uploadChatMedia);
+// TIME-TRAVEL EXIT - BACK TO THE LIVE HEAD FROM AN ANCHORED WINDOW
+router.post('/chat/jump-to-present', jumpToPresent);
 // THE FIRST-RUN CHECKLIST'S PERMANENT DISMISS
 router.post('/onboarding/dismiss', dismissOnboarding);
 // APP TAKEOVER (PSEUDO-GUILDS)
@@ -118,6 +130,9 @@ router.get('/apps/:id/search', appSearch);
 router.get('/apps/:id/image', appImage);
 router.get('/apps/:id/users', appUsersBody);
 router.get('/apps/:id/users/page/:page', appUsersPage);
+// THE REQUESTS SECTION (SELF APP) - FILTER/SEARCH SWAPS AND VIEW MORE
+router.get('/apps/:id/requests', appRequestsBody);
+router.get('/apps/:id/requests/page/:page', appRequestsPage);
 router.get('/apps/:id/logs', appLogsPage);
 router.post('/apps/:id/users/:userId/save', saveAppUser);
 router.post('/apps/:id/add-media', appAddMedia);
@@ -132,10 +147,16 @@ router.delete('/apps/:id', removeApp);
 router.get('/modal/apps/picker', renderAppPicker);
 router.get('/modal/apps/remove/:id', confirmRemoveApp);
 router.get('/modal/apps/library-delete/:id/:itemId', confirmLibraryDelete);
-router.get('/modal/requests/dashboard', renderRequestDashboard);
 router.post('/requests/:id/approve', approveRequest);
 router.post('/requests/:id/deny', denyRequest);
 router.post('/requests/:id/jump', jumpToRequestMessage);
+// THE RICH USER PROFILE - EVERY USER CLICK (AVATAR, AUTHOR NAME, MEMBER ROW,
+// USER CARD (i), REQUESTER CHIP) LANDS HERE; THE GENERIC /settings POPUP
+// KEEPS SERVING OTHER MODEL TYPES
+router.get('/user/:id/profile', getUserProfile);
+router.get('/user/:id/profile/access', getUserProfileAccess);
+router.post('/user/:id/profile/save', saveUserProfile);
+router.post('/user/:id/tier', setUserTier);
 // INFO POPUPS ARE READ-ONLY - NO SAVE/DELETE ROUTES; EDITS LIVE IN THE
 // DISCOFLIX AND APP TAKEOVER SURFACES
 router.get('/modal/:type/:modal', renderModal);

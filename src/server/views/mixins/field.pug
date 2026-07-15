@@ -29,6 +29,17 @@ mixin field(field, fieldKey, recordId, readonly)
             disabled=readonly || field.readonly
           )
           span.settings-slider(class=(readonly || field.readonly) ? 'readonly' : '')
+      else if field.multiline
+        textarea.settings-input.settings-textarea(
+          class=`size-${size}`
+          name=!readonly && fieldKey
+          id=!readonly && fieldId
+          rows=3
+          placeholder=field.placeholder
+          readonly=readonly || field.readonly
+          disabled=readonly || field.readonly
+          class=(readonly || field.readonly) ? 'readonly' : ''
+        )= (field.value != null && field.value !== '') ? field.value : ''
       else if field.options && field.options.length
         select.settings-input.settings-select(
           class=`size-${size}`

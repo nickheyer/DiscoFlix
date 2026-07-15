@@ -232,6 +232,59 @@
               .appDetailFactLabel= fact.label
               .appDetailFactValue= fact.value
 
+        //- ORIGIN - WHO ASKED FOR THIS TITLE AND WHERE. THE LEDGER JOIN IS
+        //- BEST-EFFORT (SEE withOrigin); NO REQUEST ON RECORD SAYS SO PLAINLY
+        //- INSTEAD OF GUESSING. JUMP RIDES THE ANCHORED TIME-TRAVEL PATH.
+        if !isEphemeral
+          - var originRows = (typeof origin !== 'undefined' && origin && origin.requests) || []
+          .request-section-header Origin
+          .appDetailOrigin
+            if originRows.length
+              each oreq in originRows
+                .appDetailOriginRow
+                  .appDetailOriginWho
+                    if oreq.requesters && oreq.requesters.length
+                      each u in oreq.requesters
+                        span.dfRequesterChip(
+                          role="button"
+                          tabindex="0"
+                          hx-get=`/user/${u.id}/profile`
+                          hx-target="#modals-here"
+                          hx-trigger="click, keyup[key=='Enter']"
+                          data-bs-toggle="modal"
+                          data-bs-target="#modals-here"
+                        )
+                          if u.avatarUrl
+                            img.dfRequesterAvatar(src=u.avatarUrl alt="" referrerpolicy="no-referrer")
+                          span= u.name
+                    else
+                      span.appDetailOriginConsole Added via the console
+                  .appDetailOriginMeta
+                    if oreq.requestedAtLabel
+                      span= oreq.requestedAtLabel
+                    if oreq.channelName && oreq.serverName
+                      span.request-meta-divider •
+                      span ##{oreq.channelName} · #{oreq.serverName}
+                    else if oreq.serverName
+                      span.request-meta-divider •
+                      span= oreq.serverName
+                  .appDetailOriginState
+                    span.requestChip(class=`chip-${oreq.state}`)= oreq.stateLabel
+                    if oreq.canJump
+                      button.request-jump-button(
+                        type="button"
+                        aria-label="Jump to the original message"
+                        data-tooltip-dir="top"
+                        hx-post=`/requests/${oreq.id}/jump`
+                        hx-swap="none"
+                        hx-select-oob="#serverSelector,#guildNameBanner"
+                      )
+                        svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true")
+                          path(d="M9 10l-5 5 5 5")
+                          path(d="M20 4v7a4 4 0 0 1-4 4H4")
+            else
+              .appDetailOriginEmpty Added outside DiscoFlix - no request on record
+
         //- MANAGE - THE LIBRARY-OWNED SETTINGS THE ARR LETS US EDIT IN PLACE
         if !isEphemeral && (detail.verbs || []).includes('edit') && detail.editOptions
           .request-section-header Manage

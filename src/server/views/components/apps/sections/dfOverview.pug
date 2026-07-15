@@ -37,12 +37,9 @@ include ../../../mixins/overview
           span.appStatusPill(class=app.statusClass)= app.statusText
 
   .appSectionActions
+    //- THE REQUESTS SECTION REPLACED THE OLD DASHBOARD MODAL - FULL PIPELINE
     button.modal-button.button-secondary(
-      hx-get="/modal/requests/dashboard"
-      hx-target="#modals-here"
-      hx-trigger="click"
-      data-bs-toggle="modal"
-      data-bs-target="#modals-here"
+      hx-post="/discoflix/section/requests"
     ) Media Requests
     if bot.inviteLink
       button.modal-button.button-secondary(

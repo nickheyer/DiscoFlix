@@ -227,6 +227,7 @@ async function resetBotFeature(ctx) {
 
 module.exports = {
   buildBotMatrix,
+  servedTypesOf,
   appBotMatrix,
   saveBotConfig,
   saveBotFeature,

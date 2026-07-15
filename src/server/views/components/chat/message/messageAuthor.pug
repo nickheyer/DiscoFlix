@@ -1,8 +1,20 @@
 //- DISCORD ONLY TAGS BOTS - HUMANS GET NO CHIP. WHITE-DEFAULT USERNAMES SKIP
-//- THE INLINE STYLE ENTIRELY SO THE CSS COLOR CAN CASCADE.
+//- THE INLINE STYLE ENTIRELY SO THE CSS COLOR CAN CASCADE. NAMES OPEN THE
+//- SAME PROFILE MODAL AVATARS DO (WHEN THE RENDER PATH SUPPLIED A userId).
 - var showColor = authorColor && authorColor.toLowerCase() !== '#ffffff'
+- var canOpenUser = typeof userId !== 'undefined' && userId
 .chatAuthor
-  b.chatAuthorUsername(style=showColor ? `color: ${authorColor}` : undefined)
+  b.chatAuthorUsername(
+    style=showColor ? `color: ${authorColor}` : undefined
+    class=canOpenUser ? 'clickable' : undefined
+    role=canOpenUser ? 'button' : undefined
+    tabindex=canOpenUser ? '0' : undefined
+    hx-get=canOpenUser ? `/user/${userId}/profile` : undefined
+    hx-target=canOpenUser ? '#modals-here' : undefined
+    hx-trigger=canOpenUser ? "click, keyup[key=='Enter']" : undefined
+    data-bs-toggle=canOpenUser ? 'modal' : undefined
+    data-bs-target=canOpenUser ? '#modals-here' : undefined
+  )
     if (username)
       if (username.length > 24)
         = username.substr(0, 24) + '...'

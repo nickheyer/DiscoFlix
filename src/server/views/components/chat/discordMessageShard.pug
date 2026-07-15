@@ -1,4 +1,5 @@
 //- PERSISTED MESSAGE RENDERED FROM THE DB (HISTORY). accent_color IS BARE HEX.
+include ../../mixins/chatRequestCard
 - var avatarUrl = user.avatar_url
 - var authorColor = user.accent_color ? `#${String(user.accent_color).replace('#', '')}` : null
 - var isBot = user.is_bot
@@ -20,12 +21,12 @@ if dayDivider
 if isFirstUnread
   .newMessagesDivider
     span.newMessagesTag NEW
-//- requestChip ROWS GET THE OLD-DISCORD MENTION TREATMENT (TINT + LEFT BAR).
+//- requestCard ROWS GET THE OLD-DISCORD MENTION TREATMENT (TINT + LEFT BAR).
 //- oobReplace: EDIT PUSHES REPLACE THE EXISTING ROW IN PLACE OVER THE SOCKET.
 //- grouped ROWS DROP THE AVATAR + AUTHOR HEADER - HOVER REVEALS THE TIME.
 .chatMessageRow(
   id=`msg-${message_id}`
-  class=`${isClient ? "botMsg" : "userMsg"}${requestChip ? " mentioned" : ""}${grouped ? " grouped" : ""}`
+  class=`${isClient ? "botMsg" : "userMsg"}${requestCard ? " mentioned" : ""}${grouped ? " grouped" : ""}`
   hx-swap-oob=oobReplace ? `outerHTML:#msg-${message_id}` : undefined
 )
   .chatContentContainer
@@ -40,47 +41,8 @@ if isFirstUnread
       include message/messageEmbed
       include message/messageComponents
       include message/messageAttachment
-      if requestChip
-        .requestChipRow
-          span.requestChip(class=`chip-${requestChip.state}`)= requestChip.label
-          if requestChip.title
-            span.requestChipTitle= requestChip.title
+      //- THE FULL INLINE REQUEST CARD - APPROVE/DENY LIVE ON IT, AND WS
+      //- PUSHES UPDATE IT IN PLACE BY ID (pushRequestCard)
+      if requestCard
+        +chatRequestCard(requestCard, false)
       //include message/messageTyping
-  //- HOVER ACTION TRAY - CLASSIC TOP-RIGHT TOOLBAR; ACTIONS ONLY WHERE THEY
-  //- MEAN SOMETHING (REQUEST ROWS). APPROVE/DENY FIRE-AND-FORGET; THE
-  //- HANDLER'S refreshUI() PUSHES THE UPDATED CHIP BACK OVER THE SOCKET.
-  if requestChip
-    .messageHoverTray
-      if requestChip.id && requestChip.state === 'pending'
-        button.trayButton.approve(
-          aria-label="Approve request"
-          data-tooltip-dir="top"
-          hx-post=`/requests/${requestChip.id}/approve`
-          hx-swap="none"
-        )
-          svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round")
-            path(d="M20 6L9 17l-5-5")
-        button.trayButton.deny(
-          aria-label="Deny request"
-          data-tooltip-dir="top"
-          hx-post=`/requests/${requestChip.id}/deny`
-          hx-swap="none"
-        )
-          svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round")
-            path(d="M18 6L6 18M6 6l12 12")
-      button.trayButton(
-        aria-label="Open requests"
-        data-tooltip-dir="top"
-        hx-get="/modal/requests/dashboard"
-        hx-target="#modals-here"
-        hx-trigger="click"
-        data-bs-toggle="modal"
-        data-bs-target="#modals-here"
-      )
-        svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round")
-          line(x1="8" y1="6" x2="21" y2="6")
-          line(x1="8" y1="12" x2="21" y2="12")
-          line(x1="8" y1="18" x2="21" y2="18")
-          line(x1="3" y1="6" x2="3.01" y2="6")
-          line(x1="3" y1="12" x2="3.01" y2="12")
-          line(x1="3" y1="18" x2="3.01" y2="18")

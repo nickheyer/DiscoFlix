@@ -1,57 +1,41 @@
-// ONE QUEUE FETCH PER APP INSTANCE WITH AN ACTIVE WATCH - DASHBOARD ROWS CAN
-// SHOW LIVE DOWNLOAD STATE
-async function loadRequestViews(core) {
-  const requests = await core.models.mediaRequest.getMany(
-    {},
-    { media: true, users: true, made_in: true, app: true },
-    { created_at: 'desc' },
-    { take: 100 }
-  );
-
-  const queues = new Map();
-  const watchedAppIds = new Set(
-    requests.map(request => core.apps.watches.get(request.id)?.appId).filter(Boolean)
-  );
-  for (const appId of watchedAppIds) {
-    const instance = await core.apps.getInstance(appId);
-    const client = instance?.enabled ? core.apps.getClientForInstance(instance) : null;
-    if (!client) continue;
-    try {
-      queues.set(appId, { client, queue: await client.getQueue() });
-    } catch (err) {
-      core.logger.warn(`Dashboard could not read ${instance.display_name} queue: ${err.message}`);
-    }
+// REQUESTS SECTION SEARCH + FILTER TABS - SWAPS THE WHOLE BODY SO TABS,
+// COUNTS, AND CARDS ALWAYS AGREE (SAME PATTERN AS THE USERS SECTION)
+async function appRequestsBody(ctx) {
+  const core = ctx.core;
+  const instance = await core.apps.getInstance(ctx.params.id);
+  if (!instance || instance.app_type !== 'discoflix') {
+    ctx.status = 404;
+    return;
   }
-
-  return requests.map(request => {
-    const watch = core.apps.watches.get(request.id);
-    const watched = watch ? queues.get(watch.appId) : null;
-    const queueRow = watched
-      ? watched.queue.find(row => watched.client.matchesQueueRecord(row, watch.arrId))
-      : null;
-    return core.apps.buildRequestView(request, queueRow);
+  const requests = await core.apps.getRequestsPage({
+    search: String(ctx.query.search || '').trim(),
+    filter: String(ctx.query.filter || '').trim()
+  });
+  return ctx.compileView('apps/sections/dfRequestsBody.pug', {
+    activeApp: instance,
+    requests,
+    instanceOptions: await core.apps.buildInstanceOptions()
   });
 }
 
-// contentType -> [{ id, label }] FOR THE PER-ROW INSTANCE OVERRIDE SELECT
-// (ONLY MEANINGFUL WHEN MORE THAN ONE INSTANCE SERVES THE TYPE)
-async function buildInstanceOptions(core) {
-  const options = {};
-  for (const def of core.apps.contentTypeDefs()) {
-    const instances = await core.apps.instancesForContentType(def.type);
-    options[def.type] = instances.map(instance => ({
-      id: instance.id,
-      label: instance.display_name,
-      isDefault: instance.is_default
-    }));
+// REQUESTS PAGINATION - THE VIEW MORE SENTINEL SWAPS ITSELF FOR BARE CARDS
+async function appRequestsPage(ctx) {
+  const core = ctx.core;
+  const instance = await core.apps.getInstance(ctx.params.id);
+  if (!instance || instance.app_type !== 'discoflix') {
+    ctx.status = 404;
+    return;
   }
-  return options;
-}
-
-async function renderRequestDashboard(ctx) {
-  const requests = await loadRequestViews(ctx.core);
-  const instanceOptions = await buildInstanceOptions(ctx.core);
-  return ctx.compileView('modals/requests/dashboard.pug', { requests, instanceOptions });
+  const requests = await core.apps.getRequestsPage({
+    page: Math.max(1, parseInt(ctx.params.page, 10) || 1),
+    search: String(ctx.query.search || '').trim(),
+    filter: String(ctx.query.filter || '').trim()
+  });
+  return ctx.compileView('apps/sections/dfRequestCards.pug', {
+    activeApp: instance,
+    requests,
+    instanceOptions: await core.apps.buildInstanceOptions()
+  });
 }
 
 async function postVerdict(core, request, approved) {
@@ -74,11 +58,12 @@ async function postVerdict(core, request, approved) {
   }
 }
 
-// RESPONDS WITH THE FRESH ROW
-async function respondWithRow(ctx, requestId, message) {
-  const request = await ctx.core.models.mediaRequest.getWithRelations(requestId);
-  const req = ctx.core.apps.buildRequestView(request);
-  return ctx.compileView(['modals/requests/rowResponse.pug'], { req, message });
+// APPROVE/DENY RESPONSE CONTRACT: EVERY SURFACE'S BUTTONS POST hx-swap="none",
+// THE HTTP RESPONSE CARRIES ONLY THE TOAST, AND pushRequestCard BROADCASTS
+// THE FRESH CARD TO EVERY SURFACE AT ONCE (SECTION + CHAT, ID-KEYED OOB)
+async function respondWithToast(ctx, requestId, message) {
+  ctx.core.apps.pushRequestCard(requestId).catch(() => {});
+  return ctx.compileView(['extra/notification.pug'], { message });
 }
 
 // WHICH INSTANCE GETS THE ADD: POSTED OVERRIDE > THE INSTANCE THE SEARCH RAN
@@ -156,14 +141,13 @@ async function approveRequest(ctx) {
       }
 
       await postVerdict(core, request, true);
-      core.discord.refreshUI().catch(() => {}); // UPDATE CHAT-MIRROR CHIPS
     } catch (err) {
       core.logger.error('Request approval failed:', err);
       message = `Approval failed: ${err.message}`;
     }
   }
 
-  return respondWithRow(ctx, requestId, message);
+  return respondWithToast(ctx, requestId, message);
 }
 
 async function denyRequest(ctx) {
@@ -181,14 +165,15 @@ async function denyRequest(ctx) {
   } else {
     await core.models.mediaRequest.updateStatus(requestId, false);
     await postVerdict(core, request, false);
-    core.discord.refreshUI().catch(() => {}); // UPDATE CHAT-MIRROR CHIPS
   }
 
-  return respondWithRow(ctx, requestId, message);
+  return respondWithToast(ctx, requestId, message);
 }
 
 // JUMP TO THE TRIGGERING MESSAGE: POINT THE MIRROR AT THE ORIGIN SERVER +
-// CHANNEL, RESPOND WITH THE FULL MIRROR SWAP, AND FLASH THE ROW ONCE LANDED
+// CHANNEL, RESPOND WITH THE FULL MIRROR SWAP, AND FLASH THE ROW ONCE LANDED.
+// TARGETS DEEPER THAN THE NEWEST PAGE TIME-TRAVEL: THE VIEW ANCHORS ON A
+// WINDOW AROUND THE MESSAGE (SENTINELS BOTH WAYS + THE JUMP-TO-PRESENT BAR).
 async function jumpToRequestMessage(ctx) {
   const core = ctx.core;
   const request = await core.models.mediaRequest.getWithRelations(ctx.params.id);
@@ -203,19 +188,45 @@ async function jumpToRequestMessage(ctx) {
   );
   // THE JUMP ONLY REPOINTS THE ACTING BROWSER'S VIEW
   await core.models.viewSession.setChannelPick(ctx.view.id, request.madeInId, request.orig_channel_id);
-  const state = await ctx.updateView({
-    active_server_id: request.madeInId,
-    active_app_id: null
-  });
 
   const { respondWithMirror } = require('./apps');
-  await respondWithMirror(ctx, state);
+  const target = await core.prisma.discordMessage.findUnique({
+    where: { message_id: request.orig_message_id }
+  });
+
+  if (!target || target.channel_id !== request.orig_channel_id) {
+    // NEVER MIRRORED (PRE-DATES THE BOT) OR DELETED - HONEST FALLBACK:
+    // THE LIVE WINDOW PLUS A TOAST, NO FALSE FLASH
+    const state = await ctx.updateView({ active_server_id: request.madeInId, active_app_id: null });
+    await respondWithMirror(ctx, state);
+    ctx.body += await core.render.compile('extra/notification.pug', {
+      message: "Couldn't find the original message in the mirror"
+    });
+    return;
+  }
+
+  const newerCount = await core.models.discordChannel.countNewerThan(
+    request.orig_channel_id,
+    target.created_at
+  );
+  if (newerCount < core.models.discordChannel.historyPageSize) {
+    // INSIDE THE NEWEST PAGE - THE PLAIN LIVE MIRROR ALREADY LANDS IT
+    const state = await ctx.updateView({ active_server_id: request.madeInId, active_app_id: null });
+    await respondWithMirror(ctx, state);
+  } else {
+    await core.models.viewSession.setAnchor(ctx.view.id, request.orig_channel_id, target.message_id);
+    const state = await ctx.updateView({ active_server_id: request.madeInId, active_app_id: null });
+    await respondWithMirror(ctx, state, {
+      anchorTarget: { channel_id: request.orig_channel_id, message_id: target.message_id }
+    });
+  }
   // THE SCRIPT RIDES AN OOB FRAGMENT SO hx-swap="none" STILL EXECUTES IT
   ctx.body += `<div hx-swap-oob="beforeend:body"><script>window.dfFlashMessage && dfFlashMessage('msg-${request.orig_message_id}')</script></div>`;
 }
 
 module.exports = {
-  renderRequestDashboard,
+  appRequestsBody,
+  appRequestsPage,
   approveRequest,
   denyRequest,
   jumpToRequestMessage

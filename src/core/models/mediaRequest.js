@@ -11,7 +11,18 @@ class MediaRequest extends BaseModel {
       throw new Error('Missing required field: mediaId');
     }
 
+    // ROWS BORN DECIDED (AUTO-APPROVE, CONSOLE ADD) STAMP THEIR DECISION TIME
+    if (data.status !== null && data.status !== undefined && !data.decided_at) {
+      data.decided_at = new Date();
+    }
     return this.create(data);
+  }
+
+  // SLASH FLOWS HAVE NO TRIGGERING USER MESSAGE - THE BOT'S OWN OUTCOME CARD
+  // BECOMES THE JUMP ANCHOR ONCE ITS MESSAGE ID IS KNOWN
+  async stampAnchor(requestId, messageId) {
+    if (!messageId) return null;
+    return this.update({ id: requestId }, { orig_message_id: String(messageId) });
   }
 
   async getWithRelations(requestId) {
@@ -53,7 +64,11 @@ class MediaRequest extends BaseModel {
     if (message) {
       updates.orig_message = message;
     }
-    
+    // A NON-NULL STATUS IS THE DECISION MOMENT - THE PIPELINE SHOWS THIS STAMP
+    if (status !== null) {
+      updates.decided_at = new Date();
+    }
+
     return this.update({ id: requestId }, updates);
   }
 

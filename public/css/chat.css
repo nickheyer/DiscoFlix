@@ -445,56 +445,6 @@
   }
 }
 
-/* HOVER ACTION TRAY - CLASSIC TOP-RIGHT MESSAGE TOOLBAR */
-.messageHoverTray {
-  position: absolute;
-  top: -14px;
-  right: 16px;
-  display: none;
-  align-items: center;
-  background-color: var(--bg-primary);
-  border: 1px solid rgba(4, 4, 5, 0.15);
-  border-radius: 4px;
-  box-shadow: var(--elevation-low);
-  overflow: hidden;
-  z-index: 1;
-}
-
-.chatMessageRow:hover .messageHoverTray {
-  display: flex;
-}
-
-.trayButton {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  color: var(--interactive-normal);
-  cursor: pointer;
-  transition: color 0.15s ease, background-color 0.15s ease;
-}
-
-.trayButton:hover {
-  background-color: var(--bg-modifier-hover);
-  color: var(--interactive-hover);
-}
-
-.trayButton.approve:hover {
-  color: var(--green);
-}
-
-.trayButton.deny:hover {
-  color: var(--red);
-}
-
-.trayButton svg {
-  width: 18px;
-  height: 18px;
-}
-
 .ellipsis {
   display: flex;
   align-items: center;
@@ -630,14 +580,144 @@
   min-width: 0;
 }
 
-/* REQUEST STATUS CHIPS (CHAT MIRROR) */
-.requestChipRow {
+/* TIME-TRAVEL BAR - FLOATS OVER THE BOTTOM OF THE MESSAGE AREA (SAME GRID
+   ROW AS THE CONTAINER, PAINTED ON TOP); :empty COLLAPSES IT IN LIVE MODE */
+.jumpToPresentBar {
+  grid-row: 2;
+  align-self: end;
+  justify-self: stretch;
+  z-index: 2;
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-top: 4px;
+  gap: 10px;
+  margin: 0 16px;
+  padding: 6px 12px;
+  border-radius: 8px 8px 0 0;
+  background-color: var(--blurple);
+  color: #fff;
+  font-size: 13px;
 }
 
+.jumpToPresentBar:empty {
+  display: none;
+}
+
+.jumpBarText {
+  flex: 1;
+  font-weight: 600;
+}
+
+.jumpBarNewPill {
+  padding: 1px 8px;
+  border-radius: 10px;
+  background-color: var(--red);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.jumpBarButton {
+  border: none;
+  border-radius: 3px;
+  padding: 4px 10px;
+  background-color: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.jumpBarButton:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+/* AUTHOR NAMES OPEN THE PROFILE MODAL - GIVE THE HUMANS A CLICK AFFORDANCE */
+.chatAuthorUsername.clickable {
+  cursor: pointer;
+}
+
+.chatAuthorUsername.clickable:hover,
+.chatAuthorUsername.clickable:focus-visible {
+  text-decoration: underline;
+}
+
+/* A DISABLED + (NO ACTIVE CHANNEL) READS AS FURNITURE, NOT A CONTROL */
+.floatingChatBar .plusButton.disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+
+.floatingChatBar .plusButton.disabled:hover {
+  background: var(--interactive-normal);
+}
+
+/* STAGED-ATTACHMENT PREVIEW - THE OG-DISCORD CHIP ABOVE THE INPUT; :empty
+   COLLAPSES IT SO THE GRID ROW NEVER RESERVES DEAD SPACE */
+.chatUploadPreview {
+  margin: 0 0 8px;
+}
+
+.chatUploadPreview:empty {
+  display: none;
+}
+
+.chatUploadChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 100%;
+  padding: 8px 12px;
+  background-color: var(--bg-chat-input);
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--text-normal);
+}
+
+.chatUploadChip.oversize {
+  outline: 1px solid var(--red);
+}
+
+.chatUploadChip.oversize .chatUploadSize {
+  color: var(--red);
+}
+
+.chatUploadThumb {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.chatUploadName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 260px;
+}
+
+.chatUploadSize {
+  color: var(--text-muted);
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.chatUploadRemove {
+  border: none;
+  background: none;
+  color: var(--interactive-normal);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+
+.chatUploadRemove:hover {
+  color: var(--red);
+}
+
+/* REQUEST STATE CHIPS - SHARED BY THE INLINE CHAT CARDS AND THE REQUESTS
+   SECTION'S PIPELINE CARDS */
 .requestChip {
   display: inline-block;
   padding: 2px 8px;
@@ -656,10 +736,76 @@
 .requestChip.chip-available { background-color: var(--green); }
 .requestChip.chip-denied { background-color: var(--red); }
 
-.requestChipTitle {
+/* THE INLINE REQUEST CARD - OLD-DISCORD EMBED SHAPE WITH A STATE-COLORED
+   ACCENT BAR; APPROVE/DENY LIVE ON THE CARD ITSELF */
+.chatRequestCard {
+  max-width: 520px;
+  margin-top: 6px;
+  padding: 10px 12px;
+  background-color: var(--bg-secondary);
+  border-left: 4px solid var(--interactive-muted);
+  border-radius: 4px;
+}
+
+.chatRequestCard.card-pending { border-left-color: var(--yellow); }
+.chatRequestCard.card-approved { border-left-color: var(--blurple); }
+.chatRequestCard.card-downloading { border-left-color: var(--cyan); }
+.chatRequestCard.card-available { border-left-color: var(--green); }
+.chatRequestCard.card-denied { border-left-color: var(--red); }
+
+.chatRequestCardMain {
+  display: flex;
+  gap: 10px;
+}
+
+.chatRequestPoster {
+  width: 44px;
+  height: 66px;
+  object-fit: cover;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.chatRequestInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.chatRequestTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--header-primary);
+}
+
+.chatRequestMeta {
   font-size: 12px;
-  color: var(--text-muted);
-  font-style: italic;
+  color: var(--header-secondary);
+  margin-top: 2px;
+}
+
+.chatRequestStateRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.chatRequestProgress {
+  flex: 1;
+  min-width: 0;
+}
+
+.chatRequestProgress .request-progress-track {
+  width: 100%;
+  max-width: 200px;
+}
+
+.chatRequestActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
 }
 
 /* MIRRORED DISCORD EMBEDS */

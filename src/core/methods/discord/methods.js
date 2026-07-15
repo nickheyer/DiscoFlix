@@ -157,12 +157,16 @@ module.exports = {
     const richContent = this.extractRichContent(rawDiscMsg);
 
     // WHICH CONNECTED BROWSERS HAVE THIS EXACT CHANNEL ON SCREEN - THEY GET
-    // THE ROW, EVERYONE ELSE GETS BADGES, UNREADS ONLY ACCRUE WHEN NOBODY SAW IT
+    // THE ROW, EVERYONE ELSE GETS BADGES, UNREADS ONLY ACCRUE WHEN NOBODY SAW
+    // IT. ANCHORED (TIME-TRAVELLING) VIEWS COUNT AS NON-VIEWERS: A MID-LOG
+    // APPEND WOULD LIE ABOUT WHERE THE MESSAGE SITS - THEY GET THE BAR'S
+    // "NEW MESSAGES" PILL INSTEAD.
     const serverRow = await this.core.models.discordServer.getById(rawDiscMsg.guildId);
     const connectedViews = await this.core.sockets.connectedViews();
     const viewerIds = connectedViews
       .filter(view => view.id
         && !view.active_app_id
+        && !this.core.models.viewSession.anchorOf(view)
         && view.active_server_id === rawDiscMsg.guildId
         && this.core.models.viewSession.channelPickFor(view, serverRow) === rawDiscMsg.channelId)
       .map(view => view.id);
@@ -265,6 +269,20 @@ module.exports = {
       // NO BADGES, SO THEY EMIT NOTHING HERE
       await this.emitUnreadBadges(txRes.server, txRes.channel);
     }
+
+    // TIME-TRAVELLING VIEWS OF THIS CHANNEL GET THE BAR'S "NEW MESSAGES"
+    // PILL - THE APPEND THEY DIDN'T GET LANDS WHEN THEY CATCH UP OR JUMP
+    const anchoredIds = connectedViews
+      .filter(view => view.id
+        && this.core.models.viewSession.anchorOf(view)?.channel_id === rawDiscMsg.channelId)
+      .map(view => view.id);
+    if (anchoredIds.length) {
+      const bar = await this.core.render.compile('chat/jumpToPresentBar.pug', {
+        anchored: true,
+        hasNew: true
+      });
+      await this.core.sockets.emitToSessions(anchoredIds, bar);
+    }
   },
 
   // PER-BUBBLE/PER-ROW OOB PUSH, COMPILED PER VIEW - EACH BROWSER'S BUBBLE
@@ -358,8 +376,8 @@ module.exports = {
   },
 
   async compileMessages(messages = []) {
-    // REQUEST STATUS CHIPS FOR ANY MESSAGE THAT TRIGGERED A MediaRequest
-    const chips = await this.core.apps.chipsForMessages(messages.map(msg => msg.message_id));
+    // FULL INLINE REQUEST CARDS FOR ANY MESSAGE THAT TRIGGERED A MediaRequest
+    const cards = await this.core.apps.cardsForMessages(messages.map(msg => msg.message_id));
 
     const compiledMessages = [];
     let previousDay = null;
@@ -382,7 +400,7 @@ module.exports = {
 
       message.hoverStamp = this.formatTimeOnly(message.created_at);
       message.created_at = this.formatTimestamp(message.created_at);
-      message.requestChip = chips[message.message_id] || null;
+      message.requestCard = cards[message.message_id] || null;
       const compiledMessage = await this.core.render.compile('chat/discordMessageShard.pug', message);
       compiledMessages.push(compiledMessage);
     }
@@ -407,6 +425,15 @@ module.exports = {
       .format(new Date(timestamp));
   },
 
+  // THE SENDER'S ACTIVE CHANNEL FOR ONE VIEW - SHARED BY THE WS CHAT RELAY
+  // AND HTTP UPLOADS SO BOTH RESOLVE THE TARGET IDENTICALLY
+  async activeChannelIdFor(view) {
+    const serverRow = view?.active_server_id
+      ? await this.core.models.discordServer.getById(view.active_server_id)
+      : null;
+    return this.core.models.viewSession.channelPickFor(view, serverRow);
+  },
+
   // SENTINEL LOCALS FOR SCROLL-UP PAGINATION - null WHEN THE FIRST PAGE
   // ALREADY HOLDS THE WHOLE CHANNEL. CALL BEFORE compileMessages MUTATES ROWS.
   historyCursorOf(msgObjects = []) {
@@ -423,6 +450,14 @@ module.exports = {
   async updateMessages(active_channel_id, view) {
     if (!view || !view.active_server_id) {
       return [];
+    }
+
+    // EVERY LIVE-MODE MESSAGE LOAD ROUTES THROUGH HERE (CHANNEL/SERVER
+    // SWITCH, JUMP TO PRESENT, F5) - THE ONE CHOKE POINT THAT ENDS TIME
+    // TRAVEL. KEEP THE IN-HAND SHAPE HONEST TOO.
+    if (view.id) {
+      await this.core.models.viewSession.clearAnchor(view.id);
+      view.chat_anchor = null;
     }
 
     if (!active_channel_id) {
@@ -472,16 +507,47 @@ module.exports = {
     return messages;
   },
 
+  // ZERO A CHANNEL'S UNREADS + RECOUNT THE SERVER ROLL-UP - THE TIME-TRAVEL
+  // CATCH-UP'S SLICE OF updateMessages (NO PICK WRITES, NO MESSAGE LOAD)
+  async markChannelRead(serverId, channelId) {
+    await this.core.models.discordChannel.update(
+      { channel_id: channelId },
+      { unread_message_count: 0 }
+    );
+    const server = await this.core.models.discordServer.getWithChannels(serverId);
+    const unreadServerMsgCount = server.channels.reduce(
+      (total, channel) => total + channel.unread_message_count,
+      0
+    );
+    return this.core.models.discordServer.update(
+      { server_id: serverId },
+      { unread_message_count: unreadServerMsgCount }
+    );
+  },
+
   // THE FULL MIRROR CHROME FOR ONE VIEW - SHARED BY refreshUI'S PER-VIEW
   // BROADCAST AND THE CHANNEL SWITCH (WHICH TARGETS JUST THE ACTING SESSION).
   // `[]` IS A VALID messageObjects RESULT (EMPTY CHANNEL), null = FETCH.
   async buildMirrorFragments(view, messageObjects = null) {
-    if (messageObjects === null) {
+    // A TIME-TRAVELLING VIEW KEEPS ITS WINDOW - BROADCAST REFRESHES TOUCH
+    // ONLY CHROME (CARDS UPDATE BY ID, LIVE ROWS SUPPRESS). EXPLICIT
+    // messageObjects (CHANNEL SWITCH) WENT THROUGH updateMessages, WHICH
+    // ALREADY ENDED TIME TRAVEL.
+    const anchor = messageObjects === null
+      ? this.core.models.viewSession.anchorOf(view)
+      : null;
+    if (messageObjects === null && !anchor) {
       messageObjects = await this.updateMessages(null, view);
     }
-    const history = this.historyCursorOf(messageObjects);
-    const messages = await this.compileMessages(messageObjects);
-    const eomStamp = _.get(_.last(messageObjects), 'created_at');
+
+    let history = null;
+    let messages = [];
+    let eomStamp = null;
+    if (!anchor) {
+      history = this.historyCursorOf(messageObjects);
+      messages = await this.compileMessages(messageObjects);
+      eomStamp = _.get(_.last(messageObjects), 'created_at');
+    }
 
     const discordBot = await this.core.models.discordBot.get();
     const servers = await this.core.render.getServerTemplateObj(null, view);
@@ -489,7 +555,7 @@ module.exports = {
     const apps = await this.core.apps.getRailViewModel(view);
     const onboarding = await this.core.render.getOnboarding(view);
 
-    return this.core.render.compile([
+    const files = [
       'sidebar/servers/serverSortableContainer.pug',
       'sidebar/servers/appRail.pug',
       'sidebar/servers/serverHomeButton.pug',
@@ -497,9 +563,12 @@ module.exports = {
       'sidebar/channels/chatChannels.pug',
       'chat/messageChannelHeader.pug',
       'chat/chatBar.pug',
-      'chat/messageContainer.pug',
+      'chat/jumpToPresentBar.pug',
       'members/membersLayout.pug'
-    ], {
+    ];
+    if (!anchor) files.splice(files.indexOf('chat/jumpToPresentBar.pug'), 0, 'chat/messageContainer.pug');
+
+    return this.core.render.compile(files, {
       servers,
       messages,
       discordBot,
@@ -508,7 +577,8 @@ module.exports = {
       members,
       apps,
       onboarding,
-      history
+      history,
+      anchored: !!anchor
     });
   },
 

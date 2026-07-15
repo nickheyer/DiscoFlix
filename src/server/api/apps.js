@@ -22,7 +22,10 @@ const USER_MUTABLE_FIELDS = [
   'is_whitelisted',
   'max_requests_in_day',
   'max_results',
-  'max_seasons_for_non_admin'
+  'max_seasons_for_non_admin',
+  // MUST RIDE EVERY CARD SAVE - safeUpdateOne's FULL-FORM SEMANTICS WOULD
+  // OTHERWISE BLANK NOTES ON ANY OTHER FIELD'S EDIT
+  'notes'
 ];
 const USERS_PAGE_SIZE = 20;
 const LOGS_PAGE_SIZE = 50;
@@ -61,8 +64,10 @@ function lastSeenLabel(timestamp) {
 // ACCESS ASKS ALWAYS SORT FIRST - THEY ARE THE THING WAITING ON AN ADMIN.
 async function buildUsersPage(core, search = '', page = 1, filter = 'people') {
   const wantFilter = USER_FILTERS[filter] ? filter : 'people';
+  // THE EXACT-ID ARM LETS THE PROFILE MODAL'S "OPEN IN USERS SECTION" LINK
+  // LAND ON ONE CARD BY SNOWFLAKE - contains WOULD NEVER MATCH IT
   const searchWhere = search
-    ? { OR: [{ username: { contains: search } }, { display_name: { contains: search } }] }
+    ? { OR: [{ username: { contains: search } }, { display_name: { contains: search } }, { id: search }] }
     : {};
 
   const [raw, ...countValues] = await Promise.all([
@@ -153,12 +158,21 @@ function buildConfigGroups(formData) {
 }
 
 // THE SELF APP'S SECTION PAYLOADS - THE BOT'S OWN STATE INSTEAD OF A SERVICE
-async function buildSelfSectionData(core, instance, section) {
+async function buildSelfSectionData(core, instance, section, opts = {}) {
   const data = { configured: true, appUrl: null };
   switch (section) {
     case 'users': {
-      data.users = await buildUsersPage(core);
+      // A DEEP LINK (PROFILE MODAL'S FOOTER) PRE-FILLS THE SEARCH WITH THE
+      // USER'S ID - FILTER 'all' SO BOTS AND EDGE ROWS ARE ALWAYS FINDABLE
+      data.users = await buildUsersPage(core, opts.userSearch || '', 1, opts.userSearch ? 'all' : 'people');
       data.mutableFields = USER_MUTABLE_FIELDS;
+      break;
+    }
+    // THE UNIFIED REQUEST PIPELINE - EVERY MediaRequest TRACED REQUEST ->
+    // INDEXER -> DOWNLOAD -> MEDIA SERVER (VIEW MODEL IN requestViews.js)
+    case 'requests': {
+      data.requests = await core.apps.getRequestsPage({});
+      data.instanceOptions = await core.apps.buildInstanceOptions();
       break;
     }
     // THE UNIFIED LIBRARY - EVERY SERVICE'S LISTING MERGED BY EXTERNAL ID/PATH
@@ -262,7 +276,7 @@ async function buildSelfSectionData(core, instance, section) {
 // HEALTH LIST (ONE GUARDED CALL), A FIRST-EVER STATUS CHECK WHEN THE
 // HEARTBEAT HASN'T RUN YET, AND THE LIBRARY SECTION'S LIVE SEARCH MODE.
 async function buildSectionData(core, instance, section, opts = {}) {
-  if (instance.app_type === 'discoflix') return buildSelfSectionData(core, instance, section);
+  if (instance.app_type === 'discoflix') return buildSelfSectionData(core, instance, section, opts);
   const client = core.apps.getClientForInstance(instance);
   const configured = !!client;
   const data = { configured, appUrl: configured ? client.baseUrl : null };
@@ -477,6 +491,7 @@ async function respondWithTakeover(ctx, instance, state, opts = {}) {
     'apps/appHeader.pug',
     'apps/appSurface.pug',
     'chat/chatBar.pug',
+    'chat/jumpToPresentBar.pug',
     'members/membersLayout.pug',
     'chat/downloadTicker.pug'
   ], {
@@ -493,10 +508,27 @@ async function respondWithTakeover(ctx, instance, state, opts = {}) {
 // MIRROR RESTORE - THE SAME FRAGMENT SET changeActiveServers SENDS, MINUS THE
 // SERVER SWITCH. THE RESPONSE TO REMOVING THE ACTIVE APP: ITS TAKEOVER ENDS
 // BY DEFINITION, SO THE CONSOLE FALLS BACK TO WHATEVER GUILD WAS ACTIVE.
-async function respondWithMirror(ctx, state) {
+// opts.anchorTarget = { channel_id, message_id }: TIME-TRAVEL RENDER - THE
+// WINDOW AROUND THE TARGET WITH SENTINELS BOTH WAYS, NO UNREAD BOOKKEEPING
+// (THE VIEW ISN'T AT THE LIVE HEAD, updateMessages MUST NOT RUN).
+async function respondWithMirror(ctx, state, opts = {}) {
   const core = ctx.core;
+
+  let around = null;
+  if (opts.anchorTarget) {
+    around = await core.models.discordChannel.getMessagesAround(
+      opts.anchorTarget.channel_id,
+      opts.anchorTarget.message_id
+    );
+    // ROWS DELETED BETWEEN CHECK AND FETCH - FALL BACK TO THE LIVE MIRROR
+    if (!around && state.id) {
+      await core.models.viewSession.clearAnchor(state.id);
+      state.chat_anchor = null;
+    }
+  }
+
   const [msgObjects, servers, discordBot, members, apps, onboarding] = await Promise.all([
-    core.discord.updateMessages(null, state),
+    around ? Promise.resolve(around.messages) : core.discord.updateMessages(null, state),
     core.render.getServerTemplateObj(null, state),
     core.models.discordBot.get(),
     core.render.getServerMembers(state.active_server_id),
@@ -504,7 +536,14 @@ async function respondWithMirror(ctx, state) {
     core.render.getOnboarding(state)
   ]);
 
-  const history = core.discord.historyCursorOf(msgObjects);
+  const history = around
+    ? (around.hasOlder
+      ? { channelId: opts.anchorTarget.channel_id, beforeId: msgObjects[0].message_id }
+      : null)
+    : core.discord.historyCursorOf(msgObjects);
+  const future = around && around.hasNewer
+    ? { channelId: opts.anchorTarget.channel_id, afterId: msgObjects[msgObjects.length - 1].message_id }
+    : null;
   const messages = await core.discord.compileMessages(msgObjects);
   const eomStamp = _.get(_.last(msgObjects), 'created_at');
 
@@ -517,8 +556,9 @@ async function respondWithMirror(ctx, state) {
     'chat/messageChannelHeader.pug',
     'chat/chatBar.pug',
     'chat/messageContainer.pug',
+    'chat/jumpToPresentBar.pug',
     'members/membersLayout.pug'
-  ], { servers, discordBot, messages, eomStamp, state, members, apps, onboarding, history });
+  ], { servers, discordBot, messages, eomStamp, state, members, apps, onboarding, history, future, anchored: !!around });
 }
 
 // ── HANDLERS ─────────────────────────────────────────────────────────────
@@ -554,7 +594,10 @@ async function openDiscoFlixSection(ctx) {
   await core.models.app.update({ id: instance.id }, { active_section: section });
   instance.active_section = section;
   const state = await ctx.updateView({ active_app_id: instance.id });
-  return respondWithTakeover(ctx, instance, state);
+  // ?user= DEEP-LINKS THE USERS SECTION TO ONE CARD (PROFILE MODAL FOOTER)
+  return respondWithTakeover(ctx, instance, state, {
+    userSearch: String(ctx.query.user || '').trim()
+  });
 }
 
 // USERS SECTION SEARCH + FILTER TABS - SWAPS THE WHOLE BODY SO TABS, COUNTS,
@@ -758,6 +801,20 @@ async function appUnifiedLibraryPage(ctx) {
   });
 }
 
+// ORIGIN - THE MEDIA<->REQUEST LEDGER JOIN FOR A DETAIL RENDER. BEST-EFFORT:
+// A FAILED LOOKUP NEVER BLOCKS OR FAILS THE DETAIL, IT JUST RENDERS NO BLOCK.
+// EPHEMERAL (PRE-ADD) LOOKUPS HAVE NO LIBRARY ITEM TO TRACE.
+async function withOrigin(core, locals) {
+  if (locals.detail && !locals.ephemeral) {
+    try {
+      locals.origin = await core.apps.getRequestOrigin(locals.detail);
+    } catch (err) {
+      core.logger.debug(`Origin lookup skipped: ${err.message}`);
+    }
+  }
+  return locals;
+}
+
 // LIBRARY ITEM DETAIL - CLICKING A POSTER SWAPS THE SECTION BODY FOR THE
 // IN-CONSOLE EQUIVALENT OF THE ARR'S OWN DETAIL PAGE (NO LINK-OUTS, EVER).
 // from=search KEEPS THE BACK BUTTON POINTED AT THE SEARCH RESULTS.
@@ -769,12 +826,12 @@ async function appLibraryItem(ctx) {
     return;
   }
   const { detail, error } = await core.apps.getLibraryItemDetail(instance, ctx.params.itemId);
-  return ctx.compileView('apps/sections/libraryDetail.pug', {
+  return ctx.compileView('apps/sections/libraryDetail.pug', await withOrigin(core, {
     activeApp: instance,
     detail: detail || null,
     detailError: error || null,
     backTo: ['search', 'hub'].includes(ctx.query.from) ? ctx.query.from : 'library'
-  });
+  }));
 }
 
 // EPHEMERAL SEARCH-RESULT DETAIL - THE LIBRARY DETAIL VIEW BUILT FROM A LIVE
@@ -807,7 +864,7 @@ async function appLookupDetail(ctx) {
     core.logger.warn(`${instance.display_name} lookup detail failed: ${err.message}`);
     locals.detailError = err.message;
   }
-  return ctx.compileView('apps/sections/libraryDetail.pug', locals);
+  return ctx.compileView('apps/sections/libraryDetail.pug', await withOrigin(core, locals));
 }
 
 // DETAIL-VIEW VERBS (MONITOR TOGGLE / SEARCH) - MUTATE, RE-PULL, RE-RENDER THE
@@ -842,13 +899,13 @@ async function appLibraryItemAction(ctx) {
   }
 
   const { detail, error } = await core.apps.getLibraryItemDetail(instance, itemId);
-  return ctx.compileView(['apps/sections/libraryDetail.pug', 'extra/notification.pug'], {
+  return ctx.compileView(['apps/sections/libraryDetail.pug', 'extra/notification.pug'], await withOrigin(core, {
     activeApp: instance,
     detail: detail || null,
     detailError: error || null,
     backTo: ['search', 'hub'].includes(ctx.request.body?.from) ? ctx.request.body.from : 'library',
     message
-  });
+  }));
 }
 
 // ONE SEASON'S EPISODE TABLE - LAZY-LOADED WHEN A DETAIL SEASON ROW EXPANDS
@@ -978,13 +1035,13 @@ async function appEditLibraryItem(ctx) {
     message = err.message;
   }
   const { detail, error } = await core.apps.getLibraryItemDetail(instance, ctx.params.itemId);
-  return ctx.compileView(['apps/sections/libraryDetail.pug', 'extra/notification.pug'], {
+  return ctx.compileView(['apps/sections/libraryDetail.pug', 'extra/notification.pug'], await withOrigin(core, {
     activeApp: instance,
     detail: detail || null,
     detailError: error || null,
     backTo: ['search', 'hub'].includes(body.from) ? body.from : 'library',
     message
-  });
+  }));
 }
 
 // DANGER CONFIRM FOR REMOVING A LIBRARY ITEM - FILE DELETION AND LIST
@@ -1171,7 +1228,7 @@ async function appAddMedia(ctx) {
       locals.detailError = failure ? failure.message : 'Add failed';
       locals.message = locals.detailError;
     }
-    return ctx.compileView(['apps/sections/libraryDetail.pug', 'extra/notification.pug'], locals);
+    return ctx.compileView(['apps/sections/libraryDetail.pug', 'extra/notification.pug'], await withOrigin(core, locals));
   }
 
   let searchResult;
@@ -1505,6 +1562,8 @@ module.exports = {
   buildSectionNav,
   buildTakeoverLocals,
   respondWithMirror,
+  rootRelative,
+  lastSeenLabel,
   changeActiveApp,
   openDiscoFlix,
   openDiscoFlixSection,

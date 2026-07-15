@@ -152,6 +152,12 @@ module.exports = {
       const item = await client.getById(watch.arrId);
       if (client.isImported(item)) {
         await this.core.models.media.update({ id: watch.mediaId }, { is_available: true });
+        // THE IMPORT MOMENT - STAMPED BEFORE THE PUSH SO THE FRESH CARD
+        // ALREADY CARRIES ITS TIMESTAMP
+        await this.core.models.mediaRequest.update(
+          { id: watch.requestId },
+          { imported_at: new Date() }
+        ).catch(() => {});
         await this._settleProgressMessage(watch, config, true);
         await this._notify(
           watch,
@@ -182,6 +188,9 @@ module.exports = {
           ui.notice(`${this._mentions(watch)} **${watch.title}** is still processing - I'll stop watching it for now, check back later.`, { accent: 'warn' })
         );
         this.watches.delete(watch.requestId);
+        // OPEN CONSOLES MUST HONESTLY DROP FROM "DOWNLOADING" TO "NO LONGER
+        // WATCHED" INSTEAD OF FREEZING AT THE LAST PERCENT
+        await this._pushRowUpdate(watch, null);
       }
     } catch (err) {
       this.logger.warn(`App monitor check failed for '${watch.title}': ${err.message}`);
@@ -242,15 +251,9 @@ module.exports = {
     watch.progressMessage = null;
   },
 
+  // ONE BROADCAST FEEDS EVERY SURFACE - SECTION CARD + CHAT CARD (ID-KEYED)
   async _pushRowUpdate(watch, queueRow) {
-    try {
-      const request = await this.core.models.mediaRequest.getWithRelations(watch.requestId);
-      if (!request) return;
-      const req = this.buildRequestView(request, queueRow);
-      await this.core.sockets.emitCompiled(['modals/requests/rowPush.pug'], { req });
-    } catch (err) {
-      this.logger.warn(`App monitor row push failed: ${err.message}`);
-    }
+    await this.pushRequestCard(watch.requestId, queueRow);
   },
 
   // SENDS A UI PAYLOAD TO THE ORIGIN CHANNEL - RETURNS THE MESSAGE SO GRAB

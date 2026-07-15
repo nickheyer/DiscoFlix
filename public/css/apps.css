@@ -2243,3 +2243,207 @@
   color: var(--text-muted);
   font-style: italic;
 }
+
+/* ---- DISCOFLIX REQUESTS SECTION (LIFECYCLE PIPELINE CARDS) ---- */
+
+#dfRequestList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+#dfRequestList .appLoadMore {
+  align-self: center;
+  min-width: 160px;
+}
+
+.dfRequestCard {
+  background-color: var(--bg-secondary);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+
+.dfRequestTop {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+/* REQUESTER CHIPS - AVATAR + NAME, CLICK OPENS THE USER PROFILE MODAL */
+.dfRequesterChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 8px 1px 2px;
+  border-radius: 10px;
+  background-color: var(--bg-tertiary);
+  color: var(--header-secondary);
+  cursor: pointer;
+  user-select: none;
+}
+
+.dfRequesterChip:hover,
+.dfRequesterChip:focus-visible {
+  background-color: var(--bg-modifier-hover);
+  color: var(--interactive-hover);
+}
+
+.dfRequesterChip + .dfRequesterChip {
+  margin-left: 4px;
+}
+
+.dfRequesterAvatar {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+}
+
+/* THE STEPPER - DOTS JOINED BY BARS, EACH STOP TINTED BY ITS STATE. WIDE
+   PIPELINES SCROLL INSIDE THE CARD INSTEAD OF BREAKING THE GRID */
+.dfRequestPipeline {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--bg-tertiary);
+  overflow-x: auto;
+}
+
+.dfRequestPipeline:empty {
+  display: none;
+}
+
+.dfStage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  flex: 0 0 auto;
+  min-width: 96px;
+  max-width: 170px;
+  text-align: center;
+}
+
+.dfStageBar {
+  flex: 1 1 24px;
+  min-width: 16px;
+  height: 3px;
+  border-radius: 2px;
+  background-color: var(--bg-tertiary);
+  margin-top: 5px;
+}
+
+.dfStageBar.stage-done { background-color: var(--green); }
+.dfStageBar.stage-active { background-color: var(--cyan); }
+.dfStageBar.stage-failed { background-color: var(--red); }
+
+.dfStageDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--text-muted);
+}
+
+.dfStage.stage-done .dfStageDot {
+  border-color: var(--green);
+  background-color: var(--green);
+}
+
+.dfStage.stage-active .dfStageDot {
+  border-color: var(--cyan);
+  background-color: var(--cyan);
+  animation: dfStagePulse 2s ease-in-out infinite;
+}
+
+.dfStage.stage-failed .dfStageDot {
+  border-color: var(--red);
+  background-color: var(--red);
+}
+
+@keyframes dfStagePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+.dfStageLabel {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--header-secondary);
+}
+
+.dfStage.stage-pending .dfStageLabel {
+  color: var(--text-muted);
+}
+
+.dfStageDetail {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.dfStageWhen {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.dfStage .request-progress-track {
+  width: 110px;
+  margin-top: 2px;
+}
+
+.dfRequestActions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+/* ---- LIBRARY DETAIL ORIGIN (WHO REQUESTED THIS TITLE) ---- */
+
+.appDetailOrigin {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.appDetailOriginRow {
+  padding: 8px 10px;
+  background-color: var(--bg-secondary);
+  border-radius: 5px;
+}
+
+.appDetailOriginWho {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.appDetailOriginConsole {
+  font-size: 13px;
+  color: var(--header-secondary);
+}
+
+.appDetailOriginMeta {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.appDetailOriginState {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.appDetailOriginEmpty {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-bottom: 14px;
+}

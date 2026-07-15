@@ -1,0 +1,18 @@
+//- THE RICH USER PROFILE MODAL SHELL - BODY LIVES IN _profileBody SO TIER
+//- AND FORM SAVES CAN RE-RENDER IT ALONE. LOCALS: profile
+include ../../../mixins/notification
+.modal-dialog.modal-dialog-centered.modal-dialog-scrollable.modal-lg
+  .modal-content
+    .modal-header
+      h5.modal-title User Profile
+      button.modal-close-button(type='button' data-bs-dismiss='modal' aria-label='Close') ×
+    .modal-body
+      include _profileBody
+    .modal-footer
+      +Notification
+      //- IN-CONSOLE LINK-OUT - THE USERS SECTION CARD FOR BULK MANAGEMENT
+      button.modal-button.button-secondary(
+        data-bs-dismiss='modal'
+        hx-post=`/discoflix/section/users?user=${profile.id}`
+        hx-trigger="click"
+      ) Open in Users section

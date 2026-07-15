@@ -55,6 +55,7 @@ async function changeActiveServers(ctx) {
       'chat/messageChannelHeader.pug',
       'chat/chatBar.pug',
       'chat/messageContainer.pug',
+      'chat/jumpToPresentBar.pug',
       'members/membersLayout.pug',
     ], { servers, discordBot, messages, eomStamp, state, members, apps, onboarding, history });
   } catch (err) {

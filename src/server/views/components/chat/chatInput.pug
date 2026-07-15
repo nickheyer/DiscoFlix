@@ -2,7 +2,7 @@
 //- THE SERVER RELAYS IT INTO THE ACTIVE CHANNEL AS THE BOT (wsroutes/onConnect)
 if (servers.activeChannel && servers.activeChannel.channel_name)
   form.chatInputForm(ws-send)
-    input.chatMessageInput(
+    input.chatMessageInput#chatMessageInput(
       name="chatMessage"
       autocomplete="off"
       maxlength=2000

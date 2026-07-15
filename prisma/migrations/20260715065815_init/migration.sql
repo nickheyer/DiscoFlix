@@ -45,6 +45,7 @@ CREATE TABLE "view_sessions" (
     "active_server_id" TEXT,
     "active_app_id" TEXT,
     "active_channels" TEXT,
+    "chat_anchor" TEXT,
     "last_seen_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -183,6 +184,8 @@ CREATE TABLE "media_requests" (
     "arr_id" TEXT,
     "seasons" TEXT,
     "status" BOOLEAN,
+    "decided_at" DATETIME,
+    "imported_at" DATETIME,
     "appId" TEXT,
     CONSTRAINT "media_requests_madeInId_fkey" FOREIGN KEY ("madeInId") REFERENCES "discord_servers" ("server_id") ON DELETE SET NULL ON UPDATE CASCADE,
     CONSTRAINT "media_requests_mediaId_fkey" FOREIGN KEY ("mediaId") REFERENCES "media" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
@@ -207,6 +210,7 @@ CREATE TABLE "users" (
     "max_results" INTEGER NOT NULL DEFAULT 0,
     "max_seasons_for_non_admin" INTEGER NOT NULL DEFAULT 0,
     "max_requests_in_day" INTEGER NOT NULL DEFAULT 0,
+    "notes" TEXT NOT NULL DEFAULT '',
     "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -295,6 +299,9 @@ CREATE INDEX "media_requests_mediaId_idx" ON "media_requests"("mediaId");
 
 -- CreateIndex
 CREATE INDEX "media_requests_appId_idx" ON "media_requests"("appId");
+
+-- CreateIndex
+CREATE INDEX "media_requests_orig_message_id_idx" ON "media_requests"("orig_message_id");
 
 -- CreateIndex
 CREATE INDEX "users_username_idx" ON "users"("username");

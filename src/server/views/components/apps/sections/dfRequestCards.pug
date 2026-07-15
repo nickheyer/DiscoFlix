@@ -1,0 +1,32 @@
+//- REQUEST PIPELINE CARDS + VIEW MORE - INCLUDED BY dfRequestsBody AND
+//- RETURNED BARE BY GET /apps/:id/requests/page/:n (PAGINATION KEEPS
+//- SEARCH + FILTER). NEVER INFINITE SCROLL.
+include ../../../mixins/dfRequestCard
+
+- var requestRows = (requests && requests.rows) || []
+- var currentRequestsPage = (requests && requests.page) || 1
+
+if !requestRows.length
+  if requests && requests.search
+    .appQueueEmpty No requests matching “#{requests.search}”
+  else if requests && requests.filter === 'pending'
+    .appQueueEmpty Nothing is waiting on approval right now.
+  else if requests && requests.filter === 'active'
+    .appQueueEmpty Nothing is downloading or searching right now.
+  else if requests && requests.filter === 'denied'
+    .appQueueEmpty No denied requests on record.
+  else
+    .appQueueEmpty No requests yet - ask for something in Discord!
+else
+  each req in requestRows
+    +dfRequestCard(req, instanceOptions, false)
+  if requests.hasMore
+    button.appLoadMore.dfRequestsMore(
+      type="button"
+      hx-get=`/apps/${activeApp.id}/requests/page/${currentRequestsPage + 1}?search=${encodeURIComponent(requests.search || '')}&filter=${requests.filter}`
+      hx-swap="outerHTML"
+      hx-disabled-elt="this"
+    )
+      span View More
+      svg.appSpinner(viewBox="0 0 24 24" aria-hidden="true")
+        circle(cx="12" cy="12" r="10")

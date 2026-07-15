@@ -1,0 +1,111 @@
+//- THE PROFILE BODY - THE RE-RENDER TARGET FOR TIER CLICKS AND FORM SAVES
+//- (BOTH TARGET #user-profile-body, outerHTML). LOCALS: profile
+include ../../../mixins/field
+include ../../../mixins/requestRow
+
+#user-profile-body
+  //- IDENTITY BANNER - ACCENT STRIP + OVERLAPPED AVATAR, OLD-DISCORD STYLE
+  .userProfileBanner(style=profile.accentColor ? `background-color: ${profile.accentColor}` : undefined)
+  .userProfileHeader
+    img.userProfileAvatar(
+      src=profile.avatarUrl || 'https://cdn.discordapp.com/embed/avatars/0.png'
+      alt="avatar"
+      referrerpolicy="no-referrer"
+    )
+    .userProfileIdent
+      .userProfileName= profile.displayName
+      .userProfileSub= profile.lastSeenLabel ? `${profile.username} • seen ${profile.lastSeenLabel}` : profile.username
+    .dfUserChips.userProfileChips
+      if profile.wantsAccess
+        span.dfUserChip.wants WANTS ACCESS
+      if profile.isClient
+        span.dfUserChip.client THIS BOT
+      else if profile.isBot
+        span.dfUserChip.bot BOT
+      if profile.flags.is_superuser
+        span.dfUserChip.admin ADMIN
+      else if profile.flags.is_staff
+        span.dfUserChip.staff STAFF
+      else if profile.flags.is_whitelisted
+        span.dfUserChip.whitelisted WHITELISTED
+      if !profile.isActive
+        span.dfUserChip.inactive INACTIVE
+
+  if profile.isClient
+    .dfUserSelfNote This is DiscoFlix's own account - nothing to manage here.
+  else
+    if profile.isBot
+      .userProfileSection
+        .userProfileSectionTitle Bot account
+        .userProfileEmpty Bots can't use DiscoFlix features - only notes apply here.
+    else
+      //- PERMISSIONS - THE TIER LADDER. ONE CLICK PROMOTES/DEMOTES; THE
+      //- WHOLE BODY RE-RENDERS BECAUSE CHIPS, WARNINGS, AND EVERY ACCESS
+      //- ROW MOVE WITH THE TIER.
+      .userProfileSection
+        .userProfileSectionTitle Permission tier
+        .userTierLadder
+          each step in profile.ladder
+            button.userTierStep(
+              type="button"
+              class=`${step.active ? 'active' : ''}${step.attained ? ' attained' : ''}`
+              disabled=step.active
+              hx-post=`/user/${profile.id}/tier`
+              hx-vals=`{"value": "${step.key}"}`
+              hx-target="#user-profile-body"
+              hx-swap="outerHTML"
+            )= step.label
+        if profile.roleGrants.grants.length
+          each grant in profile.roleGrants.grants
+            .userTierSource #{grant.tierLabel.toUpperCase()} granted via role “#{grant.roleName}” in #{grant.guildName}
+          //- GRANTS NEVER AUTO-DEMOTE, AND A HELD MAPPED ROLE RE-PROMOTES ON
+          //- THE NEXT SIGHTING - AN HONEST DEMOTION WARNING BEATS A SILENT UNDO
+          .userTierWarning
+            | Demoting below a granted tier won't stick - the Discord role
+            | re-grants it on their next message. Remove the role (or its
+            | mapping on the Discord Bot tab) first.
+        else if profile.roleMappingsConfigured && !profile.roleGrants.checked
+          .userTierSource.muted Discord-role grants can't be checked while the bot is offline.
+
+      //- LIMITS + NOTES + DEACTIVATE - THE dfUserForm AUTO-SAVE RHYTHM
+      .userProfileSection
+        .userProfileSectionTitle Limits &amp; notes
+        form.userProfileForm(
+          hx-post=`/user/${profile.id}/profile/save`
+          hx-trigger="change, submit"
+          hx-target="#user-profile-body"
+          hx-swap="outerHTML"
+        )
+          .appSettingsFields
+            each key in profile.formFields
+              if profile.fields[key]
+                +field(profile.fields[key], key, `profile-${profile.id}`, false)
+
+      //- WHAT THEY CAN DO - COMPUTED THROUGH THE REAL FEATURE RESOLVER
+      .userProfileSection
+        .userProfileSectionTitle Feature access
+        #user-profile-access
+          include _access
+
+      .userProfileSection
+        .userProfileSectionTitle Requests (#{profile.requests.total})
+        if !profile.requests.rows.length
+          .userProfileEmpty No requests yet.
+        else
+          .userProfileRequests
+            each req in profile.requests.rows
+              +requestRow(req, false)
+          if profile.requests.total > profile.requests.rows.length
+            .userProfileMoreNote Showing the latest #{profile.requests.rows.length} - the Requests section has the full history.
+
+    if profile.isBot && profile.fields.notes
+      .userProfileSection
+        .userProfileSectionTitle Notes
+        form.userProfileForm(
+          hx-post=`/user/${profile.id}/profile/save`
+          hx-trigger="change, submit"
+          hx-target="#user-profile-body"
+          hx-swap="outerHTML"
+        )
+          .appSettingsFields
+            +field(profile.fields.notes, 'notes', `profile-${profile.id}`, false)

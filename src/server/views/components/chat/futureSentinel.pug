@@ -1,0 +1,11 @@
+//- SCROLL-DOWN PAGINATION (ANCHORED VIEWS) - REVEALING THIS PULLS THE NEXT
+//- NEWER PAGE, WHICH REPLACES IT (WITH A FRESH SENTINEL WHILE MORE REMAINS).
+//- A SHORT PAGE MEANS THE WINDOW CAUGHT THE LIVE HEAD AND THE RESPONSE GOES
+//- LIVE-MODE (END STAMP + CLEARED BAR).
+.chatHistorySentinel.chatFutureSentinel(
+  hx-get=`/chat/history/${future.channelId}?after=${future.afterId}`
+  hx-trigger="intersect once"
+  hx-swap="outerHTML"
+)
+  svg.appSpinner(viewBox="0 0 24 24" aria-hidden="true")
+    circle(cx="12" cy="12" r="10")

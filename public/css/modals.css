@@ -1088,3 +1088,205 @@
     padding: 8px;
   }
 }
+
+/* ---- USER PROFILE MODAL ---- */
+
+/* THE HOUSE FORM FIELD'S MULTILINE VARIANT (NOTES) */
+.settings-textarea {
+  resize: vertical;
+  min-height: 64px;
+  font-family: inherit;
+  line-height: 1.4;
+}
+
+/* ACCENT BANNER + OVERLAPPED AVATAR - OLD-DISCORD PROFILE SHAPE */
+.userProfileBanner {
+  height: 56px;
+  margin: -16px -16px 0;
+  background-color: var(--bg-tertiary);
+  border-radius: 4px 4px 0 0;
+}
+
+.userProfileHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: -24px;
+  padding: 0 4px 12px;
+  border-bottom: 1px solid var(--bg-tertiary);
+}
+
+.userProfileAvatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 4px solid var(--bg-primary);
+  background-color: var(--bg-primary);
+  flex-shrink: 0;
+}
+
+.userProfileIdent {
+  min-width: 0;
+  margin-top: 20px;
+}
+
+.userProfileName {
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--header-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.userProfileSub {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.userProfileChips {
+  margin-top: 20px;
+}
+
+.userProfileSection {
+  padding: 12px 4px 0;
+}
+
+.userProfileSectionTitle {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--channel-default);
+  margin-bottom: 8px;
+}
+
+/* THE TIER LADDER - FOUR STOPS, THE CURRENT ONE LIT, LOWER ONES TINTED AS
+   ALREADY-ATTAINED; ONE CLICK MOVES THE TIER */
+.userTierLadder {
+  display: flex;
+  gap: 6px;
+}
+
+.userTierStep {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid var(--bg-tertiary);
+  border-radius: 4px;
+  background-color: var(--bg-secondary);
+  color: var(--header-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.userTierStep:hover:not(:disabled) {
+  background-color: var(--bg-modifier-hover);
+  color: var(--interactive-hover);
+}
+
+.userTierStep.attained {
+  border-color: var(--blurple);
+  color: var(--header-primary);
+}
+
+.userTierStep.active {
+  background-color: var(--blurple);
+  border-color: var(--blurple);
+  color: #fff;
+  cursor: default;
+}
+
+.userTierSource {
+  font-size: 12px;
+  color: var(--header-secondary);
+  margin-top: 8px;
+}
+
+.userTierSource.muted {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.userTierWarning {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-left: 4px solid var(--yellow);
+  border-radius: 4px;
+  background-color: var(--bg-secondary);
+  font-size: 12px;
+  color: var(--header-secondary);
+}
+
+/* FEATURE ACCESS ROWS - LABEL LEFT, VERDICT CHIP + EXTENT COPY RIGHT */
+.userAccessScope {
+  margin-bottom: 8px;
+}
+
+.userAccessRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--bg-secondary);
+  font-size: 13px;
+}
+
+.userAccessRow:last-child {
+  border-bottom: none;
+}
+
+.userAccessLabel {
+  flex: 1;
+  color: var(--text-normal);
+  min-width: 0;
+}
+
+.userAccessChip {
+  padding: 1px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+.userAccessChip.allowed {
+  background-color: var(--green);
+  color: #fff;
+}
+
+.userAccessChip.denied {
+  background-color: var(--bg-tertiary);
+  color: var(--text-muted);
+}
+
+.userAccessExtents {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: right;
+}
+
+.userAccessExtents.muted {
+  font-style: italic;
+}
+
+.userProfileRequests {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.userProfileEmpty {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.userProfileMoreNote {
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--text-muted);
+}

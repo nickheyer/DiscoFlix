@@ -296,6 +296,7 @@ const MODELS_META = {
             max_results: { type: FIELD_TYPES.NUMBER, label: "Max Results", description: "Maximum search results (0 = follow the feature rule)", min: 0 },
             max_seasons_for_non_admin: { type: FIELD_TYPES.NUMBER, label: "Max Seasons", description: "Maximum seasons allowed (0 = follow the feature rule)", min: 0 },
             max_requests_in_day: { type: FIELD_TYPES.NUMBER, label: "Daily Request Limit", description: "Maximum requests per day (0 = follow the feature rule)", min: 0 },
+            notes: { type: FIELD_TYPES.STRING, size: 'full', multiline: true, label: "Notes", description: "Operator notes - only visible in this console" },
             created_at: { type: FIELD_TYPES.TIMESTAMP, computed: true, readonly: true, label: "Created At", description: "Account creation timestamp" },
             updated_at: { type: FIELD_TYPES.TIMESTAMP, computed: true, readonly: true, label: "Updated At", description: "Account update timestamp" },
             discord_servers: { type: FIELD_TYPES.RELATION, hidden: true, label: "Discord Servers", description: "Associated server references" },

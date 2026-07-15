@@ -181,8 +181,8 @@ function dfTrimSeamDivider(rowId) {
   if (prev && prev.classList.contains('dateDivider')) prev.remove();
 }
 
-// DASHBOARD JUMP-TO-MESSAGE: CLOSE THE MODAL, THEN SCROLL + FLASH THE ROW
-// ONCE THE MIRROR SWAP HAS LANDED IT (RETRIES COVER THE SWAP RACE)
+// JUMP-TO-MESSAGE: CLOSE ANY MODAL, THEN SCROLL + FLASH THE ROW ONCE THE
+// MIRROR SWAP HAS LANDED IT (RETRIES COVER THE SWAP RACE)
 function dfFlashMessage(rowId, attempt) {
   attempt = attempt || 0;
   closeModal();
@@ -195,3 +195,120 @@ function dfFlashMessage(rowId, attempt) {
   row.classList.add('flashHighlight');
   setTimeout(() => row.classList.remove('flashHighlight'), 2000);
 }
+
+// ---- TIME TRAVEL (ANCHORED WINDOWS) ----
+
+// COLUMN-REVERSE MEASURES SCROLL FROM THE BOTTOM, SO A FUTURE PAGE APPENDED
+// BELOW WOULD DRAG THE VIEWPORT DOWN WITH IT. PIN THE SEAM ROW (THE LAST ROW
+// ABOVE THE SENTINEL) ACROSS THE SWAP SO THE OPERATOR NEVER FEELS THE PAGE.
+let dfFutureSeam = null;
+document.addEventListener('htmx:beforeSwap', function (evt) {
+  const target = evt.detail && evt.detail.target;
+  if (!target || !target.classList || !target.classList.contains('chatFutureSentinel')) return;
+  const seam = target.previousElementSibling;
+  if (seam) dfFutureSeam = { el: seam, top: seam.getBoundingClientRect().top };
+});
+document.addEventListener('htmx:afterSettle', function () {
+  if (!dfFutureSeam) return;
+  const scroller = document.querySelector('.messageContainer');
+  if (scroller && dfFutureSeam.el.isConnected) {
+    scroller.scrollTop += dfFutureSeam.el.getBoundingClientRect().top - dfFutureSeam.top;
+  }
+  dfFutureSeam = null;
+});
+
+// ---- CHAT UPLOAD (OG-DISCORD ATTACH) ----
+
+// DISCORD'S UNBOOSTED BOT CAP - THE SERVER ENFORCES IT TOO; THIS PRE-FLIGHT
+// JUST SAVES THE ROUND TRIP
+const DF_UPLOAD_CAP = 8 * 1024 * 1024;
+
+function dfStagedUploadFile() {
+  const input = document.getElementById('chatUploadFile');
+  return input && input.files && input.files[0] ? input.files[0] : null;
+}
+
+function dfClearUpload() {
+  const input = document.getElementById('chatUploadFile');
+  const preview = document.getElementById('chatUploadPreview');
+  if (input) input.value = '';
+  if (preview) preview.replaceChildren();
+}
+
+function dfHumanSize(bytes) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+// STAGED-FILE PREVIEW CHIP ABOVE THE CHAT BAR - IMAGE THUMB WHEN IT IS ONE,
+// RED STATE WHEN OVER THE CAP (SEND BLOCKS CLIENT-SIDE). DELEGATED: THE CHAT
+// BAR RE-RENDERS ON EVERY CHANNEL SWITCH.
+document.addEventListener('change', function (evt) {
+  if (!evt.target || evt.target.id !== 'chatUploadFile') return;
+  const preview = document.getElementById('chatUploadPreview');
+  if (!preview) return;
+  preview.replaceChildren();
+  const file = dfStagedUploadFile();
+  if (!file) return;
+
+  const chip = document.createElement('div');
+  chip.className = `chatUploadChip${file.size > DF_UPLOAD_CAP ? ' oversize' : ''}`;
+  if (file.type && file.type.startsWith('image/')) {
+    const img = document.createElement('img');
+    img.className = 'chatUploadThumb';
+    img.src = URL.createObjectURL(file);
+    img.onload = () => URL.revokeObjectURL(img.src);
+    chip.appendChild(img);
+  }
+  const name = document.createElement('span');
+  name.className = 'chatUploadName';
+  name.textContent = file.name;
+  const size = document.createElement('span');
+  size.className = 'chatUploadSize';
+  size.textContent = file.size > DF_UPLOAD_CAP
+    ? `${dfHumanSize(file.size)} - over the 8MB cap`
+    : dfHumanSize(file.size);
+  const remove = document.createElement('button');
+  remove.type = 'button';
+  remove.className = 'chatUploadRemove';
+  remove.setAttribute('aria-label', 'Remove attachment');
+  remove.textContent = '×';
+  remove.addEventListener('click', dfClearUpload);
+  chip.append(name, size, remove);
+  preview.appendChild(chip);
+});
+
+// ENTER ROUTING - A STAGED FILE SENDS THE MULTIPART FORM (WITH THE TYPED
+// TEXT) INSTEAD OF THE ws-send TEXT FORM. CAPTURE PHASE BEATS THE BROWSER'S
+// IMPLICIT SUBMIT OF THE TEXT FORM. ENTER ON THE + LABEL OPENS THE PICKER
+// (LABELS DON'T FORWARD KEYS TO INPUTS ON THEIR OWN).
+document.addEventListener('keydown', function (evt) {
+  if (evt.key !== 'Enter' || evt.shiftKey) return;
+  if (evt.target && evt.target.classList && evt.target.classList.contains('plusButton')) {
+    evt.preventDefault();
+    const fileInput = document.getElementById('chatUploadFile');
+    if (fileInput) fileInput.click();
+    return;
+  }
+  if (!evt.target || evt.target.id !== 'chatMessageInput') return;
+  const file = dfStagedUploadFile();
+  if (!file) return; // PLAIN TEXT - LET ws-send DO ITS THING
+  evt.preventDefault();
+  evt.stopPropagation();
+  if (file.size > DF_UPLOAD_CAP) return; // THE CHIP ALREADY SAYS WHY
+  const content = document.getElementById('chatUploadContent');
+  if (content) content.value = evt.target.value || '';
+  htmx.trigger('#chatUploadForm', 'submit');
+}, true);
+
+// SUCCESSFUL UPLOADS CLEAR THE STAGE + INPUT; FAILURES KEEP THE CHIP SO THE
+// OPERATOR CAN RETRY (THE TOAST EXPLAINS WHAT WENT WRONG)
+document.addEventListener('htmx:afterRequest', function (evt) {
+  if (!evt.target || evt.target.id !== 'chatUploadForm') return;
+  if (evt.detail && evt.detail.successful) {
+    dfClearUpload();
+    const input = document.getElementById('chatMessageInput');
+    if (input) input.value = '';
+  }
+});

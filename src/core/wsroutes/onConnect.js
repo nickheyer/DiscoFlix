@@ -9,10 +9,7 @@ async function relayChatMessage(core, text, sessionId) {
   }
 
   const view = await core.models.viewSession.viewStateOf(sessionId);
-  const serverRow = view.active_server_id
-    ? await core.models.discordServer.getById(view.active_server_id)
-    : null;
-  const channelId = core.models.viewSession.channelPickFor(view, serverRow);
+  const channelId = await core.discord.activeChannelIdFor(view);
   if (!channelId) {
     core.logger.warn('Chat relay skipped: no active channel');
     return;
