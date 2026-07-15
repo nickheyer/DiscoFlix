@@ -6,6 +6,7 @@ CREATE TABLE "configuration" (
     "admin_password" TEXT,
     "discord_token" TEXT,
     "is_debug" BOOLEAN NOT NULL DEFAULT false,
+    "is_onboarding_dismissed" BOOLEAN NOT NULL DEFAULT false,
     "bot_presence_activity" TEXT NOT NULL DEFAULT 'none',
     "bot_presence_text" TEXT NOT NULL DEFAULT '',
     "whitelist_role_ids" TEXT NOT NULL DEFAULT '',

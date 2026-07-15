@@ -36,11 +36,21 @@ module.exports = {
     if (this._posterRank(url) > this._posterRank(entry.posterUrl)) entry.posterUrl = url;
   },
 
+  // SHOW COUNTS MERGE ON max() - SERVICES DISAGREE ONLY BY WHAT THEY HOLD,
+  // SO THE BIGGEST FIGURE IS THE CLOSEST TO THE REAL SERIES
+  _adoptCounts(entry, item) {
+    for (const field of ['seasonCount', 'episodeCount', 'episodeFileCount']) {
+      const value = Number(item[field]);
+      if (!isNaN(value) && value > (Number(entry[field]) || 0)) entry[field] = value;
+    }
+  },
+
   // FOLD other INTO target WHEN A LATE KEY PROVES TWO ENTRIES ARE ONE ITEM
   _absorbEntry(keyed, target, other) {
     if (target === other) return target;
     target.sources.push(...other.sources);
     this._adoptPoster(target, other.posterUrl);
+    this._adoptCounts(target, other);
     if (!target.year && other.year) target.year = other.year;
     if (!target.overview && other.overview) target.overview = other.overview;
     for (const key of other.keys) {
@@ -100,6 +110,9 @@ module.exports = {
             year: item.year || null,
             overview: item.overview || '',
             posterUrl: null,
+            seasonCount: null,
+            episodeCount: null,
+            episodeFileCount: null,
             sources: [],
             keys: new Set(),
             media: null
@@ -121,6 +134,7 @@ module.exports = {
           available: !!item.available
         });
         this._adoptPoster(entry, item.posterUrl);
+        this._adoptCounts(entry, item);
         if (!entry.year && item.year) entry.year = item.year;
         if (!entry.overview && item.overview) entry.overview = item.overview;
         for (const key of keys) {

@@ -311,14 +311,35 @@ function needsSeasonPick(result) {
 
 function seasonPayload(flow) {
   const result = flow.results[flow.index];
-  const listed = Math.min(result.seasonCount, MAX_LISTED_SEASONS);
+  // THE RAW LOOKUP CARRIES THE REAL SEASON LIST - SPECIALS EXCLUDED, GAPS AND
+  // PER-SEASON STATS HONORED; THE 1..N SYNTHESIS ONLY BACKSTOPS BARE RESULTS
+  const realSeasons = (result.raw?.seasons || []).filter(season => season.seasonNumber > 0);
+  const seasons = realSeasons.length
+    ? realSeasons
+    : Array.from({ length: result.seasonCount || 0 }, (_, i) => ({ seasonNumber: i + 1 }));
+  const listed = seasons.slice(0, MAX_LISTED_SEASONS);
+  const totalEpisodes = seasons.reduce(
+    (sum, season) => sum + (season.statistics?.totalEpisodeCount || season.statistics?.episodeCount || 0), 0
+  );
   const options = [{
     label: 'All seasons',
     value: 'all',
-    description: `Every season (${result.seasonCount} total)`
+    description: [
+      `Every season (${seasons.length} total)`,
+      totalEpisodes ? `${totalEpisodes} episodes` : null
+    ].filter(Boolean).join(' • ')
   }];
-  for (let season = 1; season <= listed; season++) {
-    options.push({ label: `Season ${season}`, value: String(season) });
+  for (const season of listed) {
+    const stats = season.statistics || {};
+    const total = stats.totalEpisodeCount || stats.episodeCount || 0;
+    const bits = [];
+    if (total) bits.push(`${total} episode${total === 1 ? '' : 's'}`);
+    if (total && result.libraryId) bits.push(`${stats.episodeFileCount || 0} on disk`);
+    options.push({
+      label: `Season ${season.seasonNumber}`,
+      value: String(season.seasonNumber),
+      description: bits.join(' • ') || undefined
+    });
   }
 
   const select = new StringSelectMenuBuilder()

@@ -10,8 +10,14 @@
 // EVERY QUEUE UI - ONLY matchesQueueRecord IMPLEMENTATIONS MAY REACH INTO raw.
 // getHistory(page) -> { rows, hasMore } OF NORMALIZED FEED ROWS:
 //   { id, kind ('grabbed'|'imported'|'completed'|'failed'|'deleted'|'renamed'|
-//     'ignored'|'info'), title, detail, at (ISO STRING) }
+//     'ignored'|'info'), title, detail, at (ISO STRING), media?, art? }
 // - THE ACTIVITY FEED IN THE TAKEOVER'S RIGHT RAIL RENDERS THESE.
+// media IS THE OPTIONAL IDENTITY DESCRIPTOR CROSS-INSTANCE MERGES KEY ON:
+//   { kind ('movie'|'show'|'music'), title (SHOW/MOVIE/ALBUM NAME), year,
+//     season?, episode?, episodeCount?, externalIds? }
+// art IS AN OPTIONAL SERVICE-RELATIVE POSTER PATH fetchImage CAN PROXY -
+// /whatsnew FETCHES IT THROUGH THE OWNING CLIENT AND ATTACHES THE BYTES,
+// SO LAN URLS AND TOKENS NEVER REACH DISCORD.
 // OPT-IN SURFACES (GATED BY capabilities, SEE THE GETTER):
 // getSessions() -> NORMALIZED STREAM ROWS FOR THE NOW PLAYING SECTION:
 //   { id, title, subtitle?, user, device, state ('playing'|'paused'|
@@ -109,6 +115,14 @@ class BaseClient {
     if (hours >= 24) return `${Math.floor(hours / 24)}d ${hours % 24}h`;
     if (hours > 0) return `${hours}h ${minutes}m`;
     return `${Math.max(1, minutes)}m`;
+  }
+
+  // ZERO-PADDED SEASON/EPISODE CODE ("S02E05") - null WITHOUT A SEASON NUMBER
+  static seasonEpisodeCode(season, episode) {
+    if (season == null || isNaN(Number(season))) return null;
+    const code = `S${String(season).padStart(2, '0')}`;
+    if (episode == null || isNaN(Number(episode))) return code;
+    return `${code}E${String(episode).padStart(2, '0')}`;
   }
 
   static formatDate(value) {

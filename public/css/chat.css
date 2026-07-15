@@ -158,8 +158,36 @@
 
 /* FIRST-RUN ONBOARDING CHECKLIST - LIVES IN THE EMPTY MIRROR */
 .gettingStarted {
+  position: relative;
   max-width: 560px;
   padding-bottom: 16px;
+}
+
+/* PERMANENT DISMISS - TOP RIGHT OF THE CARD */
+.gettingStartedDismiss {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--interactive-muted);
+  cursor: pointer;
+}
+
+.gettingStartedDismiss:hover {
+  color: var(--interactive-hover);
+  background-color: var(--bg-modifier-hover);
+}
+
+.gettingStartedDismiss svg {
+  width: 18px;
+  height: 18px;
 }
 
 .gettingStartedStep {

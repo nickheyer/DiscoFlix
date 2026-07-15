@@ -238,6 +238,85 @@ login/runtime path so the first live boot after this matters most):
       lazy normalizeLookupDetail over raws already in memory - zero extra
       lookup HTTP. New ui.js helpers: linkButtonRow, factLines.
 
+## M20 - Whatsnew Merge, Live Guide, Count Granularity (staged + built 2026-07-15)
+
+Built 2026-07-15 (3 fixture scripts green - plex/emby history normalizers,
+whatsnew merge/variance/dead-server walks, template renders + onboarding
+gate; rides THE live pass, the emoji sync and real-plex feed especially):
+
+- [x] Plex whatsnew fix + merged feed - /library/recentlyAdded returns SEASON
+      items whose own title is "Season N"; the normalizer now reads
+      parent/grandparent titles per type (episode/season/album), puts S02E05
+      codes + per-season episode counts in feed details (the console activity
+      rail shares the normalizer so it healed too), and emits a `media`
+      identity descriptor (kind/title/year/season/episode/externalIds -
+      includeGuids=1 on plex, ProviderIds requested on emby). /whatsnew now
+      merges every serving media server into ONE deduped list (external ids
+      first, title fallback - the unified-library key idea), show rows
+      aggregate across servers ("2 seasons • 19 new episodes", lone episodes
+      read "S02E10"), items on every reachable server lead, the diff sinks to
+      a "Not on every server" list tagged "Only on X"; app brand icons ride
+      each row as Discord application emojis (128px pngs rasterized from the
+      console svg set into public/images/emoji, synced on ClientReady by
+      appEmojis.js, graceful plain-text fallback until a sync lands).
+- [x] First-run guide is live + dismissible - the checklist only ever
+      re-rendered on full loads/server switches, so completed steps never
+      ticked; every step-moving action now refreshes the mirror (app
+      add/save, power flips via updatePowerState, ClientReady - guild events
+      and requests already did) and a new X control persists
+      is_onboarding_dismissed (migration m20_onboarding_dismissed, computed
+      metadata so the dfSettings full-form save can't wipe it) then sweeps
+      the guide off every open view.
+- [x] Season/episode granularity - listing normalizers keep the counts the
+      services already send (plex childCount/leafCount, emby
+      ChildCount/RecursiveItemCount now requested in Fields, sonarr
+      statistics), the unified library merges them on max() and renders
+      "2 seasons • 12 of 19 episodes" on detailed rows + "N seasons" on cover
+      meta; the bot's season picker reads the REAL season list off the lookup
+      raw (numbering gaps honored, specials excluded, 1..N synthesis only as
+      backstop) with per-season "N episodes • M on disk" descriptions and an
+      aggregate on the All-seasons option.
+- [ ] Episode-level bot requests: the picker stops at seasons today; Sonarr can
+      monitor/search single episodes, so this needs an episode picker step after
+      the season pick plus queue-watch scoping
+
+## M21 - Whatsnew Truthfulness + Poster Render (built 2026-07-15)
+
+Live screenshot caught M20's variance list lying: titles present on all
+three servers rendered under "Not on every server / Only on X". Root cause
+was baked into the design - a recent window is not an inventory, so titles
+added at different times only surface in the windows that caught the add.
+Offline walk green (merge/dedupe, poster attach, dead-server, empty state);
+rides THE live pass with M7-M20:
+
+- [x] No more per-title cross-server claims - the variance list and
+      "Only on X" tags are gone entirely. /whatsnew is ONE merged deduped
+      list (same unified-library keying), newest first, and the servers
+      that contributed to the set are badged ONCE in the header
+      (app emoji + display name, plain names until an emoji sync lands;
+      an empty result still names who was checked). Per-row app icons
+      dropped with the claim they decorated.
+- [x] CV2 poster render - history rows now carry a service-relative `art`
+      path (plex rides the photo transcoder at 300x450, emby/jellyfin
+      Items/{id}/Images/Primary at maxWidth=300; episodes prefer the
+      show/series poster over a still frame). /whatsnew fetches the top-5
+      posters in parallel through the OWNING client (2.5s cap each,
+      any failure just costs that row its thumbnail) and attaches the
+      bytes - attachment:// refs in section thumbnail accessories, LAN
+      urls and tokens never reach discord. 7 compact text rows follow the
+      featured five. ui.payload learned `files`; feed fetches went
+      parallel while we were in there.
+- [x] Real pagination, not a dead-end footer - overflow pages ride a
+      Prev / "Page X of Y" / Next row on the request card's collector
+      pattern (df-wn-* custom ids, owner-only with the stranger-click
+      denial, 2m idle / 10m hard cap - under the 15m ephemeral token).
+      Cold flips deferUpdate before the poster HTTP then editReply with
+      attachments: [] so files never accumulate; visited pages cache
+      their rendered slice + attachments for the collector's lifetime so
+      flipping back is instant. On end the pager row strips itself and
+      the list stays readable. Single-page results never arm a collector.
+
+
 ---
 
 ## Feature Planning (unstaged - promote before working)

@@ -115,6 +115,9 @@ class PlexClient extends BaseClient {
       posterUrl: this._posterOf(raw),
       available: true,
       kind: raw.type === 'show' ? 'show' : 'movie',
+      // SHOW LISTINGS CARRY THE COUNTS FOR FREE - childCount/leafCount
+      seasonCount: raw.type === 'show' ? (Number(raw.childCount) || null) : null,
+      episodeCount: raw.type === 'show' ? (Number(raw.leafCount) || null) : null,
       externalIds: PlexClient.externalIdsFrom(raw)
     };
   }
@@ -247,28 +250,101 @@ class PlexClient extends BaseClient {
     }
   }
 
-  // NORMALIZED FEED ROWS - PLEX PAGES VIA THE CONTAINER START/SIZE PARAMS
+  // NORMALIZED FEED ROWS - PLEX PAGES VIA THE CONTAINER START/SIZE PARAMS.
+  // TV ADDITIONS ARRIVE AS SEASON ITEMS WHOSE OWN title IS "Season N" - THE
+  // SHOW NAME RIDES parentTitle (SEASONS) OR grandparentTitle (EPISODES)
   async getHistory(page = 1, pageSize = 15) {
     const start = (page - 1) * pageSize;
     const data = await this._get('/library/recentlyAdded', {
       'X-Plex-Container-Start': start,
-      'X-Plex-Container-Size': pageSize
+      'X-Plex-Container-Size': pageSize,
+      includeGuids: 1
     });
     const container = data?.MediaContainer || {};
     const items = container.Metadata || [];
     const total = container.totalSize ?? (start + items.length);
     return {
-      rows: items.map(item => ({
-        id: String(item.ratingKey || item.key),
-        kind: 'added',
-        title: item.grandparentTitle ? `${item.grandparentTitle} - ${item.title}` : (item.title || 'Unknown'),
-        detail: [
-          item.type ? item.type.charAt(0).toUpperCase() + item.type.slice(1) : null,
-          item.year || null
-        ].filter(Boolean).join(' • ') || null,
-        at: item.addedAt ? new Date(item.addedAt * 1000).toISOString() : null
-      })),
+      rows: items.map(item => this._historyRowOf(item)),
       hasMore: start + items.length < total
+    };
+  }
+
+  // SERVICE-RELATIVE POSTER PATH FOR FEED ROWS - fetchImage PROXIES IT, THE
+  // PHOTO TRANSCODER KEEPS THE BYTES LIGHT. EPISODES PREFER THE SHOW POSTER;
+  // A STILL FRAME MAKES A LOUSY THUMBNAIL.
+  _historyArtOf(item) {
+    const thumb = item.type === 'episode'
+      ? (item.grandparentThumb || item.parentThumb || item.thumb)
+      : (item.thumb || item.parentThumb || null);
+    if (!thumb) return null;
+    return `/photo/:/transcode?width=300&height=450&minSize=1&upscale=1&url=${encodeURIComponent(thumb)}`;
+  }
+
+  _historyRowOf(item) {
+    const base = {
+      id: String(item.ratingKey || item.key),
+      kind: 'added',
+      at: item.addedAt ? new Date(item.addedAt * 1000).toISOString() : null,
+      art: this._historyArtOf(item)
+    };
+    const typeLabel = item.type ? item.type.charAt(0).toUpperCase() + item.type.slice(1) : null;
+    const externalIds = PlexClient.externalIdsFrom(item);
+    if (item.type === 'episode') {
+      const code = BaseClient.seasonEpisodeCode(item.parentIndex, item.index);
+      return {
+        ...base,
+        title: `${item.grandparentTitle || 'Unknown'} - ${item.title || code || 'Unknown'}`,
+        detail: [typeLabel, code, item.year || null].filter(Boolean).join(' • ') || null,
+        media: {
+          kind: 'show',
+          title: item.grandparentTitle || item.title,
+          year: null,
+          season: item.parentIndex ?? null,
+          episode: item.index ?? null,
+          externalIds
+        }
+      };
+    }
+    if (item.type === 'season') {
+      const episodes = Number(item.leafCount) || null;
+      return {
+        ...base,
+        title: `${item.parentTitle || 'Unknown'} - ${item.title || `Season ${item.index}`}`,
+        detail: [typeLabel, episodes ? `${episodes} episode${episodes === 1 ? '' : 's'}` : null].filter(Boolean).join(' • ') || null,
+        media: {
+          kind: 'show',
+          title: item.parentTitle || item.title,
+          year: null,
+          season: item.index ?? null,
+          episode: null,
+          episodeCount: episodes,
+          externalIds
+        }
+      };
+    }
+    if (item.type === 'album') {
+      return {
+        ...base,
+        title: item.parentTitle ? `${item.parentTitle} - ${item.title}` : (item.title || 'Unknown'),
+        detail: [typeLabel, item.year || null].filter(Boolean).join(' • ') || null,
+        media: {
+          kind: 'music',
+          title: item.parentTitle ? `${item.parentTitle} - ${item.title}` : item.title,
+          year: item.year || null,
+          externalIds
+        }
+      };
+    }
+    return {
+      ...base,
+      title: item.title || 'Unknown',
+      detail: [typeLabel, item.year || null].filter(Boolean).join(' • ') || null,
+      media: {
+        kind: item.type === 'show' ? 'show' : 'movie',
+        title: item.title,
+        year: item.type === 'show' ? null : (item.year || null),
+        externalIds
+      }
     };
   }
 

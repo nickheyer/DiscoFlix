@@ -79,6 +79,9 @@ class SonarrClient extends ArrClient {
       available: (stats.episodeFileCount || 0) > 0,
       monitored: !!raw.monitored,
       kind: 'show',
+      seasonCount: stats.seasonCount || null,
+      episodeCount: stats.episodeCount || null,
+      episodeFileCount: stats.episodeFileCount ?? null,
       path: raw.path || null,
       externalIds
     };

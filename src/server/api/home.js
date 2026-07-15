@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const { buildAppRail, buildTakeoverLocals } = require('./apps');
+const { buildAppRail, buildTakeoverLocals, respondWithMirror } = require('./apps');
 
 
 async function renderHome(ctx) {
@@ -56,6 +56,16 @@ async function renderHome(ctx) {
   });
 }
 
+// THE GUIDE'S DISMISS CONTROL - THE FLAG IS GLOBAL, SO THE RESPONSE RESTORES
+// THE ACTOR'S MIRROR AND refreshUI SWEEPS THE CHECKLIST OFF EVERY OTHER VIEW
+async function dismissOnboarding(ctx) {
+  const core = ctx.core;
+  await core.models.configuration.update({ is_onboarding_dismissed: true });
+  core.discord.refreshUI().catch(() => {});
+  return respondWithMirror(ctx, ctx.viewState);
+}
+
 module.exports = {
-  renderHome
+  renderHome,
+  dismissOnboarding
 }

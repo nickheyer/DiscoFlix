@@ -67,14 +67,17 @@ function container(parts, accent = 'brand') {
   return built;
 }
 
-// THE ONLY WAY A PAYLOAD LEAVES THIS MODULE - THE V2 FLAG IS NEVER OPTIONAL
-function payload(containers, { ephemeral = false } = {}) {
+// THE ONLY WAY A PAYLOAD LEAVES THIS MODULE - THE V2 FLAG IS NEVER OPTIONAL.
+// files ARE AttachmentBuilders COMPONENTS REFERENCE VIA attachment://name
+function payload(containers, { ephemeral = false, files = null } = {}) {
   let flags = MessageFlags.IsComponentsV2;
   if (ephemeral) flags |= MessageFlags.Ephemeral;
-  return {
+  const built = {
     components: Array.isArray(containers) ? containers : [containers],
     flags
   };
+  if (files && files.length) built.files = files;
+  return built;
 }
 
 // ONE-CONTAINER MESSAGE: AN OPTIONAL HEADING, BODY LINES, OPTIONAL SUBTEXT

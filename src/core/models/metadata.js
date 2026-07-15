@@ -26,6 +26,8 @@ const MODELS_META = {
             admin_password: { type: FIELD_TYPES.STRING, label: "Admin Password", description: "Setting this locks the web console behind a login (blank = open)", sensitive: true },
             discord_token: { type: FIELD_TYPES.STRING, label: "Discord Token", description: "Authentication token for Discord bot", sensitive: true },
             is_debug: { type: FIELD_TYPES.BOOLEAN, label: "Debug Mode", description: "Enable debug logging" },
+            // WRITTEN ONLY BY THE GUIDE'S DISMISS CONTROL VIA PARTIAL update()
+            is_onboarding_dismissed: { type: FIELD_TYPES.BOOLEAN, computed: true, readonly: true, label: "Onboarding Dismissed", description: "Hides the first-run checklist for good" },
             // THE FIELDS BELOW LIVE ON THE DISCORD BOT TAB, NOT dfSettings -
             // computed KEEPS THE dfSettings FULL-FORM SAVE (_sanitizeData) FROM
             // WIPING THEM; THE BOT TAB WRITES THEM VIA PARTIAL update() ONLY

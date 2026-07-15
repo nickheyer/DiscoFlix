@@ -188,10 +188,12 @@ module.exports = {
     return { groups, total: rows.length };
   },
 
-  // FIRST-RUN CHECKLIST VIEW MODEL - null UNLESS A TOKEN OR SERVER IS STILL MISSING
+  // FIRST-RUN CHECKLIST VIEW MODEL - null ONCE DISMISSED OR WHEN NEITHER A
+  // TOKEN NOR A SERVER IS STILL MISSING
   async getOnboarding(state) {
     if (state?.active_app_id) return null;
     const config = await this.core.models.configuration.get();
+    if (config.is_onboarding_dismissed) return null;
     const serverCount = await this.core.prisma.discordServer.count();
     if (config.discord_token && serverCount > 0) return null;
 

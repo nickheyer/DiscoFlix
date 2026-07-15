@@ -2,6 +2,16 @@
 - var onboardingSteps = (onboarding && onboarding.steps) || []
 - var ctaShown = false
 .gettingStarted
+  button.gettingStartedDismiss(
+    type="button"
+    aria-label="Dismiss this checklist"
+    title="Dismiss this checklist"
+    hx-post="/onboarding/dismiss"
+    hx-swap="none"
+    hx-trigger="click"
+  )
+    svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true")
+      path(stroke-linecap="round" stroke-width="2" d="M6 6l12 12M18 6L6 18")
   .welcomeBlock
     .welcomeHashCircle
       svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true")

@@ -1358,6 +1358,8 @@ async function addApp(ctx) {
     return;
   }
   core.apps.syncSlashCommands().catch(() => {});
+  // THE ONBOARDING APP STEP TRACKS THE ROW COUNT - CHAT VIEWS RE-RENDER
+  core.discord.refreshUI().catch(() => {});
   const state = await ctx.updateView({ active_app_id: instance.id });
   return respondWithTakeover(ctx, instance, state);
 }
@@ -1397,6 +1399,10 @@ async function saveApp(ctx) {
     ctx.body = { error: err.message };
     return;
   }
+
+  // TOKEN AND APP-CONFIG SAVES MOVE ONBOARDING STEPS - CHAT VIEWS RE-RENDER
+  // (THE ACTOR SITS IN A TAKEOVER AND PICKS THE FRESH STATE UP ON BACK-OUT)
+  core.discord.refreshUI().catch(() => {});
 
   const state = ctx.viewState;
   const [apps, takeover] = await Promise.all([

@@ -50,6 +50,8 @@ module.exports = {
         authEnabled: !!config.admin_password
       });
     });
+    // THE ONBOARDING POWER STEP TRACKS THIS FLIP - MIRRORS RE-RENDER TOO
+    await this.refreshUI();
   },
 
   async getInviteLink() {

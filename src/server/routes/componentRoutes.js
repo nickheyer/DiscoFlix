@@ -26,6 +26,8 @@ const {
 
 const { fetchChatHistory } = require('../api/chat');
 
+const { dismissOnboarding } = require('../api/home');
+
 const {
   appBotMatrix,
   saveBotConfig,
@@ -80,6 +82,8 @@ router.post('/change-active-server/:id', changeActiveServers);
 router.post('/change-active-channel/:id', changeActiveChannel);
 // SCROLL-UP CHAT PAGINATION (READ-ONLY)
 router.get('/chat/history/:channelId', fetchChatHistory);
+// THE FIRST-RUN CHECKLIST'S PERMANENT DISMISS
+router.post('/onboarding/dismiss', dismissOnboarding);
 // APP TAKEOVER (PSEUDO-GUILDS)
 router.post('/change-active-app/:id', changeActiveApp);
 // THE DISCORD BADGE - DISCOFLIX'S OWN TAKEOVER (HEALTH/USERS/SETTINGS)

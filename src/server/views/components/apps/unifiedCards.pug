@@ -26,6 +26,12 @@ each entry in unifiedItems
       +browsePoster(entry.posterUrl, entry.kind)
       .request-info
         .request-title= entry.year ? `${entry.title} (${entry.year})` : entry.title
+        if entry.kind === 'show' && (entry.seasonCount || entry.episodeCount)
+          - var countBits = []
+          - if (entry.seasonCount) countBits.push(`${entry.seasonCount} season${entry.seasonCount === 1 ? '' : 's'}`)
+          - if (entry.episodeCount && entry.episodeFileCount != null && entry.episodeFileCount < entry.episodeCount) countBits.push(`${entry.episodeFileCount} of ${entry.episodeCount} episodes`)
+          - else if (entry.episodeCount) countBits.push(`${entry.episodeCount} episode${entry.episodeCount === 1 ? '' : 's'}`)
+          .unifiedItemCounts= countBits.join(' • ')
         if entry.overview
           .request-orig-message= entry.overview
         .unifiedSourceChips
@@ -89,6 +95,8 @@ each entry in unifiedItems
         .posterCardMeta.unifiedCardMeta
           if entry.year
             span= entry.year
+          if entry.kind === 'show' && entry.seasonCount
+            span.unifiedCardCounts= `${entry.seasonCount} season${entry.seasonCount === 1 ? '' : 's'}`
           .unifiedCardIcons
             each source in entry.sources
               if source.icon

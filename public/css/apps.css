@@ -1337,12 +1337,25 @@
   background-color: var(--interactive-muted);
 }
 
-/* COVER CARD META - YEAR LEFT, SOURCE ICON STRIP PINNED RIGHT */
+/* COVER CARD META - YEAR AND COUNTS LEFT, SOURCE ICON STRIP PINNED RIGHT */
 .unifiedCardMeta {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 6px;
+}
+
+.unifiedCardCounts {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* SEASON/EPISODE COUNTS ON DETAILED ROWS */
+.unifiedItemCounts {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
 }
 
 .unifiedCardIcons {

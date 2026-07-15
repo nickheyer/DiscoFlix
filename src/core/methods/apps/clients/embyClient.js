@@ -98,12 +98,13 @@ class EmbyClient extends BaseClient {
       Recursive: true,
       SortBy: 'SortName',
       SortOrder: 'Ascending',
-      Fields: 'Overview,ProviderIds,ProductionYear,SortName,Path'
+      Fields: 'Overview,ProviderIds,ProductionYear,SortName,Path,ChildCount,RecursiveItemCount'
     });
     return (data?.Items || []).map(item => this.normalizeLibraryItem(item));
   }
 
   normalizeLibraryItem(item) {
+    const isShow = item.Type === 'Series';
     return {
       id: String(item.Id),
       title: item.Name,
@@ -112,7 +113,10 @@ class EmbyClient extends BaseClient {
       overview: item.Overview || '',
       posterUrl: this._posterOf(item),
       available: true,
-      kind: item.Type === 'Series' ? 'show' : 'movie',
+      kind: isShow ? 'show' : 'movie',
+      // SERIES LISTINGS CARRY THE COUNTS - ChildCount/RecursiveItemCount
+      seasonCount: isShow ? (Number(item.ChildCount) || null) : null,
+      episodeCount: isShow ? (Number(item.RecursiveItemCount) || null) : null,
       path: item.Path || null,
       externalIds: EmbyClient.externalIdsFrom(item)
     };
@@ -257,22 +261,60 @@ class EmbyClient extends BaseClient {
       IncludeItemTypes: 'Movie,Episode',
       StartIndex: start,
       Limit: pageSize,
-      Fields: 'DateCreated,ProductionYear'
+      Fields: 'DateCreated,ProductionYear,ProviderIds'
     });
     const items = data?.Items || [];
     const total = data?.TotalRecordCount ?? (start + items.length);
     return {
-      rows: items.map(item => ({
-        id: String(item.Id),
-        kind: 'added',
-        title: item.SeriesName ? `${item.SeriesName} - ${item.Name}` : (item.Name || 'Unknown'),
-        detail: [
-          item.Type || null,
-          item.ProductionYear || null
-        ].filter(Boolean).join(' • ') || null,
-        at: item.DateCreated || null
-      })),
+      rows: items.map(item => this._historyRowOf(item)),
       hasMore: start + items.length < total
+    };
+  }
+
+  // SERVICE-RELATIVE POSTER PATH FOR FEED ROWS - fetchImage PROXIES IT.
+  // EPISODES PREFER THE SERIES POSTER; A STILL FRAME MAKES A LOUSY THUMBNAIL.
+  _historyArtOf(item) {
+    if (item.Type === 'Episode' && item.SeriesId && item.SeriesPrimaryImageTag) {
+      return `/Items/${item.SeriesId}/Images/Primary?maxWidth=300&quality=90`;
+    }
+    if (item.ImageTags?.Primary) return `/Items/${item.Id}/Images/Primary?maxWidth=300&quality=90`;
+    return null;
+  }
+
+  _historyRowOf(item) {
+    const base = {
+      id: String(item.Id),
+      kind: 'added',
+      at: item.DateCreated || null,
+      art: this._historyArtOf(item)
+    };
+    const externalIds = EmbyClient.externalIdsFrom(item);
+    if (item.Type === 'Episode') {
+      const code = BaseClient.seasonEpisodeCode(item.ParentIndexNumber, item.IndexNumber);
+      return {
+        ...base,
+        title: item.SeriesName ? `${item.SeriesName} - ${item.Name}` : (item.Name || 'Unknown'),
+        detail: ['Episode', code, item.ProductionYear || null].filter(Boolean).join(' • ') || null,
+        media: {
+          kind: 'show',
+          title: item.SeriesName || item.Name,
+          year: null,
+          season: item.ParentIndexNumber ?? null,
+          episode: item.IndexNumber ?? null,
+          externalIds
+        }
+      };
+    }
+    return {
+      ...base,
+      title: item.Name || 'Unknown',
+      detail: [item.Type || null, item.ProductionYear || null].filter(Boolean).join(' • ') || null,
+      media: {
+        kind: 'movie',
+        title: item.Name,
+        year: item.ProductionYear || null,
+        externalIds
+      }
     };
   }
 
