@@ -9,6 +9,8 @@ const AUTHOR_PROFILE_CACHE_MAX = 500;
 const GROUP_WINDOW_MS = 7 * 60 * 1000;
 // HISTORY PAGES (INITIAL LOAD + SCROLL-UP BATCHES) SHARE ONE SIZE
 const HISTORY_PAGE_SIZE = 100;
+// RAW DISCORD ENTITY TOKENS - <@id> <@!id> <@&id> <#id> (PRE-ESCAPE FORM)
+const MENTION_TOKEN = /<(@[!&]?|#)(\d+)>/g;
 
 module.exports = {
   // RETURNS { author, accent } - FORCE-FETCHES AT MOST ONCE PER USER PER TTL,
@@ -28,6 +30,46 @@ module.exports = {
       this._authorProfiles.delete(this._authorProfiles.keys().next().value);
     }
     return { author: fetched, accent };
+  },
+
+  // SCANS THE GIVEN STRINGS (CONTENT, EDIT HISTORY, EMBED/COMPONENT JSON) FOR
+  // ENTITY TOKENS AND RESOLVES DISPLAY NAMES FROM THE MIRROR'S OWN TABLES -
+  // ROSTER SYNC KEEPS EVERY MEMBER THE BOT SERVES IN users, SO LIVE PUSHES
+  // AND HISTORY RENDER IDENTICALLY. ROLE NAMES ONLY LIVE IN THE GATEWAY
+  // CACHE (OFFLINE BOT = GENERIC @unknown-role PILL). null WHEN NOTHING TO DO.
+  async mentionContextFor(texts = []) {
+    const wants = { users: new Set(), channels: new Set(), roles: new Set() };
+    for (const text of texts) {
+      if (!text) continue;
+      for (const match of String(text).matchAll(MENTION_TOKEN)) {
+        if (match[1] === '#') wants.channels.add(match[2]);
+        else if (match[1] === '@&') wants.roles.add(match[2]);
+        else wants.users.add(match[2]);
+      }
+    }
+    if (!wants.users.size && !wants.channels.size && !wants.roles.size) return null;
+
+    const [userRows, channelRows] = await Promise.all([
+      wants.users.size
+        ? this.core.prisma.user.findMany({ where: { id: { in: [...wants.users] } } })
+        : [],
+      wants.channels.size
+        ? this.core.prisma.discordServerChannel.findMany({ where: { channel_id: { in: [...wants.channels] } } })
+        : []
+    ]);
+    const ctx = { users: {}, channels: {}, roles: {} };
+    for (const row of userRows) ctx.users[row.id] = row.display_name || row.username;
+    for (const row of channelRows) ctx.channels[row.channel_id] = row.channel_name;
+    if (wants.roles.size && this.core.client?.isReady?.()) {
+      for (const guild of this.core.client.guilds.cache.values()) {
+        for (const id of wants.roles) {
+          const role = guild.roles.cache.get(id);
+          // ROLE COLOR 0 = DISCORD'S "NO COLOR" - THE PILL KEEPS ITS DEFAULT TINT
+          if (role) ctx.roles[id] = { name: role.name, color: role.color ? role.hexColor : null };
+        }
+      }
+    }
+    return ctx;
   },
 
   async updatePowerState(powerOn, discordBotInst = null) {
@@ -87,7 +129,8 @@ module.exports = {
     embedList,
     attachmentList,
     componentList,
-    grouped
+    grouped,
+    mentionCtx
   }) {
     const html = await this.core.render.compile(['chat/discordMessage.pug'], {
       messageId,
@@ -103,7 +146,8 @@ module.exports = {
       embedList: embedList || [],
       attachmentList: attachmentList || [],
       componentList: componentList || [],
-      grouped: !!grouped
+      grouped: !!grouped,
+      mentionCtx: mentionCtx || null
     });
     await this.core.sockets.emitToSessions(sessionIds, html);
   },
@@ -260,7 +304,12 @@ module.exports = {
         grouped: this.isGroupedContinuation(
           { user_id: author.id, created_at: rawDiscMsg.createdAt },
           previous
-        )
+        ),
+        mentionCtx: await this.mentionContextFor([
+          rawDiscMsg.content,
+          richContent.embedsJson,
+          richContent.componentsJson
+        ])
       });
     }
     if (!txRes.isSelf && !txRes.isViewed) {
@@ -379,6 +428,12 @@ module.exports = {
     // FULL INLINE REQUEST CARDS FOR ANY MESSAGE THAT TRIGGERED A MediaRequest
     const cards = await this.core.apps.cardsForMessages(messages.map(msg => msg.message_id));
 
+    // ONE ENTITY-RESOLUTION SWEEP FOR THE WHOLE PAGE - CONTENT, EDIT HISTORY,
+    // AND EMBED/COMPONENT JSON ALL FEED THE SAME @mention/#channel PILLS
+    const mentionCtx = await this.mentionContextFor(
+      messages.flatMap(msg => [msg.content, msg.previous_content, msg.embeds, msg.components])
+    );
+
     const compiledMessages = [];
     let previousDay = null;
     let previous = null;
@@ -401,6 +456,7 @@ module.exports = {
       message.hoverStamp = this.formatTimeOnly(message.created_at);
       message.created_at = this.formatTimestamp(message.created_at);
       message.requestCard = cards[message.message_id] || null;
+      message.mentionCtx = mentionCtx;
       const compiledMessage = await this.core.render.compile('chat/discordMessageShard.pug', message);
       compiledMessages.push(compiledMessage);
     }

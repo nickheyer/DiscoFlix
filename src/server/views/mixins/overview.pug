@@ -1,16 +1,23 @@
 //- ABOUT-THIS-APP OVERVIEW PIECES - SHARED BY overview.pug (EVERY SERVICE)
 //- AND dfOverview.pug (THE SELF APP) SO ALL OVERVIEWS READ AS ONE DESIGN.
 
-//- about: { icon, round?, name, nameSuffix?, pill {text, class}, sub?, sub2?, url? }
+//- about: { icon, round?, name, nameSuffix?, pill {text, class},
+//-          brand? {icon, name, version}, sub?, sub2?, url? }
 mixin aboutApp(about)
   .appAboutBlock
     img.appAboutIcon(class=about.round ? 'round' : undefined src=about.icon alt=about.name referrerpolicy="no-referrer")
     .appAboutName
-      | #{about.name}
+      span.appAboutTitle= about.name
       if about.nameSuffix
         span.dfDiscriminator= about.nameSuffix
-      |
       span.appStatusPill(class=about.pill.class)= about.pill.text
+    if about.brand
+      //- PRODUCT CHIP - THE SELF APP WEARS THE BOT'S FACE UP TOP, SO THE
+      //- DISCOFLIX MARK + RELEASE VERSION GET THEIR OWN LINE
+      .appAboutBrand
+        img.appAboutBrandIcon(src=about.brand.icon alt="")
+        span= about.brand.name
+        span.appVersionPill= about.brand.version
     if about.sub
       .appAboutSub= about.sub
     if about.sub2

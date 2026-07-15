@@ -138,6 +138,14 @@ class BaseClient {
     return num >= 60 ? `${Math.floor(num / 60)}h ${num % 60}m` : `${num}m`;
   }
 
+  // PUBLISH DATE -> WHOLE MINUTES OLD - THE RELEASE TABLE'S NUMERIC SORT KEY
+  static ageMinutes(value) {
+    if (!value) return null;
+    const then = new Date(value).getTime();
+    if (isNaN(then)) return null;
+    return Math.max(0, Math.round((Date.now() - then) / 60000));
+  }
+
   // PUBLISH DATE -> COMPACT AGE ("3h", "5d", "2y") FOR RELEASE ROWS
   static humanAge(value) {
     if (!value) return null;

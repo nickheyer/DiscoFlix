@@ -73,7 +73,7 @@ class MediaRequest extends BaseModel {
   }
 
   // SEARCH + FILTER
-  async getUserRequests(userId, include = {}) {
+  async getUserRequests(userId, include = {}, { skip, take } = {}) {
     return this.prisma.mediaRequest.findMany({
       where: {
         users: {
@@ -85,7 +85,19 @@ class MediaRequest extends BaseModel {
         made_in: true,
         ...include
       },
-      orderBy: { created_at: 'desc' }
+      orderBy: { created_at: 'desc' },
+      ...(skip !== undefined && { skip }),
+      ...(take !== undefined && { take })
+    });
+  }
+
+  async countUserRequests(userId) {
+    return this.prisma.mediaRequest.count({
+      where: {
+        users: {
+          some: { id: userId }
+        }
+      }
     });
   }
 

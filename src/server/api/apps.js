@@ -109,15 +109,26 @@ async function buildUsersPage(core, search = '', page = 1, filter = 'people') {
 }
 
 // ONE PAGE OF EventLog ROWS FOR THE SELF APP'S LOGS SECTION - NEWEST FIRST,
-// OPTIONAL LEVEL FILTER, VIEW-MORE PAGINATION LIKE EVERY OTHER LONG LIST
-async function buildLogsPage(core, level = '', page = 1) {
-  const where = LOG_LEVELS.includes(level) ? { level } : {};
-  const raw = await core.prisma.eventLog.findMany({
-    where,
-    orderBy: { timestamp: 'desc' },
-    skip: (page - 1) * LOGS_PAGE_SIZE,
-    take: LOGS_PAGE_SIZE + 1
-  });
+// OPTIONAL LEVEL + TEXT FILTERS, VIEW-MORE PAGINATION LIKE EVERY OTHER LONG
+// LIST. total RIDES ALONG SO THE TOOLBAR CAN SAY HOW DEEP THE MATCH RUNS.
+async function buildLogsPage(core, level = '', page = 1, search = '') {
+  const where = {};
+  if (LOG_LEVELS.includes(level)) where.level = level;
+  if (search) {
+    where.OR = [
+      { message: { contains: search } },
+      { metadata: { contains: search } }
+    ];
+  }
+  const [raw, total] = await Promise.all([
+    core.prisma.eventLog.findMany({
+      where,
+      orderBy: { timestamp: 'desc' },
+      skip: (page - 1) * LOGS_PAGE_SIZE,
+      take: LOGS_PAGE_SIZE + 1
+    }),
+    core.prisma.eventLog.count({ where })
+  ]);
   return {
     rows: raw.slice(0, LOGS_PAGE_SIZE).map(row => {
       const stamp = new Date(row.timestamp);
@@ -128,7 +139,9 @@ async function buildLogsPage(core, level = '', page = 1) {
     }),
     hasMore: raw.length > LOGS_PAGE_SIZE,
     page,
-    level: LOG_LEVELS.includes(level) ? level : ''
+    level: LOG_LEVELS.includes(level) ? level : '',
+    search,
+    total
   };
 }
 
@@ -171,7 +184,14 @@ async function buildSelfSectionData(core, instance, section, opts = {}) {
     // THE UNIFIED REQUEST PIPELINE - EVERY MediaRequest TRACED REQUEST ->
     // INDEXER -> DOWNLOAD -> MEDIA SERVER (VIEW MODEL IN requestViews.js)
     case 'requests': {
-      data.requests = await core.apps.getRequestsPage({});
+      // A DEEP LINK (CHAT CARD / PROFILE ROW) PRE-FILLS THE SEARCH WITH THE
+      // REQUEST'S TITLE SO THE LINKED CARD IS THE FIRST THING ON SCREEN
+      let search = '';
+      if (opts.requestId) {
+        const linked = await core.models.mediaRequest.findFirst({ id: opts.requestId }, { media: true });
+        search = linked?.media?.title || linked?.orig_parsed_title || '';
+      }
+      data.requests = await core.apps.getRequestsPage({ search });
       data.instanceOptions = await core.apps.buildInstanceOptions();
       break;
     }
@@ -594,9 +614,11 @@ async function openDiscoFlixSection(ctx) {
   await core.models.app.update({ id: instance.id }, { active_section: section });
   instance.active_section = section;
   const state = await ctx.updateView({ active_app_id: instance.id });
-  // ?user= DEEP-LINKS THE USERS SECTION TO ONE CARD (PROFILE MODAL FOOTER)
+  // ?user= DEEP-LINKS THE USERS SECTION TO ONE CARD (PROFILE MODAL FOOTER);
+  // ?request= DOES THE SAME FOR THE REQUESTS SECTION (CHAT CARD/PROFILE ROW)
   return respondWithTakeover(ctx, instance, state, {
-    userSearch: String(ctx.query.user || '').trim()
+    userSearch: String(ctx.query.user || '').trim(),
+    requestId: String(ctx.query.request || '').trim()
   });
 }
 
@@ -639,7 +661,7 @@ async function appUsersPage(ctx) {
 }
 
 // LOGS SECTION FILTER + PAGINATION - RETURNS BARE ROWS (AND THE NEXT VIEW
-// MORE SENTINEL) FOR #dfLogList
+// MORE SENTINEL) FOR #dfLogList, PLUS AN OOB COUNT SWAP FOR THE TOOLBAR
 async function appLogsPage(ctx) {
   const core = ctx.core;
   const instance = await core.apps.getInstance(ctx.params.id);
@@ -649,8 +671,9 @@ async function appLogsPage(ctx) {
   }
   const page = Math.max(1, parseInt(ctx.query.page, 10) || 1);
   const level = String(ctx.query.level || '').trim();
-  const logs = await buildLogsPage(core, level, page);
-  return ctx.compileView('apps/sections/dfLogRows.pug', { activeApp: instance, logs });
+  const search = String(ctx.query.search || '').trim();
+  const logs = await buildLogsPage(core, level, page, search);
+  return ctx.compileView('apps/sections/dfLogRows.pug', { activeApp: instance, logs, oob: true });
 }
 
 // USER CARD SAVE - WHITELISTED MUTABLE SUBSET ONLY; DISCORD-SYNCED IDENTITY
@@ -830,7 +853,7 @@ async function appLibraryItem(ctx) {
     activeApp: instance,
     detail: detail || null,
     detailError: error || null,
-    backTo: ['search', 'hub'].includes(ctx.query.from) ? ctx.query.from : 'library'
+    backTo: ['search', 'hub', 'requests'].includes(ctx.query.from) ? ctx.query.from : 'library'
   }));
 }
 
@@ -903,7 +926,7 @@ async function appLibraryItemAction(ctx) {
     activeApp: instance,
     detail: detail || null,
     detailError: error || null,
-    backTo: ['search', 'hub'].includes(ctx.request.body?.from) ? ctx.request.body.from : 'library',
+    backTo: ['search', 'hub', 'requests'].includes(ctx.request.body?.from) ? ctx.request.body.from : 'library',
     message
   }));
 }
@@ -921,7 +944,7 @@ async function appSeasonEpisodes(ctx) {
     activeApp: instance,
     itemId: ctx.params.itemId,
     season: parseInt(ctx.params.season, 10),
-    from: ['search', 'hub'].includes(ctx.query.from) ? ctx.query.from : 'library',
+    from: ['search', 'hub', 'requests'].includes(ctx.query.from) ? ctx.query.from : 'library',
     episodes: [],
     episodesError: null
   };
@@ -949,7 +972,7 @@ async function appItemReleases(ctx) {
     activeApp: instance,
     itemId: ctx.params.itemId,
     label: String(ctx.query.label || '').slice(0, 120),
-    from: ['search', 'hub'].includes(ctx.query.from) ? ctx.query.from : 'library',
+    from: ['search', 'hub', 'requests'].includes(ctx.query.from) ? ctx.query.from : 'library',
     releases: [],
     releasesError: null
   };
@@ -984,9 +1007,11 @@ async function appGrabItemRelease(ctx) {
     indexer: body.indexer || null,
     quality: body.quality || null,
     protocol: body.protocol === 'usenet' ? 'usenet' : 'torrent',
+    size: body.size ? Number(body.size) : null,
     sizeHuman: body.sizeHuman || null,
     seeders: body.seeders ? Number(body.seeders) : null,
     age: body.age || null,
+    ageMinutes: body.ageMinutes ? Number(body.ageMinutes) : null,
     languages: body.languages || null,
     rejected: false,
     rejections: []
@@ -1039,7 +1064,7 @@ async function appEditLibraryItem(ctx) {
     activeApp: instance,
     detail: detail || null,
     detailError: error || null,
-    backTo: ['search', 'hub'].includes(body.from) ? body.from : 'library',
+    backTo: ['search', 'hub', 'requests'].includes(body.from) ? body.from : 'library',
     message
   }));
 }
@@ -1312,9 +1337,11 @@ async function appGrabRelease(ctx) {
     indexer: body.indexer || null,
     category: body.category || null,
     protocol: body.protocol === 'usenet' ? 'usenet' : 'torrent',
+    size: body.size ? Number(body.size) : null,
     sizeHuman: body.sizeHuman || null,
     seeders: body.seeders ? Number(body.seeders) : null,
     age: body.age || null,
+    ageMinutes: body.ageMinutes ? Number(body.ageMinutes) : null,
     downloadUrl: String(body.url || '')
   };
 

@@ -1,23 +1,46 @@
-//- LOGS - THE EventLog TABLE THE DB TRANSPORT FEEDS, NEWEST FIRST. LEVEL
-//- FILTER RE-PULLS PAGE 1; THE VIEW MORE SENTINEL PAGES DEEPER.
-//- sectionData: { logs {rows,hasMore,page,level}, logLevels }
+//- LOGS - THE EventLog TABLE THE DB TRANSPORT FEEDS, NEWEST FIRST, DRESSED
+//- LIKE THE RELEASE GRID: SHARED COLUMN TEMPLATE, STICKY HEAD, STRIPED ROWS.
+//- TEXT SEARCH AND THE LEVEL SELECT EACH RE-PULL PAGE 1 (INCLUDING EACH
+//- OTHER VIA THE FORM); THE VIEW MORE SENTINEL PAGES DEEPER. THE FRAGMENT
+//- OOB-SWAPS #dfLogCount SO THE TOOLBAR TALLY TRACKS THE FILTERS.
+//- sectionData: { logs {rows,hasMore,page,level,search,total}, logLevels }
 - var logs = sectionData.logs
 - var logLevels = sectionData.logLevels
 
 .appSectionDoc
-  .dfLogControls
-    select.dfLogLevelSelect(
-      name="level"
-      aria-label="Filter by level"
-      hx-get=`/apps/${activeApp.id}/logs`
-      hx-trigger="change"
-      hx-target="#dfLogList"
-      hx-swap="innerHTML"
-      hx-include="this"
-    )
-      option(value="" selected=!logs.level) All levels
-      each lvl in logLevels
-        option(value=lvl selected=logs.level === lvl)= lvl.charAt(0).toUpperCase() + lvl.slice(1)
+  form.dfLogControls.appLibraryHeader(onsubmit="return false")
+    span#dfLogCount.dfLogCount= `${logs.total} ${logs.total === 1 ? 'entry' : 'entries'}`
+    .appLibraryHeaderTools
+      input.dfLogSearch(
+        type="search"
+        name="search"
+        placeholder="Filter messages…"
+        aria-label="Filter log messages"
+        autocomplete="off"
+        value=logs.search || ''
+        hx-get=`/apps/${activeApp.id}/logs`
+        hx-trigger="input changed delay:400ms, search"
+        hx-target="#dfLogList"
+        hx-swap="innerHTML"
+        hx-include="closest form"
+      )
+      select.dfLogLevelSelect(
+        name="level"
+        aria-label="Filter by level"
+        hx-get=`/apps/${activeApp.id}/logs`
+        hx-trigger="change"
+        hx-target="#dfLogList"
+        hx-swap="innerHTML"
+        hx-include="closest form"
+      )
+        option(value="" selected=!logs.level) All levels
+        each lvl in logLevels
+          option(value=lvl selected=logs.level === lvl)= lvl.charAt(0).toUpperCase() + lvl.slice(1)
 
-  #dfLogList
-    include dfLogRows
+  .dfLogPanel
+    .dfLogHead.dfLogGrid
+      span.dfLogHeadLabel Time
+      span.dfLogHeadLabel Level
+      span.dfLogHeadLabel Message
+    #dfLogList
+      include dfLogRows

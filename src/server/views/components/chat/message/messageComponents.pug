@@ -10,7 +10,7 @@ mixin dfcNode(node)
         each child in node.components || []
           +dfcNode(child)
     when 10
-      .chatCv2Text !{md(node.content)}
+      .chatCv2Text !{md(node.content, typeof mentionCtx !== 'undefined' ? mentionCtx : null)}
     when 9
       .chatCv2Section
         .chatCv2SectionText

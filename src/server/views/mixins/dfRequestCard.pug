@@ -66,12 +66,26 @@ mixin dfRequestCard(req, instanceOptions, oob)
               path(d="M20 4v7a4 4 0 0 1-4 4H4")
         span.requestChip(class=`chip-${req.state}`)= req.stateLabel
     //- THE PIPELINE STEPPER - A DENIED ROW'S ARRAY ENDS AT THE DECISION STOP,
-    //- SO DEAD PIPELINES NEVER DRAW FUTURE STAGES
+    //- SO DEAD PIPELINES NEVER DRAW FUTURE STAGES. A stage.link JUMPS TO
+    //- WHERE THE REQUEST LIVES RIGHT NOW: ITEM DETAILS SWAP IN-SURFACE
+    //- (from=requests POINTS THE BACK BUTTON HOME), THE QUEUE LINK ENTERS
+    //- THE HANDLING APP'S TAKEOVER LIKE THE DOWNLOAD TICKER DOES.
     .dfRequestPipeline
       each stage, i in (req.stages || [])
         if i
           .dfStageBar(class=`stage-${stage.state}`)
-        .dfStage(class=`stage-${stage.state}`)
+        .dfStage(
+          class=`stage-${stage.state}${stage.link ? ' dfStageLink' : ''}`
+          role=stage.link ? 'button' : undefined
+          tabindex=stage.link ? '0' : undefined
+          aria-label=stage.link ? stage.link.tip : undefined
+          data-tooltip-dir=stage.link ? 'top' : undefined
+          hx-get=stage.link && stage.link.itemId ? `/apps/${stage.link.appId}/library/item/${stage.link.itemId}?from=requests` : undefined
+          hx-post=stage.link && !stage.link.itemId ? `/apps/${stage.link.appId}/section/${stage.link.section}` : undefined
+          hx-target=stage.link && stage.link.itemId ? '#appSectionBody' : undefined
+          hx-swap=stage.link && stage.link.itemId ? 'innerHTML show:#messageContainer:top' : undefined
+          hx-trigger=stage.link ? "click, keyup[key=='Enter']" : undefined
+        )
           .dfStageDot
           .dfStageLabel= stage.label
           if stage.detail

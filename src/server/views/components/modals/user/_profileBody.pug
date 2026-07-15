@@ -1,7 +1,6 @@
 //- THE PROFILE BODY - THE RE-RENDER TARGET FOR TIER CLICKS AND FORM SAVES
 //- (BOTH TARGET #user-profile-body, outerHTML). LOCALS: profile
 include ../../../mixins/field
-include ../../../mixins/requestRow
 
 #user-profile-body
   //- IDENTITY BANNER - ACCENT STRIP + OVERLAPPED AVATAR, OLD-DISCORD STYLE
@@ -81,22 +80,26 @@ include ../../../mixins/requestRow
               if profile.fields[key]
                 +field(profile.fields[key], key, `profile-${profile.id}`, false)
 
-      //- WHAT THEY CAN DO - COMPUTED THROUGH THE REAL FEATURE RESOLVER
-      .userProfileSection
-        .userProfileSectionTitle Feature access
-        #user-profile-access
-          include _access
-
-      .userProfileSection
-        .userProfileSectionTitle Requests (#{profile.requests.total})
-        if !profile.requests.rows.length
-          .userProfileEmpty No requests yet.
-        else
-          .userProfileRequests
-            each req in profile.requests.rows
-              +requestRow(req, false)
-          if profile.requests.total > profile.requests.rows.length
-            .userProfileMoreNote Showing the latest #{profile.requests.rows.length} - the Requests section has the full history.
+      //- WHAT THEY ASKED FOR + WHAT THEY CAN DO - ONE TABBED SECTION.
+      //- REQUESTS LEAD; THE ACCESS PANEL (COMPUTED THROUGH THE REAL FEATURE
+      //- RESOLVER) STILL RE-RENDERS ALONE WHEN ITS SCOPE SELECT MOVES.
+      .userProfileSection.dfTabs
+        .dfTabBar(role="tablist")
+          button.dfTab.active(type="button" role="tab" aria-selected="true" data-tab-target="user-profile-tab-requests")
+            | Requests
+            span.dfTabCount= profile.requests.total
+          button.dfTab(type="button" role="tab" aria-selected="false" data-tab-target="user-profile-tab-access") Feature access
+        #user-profile-tab-requests.dfTabPanel(role="tabpanel")
+          if !profile.requests.rows.length
+            .userProfileEmpty No requests yet.
+          else
+            .userProfileRequests
+              - var requestsPage = profile.requests
+              - var requestsUserId = profile.id
+              include _requestsPage
+        #user-profile-tab-access.dfTabPanel(role="tabpanel" hidden)
+          #user-profile-access
+            include _access
 
     if profile.isBot && profile.fields.notes
       .userProfileSection

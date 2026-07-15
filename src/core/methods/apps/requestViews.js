@@ -157,7 +157,12 @@ module.exports = {
         stages.push({
           key: 'indexer', label: indexerLabel, state: 'done',
           detail: request.appId ? 'Added' : 'The handling app was removed',
-          at: request.decided_at, atLabel: shortStamp(request.decided_at)
+          at: request.decided_at, atLabel: shortStamp(request.decided_at),
+          // JUMP TO THE ITEM'S DETAIL IN THE HANDLING APP - ONLY WHEN THE
+          // APP STILL EXISTS TO SERVE IT
+          link: request.appId
+            ? { appId: request.appId, itemId: request.arr_id, tip: `Open in ${indexerLabel}` }
+            : null
         });
       } else {
         // LEGACY/FAILED ADD - APPROVED BUT NO SERVICE ITEM ID ON RECORD
@@ -192,13 +197,22 @@ module.exports = {
     } else {
       download = { state: 'pending', detail: null, progress: null };
     }
-    stages.push({ key: 'download', label: 'Download', at: null, atLabel: null, ...download });
+    stages.push({
+      key: 'download', label: 'Download', at: null, atLabel: null, ...download,
+      // AN UNFINISHED DOWNLOAD LIVES IN THE HANDLING APP'S QUEUE - JUMP THERE
+      link: !imported && request.status === true && request.appId
+        ? { appId: request.appId, section: 'queue', tip: `Open the ${indexerLabel} queue` }
+        : null
+    });
 
     stages.push({
       key: 'imported', label: 'Imported', state: imported ? 'done' : 'pending',
       detail: imported ? `Imported into ${indexerLabel}` : null,
       at: imported ? request.imported_at : null,
-      atLabel: imported ? shortStamp(request.imported_at) : null
+      atLabel: imported ? shortStamp(request.imported_at) : null,
+      link: imported && request.appId && request.arr_id
+        ? { appId: request.appId, itemId: request.arr_id, tip: `Open in ${indexerLabel}` }
+        : null
     });
 
     // NO MEDIA-SERVER STAGE WITHOUT A MEDIA SERVER - CLAIMING ONE WOULD LIE
@@ -209,9 +223,14 @@ module.exports = {
         label: config?.media_server_name || 'Media server',
         state: imported ? 'done' : 'pending',
         detail: imported
-          ? (hits.length ? hits.map(name => `On ${name}`).join(' · ') : 'Marked available on import')
+          ? (hits.length ? hits.map(hit => `On ${hit.name}`).join(' · ') : 'Marked available on import')
           : null,
-        at: null, atLabel: null
+        at: null, atLabel: null,
+        // FIRST CONFIRMING SERVER'S OWN ITEM DETAIL - CACHE HITS CARRY THE
+        // SERVICE ITEM ID, SO THE JUMP LANDS ON THE REAL THING
+        link: hits.length
+          ? { appId: hits[0].appId, itemId: hits[0].itemId, tip: `Open on ${hits[0].name}` }
+          : null
       });
     }
     return stages;
@@ -242,7 +261,8 @@ module.exports = {
     return indexes;
   },
 
-  // EVERY SERVER THAT CAN CONFIRM THE REQUEST'S MEDIA FROM ITS WARM CACHE.
+  // EVERY SERVER THAT CAN CONFIRM THE REQUEST'S MEDIA FROM ITS WARM CACHE -
+  // { name, appId, itemId } PER HIT SO THE PIPELINE CAN DEEP-LINK THE DETAIL.
   // MUSIC NEVER MATCHES - MEDIA-SERVER NORMALIZERS ONLY EMIT movie/show
   mediaServerHits(request, msIndexes) {
     const media = request.media || {};
@@ -257,7 +277,10 @@ module.exports = {
     };
     const hits = [];
     for (const index of msIndexes) {
-      if (this._matchInIndexes([index], result)) hits.push(index.instance.display_name);
+      const match = this._matchInIndexes([index], result);
+      if (match) {
+        hits.push({ name: index.instance.display_name, appId: index.instance.id, itemId: match.item.id });
+      }
     }
     return hits;
   },

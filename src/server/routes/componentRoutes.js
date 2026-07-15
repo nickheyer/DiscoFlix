@@ -30,6 +30,7 @@ const { fetchChatHistory, uploadChatMedia, jumpToPresent } = require('../api/cha
 const {
   getUserProfile,
   getUserProfileAccess,
+  getUserProfileRequestsPage,
   saveUserProfile,
   setUserTier
 } = require('../api/userProfile');
@@ -155,6 +156,7 @@ router.post('/requests/:id/jump', jumpToRequestMessage);
 // KEEPS SERVING OTHER MODEL TYPES
 router.get('/user/:id/profile', getUserProfile);
 router.get('/user/:id/profile/access', getUserProfileAccess);
+router.get('/user/:id/profile/requests/page/:page', getUserProfileRequestsPage);
 router.post('/user/:id/profile/save', saveUserProfile);
 router.post('/user/:id/tier', setUserTier);
 // INFO POPUPS ARE READ-ONLY - NO SAVE/DELETE ROUTES; EDITS LIVE IN THE

@@ -102,7 +102,9 @@ async function buildAccessSummary(core, user, scope) {
       guildId: scope || null
     });
     const effective = await features.effectiveRule(core, feature.id, scope || null);
-    const reasons = { disabled: 'off here', audience: `needs ${effective.audience}`, inactive: 'deactivated' };
+    // 'disabled' NOT 'forbidden': THE RULE IS OFF FOR EVERYONE IN THIS
+    // SCOPE, IT SAYS NOTHING ABOUT THIS PARTICULAR USER
+    const reasons = { disabled: 'disabled', audience: `needs ${effective.audience}`, inactive: 'deactivated' };
     rows.push({
       id: feature.id,
       label: feature.label,
@@ -118,6 +120,21 @@ async function buildAccessSummary(core, user, scope) {
   return { rows, liveRoles };
 }
 
+// ONE PAGE OF THE USER'S REQUEST HISTORY - VIEW MORE PAGINATION LIKE EVERY
+// OTHER LONG LIST (THE +1 ROW ONLY PROBES FOR A NEXT PAGE)
+async function buildProfileRequests(core, userId, page = 1) {
+  const raw = await core.models.mediaRequest.getUserRequests(userId, { users: true, app: true }, {
+    skip: (page - 1) * PROFILE_REQUEST_ROWS,
+    take: PROFILE_REQUEST_ROWS + 1
+  });
+  return {
+    total: await core.models.mediaRequest.countUserRequests(userId),
+    rows: raw.slice(0, PROFILE_REQUEST_ROWS).map(request => core.apps.buildRequestView(request)),
+    hasMore: raw.length > PROFILE_REQUEST_ROWS,
+    page
+  };
+}
+
 async function buildUserProfile(core, user, scope = '') {
   const config = await core.models.configuration.get();
   const tier = tierKeyOf(user);
@@ -126,7 +143,6 @@ async function buildUserProfile(core, user, scope = '') {
   const roleMappingsConfigured = [config.admin_role_ids, config.staff_role_ids, config.whitelist_role_ids]
     .some(value => String(value || '').trim());
 
-  const requests = await core.models.mediaRequest.getUserRequests(user.id, { users: true, app: true });
   const wantScope = (user.discord_servers || []).some(server => server.server_id === scope) ? scope : '';
 
   return {
@@ -168,10 +184,7 @@ async function buildUserProfile(core, user, scope = '') {
       ...(user.discord_servers || []).map(server => ({ value: server.server_id, label: server.server_name }))
     ],
     access: (user.is_bot || user.is_client) ? { rows: [], liveRoles: false } : await buildAccessSummary(core, user, wantScope),
-    requests: {
-      total: requests.length,
-      rows: requests.slice(0, PROFILE_REQUEST_ROWS).map(request => core.apps.buildRequestView(request))
-    }
+    requests: await buildProfileRequests(core, user.id)
   };
 }
 
@@ -187,6 +200,18 @@ async function getUserProfile(ctx) {
   }
   const profile = await buildUserProfile(ctx.core, user);
   return ctx.compileView('modals/user/profile.pug', { profile });
+}
+
+// THE REQUESTS VIEW MORE BUTTON SWAPS ITSELF FOR THE NEXT PAGE'S ROWS
+async function getUserProfileRequestsPage(ctx) {
+  const user = await loadUser(ctx.core, ctx.params.id);
+  if (!user) {
+    ctx.status = 404;
+    return;
+  }
+  const page = Math.max(1, parseInt(ctx.params.page, 10) || 1);
+  const requestsPage = await buildProfileRequests(ctx.core, user.id, page);
+  return ctx.compileView('modals/user/_requestsPage.pug', { requestsPage, requestsUserId: user.id });
 }
 
 // THE ACCESS SCOPE SELECT RE-RENDERS ONLY ITS OWN SECTION
@@ -264,6 +289,7 @@ module.exports = {
   buildUserProfile,
   getUserProfile,
   getUserProfileAccess,
+  getUserProfileRequestsPage,
   saveUserProfile,
   setUserTier
 };

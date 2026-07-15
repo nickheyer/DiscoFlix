@@ -34,6 +34,17 @@ mixin chatRequestCard(card, oob)
                 | #{card.progress.percent}%
                 if card.progress.timeleft
                   |  • #{card.progress.timeleft} left
+          //- INTO THE REQUESTS SECTION'S FULL PIPELINE VIEW, PRE-FILTERED
+          //- TO THIS TITLE (?request= SEEDS THE SECTION SEARCH)
+          button.request-jump-button.chatRequestOpen(
+            type="button"
+            aria-label="Open in the Requests section"
+            data-tooltip-dir="top"
+            hx-post=`/discoflix/section/requests?request=${card.id}`
+          )
+            svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true")
+              path(d="M8 6h13M8 12h13M8 18h13")
+              path(d="M3 6h.01M3 12h.01M3 18h.01")
     if card.state === 'pending'
       .chatRequestActions
         if options.length > 1

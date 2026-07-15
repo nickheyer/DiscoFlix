@@ -991,6 +991,12 @@
   height: 100%;
 }
 
+/* THE PROFILE ROW'S ICON PAIR - OPEN-IN-REQUESTS + JUMP SIT SIDE BY SIDE */
+.request-row-actions {
+  display: flex;
+  gap: 4px;
+}
+
 .request-approve-button,
 .request-deny-button {
   border: none;
@@ -1219,16 +1225,56 @@
   color: var(--header-secondary);
 }
 
-/* FEATURE ACCESS ROWS - LABEL LEFT, VERDICT CHIP + EXTENT COPY RIGHT */
+/* UNDERLINE TABS - .dfTabs WRAPS ONE .dfTabBar OF [data-tab-target] BUTTONS
+   PLUS THE .dfTabPanel SIBLINGS THEY REVEAL (TOGGLE LIVES IN source.js) */
+.dfTabBar {
+  display: flex;
+  gap: 16px;
+  border-bottom: 1px solid var(--bg-tertiary);
+  margin-bottom: 12px;
+}
+
+.dfTab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 2px 8px;
+  margin-bottom: -1px;
+  background: none;
+  border-bottom: 2px solid transparent;
+  color: var(--interactive-normal);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.dfTab:hover {
+  color: var(--interactive-hover);
+}
+
+.dfTab.active {
+  color: var(--header-primary);
+  border-bottom-color: var(--blurple);
+  cursor: default;
+}
+
+.dfTabCount {
+  padding: 0 6px;
+  border-radius: 8px;
+  background-color: var(--bg-modifier-selected);
+  color: var(--interactive-normal);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* FEATURE ACCESS ROWS - LABEL + VERDICT CHIP ON THE TOP LINE, EXTENT COPY ON
+   ITS OWN LINE BELOW SO LONG LIMIT STRINGS NEVER CROWD THE CHIP */
 .userAccessScope {
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
 .userAccessRow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 5px 0;
+  padding: 10px 2px;
   border-bottom: 1px solid var(--bg-secondary);
   font-size: 13px;
 }
@@ -1237,10 +1283,16 @@
   border-bottom: none;
 }
 
+.userAccessHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .userAccessLabel {
-  flex: 1;
   color: var(--text-normal);
-  min-width: 0;
+  font-weight: 500;
 }
 
 .userAccessChip {
@@ -1264,9 +1316,10 @@
 }
 
 .userAccessExtents {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted);
-  text-align: right;
+  margin-top: 4px;
+  line-height: 1.5;
 }
 
 .userAccessExtents.muted {
@@ -1285,8 +1338,8 @@
   font-style: italic;
 }
 
-.userProfileMoreNote {
-  margin-top: 6px;
-  font-size: 11px;
-  color: var(--text-muted);
+.userProfileRequests .appLoadMore {
+  align-self: center;
+  min-width: 160px;
+  margin-top: 4px;
 }

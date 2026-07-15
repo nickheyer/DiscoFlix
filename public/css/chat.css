@@ -544,7 +544,12 @@
   align-items: center;
   font-size: 15px;
 
+  /* OG-DISCORD ATTACH - A FILLED CIRCLE WITH THE PLUS KNOCKED OUT IN THE
+     INPUT'S OWN BACKGROUND; FLEX-CENTERED SO THE GLYPH SITS DEAD CENTER */
   .plusButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     border-radius: 50%;
     background: var(--interactive-normal);
     color: var(--bg-chat-input);
@@ -556,7 +561,13 @@
     transition: background-color 0.15s ease;
   }
 
-  .plusButton:hover {
+  .plusButton svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .plusButton:hover,
+  .plusButton:focus-visible {
     background: var(--interactive-active);
   }
 
@@ -640,6 +651,37 @@
 .chatAuthorUsername.clickable:hover,
 .chatAuthorUsername.clickable:focus-visible {
   text-decoration: underline;
+}
+
+/* ---- ENTITY PILLS - @user/@role/#channel GET THE OG-DISCORD MENTION
+   TREATMENT (BLURPLE INK ON A FAINT BLURPLE WASH); ROLE PILLS OVERRIDE THE
+   TINT INLINE WITH THE ROLE'S OWN COLOR. RESOLVED USER PILLS CLICK THROUGH
+   TO THE SAME PROFILE MODAL AUTHOR NAMES OPEN. ---- */
+.chatMention {
+  padding: 0 2px;
+  border-radius: 3px;
+  font-weight: 500;
+  color: var(--blurple);
+  background-color: rgba(114, 137, 218, 0.1);
+  transition: background-color 0.1s ease, color 0.1s ease;
+}
+
+.chatMentionUser {
+  cursor: pointer;
+}
+
+.chatMentionUser:hover,
+.chatMentionUser:focus-visible {
+  color: #fff;
+  background-color: var(--blurple);
+}
+
+/* CUSTOM EMOJI - INLINE AT DISCORD'S CHAT SIZE, BASELINE-HUGGING */
+.chatEmoji {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  vertical-align: bottom;
 }
 
 /* A DISABLED + (NO ACTIVE CHANNEL) READS AS FURNITURE, NOT A CONTROL */
@@ -788,6 +830,11 @@
   align-items: center;
   gap: 10px;
   margin-top: 6px;
+}
+
+/* OPEN-IN-REQUESTS RIDES THE STATE ROW'S RIGHT EDGE */
+.chatRequestOpen {
+  margin-left: auto;
 }
 
 .chatRequestProgress {

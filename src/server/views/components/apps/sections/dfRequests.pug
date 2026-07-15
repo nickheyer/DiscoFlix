@@ -11,6 +11,7 @@
     input.appSearchInput(
       type="search"
       name="search"
+      value=requests.search || ''
       placeholder="Filter requests..."
       autocomplete="off"
       hx-get=`/apps/${activeApp.id}/requests`

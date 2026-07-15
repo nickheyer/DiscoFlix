@@ -6,7 +6,7 @@ include ../../../mixins/overview
 - var bot = sectionData.bot
 
 .appSectionDoc
-  +aboutApp({ icon: bot.avatar || '/images/favicon.png', round: true, name: bot.username, nameSuffix: `#${bot.discriminator}`, pill: { text: bot.online ? 'online' : 'offline', class: bot.online ? 'ok' : 'down' }, sub: bot.enabled ? 'The bot is powered on' : 'The bot is powered off', sub2: `DiscoFlix v${bot.version}` })
+  +aboutApp({ icon: bot.avatar || '/images/favicon.png', round: true, name: bot.username, nameSuffix: `#${bot.discriminator}`, pill: { text: bot.online ? 'online' : 'offline', class: bot.online ? 'ok' : 'down' }, brand: { icon: '/images/favicon.png', name: 'DiscoFlix', version: `v${bot.version}` }, sub: bot.enabled ? 'The bot is powered on' : 'The bot is powered off' })
 
   +overviewNotices(sectionData.problems)
 

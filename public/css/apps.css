@@ -56,14 +56,51 @@
   border-radius: 50%;
 }
 
+/* NAME, DISCRIMINATOR, AND STATUS PILL ON ONE FLEX LINE - THE GAP KEEPS THE
+   PILL OFF THE NAME AT EVERY LENGTH, WRAPPING KEEPS IT HONEST ON NARROW VIEWS */
 .appAboutName {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px 10px;
   font-size: 24px;
   font-weight: 700;
   color: var(--header-primary);
 }
 
-.appAboutName .appStatusPill {
-  vertical-align: middle;
+.appAboutTitle {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* PRODUCT CHIP - DISCOFLIX MARK + RELEASE VERSION (CONTAINER DEPLOYS ARE
+   VERSIONED, SO THE OPERATOR CAN ALWAYS SEE WHICH ONE IS RUNNING) */
+.appAboutBrand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px 4px 8px;
+  border-radius: 999px;
+  background-color: var(--bg-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--header-secondary);
+}
+
+.appAboutBrandIcon {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+}
+
+.appVersionPill {
+  padding: 1px 7px;
+  border-radius: 10px;
+  background-color: var(--bg-modifier-selected);
+  color: var(--interactive-normal);
+  font-size: 11px;
+  font-weight: 700;
 }
 
 .appAboutSub {
@@ -933,11 +970,6 @@
 .appEpisodeLoading .appSpinner {
   width: 14px;
   height: 14px;
-}
-
-/* REJECTED RELEASES STAY GRABBABLE BUT READ AS SECOND-CHOICE */
-.libraryReleaseRow.rejected {
-  opacity: 0.7;
 }
 
 /* MANAGE PANEL - QUALITY/ROOT EDIT IN THE FACTS COLUMN */
@@ -2114,22 +2146,252 @@
   color: var(--text-muted);
 }
 
-/* ---- RELEASES (INDEXER SEARCH + GRAB) ---- */
+/* ---- RELEASES (INDEXER SEARCH + ARR INTERACTIVE SEARCH) ----
+   ONE TABLE GRID FOR BOTH SURFACES: EVERY ROW AND THE HEAD SHARE
+   .releaseGrid'S COLUMN TEMPLATE SO SIZES, AGES, AND SEED COUNTS ALIGN.
+   SORTING IS CLIENT-SIDE (source.js) OVER THE ROWS' data-* KEYS. */
 
-.releaseTitle {
+.releaseGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 96px 72px 52px 52px 112px;
+  gap: 12px;
+  align-items: center;
+}
+
+.releaseRows {
+  display: flex;
+  flex-direction: column;
+}
+
+/* STRIPED TABLE ROWS INSTEAD OF GAPPED CARDS - DENSE LISTS SCAN BETTER */
+.releaseEntry {
+  padding: 8px 10px;
+  border-radius: 4px;
+}
+
+.releaseEntry:nth-child(odd) {
+  background-color: var(--bg-secondary);
+}
+
+.releaseEntry:hover {
+  background-color: var(--bg-modifier-hover);
+}
+
+/* REJECTED RELEASES STAY GRABBABLE BUT READ AS SECOND-CHOICE - HOVER
+   RESTORES FULL INK SO THE REJECTION TOOLTIP IS READ IN FOCUS */
+.releaseEntry.rejected {
+  opacity: 0.55;
+}
+
+.releaseEntry.rejected:hover {
+  opacity: 1;
+}
+
+/* COLUMN HEAD - STICKS TO THE SURFACE'S SCROLL EDGE ON LONG SWEEPS */
+.releaseHead {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 6px 10px 8px;
+  background-color: var(--bg-primary);
+  align-items: end;
+}
+
+.releaseSort {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px;
+  padding: 0;
+  background: none;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--channel-default);
+  cursor: pointer;
+}
+
+.releaseSort:hover {
+  color: var(--interactive-hover);
+}
+
+.releaseSort.asc::after,
+.releaseSort.desc::after {
+  font-size: 8px;
+  line-height: 1;
+}
+
+.releaseSort.asc::after {
+  content: '▲';
+}
+
+.releaseSort.desc::after {
+  content: '▼';
+}
+
+.releaseSort.releaseCellNum {
+  justify-content: flex-end;
+}
+
+/* TITLE CELL - SCENE NAME WRAPS FREELY, THE META LINE CARRIES PROTOCOL,
+   INDEXER, AND LANGUAGES SO THE TITLE ROW STAYS CLEAN */
+.releaseCellTitle {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+}
+
+.releaseTitleWrap {
+  min-width: 0;
+}
+
+.releaseName {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--header-primary);
   overflow-wrap: anywhere;
+}
+
+.releaseMetaLine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 3px 8px;
+  margin-top: 3px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.releaseProtocol {
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.releaseProtocol.torrent {
+  color: var(--blurple);
+  background-color: rgba(114, 137, 218, 0.15);
+}
+
+.releaseProtocol.usenet {
+  color: var(--green);
+  background-color: rgba(67, 181, 129, 0.15);
+}
+
+.releaseRejectedIcon {
+  display: inline-flex;
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--yellow);
+  cursor: help;
+}
+
+.releaseCellQuality {
+  min-width: 0;
+}
+
+.releaseCellQuality .queueRowChip {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.releaseCellBlank {
+  color: var(--text-muted);
+}
+
+.releaseCellNum {
+  font-size: 12px;
+  color: var(--header-secondary);
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.releaseSeeders.good {
+  color: var(--green);
+}
+
+.releaseSeeders.low {
+  color: var(--yellow);
+}
+
+.releaseSeeders.dead {
+  color: var(--red);
+}
+
+/* ACTION CELL - BUTTON, TARGET SELECT, OR OUTCOME CHIP; ALWAYS ONE COLUMN
+   WIDE SO EVERY ROW'S ACTION LINES UP */
+.releaseCellAction {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+}
+
+.releaseCellAction .requestChip {
+  text-align: center;
 }
 
 .releaseGrabForm {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.releaseGrabForm .request-instance-select {
+  width: 100%;
+  min-width: 0;
+}
+
+.releaseGrabButton {
+  padding: 5px 10px;
+  border-radius: 3px;
+  background-color: var(--green);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.releaseGrabButton:hover {
+  background-color: var(--green-hover);
+}
+
+.releaseGrabButton:disabled {
+  opacity: 0.6;
+  cursor: progress;
 }
 
 .releaseNoTarget {
   font-size: 12px;
   color: var(--text-muted);
   white-space: nowrap;
+  text-align: center;
+}
+
+/* NARROW VIEWS DROP THE QUALITY + AGE COLUMNS - TITLE, SIZE, SEEDS, AND THE
+   ACTION ARE THE DECISION-MAKERS */
+@media (max-width: 780px) {
+  .releaseGrid {
+    grid-template-columns: minmax(0, 1fr) 60px 44px 96px;
+    gap: 8px;
+  }
+
+  .releaseCellQuality,
+  .releaseCellAge {
+    display: none;
+  }
 }
 
 .releaseIndexerRow {
@@ -2150,12 +2412,41 @@
   background-color: var(--red);
 }
 
-/* ---- DISCOFLIX LOGS ---- */
+/* ---- DISCOFLIX LOGS - THE EventLog TABLE DRESSED LIKE THE RELEASE GRID:
+   ONE SHARED COLUMN TEMPLATE, STICKY HEAD, STRIPED HOVERABLE ROWS, TINTED
+   LEVEL CHIPS. THE PANEL SCROLLS ON ITS OWN BOUNDED BOX SO THE VIEW MORE
+   SENTINEL STAYS AT ITS FLOOR INSTEAD OF STRETCHING THE SURFACE. ---- */
 
 .dfLogControls {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 16px;
+  margin-bottom: 4px;
+}
+
+/* THE TOOLBAR TALLY - OOB-SWAPPED BY EVERY FILTER RESPONSE; SECTION-HEADER
+   TYPOGRAPHY SO THE ROW READS LIKE EVERY OTHER SURFACE'S HEADER LINE */
+.dfLogCount {
+  margin-right: auto;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--channel-default);
+  white-space: nowrap;
+}
+
+.dfLogSearch {
+  flex: 0 1 320px;
+  min-width: 140px;
+  background-color: var(--bg-chat-input);
+  color: var(--text-normal);
+  border: none;
+  border-radius: 5px;
+  padding: 8px 12px;
+  font-size: 13px;
+  outline: none;
+}
+
+.dfLogSearch::placeholder {
+  color: var(--text-muted);
 }
 
 .dfLogLevelSelect {
@@ -2169,60 +2460,107 @@
   cursor: pointer;
 }
 
-.dfLogRow {
-  display: flex;
+/* EVERY ROW AND THE HEAD SHARE ONE COLUMN TEMPLATE - TIMES, CHIPS, AND
+   MESSAGES ALIGN THE WAY THE RELEASE TABLE'S CELLS DO */
+.dfLogGrid {
+  display: grid;
+  grid-template-columns: 132px 64px minmax(0, 1fr);
+  gap: 12px;
   align-items: baseline;
-  gap: 10px;
-  padding: 5px 10px;
+}
+
+.dfLogPanel {
+  min-height: 180px;
+  max-height: calc(100vh - 280px);
+  overflow-y: auto;
+}
+
+.dfLogPanel .appQueueEmpty {
+  padding: 24px 12px;
+}
+
+/* COLUMN HEAD - STICKS TO THE PANEL'S SCROLL EDGE ON LONG SWEEPS */
+.dfLogHead {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 6px 10px 8px;
+  background-color: var(--bg-primary);
+}
+
+.dfLogHeadLabel {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--channel-default);
+}
+
+.dfLogRow {
+  padding: 8px 10px;
   border-radius: 4px;
-  font-family: 'Consolas', 'Courier New', monospace;
-  font-size: 12px;
-  line-height: 1.5;
 }
 
 .dfLogRow:nth-child(odd) {
   background-color: var(--bg-secondary);
 }
 
-.dfLogWhen {
-  flex-shrink: 0;
-  color: var(--text-muted);
-  white-space: nowrap;
+.dfLogRow:hover {
+  background-color: var(--bg-modifier-hover);
 }
 
+.dfLogWhen {
+  font-size: 12px;
+  color: var(--header-secondary);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* LEVELS ARE TINTED CHIPS LIKE THE RELEASE TABLE'S PROTOCOL PILLS - DEBUG
+   AND FRIENDS FALL THROUGH TO THE MUTED BASE */
 .dfLogLevel {
-  flex-shrink: 0;
-  width: 44px;
+  justify-self: start;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.3px;
   color: var(--interactive-normal);
+  background-color: var(--bg-modifier-selected);
 }
 
 .dfLogLevel-error {
   color: var(--red);
+  background-color: rgba(240, 71, 71, 0.12);
 }
 
 .dfLogLevel-warn {
   color: var(--yellow);
+  background-color: rgba(250, 166, 26, 0.12);
 }
 
 .dfLogLevel-info {
   color: var(--blurple);
+  background-color: rgba(114, 137, 218, 0.15);
 }
 
 .dfLogBody {
   min-width: 0;
-  display: flex;
-  flex-direction: column;
 }
 
 .dfLogMessage {
+  font-size: 13px;
+  line-height: 1.35;
   color: var(--text-normal);
   overflow-wrap: anywhere;
 }
 
+/* STRUCTURED PAYLOAD TAIL - ONE MONO LINE, FULL TEXT ON HOVER VIA title */
 .dfLogMetadata {
+  margin-top: 3px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 11px;
   color: var(--text-muted);
   white-space: nowrap;
   overflow: hidden;
@@ -2234,6 +2572,19 @@
   margin: 12px auto 0;
   min-width: 160px;
   display: flex;
+}
+
+/* NARROW VIEWS DROP THE TIME COLUMN - LEVEL AND MESSAGE ARE THE READ */
+@media (max-width: 640px) {
+  .dfLogGrid {
+    grid-template-columns: 64px minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .dfLogWhen,
+  .dfLogHead .dfLogHeadLabel:first-child {
+    display: none;
+  }
 }
 
 /* UNREACHABLE-SERVICE NOTE WHERE THE ADD-DEFAULT SELECTS WOULD RENDER */
@@ -2376,6 +2727,23 @@
 
 .dfStage.stage-pending .dfStageLabel {
   color: var(--text-muted);
+}
+
+/* A LINKED STAGE JUMPS TO WHERE THE REQUEST LIVES NOW - THE DOTTED
+   UNDERLINE SIGNALS CLICKABILITY WITHOUT MOVING THE STEPPER GEOMETRY */
+.dfStage.dfStageLink {
+  cursor: pointer;
+}
+
+.dfStage.dfStageLink .dfStageLabel {
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+
+.dfStage.dfStageLink:hover .dfStageLabel,
+.dfStage.dfStageLink:focus-visible .dfStageLabel {
+  color: var(--interactive-hover);
+  text-decoration-style: solid;
 }
 
 .dfStageDetail {

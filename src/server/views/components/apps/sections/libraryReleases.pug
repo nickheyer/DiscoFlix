@@ -28,6 +28,8 @@ include ../../../mixins/releases
   else if !releases.length
     .appQueueEmpty The indexers came back empty - try again later or check them in #{activeApp.display_name}.
   else
-    .appBrowseList
-      each release in releases
-        +interactiveReleaseRow(release, activeApp.id, itemId)
+    .releaseTable
+      +releaseTableHead('Quality')
+      .releaseRows
+        each release in releases
+          +interactiveReleaseRow(release, activeApp.id, itemId)

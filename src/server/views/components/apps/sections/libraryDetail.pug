@@ -4,7 +4,7 @@
 //- POINTS THE BACK BUTTON AT THE RAIL INPUT'S SEARCH RESULTS INSTEAD OF THE
 //- LIBRARY LISTING. LOCALS: activeApp, detail | detailError, ephemeral?, backTo?
 - var isEphemeral = typeof ephemeral !== 'undefined' && !!ephemeral
-- var backTarget = (typeof backTo === 'string' && ['search', 'hub'].includes(backTo)) ? backTo : 'library'
+- var backTarget = (typeof backTo === 'string' && ['search', 'hub', 'requests'].includes(backTo)) ? backTo : 'library'
 .appSectionDoc
   if backTarget === 'search'
     //- RE-RUNS THE TERM STILL SITTING IN THE RAIL INPUT - SAME RESULTS, SAME VIEW
@@ -28,6 +28,16 @@
       svg(viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true")
         path(d="M15 19l-7-7 7-7")
       span Library
+  else if backTarget === 'requests'
+    //- BACK TO THE REQUEST PIPELINE ON THE DISCOFLIX TAKEOVER
+    button.appDetailBack(
+      type="button"
+      hx-post="/discoflix/section/requests"
+      hx-disabled-elt="this"
+    )
+      svg(viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true")
+        path(d="M15 19l-7-7 7-7")
+      span Requests
   else
     button.appDetailBack(
       type="button"

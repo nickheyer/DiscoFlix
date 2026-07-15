@@ -30,16 +30,30 @@ mixin requestRow(req, oob)
       if req.origMessage
         .request-orig-message= req.origMessage
     .request-status
-      if req.canJump
+      .request-row-actions
+        //- INTO THE REQUESTS SECTION'S PIPELINE VIEW, PRE-FILTERED TO THIS
+        //- TITLE - THE MODAL DISMISSES ITSELF SO THE TAKEOVER IS VISIBLE
         button.request-jump-button(
           type="button"
-          aria-label="Jump to the original message"
+          aria-label="Open in the Requests section"
           data-tooltip-dir="top"
-          hx-post=`/requests/${req.id}/jump`
-          hx-swap="none"
-          hx-select-oob="#serverSelector,#guildNameBanner"
+          data-bs-dismiss="modal"
+          hx-post=`/discoflix/section/requests?request=${req.id}`
         )
           svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true")
-            path(d="M9 10l-5 5 5 5")
-            path(d="M20 4v7a4 4 0 0 1-4 4H4")
+            path(d="M8 6h13M8 12h13M8 18h13")
+            path(d="M3 6h.01M3 12h.01M3 18h.01")
+        if req.canJump
+          button.request-jump-button(
+            type="button"
+            aria-label="Jump to the original message"
+            data-tooltip-dir="top"
+            data-bs-dismiss="modal"
+            hx-post=`/requests/${req.id}/jump`
+            hx-swap="none"
+            hx-select-oob="#serverSelector,#guildNameBanner"
+          )
+            svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true")
+              path(d="M9 10l-5 5 5 5")
+              path(d="M20 4v7a4 4 0 0 1-4 4H4")
       span.requestChip(class=`chip-${req.state}`)= req.stateLabel

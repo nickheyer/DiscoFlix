@@ -85,6 +85,7 @@ class Nzbhydra2Client extends BaseClient {
         sizeHuman: BaseClient.humanSize(size),
         seeders: attrs.seeders != null ? Number(attrs.seeders) : null,
         age: BaseClient.humanAge(item.pubDate),
+        ageMinutes: BaseClient.ageMinutes(item.pubDate),
         downloadUrl: enclosure.url || item.link || null,
         raw: item
       };

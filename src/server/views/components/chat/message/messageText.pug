@@ -3,10 +3,11 @@
 //- CURRENT TEXT WITH A CLASSIC (edited) MARKER
 - var wasEdited = typeof edited_at !== 'undefined' && edited_at
 - var oldText = typeof previous_content !== 'undefined' ? previous_content : null
+- var mCtx = typeof mentionCtx !== 'undefined' ? mentionCtx : null
 if wasEdited && oldText && oldText !== messageText
-  p.chatMessageTextOld !{md(oldText)}
+  p.chatMessageTextOld !{md(oldText, mCtx)}
 if messageText
   p.chatMessageText
-    | !{md(messageText)}
+    | !{md(messageText, mCtx)}
     if wasEdited
       span.editedTag  (edited)

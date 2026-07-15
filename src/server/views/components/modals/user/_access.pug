@@ -16,12 +16,13 @@ else
   .userAccessRows
     each row in profile.access.rows
       .userAccessRow
-        span.userAccessLabel= row.label
-        if row.allowed
-          span.userAccessChip.allowed allowed
-          if row.extents
-            span.userAccessExtents= row.extents
-        else
-          span.userAccessChip.denied= row.reason || 'denied'
-          if row.rolesMayWiden
-            span.userAccessExtents.muted +roles may widen this in-server
+        .userAccessHead
+          .userAccessLabel= row.label
+          if row.allowed
+            span.userAccessChip.allowed allowed
+          else
+            span.userAccessChip.denied= row.reason || 'denied'
+        if row.allowed && row.extents
+          .userAccessExtents= row.extents
+        else if !row.allowed && row.rolesMayWiden
+          .userAccessExtents.muted +roles may widen this in-server

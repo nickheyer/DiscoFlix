@@ -170,6 +170,63 @@ function makeRailSortable(containerId) {
   });
 }
 
+// ---- TAB VIEWS ----
+// A .dfTabs WRAPPER HOLDS ONE .dfTabBar OF [data-tab-target] BUTTONS AND THE
+// .dfTabPanel SIBLINGS THEY POINT AT. DELEGATED: MODAL BODIES RE-RENDER ON
+// EVERY SAVE, AND A FRESH RENDER FALLS BACK TO ITS SERVER-MARKED DEFAULT TAB.
+document.addEventListener('click', function (evt) {
+  const tab = evt.target.closest ? evt.target.closest('[data-tab-target]') : null;
+  if (!tab) return;
+  const tabs = tab.closest('.dfTabs');
+  if (!tabs) return;
+  tabs.querySelectorAll('[data-tab-target]').forEach(function (button) {
+    const active = button === tab;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-selected', active ? 'true' : 'false');
+  });
+  tabs.querySelectorAll('.dfTabPanel').forEach(function (panel) {
+    panel.hidden = panel.id !== tab.getAttribute('data-tab-target');
+  });
+});
+
+// ---- RELEASE TABLE SORTING ----
+// HEAD BUTTONS REORDER THE FETCHED ROWS IN PLACE - THE ARRS ARE SLOW, SO THE
+// SWEEP THAT ALREADY LANDED IS NEVER RE-ASKED. FIRST CLICK USES THE COLUMN'S
+// NATURAL DIRECTION (BIGGEST/FRESHEST/BEST-SEEDED FIRST), A SECOND FLIPS IT;
+// ROWS MISSING THE KEY SINK TO THE BOTTOM EITHER WAY.
+const RELEASE_SORT_DEFAULT_DIR = { title: 'asc', quality: 'asc', size: 'desc', age: 'asc', seeders: 'desc' };
+const RELEASE_SORT_NUMERIC = ['size', 'age', 'seeders'];
+
+document.addEventListener('click', function (evt) {
+  const button = evt.target.closest ? evt.target.closest('.releaseSort') : null;
+  if (!button) return;
+  const table = button.closest('.releaseTable');
+  const rows = table ? table.querySelector('.releaseRows') : null;
+  if (!rows) return;
+
+  const key = button.getAttribute('data-sort');
+  const dir = button.classList.contains('asc') ? 'desc'
+    : button.classList.contains('desc') ? 'asc'
+    : (RELEASE_SORT_DEFAULT_DIR[key] || 'asc');
+  table.querySelectorAll('.releaseSort').forEach(function (other) {
+    other.classList.remove('asc', 'desc');
+  });
+  button.classList.add(dir);
+
+  const numeric = RELEASE_SORT_NUMERIC.includes(key);
+  const factor = dir === 'asc' ? 1 : -1;
+  Array.from(rows.children)
+    .map(function (row, index) { return { row: row, index: index }; })
+    .sort(function (a, b) {
+      const va = a.row.getAttribute('data-' + key) || '';
+      const vb = b.row.getAttribute('data-' + key) || '';
+      if (!va || !vb) return (va ? 0 : 1) - (vb ? 0 : 1) || a.index - b.index;
+      const cmp = numeric ? Number(va) - Number(vb) : va.localeCompare(vb);
+      return cmp * factor || a.index - b.index;
+    })
+    .forEach(function (entry) { rows.appendChild(entry.row); });
+});
+
 // ---- CHAT HISTORY + DEEP LINKS ----
 
 // A PREPENDED HISTORY BATCH CAN MAKE THE OLD SEAM DIVIDER A SAME-DAY DUPE -

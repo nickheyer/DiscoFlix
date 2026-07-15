@@ -67,6 +67,7 @@ class JackettClient extends BaseClient {
         sizeHuman: BaseClient.humanSize(raw.Size),
         seeders: typeof raw.Seeders === 'number' ? raw.Seeders : null,
         age: BaseClient.humanAge(raw.PublishDate),
+        ageMinutes: BaseClient.ageMinutes(raw.PublishDate),
         downloadUrl: raw.MagnetUri || raw.Link || null,
         raw
       }))

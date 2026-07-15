@@ -1,5 +1,6 @@
 //- RENDERS `embedList` (PARSED DISCORD EMBED JSON). ALL TEXT INTERPOLATION IS
 //- ESCAPED - EMBED CONTENT IS DISCORD-CONTROLLED. ONLY http(s) URLS RENDER.
+- var mCtx = typeof mentionCtx !== 'undefined' ? mentionCtx : null
 if embedList && embedList.length
   each embed in embedList
     - var borderColor = embed.color ? `#${Number(embed.color).toString(16).padStart(6, '0')}` : '#7289da'
@@ -13,13 +14,13 @@ if embedList && embedList.length
           .chatEmbedTitle= embed.title
         if embed.description
           //- md() ESCAPES BEFORE SUBSTITUTING TAGS - EMBED MARKDOWN RENDERS LIKE DISCORD
-          .chatEmbedDescription !{md(embed.description)}
+          .chatEmbedDescription !{md(embed.description, mCtx)}
         if embed.fields && embed.fields.length
           .chatEmbedFields
             each field in embed.fields
               .chatEmbedField
                 .chatEmbedFieldName= field.name
-                .chatEmbedFieldValue !{md(field.value)}
+                .chatEmbedFieldValue !{md(field.value, mCtx)}
         if imageUrl
           .chatEmbedImage.chatMessageAttachment
             img(src=imageUrl alt="embed image" referrerpolicy="no-referrer")

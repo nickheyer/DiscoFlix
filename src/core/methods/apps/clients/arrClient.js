@@ -255,9 +255,11 @@ class ArrClient extends BaseClient {
       indexer: raw.indexer || null,
       quality: raw.quality?.quality?.name || null,
       protocol: raw.protocol === 'usenet' ? 'usenet' : 'torrent',
+      size: raw.size ?? null,
       sizeHuman: ArrClient.humanSize(raw.size),
       seeders: raw.seeders ?? null,
       age: ArrClient.humanAge(raw.publishDate) || (raw.age != null ? `${raw.age}d` : null),
+      ageMinutes: raw.ageMinutes != null ? Math.round(raw.ageMinutes) : ArrClient.ageMinutes(raw.publishDate),
       languages: (raw.languages || []).map(lang => lang.name).filter(Boolean).join(', ') || null,
       rejected: !!raw.rejected,
       rejections: raw.rejections || []

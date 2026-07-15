@@ -16,9 +16,11 @@ else if sectionData.mode === 'search'
     else if !releases.length
       .appQueueEmpty No releases for “#{sectionData.searchTerm}” on #{activeApp.display_name}.
     else
-      .appBrowseList
-        each release in releases
-          +releaseRow(release, activeApp.id, sectionData.grabTargets)
+      .releaseTable
+        +releaseTableHead('Category')
+        .releaseRows
+          each release in releases
+            +releaseRow(release, activeApp.id, sectionData.grabTargets)
 else
   .appSectionDoc
     if sectionData.indexers && sectionData.indexers.length
