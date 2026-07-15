@@ -97,7 +97,8 @@ class CoreService {
 
   get prisma() {
     if (!this._prisma) {
-      this._prisma = new PrismaClient();
+      // ABSOLUTE URL FROM paths.js SO THE DB FOLLOWS DF_DATA_DIR
+      this._prisma = new PrismaClient({ datasourceUrl: require('./paths').DATABASE_URL });
     }
     return this._prisma;
   }

@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "bin": {
+    "discoflix": "src/server/server.js"
+  },
   "directories": {
     "test": "tests"
   },
@@ -12,7 +15,22 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "migrate": "npx prisma migrate dev && npx prisma generate",
     "vendor": "node scripts/vendor.js",
+    "build:binary": "pkg . --no-bytecode --public --public-packages \"*\" --output dist/discoflix",
     "reset": "rm -rf .cache && rm -rf ./prisma/disco.db* ./prisma/migrations && npx prisma migrate dev --name init && npx prisma generate"
+  },
+  "pkg": {
+    "scripts": [
+      "src/**/*.js",
+      "logging.js"
+    ],
+    "assets": [
+      "public/**/*",
+      "src/server/views/**/*",
+      "prisma/schema.prisma",
+      "prisma/migrations/**/*",
+      "node_modules/.prisma/client/**/*",
+      "node_modules/axios/dist/node/**/*"
+    ]
   },
   "keywords": [],
   "author": "Nicholas Heyer",
@@ -44,6 +62,7 @@
     "ws": "^8.16.0"
   },
   "devDependencies": {
+    "@yao-pkg/pkg": "^6.21.0",
     "prisma": "~6.2.1"
   }
 }

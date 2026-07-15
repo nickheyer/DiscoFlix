@@ -1,4 +1,6 @@
 const util = require('util');
+const path = require('path');
+const { LOGS_DIR } = require('./src/core/paths');
 const { createLogger, transports } = require('winston');
 const Transport = require('winston-transport');
 const { default: logWrapper } = require('@epegzz/winston-dev-console');
@@ -71,7 +73,7 @@ function getLogger() {
     level: 'silly',
     transports: [
       new transports.DailyRotateFile({
-        filename: `${__dirname}/logs/dflog-%DATE%.log`,
+        filename: path.join(LOGS_DIR, 'dflog-%DATE%.log'),
         datePattern: 'YYYY-MM-DD-HH',
         zippedArchive: true,
         frequency: '1d',
@@ -80,7 +82,7 @@ function getLogger() {
       }),
       new transports.DailyRotateFile({
         level: 'error',
-        filename: `${__dirname}/logs/dferr-%DATE%.log`,
+        filename: path.join(LOGS_DIR, 'dferr-%DATE%.log'),
         datePattern: 'YYYY-MM-DD-HH',
         zippedArchive: true,
         frequency: '1d',

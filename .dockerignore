@@ -1,0 +1,29 @@
+# VCS / CI / EDITOR
+.git
+.github
+.gitignore
+.vscode
+.claude
+
+# DEPENDENCIES + BUILD OUTPUT (IMAGE INSTALLS ITS OWN)
+node_modules
+dist
+
+# RUNTIME STATE - NEVER BAKE A DB, CACHE, OR LOGS INTO THE IMAGE
+logs
+.cache
+prisma/disco.db*
+*.log
+
+# SECRETS
+.env
+.env.*
+
+# DOCKER + DOCS + DEV-ONLY TOOLING
+Dockerfile
+.dockerignore
+docker-compose*.yml
+Makefile
+scripts
+*.md
+new-design.txt

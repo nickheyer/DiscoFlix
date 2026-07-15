@@ -1,10 +1,11 @@
 const fs = require('fs').promises;
 const path = require('path');
 const axios = require('axios');
+const { CACHE_DIR } = require('../paths');
 
 // CACHE CONFIG
 const DEFAULT_CONFIG = {
-    cacheRoot: path.resolve(__dirname, '../../../.cache'),
+    cacheRoot: CACHE_DIR,
     maxRetries: 3,
     timeout: 5000,
     maxSize: 5 * 1024 * 1024,
