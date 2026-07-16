@@ -40,7 +40,7 @@ jobs:
             os: macos-15
             target: node26-macos-x64
             smoke: false
-            prisma_targets: 'native,darwin'
+            prisma_extra_target: darwin
           - name: windows-x64
             os: windows-2025
             target: node26-win-x64
@@ -58,10 +58,15 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # PRISMA_CLI_BINARY_TARGETS IS NOT USABLE HERE
+      - name: Add cross-build Prisma engine target
+        if: matrix.prisma_extra_target
+        run: >-
+          perl -pi -e 's/provider = "prisma-client-js"/provider      = "prisma-client-js"\n  binaryTargets = ["native", "${{ matrix.prisma_extra_target }}"]/'
+          prisma/schema.prisma
+
       - name: Generate Prisma client
         run: npx prisma generate
-        env:
-          PRISMA_CLI_BINARY_TARGETS: ${{ matrix.prisma_targets || 'native' }}
 
       - name: Build binary
         run: npx pkg . --target ${{ matrix.target }} --no-bytecode --public --public-packages "*" --output dist/discoflix${{ matrix.ext }}
