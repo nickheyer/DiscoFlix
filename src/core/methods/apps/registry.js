@@ -18,6 +18,7 @@ const SECTION_LABELS = {
   releases: 'Releases',
   users: 'Users',
   logs: 'Logs',
+  chat: 'Chat',
   settings: 'Settings'
 };
 

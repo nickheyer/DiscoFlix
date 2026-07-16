@@ -31,6 +31,9 @@
         include sections/dfUsers
       when 'logs'
         include sections/dfLogs
+      //- AI PROVIDERS ONLY (THE MANIFEST IS THE GUARD)
+      when 'chat'
+        include sections/aiChat
       when 'settings'
         if activeApp.app_type === 'discoflix'
           include sections/dfSettings

@@ -1,0 +1,51 @@
+//- AI CHAT SECTION - THE OPERATOR'S THREAD WITH THE PROVIDER. LOG SCROLLS
+//- column-reverse (PINNED TO THE LIVE END, LIKE THE CHAT MIRROR); THE
+//- COMPOSER SITS BELOW, POSTING SILENTLY - EVERY VISIBLE CHANGE ARRIVES
+//- OVER THE SOCKET AS ID-KEYED OOB APPENDS INTO #aiChatLogInner-<threadId>.
+//- sectionData: { configured, threads, activeThread, messages, provider, thinking }
+include ../../../mixins/aiChatMessage
+include aiChatTyping
+
+.aiChatSurface
+  if !sectionData.configured
+    .welcomeBlock
+      .welcomeTitle Almost there
+      .welcomeSubtitle #{activeApp.display_name} needs its connection details before it can chat.
+    .appSectionActions.centered
+      button.modal-button(
+        hx-post=`/apps/${activeApp.id}/section/settings`
+      ) Open Settings
+  else if !sectionData.activeThread
+    .welcomeBlock
+      .welcomeTitle Talk to #{activeApp.display_name}
+      .welcomeSubtitle Ask about the library, check on downloads, request new titles - it can see and use every connected app.
+    .appSectionActions.centered
+      //- THE RESPONSE IS ALL SELF-PLACING OOB FRAGMENTS (SURFACE + RAIL)
+      button.modal-button(
+        hx-post=`/apps/${activeApp.id}/ai/thread/new`
+        hx-swap="none"
+      ) Start a conversation
+  else
+    .aiChatLog#aiChatLog
+      .aiChatLogInner(id=`aiChatLogInner-${sectionData.activeThread.id}`)
+        if !sectionData.messages.length
+          .aiChatEmptyHint
+            .welcomeTitle= sectionData.activeThread.title === 'New conversation' ? 'A fresh thread' : sectionData.activeThread.title
+            .welcomeSubtitle Say hi - or try "what's new on the server?"
+        each m in sectionData.messages
+          +aiChatMessage(m)
+        if sectionData.thinking
+          +aiChatTyping(activeApp, sectionData.activeThread.id, sectionData.provider.icon)
+    form.aiChatComposer(
+      hx-post=`/apps/${activeApp.id}/ai/send`
+      hx-swap="none"
+      _="on htmx:afterRequest if event.detail.successful then call me.reset()"
+    )
+      input(type="hidden" name="threadId" value=sectionData.activeThread.id)
+      .floatingChatBar.aiChatBar
+        input.chatMessageInput.aiChatInput(
+          name="message"
+          autocomplete="off"
+          maxlength=4000
+          placeholder=`Message ${activeApp.display_name}`
+        )

@@ -103,6 +103,38 @@ const MODELS_META = {
             state: { type: FIELD_TYPES.RELATION, hidden: true, label: "State", description: "Takeover state reference" }
         }
     },
+    AiConversation: {
+        type: MODEL_TYPES.ENTITY,
+        description: "AI provider conversation thread",
+        fields: {
+            id: { type: FIELD_TYPES.ID, immutable: true, readonly: true, label: "ID", description: "Unique identifier for this conversation" },
+            appId: { type: FIELD_TYPES.RELATION, immutable: true, hidden: true, label: "App", description: "Owning AI provider instance" },
+            surface: { type: FIELD_TYPES.STRING, computed: true, readonly: true, label: "Surface", description: "Where this thread lives: console or discord" },
+            context_key: { type: FIELD_TYPES.STRING, computed: true, readonly: true, label: "Context Key", description: "Discord channel id for channel threads (null = console thread)" },
+            title: { type: FIELD_TYPES.STRING, searchable: true, label: "Title", description: "Thread title, taken from the first message" },
+            created_at: { type: FIELD_TYPES.TIMESTAMP, computed: true, readonly: true, label: "Created At", description: "Timestamp when this thread started" },
+            updated_at: { type: FIELD_TYPES.TIMESTAMP, computed: true, readonly: true, label: "Updated At", description: "Timestamp of the latest turn" },
+            app: { type: FIELD_TYPES.RELATION, hidden: true, label: "App Reference", description: "Reference to the owning app instance" },
+            messages: { type: FIELD_TYPES.RELATION, hidden: true, label: "Messages", description: "Turns in this conversation" }
+        }
+    },
+    AiMessage: {
+        type: MODEL_TYPES.ENTITY,
+        description: "One turn in an AI conversation",
+        fields: {
+            id: { type: FIELD_TYPES.ID, immutable: true, readonly: true, label: "ID", description: "Unique identifier for this turn" },
+            conversationId: { type: FIELD_TYPES.RELATION, immutable: true, hidden: true, label: "Conversation", description: "Owning conversation thread" },
+            role: { type: FIELD_TYPES.STRING, computed: true, readonly: true, label: "Role", description: "user or assistant" },
+            content: { type: FIELD_TYPES.STRING, searchable: true, label: "Content", description: "Renderable message text" },
+            blocks_json: { type: FIELD_TYPES.JSON, hidden: true, computed: true, label: "Blocks", description: "Provider-neutral content blocks (tool trace included)" },
+            author_label: { type: FIELD_TYPES.STRING, computed: true, readonly: true, label: "Author", description: "Display attribution for the turn" },
+            author_key: { type: FIELD_TYPES.STRING, computed: true, readonly: true, hidden: true, label: "Author Key", description: "Discord user id or 'console' - drives per-user caps" },
+            usage_json: { type: FIELD_TYPES.JSON, hidden: true, computed: true, label: "Usage", description: "Token usage for assistant turns" },
+            error: { type: FIELD_TYPES.STRING, computed: true, readonly: true, label: "Error", description: "Provider failure note for this turn" },
+            created_at: { type: FIELD_TYPES.TIMESTAMP, computed: true, readonly: true, label: "Created At", description: "Timestamp of this turn" },
+            conversation: { type: FIELD_TYPES.RELATION, hidden: true, label: "Conversation Reference", description: "Reference to the owning thread" }
+        }
+    },
     EventLog: {
         type: MODEL_TYPES.LOG,
         description: "Event logging",

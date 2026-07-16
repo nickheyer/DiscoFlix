@@ -11,6 +11,14 @@ function pluralLabel(label) {
   return `${clean.charAt(0).toUpperCase()}${clean.slice(1)}s`;
 }
 
+// 1234567 -> '1.2M' FOR TOKEN-COUNT TILES
+function compactCount(value) {
+  const num = Number(value) || 0;
+  if (num >= 1e6) return `${(num / 1e6).toFixed(1)}M`;
+  if (num >= 1e3) return `${(num / 1e3).toFixed(1)}k`;
+  return num;
+}
+
 // DISK ROWS -> METER ROWS. ENTRIES WITHOUT A TOTAL ARE NOISE (RAMDISKS,
 // UNRESOLVED MOUNTS) AND DROP OUT.
 function storageRowsFrom(disks) {
@@ -121,6 +129,22 @@ async function buildOverviewData(core, instance) {
         { value: counts ? counts.total : null, label: 'Titles' }
       ];
       data.countsWarming = !counts && data.status.ok;
+      break;
+    }
+    case 'ai-provider': {
+      let settings = {};
+      try { settings = JSON.parse(instance.settings_json || '{}'); } catch (err) { settings = {}; }
+      const [totals, threadCount] = await Promise.all([
+        core.models.aiMessage.usageTotalsFor(instance.id),
+        core.models.aiConversation.countFor(instance.id)
+      ]);
+      data.aiModel = settings.model || client.defaultModel || 'auto';
+      data.stats = [
+        { value: threadCount, label: 'Conversations' },
+        { value: totals.turns, label: 'AI Replies' },
+        { value: compactCount(totals.input), label: 'Tokens In' },
+        { value: compactCount(totals.output), label: 'Tokens Out' }
+      ];
       break;
     }
     case 'indexer': {

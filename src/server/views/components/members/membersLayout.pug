@@ -2,9 +2,13 @@
 //- DISCORD (core.render.getServerMembers: hoisted-role groups, presence dots
 //- when the intent is on, faded Offline group). RENDERS EMPTY (AND
 //- :empty-HIDES) WHEN THERE IS NOTHING TO SHOW.
-//- APP TAKEOVER: THE SAME RAIL CARRIES THE APP'S ACTIVITY FEED INSTEAD
+//- APP TAKEOVER: THE SAME RAIL CARRIES THE APP'S ACTIVITY FEED INSTEAD -
+//- EXCEPT AI PROVIDERS, WHOSE RAIL IS THE CONVERSATION LIST
 if activeApp
-  include ../apps/appFeed
+  if typeof aiRail !== 'undefined' && aiRail
+    include ../apps/aiThreadsRail
+  else
+    include ../apps/appFeed
 else
   - var pane = members && members.groups ? members : { groups: [], total: 0 }
   div.memberContainer#memberContainer(

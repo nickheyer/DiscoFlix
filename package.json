@@ -29,13 +29,15 @@
       "prisma/schema.prisma",
       "prisma/migrations/**/*",
       "node_modules/.prisma/client/**/*",
-      "node_modules/axios/dist/node/**/*"
+      "node_modules/axios/dist/node/**/*",
+      "node_modules/@anthropic-ai/sdk/**/*"
     ]
   },
   "keywords": [],
   "author": "Nicholas Heyer",
   "license": "ISC",
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.111.0",
     "@epegzz/winston-dev-console": "^1.3.4",
     "@koa/multer": "^4.0.0",
     "@prisma/client": "~6.2.1",

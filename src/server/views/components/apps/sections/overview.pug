@@ -102,6 +102,12 @@ include ../../../mixins/overview
       else
         .appQueueEmpty Nobody is streaming right now.
 
+    if sectionData.kind === 'ai-provider'
+      .request-section-header Assistant
+      .welcomeBlock
+        .welcomeTitle Answering as #[code #{sectionData.aiModel}]
+        .welcomeSubtitle In Discord: @mention the bot, reply to it, DM it, or use /chat. In here: the Chat section keeps threaded conversations with full operator powers - it can search, request, approve, and check on everything connected.
+
     if sectionData.kind === 'indexer'
       if sectionData.indexers && sectionData.indexers.length
         .request-section-header Indexers - #{sectionData.indexers.length}
@@ -121,6 +127,10 @@ include ../../../mixins/overview
           .welcomeSubtitle Type in the search bar on the right - releases from #{activeApp.display_name} can be sent straight to a connected download client.
 
     .appSectionActions
+      if appManifest.sections.includes('chat')
+        button.modal-button.button-secondary(
+          hx-post=`/apps/${activeApp.id}/section/chat`
+        ) Open Chat
       if appManifest.sections.includes('queue')
         button.modal-button.button-secondary(
           hx-post=`/apps/${activeApp.id}/section/queue`

@@ -107,10 +107,52 @@ model App {
   updated_at     DateTime       @updatedAt @default(now())
   requests       MediaRequest[]
   view_sessions  ViewSession[]
+  ai_conversations AiConversation[]
 
   @@index([app_type])
   @@index([sort_position])
   @@map("apps")
+}
+
+// AI PROVIDER CONVERSATION THREADS - ONE ROW PER THREAD. CONSOLE THREADS ARE
+// OPERATOR-MADE (context_key NULL, MANY PER INSTANCE); DISCORD THREADS ARE
+// KEYED BY CHANNEL (SHARED CHANNEL MEMORY - ONE THREAD PER (INSTANCE, CHANNEL))
+model AiConversation {
+  id          String      @id @default(cuid())
+  appId       String
+  surface     String      @default("console")
+  context_key String?
+  title       String      @default("New conversation")
+  created_at  DateTime    @default(now())
+  updated_at  DateTime    @updatedAt @default(now())
+  app         App         @relation(fields: [appId], references: [id], onDelete: Cascade)
+  messages    AiMessage[]
+
+  @@index([appId, surface])
+  @@index([surface, context_key])
+  @@index([updated_at])
+  @@map("ai_conversations")
+}
+
+// ONE TURN IN AN AI CONVERSATION. content IS THE FLAT RENDERABLE TEXT;
+// blocks_json HOLDS THE PROVIDER-NEUTRAL CONTENT BLOCKS (TOOL CALLS/RESULTS
+// INCLUDED) THAT REPLAY INTO THE MODEL ON THE NEXT TURN.
+model AiMessage {
+  id             String         @id @default(cuid())
+  conversationId String
+  role           String
+  content        String         @default("")
+  blocks_json    String?
+  author_label   String?
+  author_key     String?
+  usage_json     String?
+  error          String?
+  created_at     DateTime       @default(now())
+  conversation   AiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, created_at])
+  @@index([author_key, created_at])
+  @@map("ai_messages")
 }
 
 model EventLog {

@@ -47,6 +47,38 @@ const USER_FILTERS = {
   all: {}
 };
 
+// AI CHAT ROWS -> TEMPLATE SHAPE. GROUPING MATCHES THE DISCORD MIRROR'S
+// TREATMENT (SAME AUTHOR INSIDE THE WINDOW = BARE LINE, TIME ON HOVER).
+const AI_GROUP_WINDOW_MS = 7 * 60 * 1000;
+
+function buildAiMessageViewModels(core, rows, instance) {
+  const manifest = core.apps.getType(instance.app_type) || {};
+  return rows.map((row, i) => {
+    const previous = rows[i - 1];
+    const grouped = !!previous
+      && previous.role === row.role
+      && previous.author_label === row.author_label
+      && !previous.error && !row.error
+      && new Date(row.created_at) - new Date(previous.created_at) < AI_GROUP_WINDOW_MS;
+    let trace = null;
+    try { trace = row.blocks_json ? JSON.parse(row.blocks_json) : null; } catch (err) { trace = null; }
+    return {
+      id: row.id,
+      role: row.role,
+      content: row.content,
+      author: row.author_label || (row.role === 'assistant' ? instance.display_name : 'Operator'),
+      isAssistant: row.role === 'assistant',
+      icon: manifest.icon || null,
+      grouped,
+      timeStamp: core.discord.formatTimestamp(row.created_at),
+      hoverStamp: new Date(row.created_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+      toolsUsed: trace?.toolsUsed || [],
+      model: trace?.model || null,
+      error: row.error || null
+    };
+  });
+}
+
 function lastSeenLabel(timestamp) {
   if (!timestamp) return null;
   const ms = Date.now() - new Date(timestamp).getTime();
@@ -386,6 +418,24 @@ async function buildSectionData(core, instance, section, opts = {}) {
       }
       break;
     }
+    // AI OPERATOR CHAT - THREADS IN THE RIGHT RAIL, THE PICKED THREAD'S LOG
+    // HERE. MESSAGES COMPILE THROUGH THE SAME VIEW-MODEL SHAPE THE WS PUSH
+    // USES SO LIVE APPENDS AND FULL RENDERS ALWAYS AGREE.
+    case 'chat': {
+      const manifest = core.apps.getType(instance.app_type);
+      if (manifest.kind !== 'ai-provider') break;
+      const threads = await core.models.aiConversation.consoleThreadsFor(instance.id);
+      const pick = opts.viewState ? core.models.viewSession.aiThreadPickFor(opts.viewState, instance.id) : null;
+      const activeThread = threads.find(thread => thread.id === pick) || threads[0] || null;
+      data.threads = threads;
+      data.activeThread = activeThread;
+      data.messages = activeThread
+        ? buildAiMessageViewModels(core, await core.models.aiMessage.allFor(activeThread.id), instance)
+        : [];
+      data.provider = { label: manifest.label, icon: manifest.icon };
+      data.thinking = activeThread ? core.ai._threadLocks?.has(activeThread.id) : false;
+      break;
+    }
     case 'settings': {
       const manifest = core.apps.getType(instance.app_type);
       // METADATA DESCRIPTORS (SENSITIVE isSet, TYPES) OVERLAID WITH THE
@@ -403,44 +453,55 @@ async function buildSectionData(core, instance, section, opts = {}) {
           placeholder: field.placeholder
         }))
       ];
-      // PER-INSTANCE ADD DEFAULTS (ROOT FOLDER / QUALITY PROFILE) - OPTIONS
-      // FETCHED LIVE FROM THE SERVICE, VALUES OFF settings_json, BLANK = FIRST
+      // PER-INSTANCE ADD DEFAULTS (ROOT FOLDER / QUALITY PROFILE / AI MODEL) -
+      // OPTIONS FETCHED LIVE FROM THE SERVICE PER THE MANIFEST'S fetch KEY,
+      // VALUES OFF settings_json, BLANK = THE SERVICE'S/PROVIDER'S DEFAULT
       data.optionFields = [];
       data.optionsError = null;
       if (manifest.instanceOptions?.length && client) {
         let saved = {};
         try { saved = JSON.parse(instance.settings_json || '{}'); } catch (err) { saved = {}; }
+        // EACH fetch KEY MAPS TO ONE CLIENT CALL, RUN ONLY WHERE DECLARED
+        const OPTION_FETCHERS = {
+          rootFolders: async () => (await client.getRootFolders()).map(folder => ({ value: folder.path, label: folder.path })),
+          qualityProfiles: async () => (await client.getQualityProfiles()).map(profile => ({ value: String(profile.id), label: profile.name })),
+          metadataProfiles: async () => (await client.getMetadataProfiles()).map(profile => ({ value: String(profile.id), label: profile.name })),
+          models: async () => client.listModels()
+        };
         try {
-          const fetched = {
-            rootFolders: (await client.getRootFolders()).map(folder => ({ value: folder.path, label: folder.path })),
-            qualityProfiles: (await client.getQualityProfiles()).map(profile => ({ value: String(profile.id), label: profile.name })),
-            // LIDARR-ONLY THIRD SELECT - ONLY FETCHED WHERE THE CLIENT HAS IT
-            ...(typeof client.getMetadataProfiles === 'function' ? {
-              metadataProfiles: (await client.getMetadataProfiles()).map(profile => ({ value: String(profile.id), label: profile.name }))
-            } : {})
-          };
+          const fetched = {};
+          for (const option of manifest.instanceOptions) {
+            if (fetched[option.fetch] || !OPTION_FETCHERS[option.fetch]) continue;
+            fetched[option.fetch] = await OPTION_FETCHERS[option.fetch]();
+          }
           data.optionFields = manifest.instanceOptions.map(option => ({
             key: option.key,
             type: 'string',
             label: option.label,
             description: option.description,
             value: saved[option.key] || '',
-            options: [{ value: '', label: 'First available (default)' }, ...(fetched[option.fetch] || [])]
+            options: [
+              { value: '', label: option.blankLabel || 'First available (default)' },
+              ...(fetched[option.fetch] || [])
+            ]
           }));
         } catch (err) {
           core.logger.debug(`${instance.display_name} option fetch failed: ${err.message}`);
-          data.optionsError = `${instance.display_name} is unreachable - add defaults appear once it connects`;
+          data.optionsError = `${instance.display_name} is unreachable - options appear once it connects`;
         }
       }
-      // MAKE-DEFAULT ONLY MEANS SOMETHING FOR CONTENT MANAGERS WITH RIVALS
+      // MAKE-DEFAULT MEANS SOMETHING FOR CONTENT MANAGERS WITH RIVALS - AND
+      // FOR AI PROVIDERS, WHERE THE DEFAULT ONE ANSWERS CHAT
       data.showDefault = false;
-      if (manifest.contentTypes.length) {
+      if (manifest.contentTypes.length || manifest.kind === 'ai-provider') {
         const peerCount = await core.prisma.app.count({
           where: { app_type: { in: core.apps.peerAppTypes(instance.app_type) } }
         });
         data.showDefault = peerCount > 1;
       }
-      data.contentTypeLabels = manifest.contentTypes.map(ct => ct.label);
+      data.contentTypeLabels = manifest.kind === 'ai-provider'
+        ? ['AI chat']
+        : manifest.contentTypes.map(ct => ct.label);
       break;
     }
     default:
@@ -481,11 +542,24 @@ async function buildTakeoverLocals(core, instance, opts = {}) {
     term: String(opts.searchTerm || '').trim(),
     placeholder: `Search ${nav.appManifest.contentTypes[0]?.label || nav.appManifest.browseLabel || 'media'}s...`
   } : null;
+  // AI TAKEOVERS CARRY THE CONVERSATION LIST WHERE OTHER APPS SHOW THEIR
+  // ACTIVITY FEED - SAME RAIL SLOT, THREAD-SHAPED
+  let aiRail = null;
+  if (nav.appManifest.kind === 'ai-provider') {
+    const threads = sectionData.threads || await core.models.aiConversation.consoleThreadsFor(instance.id);
+    const pick = opts.viewState ? core.models.viewSession.aiThreadPickFor(opts.viewState, instance.id) : null;
+    aiRail = {
+      threads,
+      activeThreadId: sectionData.activeThread?.id
+        || (threads.some(thread => thread.id === pick) ? pick : (threads[0]?.id || null))
+    };
+  }
   return {
     ...nav,
     sectionData,
     feed,
     railSearch,
+    aiRail,
     // queueBody.pug READS `queue`/`queueActions` DIRECTLY SO WS PUSHES AND HTTP RENDERS SHARE ONE SHAPE
     queue: sectionData.queue || [],
     queueActions: sectionData.queueActions || { item: [], queue: [] }
@@ -499,7 +573,7 @@ async function respondWithTakeover(ctx, instance, state, opts = {}) {
     core.render.getServerTemplateObj(null, state),
     core.models.discordBot.get(),
     core.apps.getRailViewModel(state),
-    buildTakeoverLocals(core, instance, opts)
+    buildTakeoverLocals(core, instance, { viewState: state, ...opts })
   ]);
 
   return ctx.compileView([
@@ -750,12 +824,15 @@ async function changeAppSection(ctx) {
     return respondWithTakeover(ctx, instance, state);
   }
 
-  const takeover = await buildTakeoverLocals(core, instance);
+  const takeover = await buildTakeoverLocals(core, instance, { viewState: state });
   return ctx.compileView([
     'apps/appChannelsLayout.pug',
     'apps/appHeader.pug',
-    'apps/appSurface.pug'
-  ], { state, ...takeover });
+    'apps/appSurface.pug',
+    // THE RAIL IS PER-APP CONTENT, BUT AI THREAD PICKS ARE PER-SECTION
+    // STATE - RE-RENDER IT SO THE ACTIVE THREAD HIGHLIGHT STAYS TRUE
+    'members/membersLayout.pug'
+  ], { state, members: [], ...takeover });
 }
 
 // ACTIVITY-FEED PAGINATION - THE REVEALED SENTINEL IN THE RIGHT RAIL SWAPS
@@ -1587,6 +1664,8 @@ module.exports = {
   buildAppRail,
   buildSectionNav,
   buildTakeoverLocals,
+  buildAiMessageViewModels,
+  respondWithTakeover,
   respondWithMirror,
   rootRelative,
   lastSeenLabel,

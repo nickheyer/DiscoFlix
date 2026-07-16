@@ -234,11 +234,62 @@ async function dispatchPrefix(core, message) {
   return true;
 }
 
+// THE AI FRONT DOOR BEYOND COMMANDS: A DIRECT @MENTION, A REPLY TO THE BOT,
+// OR A BARE DM ROUTES INTO THE ai-chat FEATURE - SAME GATE, SAME MATRIX ROW.
+// MENTIONS ARE CASUAL SPEECH, SO "NOT SERVING" MEANS SILENCE (A DENIED GATE
+// STILL ANSWERS - THE USER EXPLICITLY ADDRESSED THE BOT). RETURNS true WHEN
+// THE MESSAGE WAS TAKEN.
+async function dispatchAiMention(core, message) {
+  const botUser = core.client?.user;
+  if (!botUser) return false;
+
+  const isDM = !message.guildId;
+  let addressed = isDM || message.mentions?.users?.has(botUser.id);
+  // A REPLY TO THE BOT COUNTS EVEN WITH THE REPLY PING SUPPRESSED
+  if (!addressed && message.reference?.messageId) {
+    try {
+      const referenced = await message.channel.messages.fetch(message.reference.messageId);
+      addressed = referenced?.author?.id === botUser.id;
+    } catch (err) { /* DELETED/UNCACHED PARENT - NOT ADDRESSED */ }
+  }
+  if (!addressed) return false;
+
+  const def = allDefs().find(candidate => candidate.id === 'ai-chat');
+  if (!def || !(await def.available(core))) return false;
+
+  // STRIP THE BOT'S OWN MENTION TOKENS; WHAT REMAINS IS THE MESSAGE
+  const text = (message.content || '')
+    .replace(new RegExp(`<@!?${botUser.id}>`, 'g'), '')
+    .trim();
+  if (!text) return false;
+
+  const config = await core.models.configuration.get();
+  const invocation = await buildInvocation(core, config, {
+    source: 'mention',
+    discordUser: message.author,
+    member: message.member,
+    guildId: message.guildId || null,
+    channel: message.channel,
+    messageId: message.id,
+    origContent: message.content,
+    options: { message: text },
+    send: (payload) => message.channel.send(payload)
+  });
+  const denial = await gateInvocation(invocation, def);
+  if (denial) {
+    await message.channel.send(denial);
+    return true;
+  }
+  await def.run(invocation);
+  return true;
+}
+
 module.exports = {
   allDefs,
   availableDefs,
   buildSlashCommands,
   parsePrefix,
   dispatchSlash,
-  dispatchPrefix
+  dispatchPrefix,
+  dispatchAiMention
 };

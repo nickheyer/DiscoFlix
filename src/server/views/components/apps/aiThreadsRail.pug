@@ -1,0 +1,45 @@
+//- AI TAKEOVER RIGHT RAIL - THE CONVERSATION LIST, LIVING WHERE OTHER APPS
+//- SHOW THEIR ACTIVITY FEED (SAME #memberContainer ID-REUSE CONVENTION, SO
+//- EVERY EXISTING SWAP PATH RESTORES MEMBERS/FEED WHOLESALE ON BACK-OUT).
+//- LOCALS: activeApp, aiRail { threads, activeThreadId }
+div.memberContainer.aiThreadsRail#memberContainer(
+  hx-select-oob="#memberContainer"
+  hx-swap-oob="outerHTML"
+)
+  .aiThreadsHeader
+    span.memberListHeader Conversations - #{aiRail.threads.length}
+    button.aiThreadNewButton(
+      type="button"
+      aria-label="New conversation"
+      data-tooltip-dir="left"
+      hx-post=`/apps/${activeApp.id}/ai/thread/new`
+      hx-swap="none"
+    )
+      svg(viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true")
+        path(d="M12 5v14M5 12h14")
+  if !aiRail.threads.length
+    .aiThreadsEmpty Nothing yet - start one and say hi.
+  each thread in aiRail.threads
+    .aiThreadRow(
+      class=thread.id === aiRail.activeThreadId ? 'active' : undefined
+      role="button"
+      tabindex="0"
+      hx-post=thread.id !== aiRail.activeThreadId ? `/apps/${activeApp.id}/ai/thread/${thread.id}` : undefined
+      hx-swap="none"
+      hx-trigger=thread.id !== aiRail.activeThreadId ? "click, keyup[key=='Enter']" : undefined
+    )
+      svg.aiThreadGlyph(viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true")
+        path(d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z")
+      .aiThreadInfo
+        .aiThreadTitle= thread.title
+      //- DELETE NEVER TRIGGERS THE ROW'S OPEN (hyperscript halt)
+      button.aiThreadDelete(
+        type="button"
+        aria-label=`Delete "${thread.title}"`
+        hx-delete=`/apps/${activeApp.id}/ai/thread/${thread.id}`
+        hx-swap="none"
+        hx-confirm=`Delete "${thread.title}"? Its messages go with it.`
+        _="on click halt the event's bubbling"
+      )
+        svg(viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true")
+          path(d="M6 6l12 12M18 6L6 18")

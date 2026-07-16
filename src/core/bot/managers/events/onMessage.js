@@ -12,6 +12,14 @@ module.exports = {
 
     // PREFIX FEATURES (`!df movie|show|status... `) - GUILD CHANNELS AND DMS BOTH
     if (message.author.bot) return;
-    await interactions.dispatchPrefix(core, message);
+    const handled = await interactions.dispatchPrefix(core, message);
+
+    // NOT A COMMAND: @MENTIONS, REPLIES TO THE BOT, AND BARE DMS FLOW INTO
+    // AI CHAT WHEN AN AI PROVIDER IS SERVING (GATED LIKE EVERY FEATURE)
+    if (!handled) {
+      await interactions.dispatchAiMention(core, message).catch(err =>
+        core.logger.error('AI mention dispatch failed:', err)
+      );
+    }
 	},
 };

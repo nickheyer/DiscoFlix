@@ -15,5 +15,9 @@ module.exports = {
   emby: require('./emby'),
   jellyfin: require('./jellyfin'),
   jackett: require('./jackett'),
-  nzbhydra2: require('./nzbhydra2')
+  nzbhydra2: require('./nzbhydra2'),
+  anthropic: require('./anthropic'),
+  openai: require('./openai'),
+  gemini: require('./gemini'),
+  ollama: require('./ollama')
 };

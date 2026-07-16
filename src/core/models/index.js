@@ -10,7 +10,9 @@ const MODELS = {
   media: require('./media'),
   mediaRequest: require('./mediaRequest'),
   app: require('./app'),
-  botFeatureRule: require('./botFeatureRule')
+  botFeatureRule: require('./botFeatureRule'),
+  aiConversation: require('./aiConversation'),
+  aiMessage: require('./aiMessage')
 };
 
 // MODEL REGISTRY, EXPOSED AS core.models. KEYS DOUBLE AS THE URL-ADDRESSABLE

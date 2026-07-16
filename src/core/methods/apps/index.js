@@ -9,6 +9,7 @@ module.exports = (core) => {
     require('./browse'),
     require('./unifiedLibrary'),
     require('./requestViews'),
+    require('./requestActions'),
     require('./envSeed')
   );
   apps.watches = new Map();       // requestId -> watch (CARRIES appId)

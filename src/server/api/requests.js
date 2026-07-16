@@ -38,26 +38,6 @@ async function appRequestsPage(ctx) {
   });
 }
 
-async function postVerdict(core, request, approved) {
-  if (!request.orig_channel_id) return;
-  if (!core.client || !core.client.isReady()) {
-    core.logger.warn('Verdict not posted to Discord: bot offline');
-    return;
-  }
-  try {
-    const ui = require('../../core/bot/interactions/ui');
-    const mentions = (request.users || []).map(user => `<@${user.id}>`).join(' ');
-    const title = request.media?.title || request.orig_parsed_title;
-    const verdict = approved
-      ? ui.notice(`${mentions} Your request for **${title}** was approved.`, { accent: 'ok', subtext: 'Updates will land here as it downloads' })
-      : ui.notice(`${mentions} Your request for **${title}** was denied.`, { accent: 'danger' });
-    const channel = await core.client.channels.fetch(request.orig_channel_id);
-    await channel.send(verdict);
-  } catch (err) {
-    core.logger.warn(`Verdict post failed: ${err.message}`);
-  }
-}
-
 // APPROVE/DENY RESPONSE CONTRACT: EVERY SURFACE'S BUTTONS POST hx-swap="none",
 // THE HTTP RESPONSE CARRIES ONLY THE TOAST, AND pushRequestCard BROADCASTS
 // THE FRESH CARD TO EVERY SURFACE AT ONCE (SECTION + CHAT, ID-KEYED OOB)
@@ -66,107 +46,29 @@ async function respondWithToast(ctx, requestId, message) {
   return ctx.compileView(['extra/notification.pug'], { message });
 }
 
-// WHICH INSTANCE GETS THE ADD: POSTED OVERRIDE > THE INSTANCE THE SEARCH RAN
-// AGAINST (IF STILL SERVING) > THE CURRENT DEFAULT FOR THE CONTENT TYPE
-async function resolveApprovalInstance(core, request, postedAppId) {
-  const candidates = [];
-  if (postedAppId) candidates.push(postedAppId);
-  if (request.appId) candidates.push(request.appId);
-
-  for (const appId of candidates) {
-    const instance = await core.apps.getInstance(appId);
-    if (instance?.enabled && core.apps.isConfigured(instance)) return instance;
-  }
-  return core.apps.defaultInstanceFor(request.orig_parsed_type);
-}
-
+// THE DECISION ITSELF LIVES ON core.apps (requestActions.js) - THE AI
+// OPERATOR TOOLS AND THESE BUTTONS SHARE ONE PATH
 async function approveRequest(ctx) {
-  const core = ctx.core;
   const requestId = ctx.params.id;
-  const request = await core.models.mediaRequest.getWithRelations(requestId);
-  if (!request) {
+  const exists = await ctx.core.models.mediaRequest.get({ id: requestId });
+  if (!exists) {
     ctx.status = 404;
     return;
   }
-
-  let message = 'Request approved';
-  if (request.status !== null) {
-    message = 'Request was already decided';
-  } else {
-    try {
-      const instance = await resolveApprovalInstance(core, request, ctx.request.body?.appId);
-      if (!instance) throw new Error(`No connected app handles ${request.orig_parsed_type} requests`);
-      const client = core.apps.getClientForInstance(instance);
-
-      const externalKey = request.media[client.externalIdField];
-      if (!externalKey) throw new Error('Media row is missing its external id');
-
-      // ALREADY IN THE LIBRARY (E.G. ADDED BY HAND SINCE THE REQUEST)? SKIP THE ADD.
-      let added = await client.getByExternalId(externalKey);
-      if (!added) {
-        const result = await client.lookupByExternalId(externalKey);
-        if (!result) throw new Error(`Lookup found nothing for ${instance.display_name} id ${externalKey}`);
-        // THE REQUESTER'S SEASON PICK RIDES THE ROW - MONITOR EXACTLY THAT
-        let seasons = null;
-        try { seasons = request.seasons ? JSON.parse(request.seasons) : null; } catch (err) { seasons = null; }
-        added = await client.add(result, { seasons });
-      }
-
-      const imported = client.isImported(added);
-      await core.models.mediaRequest.updateStatus(requestId, true);
-      // PERSIST THE RESOLVED INSTANCE AND SERVICE ITEM ID - THE ROW MAY HAVE
-      // BEEN OVERRIDDEN OR ORPHANED, AND A RESTART RE-ARMS WATCHES FROM THESE
-      await core.models.mediaRequest.update(
-        { id: requestId },
-        { appId: instance.id, arr_id: String(added.id) }
-      );
-      await core.models.media.updateMediaInfo(request.media.id, {
-        path: added.path || null,
-        monitored: true,
-        is_available: imported
-      });
-
-      if (!imported) {
-        core.apps.watchRequest({
-          requestId,
-          appId: instance.id,
-          arrId: added.id,
-          mediaId: request.media.id,
-          title: request.media.title,
-          channelId: request.orig_channel_id,
-          requesterIds: (request.users || []).map(user => user.id),
-          featureId: request.orig_parsed_type ? `request.${request.orig_parsed_type}` : null,
-          serverId: request.madeInId
-        });
-      }
-
-      await postVerdict(core, request, true);
-    } catch (err) {
-      core.logger.error('Request approval failed:', err);
-      message = `Approval failed: ${err.message}`;
-    }
-  }
-
+  const { message } = await ctx.core.apps.approveMediaRequest(requestId, {
+    appId: ctx.request.body?.appId
+  });
   return respondWithToast(ctx, requestId, message);
 }
 
 async function denyRequest(ctx) {
-  const core = ctx.core;
   const requestId = ctx.params.id;
-  const request = await core.models.mediaRequest.getWithRelations(requestId);
-  if (!request) {
+  const exists = await ctx.core.models.mediaRequest.get({ id: requestId });
+  if (!exists) {
     ctx.status = 404;
     return;
   }
-
-  let message = 'Request denied';
-  if (request.status !== null) {
-    message = 'Request was already decided';
-  } else {
-    await core.models.mediaRequest.updateStatus(requestId, false);
-    await postVerdict(core, request, false);
-  }
-
+  const { message } = await ctx.core.apps.denyMediaRequest(requestId);
   return respondWithToast(ctx, requestId, message);
 }
 

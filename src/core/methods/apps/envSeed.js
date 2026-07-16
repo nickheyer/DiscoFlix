@@ -30,7 +30,10 @@ module.exports = {
   },
 
   async _seedAppType(manifest) {
-    const prefix = manifest.id.toUpperCase();
+    // AI PROVIDERS DECLARE A DF_-NAMESPACED PREFIX - A GLOBALLY-EXPORTED
+    // ANTHROPIC_API_KEY/OPENAI_API_KEY (COMMON FOR OTHER TOOLING) MUST NEVER
+    // SURPRISE-INSTALL AN INSTANCE
+    const prefix = (manifest.envPrefix || manifest.id).toUpperCase();
     const envValues = {};
     for (const field of manifest.configFields) {
       const value = (process.env[`${prefix}_${field.key.toUpperCase()}`] || '').trim();

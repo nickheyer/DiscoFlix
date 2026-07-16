@@ -1,0 +1,16 @@
+//- LIVE WS PUSH FOR THE AI CHAT LOG - ID-KEYED OOB, SO ONLY BROWSERS WITH
+//- THIS THREAD ON SCREEN TAKE THE SWAP. LOCALS: activeApp, threadId,
+//- row (buildAiMessageViewModels SHAPE | null), typing ('add'|'remove'|null)
+include ../../../mixins/aiChatMessage
+include aiChatTyping
+
+//- A FINISHED TURN PRUNES ITS TYPING ROW FIRST, THEN APPENDS THE REPLY
+if typing === 'remove'
+  div(id=`ai-typing-${threadId}` hx-swap-oob="delete")
+if row
+  .aiMessageWrapper(hx-swap-oob=`beforeend:#aiChatLogInner-${threadId}`)
+    +aiChatMessage(row)
+if typing === 'add'
+  .aiMessageWrapper(hx-swap-oob=`beforeend:#aiChatLogInner-${threadId}`)
+    //- EVERY ROW VIEW MODEL CARRIES THE MANIFEST ICON - REUSE IT FOR THE DOTS
+    +aiChatTyping(activeApp, threadId, row ? row.icon : null)

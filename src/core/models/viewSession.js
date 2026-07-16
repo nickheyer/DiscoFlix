@@ -90,6 +90,22 @@ class ViewSession extends BaseModel {
         return this.channelMapOf(view)[serverRow?.server_id] || serverRow?.active_channel_id || null;
     }
 
+    // AI THREAD PICKS RIDE THE SAME PER-SESSION MAP UNDER `ai:<appId>` KEYS -
+    // APP IDS ARE CUIDS AND SERVER IDS ARE SNOWFLAKES, SO KEYS NEVER COLLIDE
+    aiThreadPickFor(view, appId) {
+        return this.channelMapOf(view)[`ai:${appId}`] || null;
+    }
+
+    async setAiThreadPick(id, appId, threadId) {
+        if (!id || !appId) return;
+        const row = await this.model.findUnique({ where: { id } });
+        if (!row) return;
+        const map = this.channelMapOf(row);
+        if (threadId) map[`ai:${appId}`] = threadId;
+        else delete map[`ai:${appId}`];
+        await this.model.update({ where: { id }, data: { active_channels: JSON.stringify(map) } });
+    }
+
     // PARSED TIME-TRAVEL ANCHOR OR null - MALFORMED JSON READS AS LIVE MODE
     anchorOf(view) {
         try {

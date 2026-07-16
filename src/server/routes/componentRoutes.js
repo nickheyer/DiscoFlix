@@ -79,6 +79,13 @@ const {
   removeApp
 } = require('../api/apps');
 
+const {
+  aiChatSend,
+  aiChatNewThread,
+  aiChatOpenThread,
+  aiChatDeleteThread
+} = require('../api/aiChat');
+
 const router = new Router();
 
 // STATE-CHANGING ROUTES ARE POST-ONLY (M3)
@@ -136,6 +143,13 @@ router.post('/apps/:id/add-media', appAddMedia);
 router.post('/apps/:id/queue-action/:verb', appQueueAction);
 router.post('/apps/:id/queue-add', appQueueAdd);
 router.post('/apps/:id/grab', appGrabRelease);
+// AI OPERATOR CHAT (ai-provider TAKEOVERS) - SEND IS SILENT (WS DELIVERS
+// THE BUBBLES); THREAD CRUD RESPONDS WITH FRESH SURFACE + RAIL FRAGMENTS.
+// LITERAL 'new' REGISTERED BEFORE :threadId SO IT WINS THE MATCH.
+router.post('/apps/:id/ai/send', aiChatSend);
+router.post('/apps/:id/ai/thread/new', aiChatNewThread);
+router.post('/apps/:id/ai/thread/:threadId', aiChatOpenThread);
+router.delete('/apps/:id/ai/thread/:threadId', aiChatDeleteThread);
 router.post('/apps/:id/save', saveApp);
 router.post('/apps/:id/test', testApp);
 router.post('/apps/:id/default', setDefaultApp);

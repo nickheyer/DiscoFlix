@@ -2815,3 +2815,228 @@
   font-style: italic;
   margin-bottom: 14px;
 }
+
+/* ---- AI CHAT (ai-provider TAKEOVERS) ---- */
+
+/* THE SECTION OWNS THE SURFACE'S HEIGHT: LOG SCROLLS column-reverse (PINNED
+   TO THE LIVE END LIKE THE CHAT MIRROR), COMPOSER SITS BELOW ON THE SAME
+   CONTENT MEASURE EVERY SECTION SHARES */
+.aiChatSurface {
+  width: 100%;
+  max-width: var(--content-measure);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.aiChatLog {
+  min-height: 240px;
+  height: calc(100vh - 250px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column-reverse;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+.aiChatLogInner {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 100%;
+}
+
+/* WS APPENDS ARRIVE WRAPPED - THE WRAPPER MUST NOT BREAK ROW FLOW */
+.aiChatLogInner .aiMessageWrapper,
+.aiChatLog .aiMessageWrapper {
+  display: contents;
+}
+
+.aiChatEmptyHint {
+  padding: 24px 0 32px;
+}
+
+.aiChatComposer {
+  padding: 12px 0 4px;
+}
+
+.aiChatComposer .aiChatBar {
+  padding: 0 16px;
+}
+
+/* AI ROWS RIDE THE CHAT MIRROR'S ROW FAMILY - ONLY THE EXTRAS LIVE HERE */
+.aiChatRow .chatAuthorAvatar {
+  background-color: var(--bg-tertiary);
+  object-fit: cover;
+}
+
+/* THE OPERATOR'S GUTTER GLYPH - SAME FOOTPRINT AS AN AVATAR */
+.aiOperatorAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--bg-tertiary);
+  color: var(--interactive-normal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-right: 16px;
+}
+
+/* TOOL CHIPS - WHAT THE ASSISTANT ACTUALLY DID THIS TURN, WORN HONESTLY */
+.aiToolChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.aiToolChip {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background-color: var(--bg-modifier-selected);
+  color: var(--header-secondary);
+  font-family: 'Consolas', 'Courier New', monospace;
+}
+
+.aiTurnError {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--red);
+}
+
+/* TYPING ROW - THREE PULSING DOTS, DISCORD-STYLE */
+.aiTypingDots {
+  display: flex;
+  gap: 4px;
+  padding: 8px 0 4px;
+}
+
+.aiTypingDots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--interactive-normal);
+  animation: aiTypingPulse 1.2s infinite ease-in-out;
+}
+
+.aiTypingDots span:nth-child(2) { animation-delay: 0.15s; }
+.aiTypingDots span:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes aiTypingPulse {
+  0%, 60%, 100% { opacity: 0.35; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-3px); }
+}
+
+/* ---- AI THREADS RAIL (THE TAKEOVER'S RIGHT PANE) ---- */
+
+.aiThreadsRail {
+  padding: 8px;
+}
+
+.aiThreadsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 8px 4px;
+}
+
+.aiThreadsHeader .memberListHeader {
+  padding: 0;
+}
+
+.aiThreadNewButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  color: var(--interactive-normal);
+  background: transparent;
+  cursor: pointer;
+}
+
+.aiThreadNewButton:hover,
+.aiThreadNewButton:focus-visible {
+  color: var(--interactive-hover);
+  background-color: var(--bg-modifier-hover);
+}
+
+.aiThreadsEmpty {
+  padding: 12px 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.aiThreadRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px;
+  border-radius: 4px;
+  color: var(--channel-default);
+  cursor: pointer;
+}
+
+.aiThreadRow:hover {
+  background-color: var(--bg-modifier-hover);
+  color: var(--interactive-hover);
+}
+
+.aiThreadRow.active {
+  background-color: var(--bg-modifier-selected);
+  color: var(--interactive-active);
+  cursor: default;
+}
+
+.aiThreadGlyph {
+  flex-shrink: 0;
+}
+
+.aiThreadInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.aiThreadTitle {
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* DELETE X - VISIBLE ON HOVER/FOCUS, NEVER STEALS THE ROW CLICK */
+.aiThreadDelete {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 3px;
+  color: var(--interactive-muted);
+  background: transparent;
+  cursor: pointer;
+  opacity: 0;
+  flex-shrink: 0;
+}
+
+.aiThreadRow:hover .aiThreadDelete,
+.aiThreadDelete:focus-visible {
+  opacity: 1;
+}
+
+.aiThreadDelete:hover {
+  color: var(--red);
+  background-color: var(--bg-modifier-hover);
+}
+
+/* PICKER BADGE FOR THE NEW KIND */
+.appPickerKind.ai {
+  background-color: #9b72cb;
+}

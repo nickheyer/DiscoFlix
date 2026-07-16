@@ -41,6 +41,7 @@ class CoreService {
     this.render = require('./methods/rendering')(this);
     this.sockets = require('./methods/websocket')(this);
     this.apps = require('./methods/apps')(this);
+    this.ai = require('./methods/ai')(this);
     this.discord = require('./methods/discord')(this);
     this.system = require('./methods/server')(this);
     require('./wsroutes')(this);

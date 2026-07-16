@@ -94,8 +94,14 @@ module.exports = {
   },
 
   // EVERY APP TYPE WHOSE MANIFEST SHARES A CONTENT TYPE WITH appType - PEERS
-  // COMPETE FOR is_default ROUTING (A TYPE ALWAYS COUNTS AS ITS OWN PEER)
+  // COMPETE FOR is_default ROUTING (A TYPE ALWAYS COUNTS AS ITS OWN PEER).
+  // AI PROVIDERS SHARE NO CONTENT TYPES BUT COMPETE ALL THE SAME - THE
+  // DEFAULT ONE ANSWERS CHAT, EXACTLY LIKE A CONTENT FAMILY ROUTES REQUESTS.
   peerAppTypes(appType) {
+    const manifest = this.getType(appType);
+    if (manifest?.kind === 'ai-provider') {
+      return this.allTypes().filter(type => type.kind === 'ai-provider').map(type => type.id);
+    }
     const myTypes = (this.getType(appType)?.contentTypes || []).map(ct => ct.type);
     const peers = new Set([appType]);
     for (const def of this.contentTypeDefs()) {
