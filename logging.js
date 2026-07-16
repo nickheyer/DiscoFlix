@@ -6,6 +6,19 @@ const Transport = require('winston-transport');
 const { default: logWrapper } = require('@epegzz/winston-dev-console');
 require('winston-daily-rotate-file');
 
+// WIN ONLY UNDERSTANDS /-ROOTED PATHS
+const devConsoleCallee = require('@epegzz/winston-dev-console/dist/getCallee');
+devConsoleCallee.getCallee = () => {
+  const line = (new Error().stack || '').split('\n')[3] || '';
+  const functionNameMatch = line.match(/\w+@|at (([^(]+)) \(.*/) || [];
+  const fileMatch = line.match(/((?:[A-Za-z]:)?[/\\][^:]+):(\d+):\d+/) || [];
+  return {
+    functionName: functionNameMatch[1] || '',
+    filePath: fileMatch[1] || '',
+    lineNumber: fileMatch[2] || ''
+  };
+};
+
 const DB_LOG_LEVEL = 'info';
 const DB_METADATA_MAX_CHARS = 4000;
 const DB_PRUNE_EVERY_WRITES = 200;
