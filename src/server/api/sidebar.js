@@ -33,13 +33,12 @@ async function changeActiveServers(ctx) {
     // CLICKING A GUILD IS ALSO THE WAY OUT OF AN APP TAKEOVER
     const state = await ctx.updateView({ active_server_id, active_app_id: null });
 
-    const [msgObjects, servers, discordBot, members, apps, onboarding] = await Promise.all([
+    const [msgObjects, servers, discordBot, members, apps] = await Promise.all([
       ctx.core.discord.updateMessages(null, state),
       ctx.core.render.getServerTemplateObj(null, state),
       ctx.core.models.discordBot.get(),
       ctx.core.render.getServerMembers(active_server_id),
-      ctx.core.apps.getRailViewModel(state),
-      ctx.core.render.getOnboarding(state)
+      ctx.core.apps.getRailViewModel(state)
     ]);
 
     const history = ctx.core.discord.historyCursorOf(msgObjects);
@@ -57,7 +56,7 @@ async function changeActiveServers(ctx) {
       'chat/messageContainer.pug',
       'chat/jumpToPresentBar.pug',
       'members/membersLayout.pug',
-    ], { servers, discordBot, messages, eomStamp, state, members, apps, onboarding, history });
+    ], { servers, discordBot, messages, eomStamp, state, members, apps, history });
   } catch (err) {
     ctx.core.logger.error('CHANGE_SERVER_FAILED:', err);
     ctx.status = 500;

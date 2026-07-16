@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const { buildAppRail, buildTakeoverLocals, respondWithMirror } = require('./apps');
+const { buildAppRail, buildTakeoverLocals } = require('./apps');
 
 
 async function renderHome(ctx) {
@@ -39,7 +39,6 @@ async function renderHome(ctx) {
   const messages = await core.discord.compileMessages(messageData);
   const eomStamp = _.get(_.last(messageData), 'created_at');
   const members = await core.render.getServerMembers(state.active_server_id);
-  const onboarding = await core.render.getOnboarding(state);
 
   await ctx.render('index', {
     state,
@@ -50,22 +49,11 @@ async function renderHome(ctx) {
     members,
     apps,
     ticker,
-    onboarding,
     history,
     authEnabled
   });
 }
 
-// THE GUIDE'S DISMISS CONTROL - THE FLAG IS GLOBAL, SO THE RESPONSE RESTORES
-// THE ACTOR'S MIRROR AND refreshUI SWEEPS THE CHECKLIST OFF EVERY OTHER VIEW
-async function dismissOnboarding(ctx) {
-  const core = ctx.core;
-  await core.models.configuration.update({ is_onboarding_dismissed: true });
-  core.discord.refreshUI().catch(() => {});
-  return respondWithMirror(ctx, ctx.viewState);
-}
-
 module.exports = {
-  renderHome,
-  dismissOnboarding
+  renderHome
 }

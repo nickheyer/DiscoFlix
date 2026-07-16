@@ -547,13 +547,12 @@ async function respondWithMirror(ctx, state, opts = {}) {
     }
   }
 
-  const [msgObjects, servers, discordBot, members, apps, onboarding] = await Promise.all([
+  const [msgObjects, servers, discordBot, members, apps] = await Promise.all([
     around ? Promise.resolve(around.messages) : core.discord.updateMessages(null, state),
     core.render.getServerTemplateObj(null, state),
     core.models.discordBot.get(),
     core.render.getServerMembers(state.active_server_id),
-    core.apps.getRailViewModel(state),
-    core.render.getOnboarding(state)
+    core.apps.getRailViewModel(state)
   ]);
 
   const history = around
@@ -578,7 +577,7 @@ async function respondWithMirror(ctx, state, opts = {}) {
     'chat/messageContainer.pug',
     'chat/jumpToPresentBar.pug',
     'members/membersLayout.pug'
-  ], { servers, discordBot, messages, eomStamp, state, members, apps, onboarding, history, future, anchored: !!around });
+  ], { servers, discordBot, messages, eomStamp, state, members, apps, history, future, anchored: !!around });
 }
 
 // ── HANDLERS ─────────────────────────────────────────────────────────────
@@ -603,7 +602,7 @@ async function openDiscoFlix(ctx) {
   return respondWithTakeover(ctx, instance, state);
 }
 
-// THE BADGE'S HOVER COG (AND ONBOARDING CTAs) JUMP STRAIGHT TO A SECTION
+// THE BADGE'S HOVER COG JUMPS STRAIGHT TO A SECTION
 async function openDiscoFlixSection(ctx) {
   const core = ctx.core;
   const instance = await core.apps.getSelfInstance();
@@ -1442,7 +1441,7 @@ async function addApp(ctx) {
     return;
   }
   core.apps.syncSlashCommands().catch(() => {});
-  // THE ONBOARDING APP STEP TRACKS THE ROW COUNT - CHAT VIEWS RE-RENDER
+  // OTHER CONNECTED VIEWS PICK THE NEW APP UP IN THEIR RAILS
   core.discord.refreshUI().catch(() => {});
   const state = await ctx.updateView({ active_app_id: instance.id });
   return respondWithTakeover(ctx, instance, state);
@@ -1484,8 +1483,8 @@ async function saveApp(ctx) {
     return;
   }
 
-  // TOKEN AND APP-CONFIG SAVES MOVE ONBOARDING STEPS - CHAT VIEWS RE-RENDER
-  // (THE ACTOR SITS IN A TAKEOVER AND PICKS THE FRESH STATE UP ON BACK-OUT)
+  // OTHER VIEWS' RAILS REFLECT THE SAVE (STATUS DOT, NAME) - THE ACTOR SITS
+  // IN A TAKEOVER AND PICKS THE FRESH STATE UP ON BACK-OUT
   core.discord.refreshUI().catch(() => {});
 
   const state = ctx.viewState;

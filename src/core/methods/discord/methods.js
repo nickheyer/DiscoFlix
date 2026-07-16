@@ -92,7 +92,7 @@ module.exports = {
         authEnabled: !!config.admin_password
       });
     });
-    // THE ONBOARDING POWER STEP TRACKS THIS FLIP - MIRRORS RE-RENDER TOO
+    // MIRRORS RE-RENDER TOO, SO THEIR CHROME REFLECTS THE POWER FLIP
     await this.refreshUI();
   },
 
@@ -609,7 +609,6 @@ module.exports = {
     const servers = await this.core.render.getServerTemplateObj(null, view);
     const members = await this.core.render.getServerMembers(view.active_server_id);
     const apps = await this.core.apps.getRailViewModel(view);
-    const onboarding = await this.core.render.getOnboarding(view);
 
     const files = [
       'sidebar/servers/serverSortableContainer.pug',
@@ -632,7 +631,6 @@ module.exports = {
       state: view,
       members,
       apps,
-      onboarding,
       history,
       anchored: !!anchor
     });

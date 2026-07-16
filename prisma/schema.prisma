@@ -18,7 +18,6 @@ model Configuration {
   admin_password            String?
   discord_token             String?
   is_debug                  Boolean  @default(false)
-  is_onboarding_dismissed   Boolean  @default(false)
   bot_presence_activity     String   @default("none")
   bot_presence_text         String   @default("")
   // GRANT-ONLY ROLE->TIER MAPPING (SEE access.js roleGrantsFor)

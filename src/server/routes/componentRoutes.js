@@ -35,8 +35,6 @@ const {
   setUserTier
 } = require('../api/userProfile');
 
-const { dismissOnboarding } = require('../api/home');
-
 const {
   appBotMatrix,
   saveBotConfig,
@@ -95,8 +93,6 @@ router.get('/chat/history/:channelId', fetchChatHistory);
 router.post('/chat/upload', uploadChatMedia);
 // TIME-TRAVEL EXIT - BACK TO THE LIVE HEAD FROM AN ANCHORED WINDOW
 router.post('/chat/jump-to-present', jumpToPresent);
-// THE FIRST-RUN CHECKLIST'S PERMANENT DISMISS
-router.post('/onboarding/dismiss', dismissOnboarding);
 // APP TAKEOVER (PSEUDO-GUILDS)
 router.post('/change-active-app/:id', changeActiveApp);
 // THE DISCORD BADGE - DISCOFLIX'S OWN TAKEOVER (HEALTH/USERS/SETTINGS)

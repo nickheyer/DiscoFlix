@@ -20,7 +20,7 @@ module.exports = {
       core.logger.error('Slash command registration failed:', err);
     }
 
-    // A FRESH LOGIN FLIPS THE ONBOARDING POWER STEP - EVERY MIRROR RE-RENDERS
+    // A FRESH LOGIN CHANGES WHAT MIRRORS CAN SHOW - EVERY MIRROR RE-RENDERS
     await core.discord.refreshUI();
 
     core.logger.info(`Logged in as ${client.user.tag}!`);

@@ -188,52 +188,6 @@ module.exports = {
     return { groups, total: rows.length };
   },
 
-  // FIRST-RUN CHECKLIST VIEW MODEL - null ONCE DISMISSED OR WHEN NEITHER A
-  // TOKEN NOR A SERVER IS STILL MISSING
-  async getOnboarding(state) {
-    if (state?.active_app_id) return null;
-    const config = await this.core.models.configuration.get();
-    if (config.is_onboarding_dismissed) return null;
-    const serverCount = await this.core.prisma.discordServer.count();
-    if (config.discord_token && serverCount > 0) return null;
-
-    const [appCount, requestCount] = await Promise.all([
-      this.core.prisma.app.count(),
-      this.core.prisma.mediaRequest.count()
-    ]);
-    const botOnline = !!(this.core.client && this.core.client.isReady());
-    return {
-      steps: [
-        {
-          label: 'Add your Discord bot token',
-          done: !!config.discord_token,
-          // post CTAs ENTER A TAKEOVER INSTEAD OF OPENING A MODAL
-          cta: { label: 'Open DiscoFlix Settings', post: '/discoflix/section/settings' }
-        },
-        {
-          label: 'Power the bot on',
-          done: botOnline,
-          cta: { label: 'Open Power Menu', url: '/modal/bot/power' }
-        },
-        {
-          label: 'Invite the bot to your Discord server',
-          done: serverCount > 0,
-          cta: { label: 'Get Invite Link', url: '/modal/bot/invite' }
-        },
-        {
-          label: 'Connect an app like Radarr or Sonarr',
-          done: appCount > 0,
-          cta: { label: 'Add an App', url: '/modal/apps/picker' }
-        },
-        {
-          label: 'Make your first request',
-          done: requestCount > 0,
-          hint: `Type ${config.prefix_keyword} movie <title> in Discord, or search an app's Library from its right-rail search bar`
-        }
-      ]
-    };
-  },
-
   // ACCEPTS A LOADED SERVER RECORD (WITH OR WITHOUT CHANNELS) OR AN ID, AND
   // RETURNS THE VALID ACTIVE CHANNEL ID - CALLERS DON'T NEED TO REFETCH.
   async ensureActiveChannel(serverOrId, validChannelIds) {
