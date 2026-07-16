@@ -2,8 +2,27 @@
   hx-select-oob="#chatBar"
   hx-swap-oob="outerHTML"
 )
-  //- BARE IN TAKEOVER - THE GRID ROW COLLAPSES INSTEAD OF SHOWING A DEAD INPUT
-  if !activeApp
+  //- AI TAKEOVER: THE SAME OG BAR, POSTING THE TURN INSTEAD OF ws-send. THE
+  //- ACK IS SILENT - BUBBLES ARRIVE OVER THE SOCKET (aiChatPush.pug), SO THE
+  //- FORM JUST RESETS ON SUCCESS LIKE THE MIRROR'S INPUT DOES.
+  if typeof aiComposer !== 'undefined' && aiComposer
+    .floatingChatBar
+      include plusButton
+      form.chatInputForm(
+        hx-post=`/apps/${activeApp.id}/ai/send`
+        hx-swap="none"
+        _="on htmx:afterRequest if event.detail.successful then call me.reset()"
+      )
+        input(type="hidden" name="threadId" value=aiComposer.threadId)
+        input.chatMessageInput#chatMessageInput(
+          name="message"
+          autocomplete="off"
+          maxlength=4000
+          placeholder=`Message @${activeApp.display_name}`
+        )
+  //- BARE IN ANY OTHER TAKEOVER - THE GRID ROW COLLAPSES INSTEAD OF SHOWING
+  //- A DEAD INPUT
+  else if !activeApp
     //- OG-DISCORD ATTACH: HIDDEN MULTIPART FORM + CLIENT-RENDERED PREVIEW
     //- CHIP (source.js). TEXT-ONLY SEND STAYS ws-send; ENTER ROUTES HERE
     //- ONLY WHILE A FILE IS STAGED. CHANNEL SWITCHES RE-RENDER #chatBar AND

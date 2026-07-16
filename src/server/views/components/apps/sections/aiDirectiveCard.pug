@@ -1,0 +1,49 @@
+//- ONE DIRECTIVE LIFECYCLE CARD = ONE AUTO-SAVE FORM (CHANGE-TRIGGERED,
+//- SWAPS ITSELF - SAME PATTERN AS THE BOT MATRIX ROWS). THE PIPELINE IS THE
+//- REQUEST STEPPER: STAGE 1 PULSES WHEN THE TEXT IS CUSTOM, THE REST TRACE
+//- THE DIRECTIVE'S ROUTE INTO THE MODEL. LOCALS: directive, activeApp
+//- (INLINE FROM aiDirectives OR BARE FROM THE SAVE/RESET ROUTES).
+- var directivePath = `/apps/${activeApp.id}/directives/${encodeURIComponent(directive.key)}`
+- var editorRows = Math.min(10, Math.max(3, directive.text.split('\n').length + 1))
+form.dfRequestCard.aiDirectiveCard(
+  id=`directive-${directive.slug}`
+  hx-post=directivePath
+  hx-trigger="change"
+  hx-swap="outerHTML"
+)
+  .dfRequestTop
+    .request-info
+      .request-title(class=directive.group === 'tool' ? 'aiDirectiveToolName' : undefined)= directive.label
+      .request-meta
+        span= directive.blurb
+    .request-status
+      span.requestChip(class=directive.customized ? 'chip-approved' : 'chip-stock')= directive.customized ? 'customized' : 'stock'
+  .dfRequestPipeline
+    each stage, i in directive.stages
+      if i
+        .dfStageBar(class=`stage-${stage.state}`)
+      .dfStage(class=`stage-${stage.state}`)
+        .dfStageDot
+        .dfStageLabel= stage.label
+        if stage.detail
+          .dfStageDetail= stage.detail
+  .aiDirectiveEditor
+    textarea.aiDirectiveText(
+      name="text"
+      rows=editorRows
+      spellcheck="false"
+      aria-label=`Directive text for ${directive.label}`
+    )= directive.text
+    .aiDirectiveFoot
+      .aiDirectiveHint
+        if directive.placeholders.length
+          | #{directive.placeholders.map(p => `{${p}}`).join(' and ')} fill#{directive.placeholders.length === 1 ? 's' : ''} in live. Clear the box to return to the stock text.
+        else
+          | Clear the box to return to the stock text.
+      if directive.customized
+        button.modal-button.button-secondary(
+          type="button"
+          hx-delete=directivePath
+          hx-target=`#directive-${directive.slug}`
+          hx-swap="outerHTML"
+        ) Reset to stock

@@ -1,4 +1,5 @@
 const OpenAiAiClient = require('../clients/openaiAiClient');
+const { interaction: aiChat, aiProviderFeaturesFor } = require('./interactions/aiChat');
 
 module.exports = {
   id: 'openai',
@@ -16,7 +17,8 @@ module.exports = {
   ],
   Client: OpenAiAiClient,
   contentTypes: [],
-  interactions: [require('./interactions/aiChat')],
+  interactions: [aiChat],
+  botFeatures: aiProviderFeaturesFor('openai'),
   configFields: [
     { key: 'api_key', label: 'API Key', type: 'string', required: true, sensitive: true, description: 'platform.openai.com → API Keys' },
     { key: 'url', label: 'API Base URL', type: 'string', required: false, placeholder: 'https://api.openai.com (default)', description: 'Optional override for OpenAI-compatible endpoints' }
@@ -24,7 +26,7 @@ module.exports = {
   instanceOptions: [
     { key: 'model', label: 'Model', description: 'Which model answers', fetch: 'models', blankLabel: 'gpt-5 (default)' }
   ],
-  sections: ['overview', 'chat', 'settings'],
+  sections: ['overview', 'chat', 'directives', 'settings'],
   buildClient(row, logger) {
     let settings = {};
     try { settings = JSON.parse(row.settings_json || '{}'); } catch (err) { settings = {}; }

@@ -26,14 +26,17 @@
           | The rules every server (and DMs) follow unless a server overrides them.
 
   each group in bot.groups
-    .appSettingsGroup
-      .appSettingsGroupInfo
-        .dfBotProviderIcons
-          each provider in group.providers
-            img.dfAppIcon(src=provider.icon alt=provider.label)
-        .request-section-header= group.label
-        .appSettingsGroupBlurb What #{group.label} provides to the bot, and who gets to use it.
-      .appSettingsGroupBody
-        .appFormCard
-          each row in group.features
-            include dfBotFeatureRow
+    if group.ai
+      include dfBotAiBoard
+    else
+      .appSettingsGroup
+        .appSettingsGroupInfo
+          .dfBotProviderIcons
+            each provider in group.providers
+              img.dfAppIcon(src=provider.icon alt=provider.label)
+          .request-section-header= group.label
+          .appSettingsGroupBlurb What #{group.label} provides to the bot, and who gets to use it.
+        .appSettingsGroupBody
+          .appFormCard
+            each row in group.features
+              include dfBotFeatureRow

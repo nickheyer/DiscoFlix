@@ -4,6 +4,7 @@
 const _ = require('lodash');
 const { buildOverviewData } = require('./appOverview');
 const { buildBotMatrix } = require('./botMatrix');
+const { buildDirectivesData } = require('./aiDirectives');
 const { version: DISCOFLIX_VERSION } = require('../../../package.json');
 
 // RAIL VIEW MODEL - EVERY INSTALLED INSTANCE RENDERS A BUBBLE
@@ -424,7 +425,12 @@ async function buildSectionData(core, instance, section, opts = {}) {
     case 'chat': {
       const manifest = core.apps.getType(instance.app_type);
       if (manifest.kind !== 'ai-provider') break;
-      const threads = await core.models.aiConversation.consoleThreadsFor(instance.id);
+      let threads = await core.models.aiConversation.consoleThreadsFor(instance.id);
+      // A CHANNEL ALWAYS EXISTS - FIRST ENTRY MINTS THE FIRST THREAD, SO THE
+      // COMPOSER IS LIVE THE MOMENT THE SECTION OPENS (NO "START" HERO)
+      if (configured && !threads.length) {
+        threads = [await core.models.aiConversation.createConsoleThread(instance.id)];
+      }
       const pick = opts.viewState ? core.models.viewSession.aiThreadPickFor(opts.viewState, instance.id) : null;
       const activeThread = threads.find(thread => thread.id === pick) || threads[0] || null;
       data.threads = threads;
@@ -434,6 +440,14 @@ async function buildSectionData(core, instance, section, opts = {}) {
         : [];
       data.provider = { label: manifest.label, icon: manifest.icon };
       data.thinking = activeThread ? core.ai._threadLocks?.has(activeThread.id) : false;
+      break;
+    }
+    // THE DIRECTIVES TAB - EVERY PROMPT/TOOL TEXT THIS INSTANCE'S LLM READS,
+    // AS LIFECYCLE CARDS (VIEW MODEL IN aiDirectives.js)
+    case 'directives': {
+      const manifest = core.apps.getType(instance.app_type);
+      if (manifest.kind !== 'ai-provider') break;
+      data.directives = buildDirectivesData(core, instance);
       break;
     }
     case 'settings': {
@@ -554,12 +568,21 @@ async function buildTakeoverLocals(core, instance, opts = {}) {
         || (threads.some(thread => thread.id === pick) ? pick : (threads[0]?.id || null))
     };
   }
+  // THE CHAT SECTION'S COMPOSER RIDES THE REAL chatBar (SAME OG BAR THE
+  // MIRROR USES) - PRESENT ONLY WHEN THERE IS A LIVE THREAD TO POST INTO
+  const aiComposer = nav.appManifest.kind === 'ai-provider'
+    && nav.section === 'chat'
+    && sectionData.configured
+    && sectionData.activeThread
+    ? { threadId: sectionData.activeThread.id }
+    : null;
   return {
     ...nav,
     sectionData,
     feed,
     railSearch,
     aiRail,
+    aiComposer,
     // queueBody.pug READS `queue`/`queueActions` DIRECTLY SO WS PUSHES AND HTTP RENDERS SHARE ONE SHAPE
     queue: sectionData.queue || [],
     queueActions: sectionData.queueActions || { item: [], queue: [] }
@@ -829,6 +852,9 @@ async function changeAppSection(ctx) {
     'apps/appChannelsLayout.pug',
     'apps/appHeader.pug',
     'apps/appSurface.pug',
+    // THE AI CHAT SECTION CARRIES THE COMPOSER IN THE REAL chatBar - THE
+    // SWAP PUTS IT UP ENTERING CHAT AND COLLAPSES IT LEAVING
+    'chat/chatBar.pug',
     // THE RAIL IS PER-APP CONTENT, BUT AI THREAD PICKS ARE PER-SECTION
     // STATE - RE-RENDER IT SO THE ACTIVE THREAD HIGHLIGHT STAYS TRUE
     'members/membersLayout.pug'

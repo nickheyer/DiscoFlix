@@ -1,4 +1,5 @@
 const GeminiAiClient = require('../clients/geminiAiClient');
+const { interaction: aiChat, aiProviderFeaturesFor } = require('./interactions/aiChat');
 
 module.exports = {
   id: 'gemini',
@@ -16,14 +17,15 @@ module.exports = {
   ],
   Client: GeminiAiClient,
   contentTypes: [],
-  interactions: [require('./interactions/aiChat')],
+  interactions: [aiChat],
+  botFeatures: aiProviderFeaturesFor('gemini'),
   configFields: [
     { key: 'api_key', label: 'API Key', type: 'string', required: true, sensitive: true, description: 'aistudio.google.com → Get API key' }
   ],
   instanceOptions: [
     { key: 'model', label: 'Model', description: 'Which Gemini model answers', fetch: 'models', blankLabel: 'Gemini 2.5 Flash (default)' }
   ],
-  sections: ['overview', 'chat', 'settings'],
+  sections: ['overview', 'chat', 'directives', 'settings'],
   buildClient(row, logger) {
     let settings = {};
     try { settings = JSON.parse(row.settings_json || '{}'); } catch (err) { settings = {}; }

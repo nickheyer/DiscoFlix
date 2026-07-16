@@ -86,6 +86,11 @@ const {
   aiChatDeleteThread
 } = require('../api/aiChat');
 
+const {
+  saveAiDirective,
+  resetAiDirective
+} = require('../api/aiDirectives');
+
 const router = new Router();
 
 // STATE-CHANGING ROUTES ARE POST-ONLY (M3)
@@ -115,6 +120,9 @@ router.get('/apps/:id/bot', appBotMatrix);
 router.post('/apps/:id/bot/config', saveBotConfig);
 router.post('/apps/:id/bot/feature/:featureId', saveBotFeature);
 router.delete('/apps/:id/bot/feature/:featureId', resetBotFeature);
+// THE DIRECTIVES TAB - PER-DIRECTIVE AUTOSAVE/RESET (AI PROVIDERS ONLY)
+router.post('/apps/:id/directives/:key', saveAiDirective);
+router.delete('/apps/:id/directives/:key', resetAiDirective);
 // THE UNIFIED LIBRARY (SELF APP) - FILTER SWAPS AND VIEW MORE PAGINATION
 router.get('/apps/:id/unified', appUnifiedLibrary);
 router.get('/apps/:id/unified/page/:page', appUnifiedLibraryPage);

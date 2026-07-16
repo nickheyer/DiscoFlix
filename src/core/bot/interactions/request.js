@@ -1,5 +1,6 @@
 const { ButtonBuilder, ButtonStyle, StringSelectMenuBuilder } = require('discord.js');
 const ui = require('./ui');
+const { appEmoji, appBadge } = require('./appEmojis');
 const { countRequestsSince } = require('./limits');
 const { resolveForCtx } = require('./features');
 
@@ -127,49 +128,105 @@ function detailOf(flow, index) {
   return flow.details[index];
 }
 
-// THE PER-TYPE FACT STRIP UNDER THE OVERVIEW
-function metaEntriesOf(result) {
-  const entries = [];
-  if (result.contentType === 'movie') {
-    if (result.runtime) entries.push(`Runtime ${result.runtime} min`);
-    if (result.network) entries.push(`Studio ${result.network}`);
-    if (result.inTheaters) entries.push(`In theaters ${result.inTheaters.slice(0, 10)}`);
-  } else if (result.contentType === 'music') {
-    if (result.network) entries.push(`Artist ${result.network}`);
-    if (result.albumType) entries.push(`Type ${result.albumType}`);
-    if (result.firstAired) entries.push(`Released ${result.firstAired.slice(0, 10)}`);
-    if (result.trackCount) entries.push(`Tracks ${result.trackCount}`);
-  } else {
-    if (result.seasonCount) entries.push(`Seasons ${result.seasonCount}`);
-    if (result.network) entries.push(`Network ${result.network}`);
-    if (result.firstAired) entries.push(`First aired ${result.firstAired.slice(0, 10)}`);
-  }
-  return entries;
+// DATES READ MM-DD-YYYY - LOOKUPS CARRY ISO-ISH STRINGS
+function shortDateOf(value) {
+  const match = String(value || '').slice(0, 10).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  return match ? `${match[2]}-${match[3]}-${match[1]}` : null;
 }
 
-// AVAILABILITY BADGE + RATING CHIPS ON ONE LINE - THE CARD'S SECOND LINE
+// STATUS AND RELEASE DATE SHARE ONE PHRASE - THE VERB CARRIES THE STATUS:
+// 'Released 06-25-1982' | 'Releases 12-19-2026' | null WHEN NO DATE
+function releasePhraseOf(value, pastVerb, futureVerb) {
+  const date = shortDateOf(value);
+  if (!date) return null;
+  const verb = new Date(String(value).slice(0, 10)).getTime() > Date.now() ? futureVerb : pastVerb;
+  return `${verb} ${date}`;
+}
+
+// RATING CHIPS AS BRAND BADGES - THE SOURCE'S EMOJI MARK PLUS THE VALUE,
+// HYPERLINKED TO ITS PAGE WHEN THE LOOKUP CARRIES ONE. FALLS BACK TO THE
+// PLAIN 'IMDb 7.5' TEXT UNTIL AN EMOJI SYNC LANDS.
+const RATING_EMOJI = {
+  IMDb: 'imdb',
+  TMDB: 'tmdb',
+  'Rotten Tomatoes': 'rottentomatoes',
+  Metacritic: 'metacritic'
+};
+
+function ratingChipsOf(detail) {
+  const links = detail?.links || [];
+  return (detail?.ratings || []).map(rating => {
+    const icon = appEmoji(RATING_EMOJI[rating.label]);
+    const url = links.find(link => link.label === rating.label)?.url;
+    const value = url ? `[${rating.value}](${url})` : rating.value;
+    return icon ? `${icon} ${value}` : `${rating.label} ${value}`;
+  });
+}
+
+// 'A' | 'A and B' | 'A, B and C'
+function joinAnd(items) {
+  if (items.length <= 1) return items[0] || '';
+  return `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`;
+}
+
+// EVERY SERVER THE TITLE STREAMS ON, EACH WITH ITS BRAND EMOJI
+function streamingBadgesOf(servers) {
+  return servers.map(server => appBadge(server.appType, server.name));
+}
+
+// AVAILABILITY BADGE + RATING CHIPS ON ONE LINE - THE CARD'S SECOND LINE.
+// A STREAMING BADGE NAMES EVERY SERVER THAT HAS IT, EACH WITH ITS EMOJI.
 function badgeLineOf(flow, index) {
   const entries = [];
   const badge = flow.badges?.[index];
-  if (badge) entries.push(`**${badge}**`);
-  const detail = detailOf(flow, index);
-  for (const rating of detail?.ratings || []) {
-    entries.push(`${rating.label} ${rating.value}`);
+  if (badge) {
+    const label = badge.servers?.length
+      ? `Available on ${streamingBadgesOf(badge.servers).join(', ')}`
+      : badge.text;
+    entries.push(`**${label}**`);
   }
-  return entries.length ? entries.join(' • ') : null;
+  entries.push(...ratingChipsOf(detailOf(flow, index)));
+  return entries.length ? entries.join(' · ') : null;
 }
 
-// GENRES/CERTIFICATION/STATUS RIDE THE SMALL META LINE WITH THE TYPE FACTS
-function metaLineOf(flow, index) {
+// THE SMALL META BLOCK UNDER THE OVERVIEW - THREE SHORT LINES, NOT ONE
+// PACKED STRIP: GENRES / CERTIFICATION + LENGTH / RELEASE. NO STUDIO OR
+// NETWORK (THE DETAILS VIEW'S FACT BLOCK KEEPS THEM); MOVIE STATUS LIVES IN
+// THE RELEASE VERB, SHOW STATUS (Continuing/Ended) RIDES BESIDE THE AIR DATE.
+function metaLinesOf(flow, index) {
   const result = flow.results[index];
   const detail = detailOf(flow, index);
-  const entries = [];
+  const lines = [];
+
   const genres = (detail?.genres || []).slice(0, 3).join(', ');
-  if (genres) entries.push(genres);
-  if (detail?.certification) entries.push(detail.certification);
-  if (detail?.status) entries.push(detail.status);
-  entries.push(...metaEntriesOf(result));
-  return entries.length ? entries.join(' • ') : null;
+  if (genres) lines.push(genres);
+
+  const spec = [];
+  if (detail?.certification) spec.push(`\`${detail.certification}\``);
+  if (result.contentType === 'movie') {
+    if (result.runtime) spec.push(`${result.runtime} min`);
+  } else if (result.contentType === 'music') {
+    if (result.network) spec.push(`by ${result.network}`);
+    if (result.albumType) spec.push(result.albumType);
+    if (result.trackCount) spec.push(`${result.trackCount} track${result.trackCount === 1 ? '' : 's'}`);
+  } else {
+    if (result.seasonCount) spec.push(`${result.seasonCount} season${result.seasonCount === 1 ? '' : 's'}`);
+  }
+  if (spec.length) lines.push(spec.join(' • '));
+
+  let release = null;
+  if (result.contentType === 'movie') {
+    release = releasePhraseOf(result.inTheaters, 'Released', 'Releases');
+  } else if (result.contentType === 'music') {
+    release = releasePhraseOf(result.firstAired, 'Released', 'Releases');
+  } else {
+    const status = detail?.status ? detail.status[0].toUpperCase() + detail.status.slice(1) : null;
+    const aired = releasePhraseOf(result.firstAired, 'First aired', 'First airs');
+    release = [status, aired].filter(Boolean).join(' • ') || null;
+  }
+  if (release) lines.push(release);
+
+  return lines;
 }
 
 function footerOf(flow) {
@@ -197,7 +254,7 @@ function browseButtons(flow) {
 function jumpSelect(flow) {
   const options = flow.results.slice(0, 25).map((result, i) => {
     const badge = flow.badges?.[i];
-    const description = [badge, result.overview].filter(Boolean).join(' - ');
+    const description = [badge?.text, result.overview].filter(Boolean).join(' - ');
     return {
       label: ui.truncate(displayTitle(result), 100),
       description: ui.truncate(description, 100) || undefined,
@@ -227,8 +284,8 @@ function browsePayload(flow) {
   if (!flow.features.details && flow.features.trailers && result.trailerUrl) {
     parts.push(ui.text(`[Watch the trailer](${result.trailerUrl})`));
   }
-  const meta = metaLineOf(flow, flow.index);
-  if (meta) parts.push(ui.text(`-# ${meta}`));
+  const meta = metaLinesOf(flow, flow.index);
+  if (meta.length) parts.push(ui.text(meta.map(line => `-# ${line}`).join('\n')));
   parts.push(ui.separator());
   if (flow.results.length > 1) parts.push(jumpSelect(flow));
   parts.push(browseButtons(flow));
@@ -279,7 +336,7 @@ function detailsPayload(flow) {
   if (badgeLine) headLines.push(badgeLine);
   const sub = [
     (detail?.genres || []).slice(0, 3).join(', '),
-    detail?.certification,
+    detail?.certification ? `\`${detail.certification}\`` : null,
     detail?.runtime
   ].filter(Boolean).join(' • ');
   if (sub) headLines.push(`-# ${sub}`);
@@ -409,7 +466,7 @@ function optionsPayload(flow) {
   const result = flow.results[flow.index];
   const lines = [`### Requesting: ${displayTitle(result)}`];
   if (flow.seasons) lines.push(`-# Season${flow.seasons.length === 1 ? '' : 's'} ${flow.seasons.join(', ')}`);
-  lines.push(`-# Sends to ${flow.instance.display_name}`);
+  lines.push(`-# Sends to ${appBadge(flow.instance.app_type, flow.instance.display_name)}`);
 
   const parts = [];
   if (result.posterUrl) parts.push(ui.section(lines, result.posterUrl));
@@ -514,13 +571,17 @@ async function finalizeSelection(interaction, flow) {
 
   await redraw(ui.notice(`Working on **${name}**...`));
 
-  // ALREADY STREAMABLE? A CONNECTED MEDIA SERVER ANSWERS BEFORE ANYTHING IS
-  // REQUESTED - GUARDED, A DEAD SERVER MUST NEVER BLOCK THE FLOW. BADGES ARE
+  // ALREADY STREAMABLE? EVERY CONNECTED MEDIA SERVER ANSWERS BEFORE ANYTHING
+  // IS REQUESTED - THE CARD NAMES EACH ONE THAT HAS IT (NEVER JUST THE
+  // FIRST). GUARDED, A DEAD SERVER MUST NEVER BLOCK THE FLOW. BADGES ARE
   // ADVISORY; THIS CHECK STAYS AUTHORITATIVE.
   try {
     const streaming = await core.apps.findOnMediaServers(result);
-    if (streaming) {
-      await flow.channel.send(outcomeCard(result, `**${name}** is already on **${streaming.instance.display_name}** - go stream it!`, 'ok'));
+    if (streaming.length) {
+      const where = joinAnd(streaming.map(match =>
+        `**${appBadge(match.instance.app_type, match.instance.display_name)}**`
+      ));
+      await flow.channel.send(outcomeCard(result, `**${name}** is already on ${where} - go stream it!`, 'ok'));
       return;
     }
   } catch (err) {
@@ -576,7 +637,7 @@ async function finalizeSelection(interaction, flow) {
       result,
       `**${name}**${seasonNote} has been requested.`,
       'ok',
-      [`Sent to ${instance.display_name}`, pickNote, 'Updates will land here as it downloads'].filter(Boolean).join(' • ')
+      [`Sent to ${appBadge(instance.app_type, instance.display_name)}`, pickNote, 'Updates will land here as it downloads'].filter(Boolean).join(' • ')
     ));
     // SLASH FLOWS HAVE NO TRIGGERING USER MESSAGE - THE OUTCOME CARD (WHICH
     // MIRRORS LIKE ANY BOT MESSAGE) BECOMES THE JUMP ANCHOR. refreshUI BELOW

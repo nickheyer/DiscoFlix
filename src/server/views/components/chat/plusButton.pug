@@ -13,7 +13,11 @@ mixin plusGlyph
     line(x1="12", y1="4", x2="12", y2="20")
     line(x1="4", y1="12", x2="20", y2="12")
 
-if servers.activeChannel && servers.activeChannel.channel_name
+//- AI COMPOSERS HAVE NOTHING TO ATTACH - SAME HONEST DISABLED STATE
+if typeof aiComposer !== 'undefined' && aiComposer
+  .plusButton.disabled(aria-hidden="true")
+    +plusGlyph
+else if servers.activeChannel && servers.activeChannel.channel_name
   label.plusButton(
     for="chatUploadFile"
     aria-label="Attach a file"

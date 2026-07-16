@@ -1,6 +1,8 @@
 //- THE ASSISTANT'S TYPING ROW - LIVES AT THE LOG'S LIVE END WHILE A TURN IS
-//- IN FLIGHT; THE ASSISTANT PUSH DELETES IT BY ID (aiChatPush.pug). RENDERED
-//- AS A MIXIN SO THE FULL SECTION RENDER AND THE WS PUSH SHARE ONE SHAPE.
+//- IN FLIGHT; THE ASSISTANT PUSH DELETES IT BY ID (aiChatPush.pug). WEARS
+//- THE MIRROR'S OWN THINKING TREATMENT (.chatMessageText.empty + .ellipsis,
+//- SEE chat/message/messageTyping.pug). RENDERED AS A MIXIN SO THE FULL
+//- SECTION RENDER AND THE WS PUSH SHARE ONE SHAPE.
 mixin aiChatTyping(app, threadId, icon)
   .chatMessageRow.aiChatRow.botMsg.aiTypingRow(id=`ai-typing-${threadId}`)
     .chatContentContainer
@@ -10,7 +12,9 @@ mixin aiChatTyping(app, threadId, icon)
         .chatAuthor
           b.chatAuthorUsername= app.display_name
           .chatMessageTag.aiTag AI
-        .aiTypingDots
-          span
-          span
-          span
+        .chatMessageText.empty
+          .ellipsis
+            div
+            div
+            div
+          | #{app.display_name} is thinking...

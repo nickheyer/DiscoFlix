@@ -1,8 +1,11 @@
 //- ONE MATRIX ROW = ONE AUTO-SAVE FORM (CHANGE-TRIGGERED, SWAPS ITSELF).
 //- SCOPED VIEWS RENDER "FOLLOWING GLOBAL" ROWS DISABLED UNTIL EXPLICITLY
-//- OVERRIDDEN. LOCALS: row, bot, activeApp (INLINE FROM dfBotMatrix OR BARE
-//- FROM THE FEATURE SAVE/RESET ROUTES).
-- var inherited = !!bot.scope && !row.hasOverride
+//- OVERRIDDEN. AI BOARD ROWS (row.provider SET) WEAR THE PROVIDER'S CHIP +
+//- ROUTING RANK INSTEAD OF THE FEATURE PROSE - THE DOOR CARD OWNS THAT.
+//- row.globalOnly (SCOPED DM ROWS) LOCKS THE ROW TO THE GLOBAL RULE THE
+//- RUNTIME ACTUALLY READS. LOCALS: row, bot, activeApp (INLINE FROM
+//- dfBotMatrix/dfBotAiBoard OR BARE FROM THE FEATURE SAVE/RESET ROUTES).
+- var inherited = (!!bot.scope && !row.hasOverride) || !!row.globalOnly
 - var featurePath = `/apps/${activeApp.id}/bot/feature/${encodeURIComponent(row.feature.id)}`
 form.dfBotFeatureRow(
   id=`bot-feature-${row.slug}`
@@ -12,13 +15,22 @@ form.dfBotFeatureRow(
 )
   input(type="hidden" name="scope" value=bot.scope || '')
   .dfBotFeatureHead
-    .dfBotFeatureText
-      .dfBotFeatureName= row.feature.label
-      .dfBotFeatureDesc= row.feature.description
+    if row.provider
+      .dfBotFeatureText.dfBotAiProviderRow
+        if row.provider.priority
+          span.dfBotAiPriority(title="Routing priority - lower answers first")= row.provider.priority
+        img.dfBotAiProviderIcon(src=row.provider.icon alt="")
+        .dfBotFeatureName= row.provider.label
+    else
+      .dfBotFeatureText
+        .dfBotFeatureName= row.feature.label
+        .dfBotFeatureDesc= row.feature.description
     .dfBotFeatureTags
       if !row.served
         span.dfBotTag.unserved(title="Grants persist, but no connected app serves this right now") not served
-      if bot.scope
+      if row.globalOnly
+        span.dfBotTag.inherited global rule
+      else if bot.scope
         span.dfBotTag(class=row.hasOverride ? 'override' : 'inherited')= row.hasOverride ? 'server override' : 'following global'
       else if row.hasOverride
         span.dfBotTag.override customized
@@ -53,7 +65,7 @@ form.dfBotFeatureRow(
       )
     each extent in row.feature.extents
       .dfBotControl
-        label.dfBotControlLabel(for=`${row.slug}-${extent.key}` title="0 means unlimited")= extent.label
+        label.dfBotControlLabel(for=`${row.slug}-${extent.key}` title=extent.zeroLabel || "0 means unlimited")= extent.label
         input.settings-input.size-sm(
           id=`${row.slug}-${extent.key}`
           type="number"
@@ -63,7 +75,7 @@ form.dfBotFeatureRow(
           max=extent.max
           disabled=inherited
         )
-  if bot.scope || row.hasOverride
+  if (bot.scope || row.hasOverride) && !row.globalOnly
     .dfBotFeatureActions
       if bot.scope && !row.hasOverride
         button.modal-button.button-secondary(

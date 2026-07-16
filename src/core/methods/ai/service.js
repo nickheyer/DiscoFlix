@@ -1,5 +1,7 @@
 const AiBaseClient = require('../apps/clients/aiBaseClient');
 const ui = require('../../bot/interactions/ui');
+const { appEmoji } = require('../../bot/interactions/appEmojis');
+const { directiveText } = require('./directives');
 
 // THE AGENT LOOP + TURN RUNNERS. ONE PROVIDER-NEUTRAL LOOP SERVES BOTH
 // SURFACES: DISCORD TURNS RUN WITH THE CALLER'S OWN PERMISSIONS, CONSOLE
@@ -10,6 +12,10 @@ const MAX_TOOL_TURNS = 6;
 const DISCORD_MAX_TOKENS = 1024;
 const CONSOLE_MAX_TOKENS = 2048;
 const DEFAULT_CONTEXT_TURNS = 24;
+// DISCORD SESSIONS END NATURALLY - A CHANNEL QUIET THIS LONG STARTS FRESH
+// (0 VIA THE context_idle_hours EXTENT = MEMORY NEVER FADES). CONSOLE
+// THREADS ARE EXPLICIT SESSIONS AND NEVER IDLE-CUT.
+const DEFAULT_IDLE_HOURS = 8;
 const CONSOLE_CONTEXT_TURNS = 30;
 const DAY_MS = 24 * 60 * 60 * 1000;
 // COMPONENTS V2 CAPS A MESSAGE'S TEXT AT 4000 - CHUNK WELL UNDER IT
@@ -33,11 +39,44 @@ module.exports = {
     return (await this.servingAiInstances())[0] || null;
   },
 
+  // ── DOOR ROUTING ───────────────────────────────────────────────────────
+
+  // WHO ANSWERS A DISCORD DOOR (commands | mentions | dms): WALK THE SERVING
+  // PROVIDERS DEFAULT-FIRST AND TAKE THE FIRST WHOSE OWN (PROVIDER, DOOR)
+  // MATRIX ROW ADMITS THIS CALLER AT THIS SCOPE - DISABLING A ROW ROUTES
+  // AROUND THAT PROVIDER, AUDIENCES CAN TIER PROVIDERS PER DOOR. NO WINNER:
+  // gate CARRIES THE FIRST DENIAL (NULL WHEN NOTHING SERVES AT ALL) SO THE
+  // CALLER CAN ANSWER HONESTLY.
+  async resolveAiDoor(ctx, door) {
+    const features = require('../../bot/interactions/features');
+    const { aiDoorFeatureId } = require('../apps/manifests/interactions/aiChat');
+    const instances = await this.servingAiInstances();
+    let denial = null;
+    for (const instance of instances) {
+      const gate = await features.resolveFeature(this.core, aiDoorFeatureId(instance.app_type, door), ctx);
+      if (gate.allowed) return { instance, gate };
+      // AN AUDIENCE DENIAL ("ASK AN ADMIN") IS ACTIONABLE; "SWITCHED OFF"
+      // ISN'T - REPORT THE MOST USEFUL NO WHEN EVERY DOOR STAYS SHUT
+      if (!denial || (denial.reason !== 'audience' && gate.reason === 'audience')) denial = gate;
+    }
+    return { instance: null, gate: denial };
+  },
+
   // ── SYSTEM PROMPT ──────────────────────────────────────────────────────
 
-  async buildSystemPrompt({ surface, instance, dbUser, guildId }) {
+  // EVERY STATIC BLOCK COMES THROUGH THE DIRECTIVE CATALOG (DEFAULTS ARE THE
+  // TEXT THAT USED TO LIVE HERE; THE DIRECTIVES TAB OVERRIDES PER INSTANCE).
+  // DYNAMIC LINES - DATE, CONNECTED SERVICES, SPEAKER CONTEXT - STAY BUILT.
+  // dossier IS THE SPEAKER'S PRE-BUILT DATA BLOCK (_buildSpeakerDossier),
+  // PRESENT ONLY WHEN THE PROVIDER'S "PERSONALIZED REPLIES" ROW ADMITTED
+  // THE CALLER - ABSENT, THE PROMPT IS EXACTLY WHAT IT ALWAYS WAS.
+  async buildSystemPrompt({ surface, instance, dbUser, guildId, dossier = null }) {
     const core = this.core;
     const config = await core.models.configuration.get();
+    const say = key => directiveText(instance, key, {
+      media_server_name: config.media_server_name,
+      prefix_keyword: config.prefix_keyword
+    });
     const rows = await core.models.app.getMany({ enabled: true });
     const connected = rows
       .filter(row => {
@@ -51,14 +90,14 @@ module.exports = {
       });
 
     const lines = [
-      `You are the assistant for "${config.media_server_name}", a personal media server managed through DiscoFlix.`,
+      say('identity'),
       `Today's date is ${new Date().toDateString()}.`,
       '',
-      'You help people find, request, and track movies, shows, and music, and answer questions about the server. Your tools are the source of truth - use them for anything factual (what exists, what is downloading, what is new, service health). Never invent library contents or statuses.',
+      say('mission'),
       '',
-      connected.length ? `Connected services:\n${connected.join('\n')}` : 'No other services are connected yet - suggest adding apps in the web console when someone asks for things that need them.',
+      connected.length ? `Connected services:\n${connected.join('\n')}` : say('no_services'),
       '',
-      'Requesting: search_media first, then request_media with the exact external_id. If the user clearly asked for a title to be added ("request X", "add X", "can you get X"), request it right away. If they were only browsing or asking questions, confirm before requesting. Relay tool denials honestly - permissions belong to the person talking to you.'
+      say('requesting')
     ];
 
     if (surface === 'discord') {
@@ -66,18 +105,14 @@ module.exports = {
       lines.push(
         '',
         `You are speaking in Discord${guildId ? ' in a shared channel - user messages are prefixed with [name] so you can tell people apart; address people by name when it helps' : ' in a direct message'}.`,
-        `The current speaker is ${dbUser?.display_name || dbUser?.username || 'a member'} (${tier}).`,
-        `Bot commands also exist: the prefix keyword is "${config.prefix_keyword}" and slash commands like /movie, /show, /status, /whatsnew - mention them when someone asks how to use the bot.`,
-        '',
-        'Style: Discord markdown only (bold, italics, `code`, [links](url)). Be conversational and tight - a few sentences for most answers, short lists when listing. Hard limit ~1200 characters; never dump raw JSON.'
+        `The current speaker is ${dbUser?.display_name || dbUser?.username || 'a member'} (${tier}).`
       );
+      // THE DOSSIER RIDES RIGHT UNDER THE SPEAKER LINE, CHAPERONED BY ITS
+      // DIRECTIVE (HOW TO WEIGH IT, WHAT NEVER TO RECITE)
+      if (dossier) lines.push('', dossier, '', say('dossier'), '');
+      lines.push(say('discord_manner'));
     } else {
-      lines.push(
-        '',
-        'You are speaking to the server operator in the DiscoFlix web console. They administer everything, so be direct and complete - you may approve or deny pending requests when asked, and should confirm before deciding anything they did not explicitly name.',
-        '',
-        'Style: markdown (bold, italics, `code`, [links](url), short headings). Be thorough but structured; never dump raw JSON.'
-      );
+      lines.push('', say('console_manner'));
     }
     return lines.join('\n');
   },
@@ -164,11 +199,12 @@ module.exports = {
     const core = this.core;
     const extents = ctx.feature?.extents || {};
 
-    // DAILY MESSAGE CAP (0 = UNLIMITED, staff+ EXEMPT VIA adminExempt)
+    // DAILY MESSAGE CAP (0 = UNLIMITED, staff+ EXEMPT VIA adminExempt) -
+    // SCOPED TO THIS PROVIDER TYPE, EACH ROW'S BUDGET IS ITS OWN
     const dailyLimit = Number(extents.max_messages_per_day) || 0;
     if (dailyLimit > 0) {
       const count = await core.models.aiMessage.countAuthoredSince(
-        ctx.discordUser.id, new Date(Date.now() - DAY_MS)
+        ctx.discordUser.id, new Date(Date.now() - DAY_MS), instance.app_type
       );
       if (count >= dailyLimit) {
         await ctx.send(ui.notice(
@@ -196,16 +232,22 @@ module.exports = {
 
       const authorLabel = ctx.discordUser.displayName || ctx.discordUser.username;
       const contextTurns = Number(extents.context_turns) || DEFAULT_CONTEXT_TURNS;
+      // 0 STAYS 0 (NEVER FADES) - ONLY AN ABSENT EXTENT FALLS TO THE DEFAULT
+      const idleHoursRaw = Number(extents.context_idle_hours);
+      const idleHours = Number.isFinite(idleHoursRaw) ? idleHoursRaw : DEFAULT_IDLE_HOURS;
 
       const result = await this._withThreadLock(thread.id, async () => {
-        const window = await core.models.aiMessage.windowFor(thread.id, contextTurns);
+        const window = await core.models.aiMessage.windowFor(thread.id, contextTurns, {
+          idleMs: idleHours > 0 ? idleHours * 60 * 60 * 1000 : 0
+        });
         const history = this._historyMessagesOf(window, { attribute: true });
         await core.models.aiMessage.append(thread.id, {
           role: 'user', content: text, authorLabel, authorKey: ctx.discordUser.id
         });
 
         const system = await this.buildSystemPrompt({
-          surface: 'discord', instance, dbUser: ctx.dbUser, guildId: ctx.guildId
+          surface: 'discord', instance, dbUser: ctx.dbUser, guildId: ctx.guildId,
+          dossier: await this._buildSpeakerDossier(ctx, instance)
         });
         const toolCtx = {
           core, surface: 'discord', instance,
@@ -237,21 +279,107 @@ module.exports = {
     }
   },
 
+  // THE SPEAKER'S DOSSIER - OPERATOR NOTES + RECENT REQUEST HISTORY, GATED
+  // BY THE PROVIDER'S "PERSONALIZED REPLIES" MATRIX ROW (OFF BY DEFAULT;
+  // AUDIENCE PICKS WHOSE DOSSIER MAY BE READ). RETURNS NULL WHEN THE GATE
+  // SAYS NO OR THERE IS NOTHING WORTH SAYING - THE PROMPT STAYS UNCHANGED.
+  async _buildSpeakerDossier(ctx, instance) {
+    if (!ctx.dbUser) return null;
+    const features = require('../../bot/interactions/features');
+    const { aiDossierFeatureId } = require('../apps/manifests/interactions/aiChat');
+    const gate = await features.resolveFeature(this.core, aiDossierFeatureId(instance.app_type), ctx);
+    if (!gate.allowed) return null;
+
+    const lines = ['About the current speaker:'];
+    const notes = String(ctx.dbUser.notes || '').trim();
+    if (notes) lines.push(`- Operator notes: ${notes.slice(0, 400)}`);
+
+    // 0 = NO HISTORY (JUST NOTES) - A take-LIMIT IS THE ONE EXTENT WHERE
+    // "UNLIMITED" WOULD BE A PROMPT-STUFFING FOOTGUN
+    const historyItems = Number(gate.extents.history_items) || 0;
+    if (historyItems > 0) {
+      const [total, rows] = await Promise.all([
+        this.core.models.mediaRequest.countUserRequests(ctx.dbUser.id),
+        this.core.models.mediaRequest.getUserRequests(ctx.dbUser.id, {}, { take: historyItems })
+      ]);
+      if (total > 0) {
+        const items = rows.map(row => {
+          const title = row.media?.title || row.orig_parsed_title || 'unknown';
+          const state = row.status === null
+            ? 'pending approval'
+            : row.status ? (row.media?.is_available ? 'downloaded' : 'approved') : 'denied';
+          return `${title} (${state})`;
+        });
+        lines.push(`- Their requests: ${total} total; latest: ${items.join(', ')}`);
+      }
+    }
+    return lines.length > 1 ? lines.join('\n') : null;
+  },
+
   // FINAL TEXT -> CV2 CONTAINERS, CHUNKED UNDER THE PER-MESSAGE TEXT CAP.
-  // THE LAST CHUNK CARRIES THE PROVIDER/TOOL ATTRIBUTION SUBTEXT.
+  // THE LAST CHUNK CLOSES WITH A FOOTER: DIVIDER, THEN THE discord_footer
+  // DIRECTIVE AS SUBTEXT - A PER-INSTANCE TEMPLATE ({app_emoji}, {model},
+  // {tools_used}, ...), PURE PRESENTATION AND NEVER PROMPTED.
   async _sendDiscordReply(ctx, instance, { text, toolsUsed, model }) {
-    const chunks = this._chunkText(text, DISCORD_CHUNK_CHARS);
-    const meta = [`-# ${instance.display_name}`, model ? model : null,
-      toolsUsed.length ? `used ${toolsUsed.join(', ')}` : null
-    ].filter(Boolean).join(' • ');
+    const chunks = this._chunkText(this._discordifyMarkdown(text), DISCORD_CHUNK_CHARS);
+    const footer = directiveText(instance, 'discord_footer', {
+      // THE BRAND EMOJI, OR THE PLAIN NAME UNTIL AN EMOJI SYNC LANDS
+      app_emoji: appEmoji(instance.app_type) || instance.display_name,
+      app_name: instance.display_name,
+      model: model || '',
+      tools_used: toolsUsed.map(name => name.replace(/_/g, ' ')).join(', '),
+      prefix_keyword: ctx.config?.prefix_keyword || ''
+    }).split('\n').map(line => `-# ${line}`).join('\n');
 
     for (let i = 0; i < chunks.length; i++) {
       const parts = [ui.text(chunks[i])];
-      if (i === chunks.length - 1) parts.push(ui.text(meta));
+      if (i === chunks.length - 1) parts.push(ui.separator(), ui.text(footer));
       const payload = ui.payload(ui.container(parts));
       if (i === 0) await ctx.send(payload);
       else await ctx.channel.send(payload);
     }
+  },
+
+  // MODELS EMIT GITHUB-ISH MARKDOWN; DISCORD RENDERS A SUBSET. HEADINGS
+  // DEMOTE TO ### (A CHAT REPLY NEVER SHOUTS; H4+ WOULD RENDER AS LITERAL
+  // HASHES), PIPE TABLES BECOME BOLD-LED LINES, HORIZONTAL RULES DROP (THE
+  // CONTAINER ALREADY FRAMES THE MESSAGE). CODE FENCES PASS THROUGH RAW.
+  _discordifyMarkdown(text) {
+    return String(text || '')
+      .split(/(```[\s\S]*?```)/)
+      .map((segment, i) => {
+        if (i % 2 === 1) return segment;
+        const cleaned = segment
+          .replace(/^#{1,3}\s+(.+)$/gm, '### $1')
+          .replace(/^#{4,6}\s+(.+)$/gm, '**$1**')
+          .replace(/^[ \t]*([-*_])[ \t]*(?:\1[ \t]*){2,}$/gm, '');
+        return this._flattenTables(cleaned).replace(/\n{3,}/g, '\n\n');
+      })
+      .join('');
+  },
+
+  // | A | B | PIPE TABLES -> A -# HEADER LINE PLUS ONE BOLD-LED LINE PER ROW
+  _flattenTables(segment) {
+    const isRow = line => /^\s*\|.+\|\s*$/.test(line);
+    const isDivider = line => /^\s*\|[\s:|-]+\|\s*$/.test(line || '');
+    const cellsOf = line => line.trim().replace(/^\||\|$/g, '').split('|').map(cell => cell.trim());
+
+    const lines = segment.split('\n');
+    const out = [];
+    for (let i = 0; i < lines.length; i++) {
+      if (!isRow(lines[i]) || !isDivider(lines[i + 1])) {
+        out.push(lines[i]);
+        continue;
+      }
+      out.push(`-# ${cellsOf(lines[i]).join(' · ')}`);
+      i += 1;
+      while (i + 1 < lines.length && isRow(lines[i + 1]) && !isDivider(lines[i + 1])) {
+        i += 1;
+        const cells = cellsOf(lines[i]);
+        out.push(`**${cells[0]}**${cells.length > 1 ? ` — ${cells.slice(1).join(' · ')}` : ''}`);
+      }
+    }
+    return out.join('\n');
   },
 
   _chunkText(text, size) {
@@ -267,6 +395,16 @@ module.exports = {
       rest = rest.slice(cut).trim();
     }
     if (rest) chunks.push(rest);
+
+    // A CUT MID-CODE-FENCE WOULD GARBLE EVERY CHUNK AFTER IT - CLOSE THE
+    // FENCE AT THE SEAM AND REOPEN IT IN THE NEXT CHUNK
+    let open = false;
+    for (let i = 0; i < chunks.length; i++) {
+      if (open) chunks[i] = `\`\`\`\n${chunks[i]}`;
+      const fences = (chunks[i].match(/```/g) || []).length;
+      open = fences % 2 === 1;
+      if (open) chunks[i] += '\n```';
+    }
     return chunks.length ? chunks : ['...'];
   },
 

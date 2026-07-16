@@ -21,14 +21,30 @@ class AiMessage extends BaseModel {
         });
     }
 
-    // OLDEST-FIRST WINDOW OF THE NEWEST N TURNS - THE MODEL REPLAY SHAPE
-    async windowFor(conversationId, limit = 30) {
+    // OLDEST-FIRST WINDOW OF THE NEWEST N TURNS - THE MODEL REPLAY SHAPE.
+    // idleMs > 0 MAKES SESSIONS END NATURALLY: WALKING BACK FROM NOW, THE
+    // FIRST QUIET GAP LONGER THAN idleMs IS THE SESSION SEAM AND NOTHING
+    // BEFORE IT REPLAYS - A LIVE CONVERSATION KEEPS ITS MEMORY INDEFINITELY,
+    // A LULL STARTS THE NEXT MESSAGE FRESH. THE GAP BETWEEN NOW AND THE
+    // NEWEST ROW COUNTS TOO (A LONG-IDLE CHANNEL WAKES WITH NO WINDOW).
+    async windowFor(conversationId, limit = 30, { idleMs = 0 } = {}) {
         const newest = await this.getMany(
             { conversationId },
             {},
             [{ created_at: 'desc' }],
             { take: limit }
         );
+        if (idleMs > 0) {
+            let previous = Date.now();
+            let keep = 0;
+            for (const row of newest) {
+                const at = new Date(row.created_at).getTime();
+                if (previous - at > idleMs) break;
+                previous = at;
+                keep++;
+            }
+            newest.length = keep;
+        }
         return newest.reverse();
     }
 
@@ -37,10 +53,17 @@ class AiMessage extends BaseModel {
         return this.getMany({ conversationId }, {}, [{ created_at: 'asc' }]);
     }
 
-    // PER-USER DAILY CAP COUNTER - USER TURNS AUTHORED BY authorKey SINCE cutoff
-    async countAuthoredSince(authorKey, cutoff) {
+    // PER-USER DAILY CAP COUNTER - USER TURNS AUTHORED BY authorKey SINCE
+    // cutoff, SCOPED TO ONE PROVIDER TYPE WHEN GIVEN (EACH PROVIDER'S CAP
+    // COUNTS ONLY ITS OWN TRAFFIC)
+    async countAuthoredSince(authorKey, cutoff, appType = null) {
         return this.model.count({
-            where: { author_key: authorKey, role: 'user', created_at: { gte: cutoff } }
+            where: {
+                author_key: authorKey,
+                role: 'user',
+                created_at: { gte: cutoff },
+                ...(appType ? { conversation: { app: { app_type: appType } } } : {})
+            }
         });
     }
 

@@ -39,9 +39,18 @@ async function syncAppEmojis(client, logger) {
   }
 }
 
-// INLINE MARKUP FOR ONE APP TYPE - null WHEN NO EMOJI IS AVAILABLE
+// INLINE MARKUP FOR ONE APP TYPE - null WHEN NO EMOJI IS AVAILABLE. THE MAP
+// KEYS OFF ASSET FILENAMES, SO NON-APP BRAND MARKS (imdb, tmdb, ...) RESOLVE
+// THE SAME WAY.
 function appEmoji(appType) {
   return _emojiByType.get(appType) || null;
 }
 
-module.exports = { syncAppEmojis, appEmoji };
+// ICON + LABEL BADGE - THE STANDARD WAY AN APP'S NAME RENDERS IN BOT TEXT;
+// PLAIN LABEL UNTIL AN EMOJI SYNC LANDS
+function appBadge(appType, label) {
+  const icon = _emojiByType.get(appType);
+  return icon ? `${icon} ${label}` : label;
+}
+
+module.exports = { syncAppEmojis, appEmoji, appBadge };

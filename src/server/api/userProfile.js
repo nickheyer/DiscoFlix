@@ -70,7 +70,9 @@ function describeExtents(feature, gate, user) {
     const value = Number(gate.extents[extent.key]);
     const overridden = extent.userOverride && Number(user[extent.userOverride]) > 0
       && value === Number(user[extent.userOverride]);
-    parts.push(`${extent.label}: ${value === 0 ? 'unlimited' : value}${overridden ? ' (override)' : ''}`);
+    // zeroLabel MARKS THE RARE EXTENT WHERE 0 MEANS "NONE", NOT "UNLIMITED"
+    // (E.G. THE DOSSIER'S HISTORY take-LIMIT)
+    parts.push(`${extent.label}: ${value === 0 ? (extent.zeroLabel ? 'none' : 'unlimited') : value}${overridden ? ' (override)' : ''}`);
   }
   return parts.join(' · ') || null;
 }
@@ -107,7 +109,11 @@ async function buildAccessSummary(core, user, scope) {
     const reasons = { disabled: 'disabled', audience: `needs ${effective.audience}`, inactive: 'deactivated' };
     rows.push({
       id: feature.id,
-      label: feature.label,
+      // AI DOOR ROWS SHARE THEIR LABELS ACROSS PROVIDERS ("Chat commands"
+      // x4) - QUALIFY WITH THE PROVIDER SO THE LIST READS
+      label: feature.ai
+        ? `${core.apps.getType(feature.ai.provider)?.label || feature.ai.provider} · ${feature.label}`
+        : feature.label,
       group: feature.group || 'general',
       allowed: gate.allowed,
       reason: gate.allowed ? null : (reasons[gate.reason] || gate.reason),

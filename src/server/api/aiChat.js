@@ -37,6 +37,7 @@ async function respondWithAiChat(ctx, instance) {
     'apps/appChannelsLayout.pug',
     'apps/appHeader.pug',
     'apps/appSurface.pug',
+    'chat/chatBar.pug',
     'members/membersLayout.pug'
   ], { state, members: [], ...takeover });
 }

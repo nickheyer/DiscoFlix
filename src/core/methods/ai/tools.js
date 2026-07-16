@@ -71,7 +71,7 @@ const TOOLS = [
           external_id: String(result.externalKey ?? ''),
           overview: trimOverview(result.overview),
           ...(result.seasonCount ? { seasons: result.seasonCount } : {}),
-          ...(badges?.[i] ? { availability: badges[i] } : {})
+          ...(badges?.[i] ? { availability: badges[i].text } : {})
         }))
       });
     }
@@ -360,11 +360,12 @@ async function requestMedia(ctx, input) {
     return JSON.stringify({ denied: true, reason: `That's ${effectiveSeasonCount} seasons - the cap here is ${seasonLimit}. Pick specific seasons instead.` });
   }
 
-  // ALREADY STREAMABLE? A CONNECTED MEDIA SERVER ANSWERS FIRST - GUARDED
+  // ALREADY STREAMABLE? EVERY CONNECTED MEDIA SERVER ANSWERS FIRST - GUARDED
   try {
     const streaming = await core.apps.findOnMediaServers(result);
-    if (streaming) {
-      return JSON.stringify({ status: 'already-available', note: `${name} is already streamable on ${streaming.instance.display_name}.` });
+    if (streaming.length) {
+      const names = streaming.map(match => match.instance.display_name).join(', ');
+      return JSON.stringify({ status: 'already-available', note: `${name} is already streamable on ${names}.` });
     }
   } catch (err) {
     core.logger.debug(`AI availability check skipped: ${err.message}`);
@@ -447,11 +448,22 @@ async function requestMedia(ctx, input) {
 // ── DISPATCH ─────────────────────────────────────────────────────────────
 
 module.exports = {
-  // PROVIDER-NEUTRAL DEFINITIONS FOR ONE SURFACE
+  // THE CATALOG ITSELF - THE DIRECTIVES TAB READS descriptions AS DEFAULTS
+  TOOLS,
+
+  // PROVIDER-NEUTRAL DEFINITIONS FOR ONE SURFACE. DESCRIPTIONS COME THROUGH
+  // THE DIRECTIVE CATALOG (tool.<name> KEYS) SO THE DIRECTIVES TAB CAN
+  // RE-BRIEF A TOOL PER INSTANCE; SCHEMAS ARE FIXED. LAZY REQUIRE -
+  // directives.js READS TOOLS FROM HERE (CYCLE-SAFE).
   aiToolDefinitionsFor(toolCtx) {
+    const { directiveText } = require('./directives');
     return TOOLS
       .filter(tool => tool.surfaces.includes(toolCtx.surface))
-      .map(tool => ({ name: tool.name, description: tool.description, input_schema: tool.input_schema }));
+      .map(tool => ({
+        name: tool.name,
+        description: directiveText(toolCtx.instance, `tool.${tool.name}`),
+        input_schema: tool.input_schema
+      }));
   },
 
   // ONE tool_use BLOCK -> ONE tool_result BLOCK. FAILURES COME BACK AS

@@ -1,4 +1,5 @@
 const AnthropicAiClient = require('../clients/anthropicAiClient');
+const { interaction: aiChat, aiProviderFeaturesFor } = require('./interactions/aiChat');
 
 module.exports = {
   id: 'anthropic',
@@ -16,7 +17,8 @@ module.exports = {
   ],
   Client: AnthropicAiClient,
   contentTypes: [],
-  interactions: [require('./interactions/aiChat')],
+  interactions: [aiChat],
+  botFeatures: aiProviderFeaturesFor('anthropic'),
   configFields: [
     { key: 'api_key', label: 'API Key', type: 'string', required: true, sensitive: true, description: 'console.anthropic.com → API Keys' },
     { key: 'url', label: 'API Base URL', type: 'string', required: false, placeholder: 'https://api.anthropic.com (default)', description: 'Optional gateway/proxy override - leave blank for the Anthropic API' }
@@ -24,7 +26,7 @@ module.exports = {
   instanceOptions: [
     { key: 'model', label: 'Model', description: 'Which Claude model answers', fetch: 'models', blankLabel: 'Claude Opus 4.8 (default)' }
   ],
-  sections: ['overview', 'chat', 'settings'],
+  sections: ['overview', 'chat', 'directives', 'settings'],
   buildClient(row, logger) {
     let settings = {};
     try { settings = JSON.parse(row.settings_json || '{}'); } catch (err) { settings = {}; }

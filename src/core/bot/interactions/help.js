@@ -8,9 +8,13 @@ async function buildHelpPayload(core, config, invocation = null) {
   const features = require('./features');
   let defs = await availableDefs(core);
   if (invocation) {
-    const gates = await Promise.all(defs.map(def =>
-      def.feature ? features.resolveFeature(core, def.feature.id, invocation) : { allowed: true }
-    ));
+    const gates = await Promise.all(defs.map(def => {
+      if (def.feature) return features.resolveFeature(core, def.feature.id, invocation);
+      // DEFS THAT GATE INSIDE THEIR OWN RUN (AI CHAT'S PER-PROVIDER DOOR
+      // ROWS) EXPOSE allowedFor SO HELP CAN GRANT-FILTER THEM TOO
+      if (def.allowedFor) return def.allowedFor(core, invocation).then(allowed => ({ allowed }));
+      return { allowed: true };
+    }));
     defs = defs.filter((_, i) => gates[i].allowed);
   }
   const prefix = config.prefix_keyword;

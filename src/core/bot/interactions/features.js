@@ -33,10 +33,13 @@ function featureCatalog() {
   if (!_catalog) {
     const { allDefs } = require('./index');
     const { REQUEST_CAPABILITIES } = require('./request');
+    const registry = require('../../methods/apps/registry');
     const fromDefs = allDefs()
       .filter(def => def.feature)
       .map(def => ({ providers: def.appTypes || ['discoflix'], ...def.feature }));
-    _catalog = [...fromDefs, ...REQUEST_CAPABILITIES, ...CORE_FEATURES];
+    // MANIFEST-DECLARED ROWS (AI PROVIDER DOORS) - GATED WHERE THEY APPLY,
+    // LIKE CORE_FEATURES, NOT THROUGH THE CENTRAL DEF GATE
+    _catalog = [...fromDefs, ...registry.manifestFeatures(), ...REQUEST_CAPABILITIES, ...CORE_FEATURES];
   }
   return _catalog;
 }

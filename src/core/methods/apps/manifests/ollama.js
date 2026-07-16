@@ -1,4 +1,5 @@
 const OllamaAiClient = require('../clients/ollamaAiClient');
+const { interaction: aiChat, aiProviderFeaturesFor } = require('./interactions/aiChat');
 
 module.exports = {
   id: 'ollama',
@@ -16,14 +17,15 @@ module.exports = {
   ],
   Client: OllamaAiClient,
   contentTypes: [],
-  interactions: [require('./interactions/aiChat')],
+  interactions: [aiChat],
+  botFeatures: aiProviderFeaturesFor('ollama'),
   configFields: [
     { key: 'url', label: 'URL', type: 'string', required: true, placeholder: 'http://localhost:11434', description: 'Base URL of the Ollama server' }
   ],
   instanceOptions: [
     { key: 'model', label: 'Model', description: 'Which installed model answers', fetch: 'models', blankLabel: 'First installed model (default)' }
   ],
-  sections: ['overview', 'chat', 'settings'],
+  sections: ['overview', 'chat', 'directives', 'settings'],
   buildClient(row, logger) {
     let settings = {};
     try { settings = JSON.parse(row.settings_json || '{}'); } catch (err) { settings = {}; }

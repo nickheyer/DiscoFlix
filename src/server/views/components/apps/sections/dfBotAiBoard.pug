@@ -1,0 +1,25 @@
+//- THE AI ROUTING BOARD - ONE GROUP FOR EVERY AI PROVIDER, ORGANIZED BY
+//- DOOR: EACH DOOR CARD STACKS THE PROVIDERS' OWN RULE ROWS IN ROUTING
+//- PRIORITY ORDER UNDER A LIVE "WHO ANSWERS" RIBBON. EVERY (PROVIDER, DOOR)
+//- RULE STAYS INDEPENDENTLY SWITCHABLE - ONLY THE PRESENTATION POOLS THEM.
+//- LOCALS: group (THE ai BOARD FROM buildBotMatrix), bot, activeApp
+.appSettingsGroup
+  .appSettingsGroupInfo
+    .dfBotProviderIcons
+      each provider in group.providers
+        img.dfAppIcon(src=provider.icon alt=provider.label)
+    .request-section-header= group.label
+    .appSettingsGroupBlurb Each door the bot answers through, with every provider's own rule. The first ranked provider whose row admits the caller takes the turn - priority follows your app order, default app first.
+  .appSettingsGroupBody
+    each door in group.doors
+      .appFormCard.dfBotAiDoor
+        .dfBotAiDoorHead
+          .dfBotAiDoorTitle= door.label
+          .dfBotAiDoorDesc= door.description
+          if door.globalOnly
+            .dfBotAiDoorHint DMs happen outside any server - these rows always follow Global defaults.
+        //- RIBBONLESS CARDS (PERSONALIZED REPLIES) HAVE NO ROUTING TO SHOW
+        if door.ribbon
+          include dfBotAiRibbon
+        each row in door.rows
+          include dfBotFeatureRow

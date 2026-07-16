@@ -1,46 +1,54 @@
 //- TAKEOVER CONTENT SURFACE - REUSES #messageContainer SO EVERY EXISTING SWAP
 //- PATH RESTORES THE MIRROR WHOLESALE ON BACK-OUT. .appSurface FLIPS THE FLEX
-//- DIRECTION (CHAT IS column-reverse) AND ADDS PADDING.
-.messageContainer.appSurface#messageContainer(
+//- DIRECTION (CHAT IS column-reverse) AND ADDS PADDING - EXCEPT THE AI CHAT
+//- SECTION, WHICH IS A CHAT AND THEREFORE RIDES THE MIRROR'S OWN LAYOUT
+//- (column-reverse SCROLLER, LOG INNER, chatBar COMPOSER) UNTOUCHED.
+- var aiChatSection = section === 'chat'
+.messageContainer#messageContainer(
+  class=aiChatSection ? undefined : 'appSurface'
   hx-select-oob="#messageContainer"
   hx-swap-oob="outerHTML"
 )
-  .appSectionBody#appSectionBody
-    //- THE DISCOFLIX SELF APP CARRIES ITS OWN OVERVIEW/USERS/SETTINGS BODIES
-    case section
-      when 'queue'
-        include sections/queue
-      when 'sessions'
-        include sections/sessions
-      //- THE UNIFIED REQUEST PIPELINE - DISCOFLIX ONLY (THE MANIFEST IS THE GUARD)
-      when 'requests'
-        include sections/dfRequests
-      //- THE FEATURE MATRIX - DISCOFLIX ONLY (THE MANIFEST IS THE GUARD)
-      when 'bot'
-        include sections/dfBot
-      //- EVERY LIBRARY IS THE ONE UNIFIED COMPONENT (SCOPED PER INSTANCE);
-      //- ONLY LIVE SEARCH RESULTS KEEP THEIR OWN SURFACE
-      when 'library'
-        if sectionData.mode === 'search'
-          include sections/library
-        else
-          include sections/dfLibrary
-      when 'releases'
-        include sections/releases
-      when 'users'
-        include sections/dfUsers
-      when 'logs'
-        include sections/dfLogs
-      //- AI PROVIDERS ONLY (THE MANIFEST IS THE GUARD)
-      when 'chat'
-        include sections/aiChat
-      when 'settings'
-        if activeApp.app_type === 'discoflix'
-          include sections/dfSettings
-        else
-          include sections/settings
-      default
-        if activeApp.app_type === 'discoflix'
-          include sections/dfOverview
-        else
-          include sections/overview
+  if aiChatSection
+    //- AI PROVIDERS ONLY (THE MANIFEST IS THE GUARD)
+    include sections/aiChat
+  else
+    .appSectionBody#appSectionBody
+      //- THE DISCOFLIX SELF APP CARRIES ITS OWN OVERVIEW/USERS/SETTINGS BODIES
+      case section
+        when 'queue'
+          include sections/queue
+        when 'sessions'
+          include sections/sessions
+        //- THE UNIFIED REQUEST PIPELINE - DISCOFLIX ONLY (THE MANIFEST IS THE GUARD)
+        when 'requests'
+          include sections/dfRequests
+        //- THE FEATURE MATRIX - DISCOFLIX ONLY (THE MANIFEST IS THE GUARD)
+        when 'bot'
+          include sections/dfBot
+        //- EVERY LIBRARY IS THE ONE UNIFIED COMPONENT (SCOPED PER INSTANCE);
+        //- ONLY LIVE SEARCH RESULTS KEEP THEIR OWN SURFACE
+        when 'library'
+          if sectionData.mode === 'search'
+            include sections/library
+          else
+            include sections/dfLibrary
+        when 'releases'
+          include sections/releases
+        when 'users'
+          include sections/dfUsers
+        when 'logs'
+          include sections/dfLogs
+        //- WHAT THE APP SAYS TO THE LLM - AI PROVIDERS ONLY (THE MANIFEST IS THE GUARD)
+        when 'directives'
+          include sections/aiDirectives
+        when 'settings'
+          if activeApp.app_type === 'discoflix'
+            include sections/dfSettings
+          else
+            include sections/settings
+        default
+          if activeApp.app_type === 'discoflix'
+            include sections/dfOverview
+          else
+            include sections/overview

@@ -1725,6 +1725,116 @@
   margin-top: 10px;
 }
 
+/* ---- AI ROUTING BOARD (ONE CARD PER DOOR, PROVIDER ROWS RANKED INSIDE) ---- */
+
+.dfBotAiDoor + .dfBotAiDoor {
+  margin-top: 12px;
+}
+
+.dfBotAiDoorTitle {
+  font-weight: 700;
+  color: var(--header-primary);
+}
+
+.dfBotAiDoorDesc {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.dfBotAiDoorHint {
+  font-size: 12px;
+  font-style: italic;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
+/* THE WHO-ANSWERS STRIP - THE DOOR'S EFFECTIVE ROUTING AT A GLANCE */
+.dfBotAiRibbon {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 16px;
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: var(--bg-tertiary);
+  border-radius: 4px;
+}
+
+.dfBotAiRibbonLead {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.dfBotAiRibbonSeg {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.dfBotAiRibbonTier {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+}
+
+.dfBotAiChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 600;
+  color: var(--header-primary);
+}
+
+.dfBotAiChip.none {
+  font-weight: 400;
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+.dfBotAiChipIcon {
+  width: 14px;
+  height: 14px;
+}
+
+/* PROVIDER ROWS - RANK BADGE + ICON + NAME REPLACE THE FEATURE PROSE */
+.dfBotAiProviderRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dfBotAiPriority {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.dfBotAiProviderIcon {
+  width: 18px;
+  height: 18px;
+}
+
+/* RIBBON AND FIRST PROVIDER ROW SEPARATE LIKE ROWS DO */
+.dfBotAiRibbon + .dfBotFeatureRow {
+  border-top: 1px solid var(--bg-modifier-accent);
+  margin-top: 10px;
+}
+
 /* ---- DISCOFLIX USER CARDS ---- */
 
 /* CARDS SHARE THE DOCUMENT MEASURE AND FILL IT TWO-UP WHEN IT FITS */
@@ -2761,6 +2871,88 @@
   margin-top: 2px;
 }
 
+/* ---- AI DIRECTIVES TAB (LIFECYCLE CARDS IN THE REQUEST-PIPELINE DRESS) ---- */
+
+#aiDirectiveList,
+#aiToolDirectiveList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.aiDirectivesIntro {
+  margin: 8px 0 12px;
+}
+
+.aiDirectivesToolsIntro {
+  margin-top: 28px;
+}
+
+.aiDirectivesIntro .request-section-header {
+  margin: 0;
+}
+
+.aiDirectivesBlurb {
+  margin-top: 4px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text-muted);
+  max-width: 680px;
+}
+
+/* STOCK = SHIPPED TEXT, QUIET; CUSTOMIZED WEARS THE APPROVED BLURPLE */
+.requestChip.chip-stock {
+  background-color: var(--bg-tertiary);
+  color: var(--text-muted);
+}
+
+.aiDirectiveToolName {
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 14px;
+}
+
+/* THE EDITOR SITS UNDER THE PIPELINE LIKE THE REQUEST ACTIONS ROW */
+.aiDirectiveEditor {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--bg-tertiary);
+}
+
+.aiDirectiveText {
+  /* NO GLOBAL RESET IN THIS CODEBASE - WITHOUT THIS, width:100% + PADDING
+     OVERHANGS THE CARD'S RIGHT EDGE */
+  box-sizing: border-box;
+  width: 100%;
+  background-color: var(--bg-tertiary);
+  border: none;
+  border-radius: 4px;
+  padding: 10px 12px;
+  color: var(--text-normal);
+  font-size: 13px;
+  line-height: 1.45;
+  font-family: var(--font-family);
+  resize: vertical;
+}
+
+.aiDirectiveText:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--blurple);
+}
+
+.aiDirectiveFoot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.aiDirectiveHint {
+  font-size: 11px;
+  font-style: italic;
+  color: var(--text-muted);
+}
+
 .dfRequestActions {
   display: flex;
   justify-content: flex-end;
@@ -2818,50 +3010,29 @@
 
 /* ---- AI CHAT (ai-provider TAKEOVERS) ---- */
 
-/* THE SECTION OWNS THE SURFACE'S HEIGHT: LOG SCROLLS column-reverse (PINNED
-   TO THE LIVE END LIKE THE CHAT MIRROR), COMPOSER SITS BELOW ON THE SAME
-   CONTENT MEASURE EVERY SECTION SHARES */
-.aiChatSurface {
-  width: 100%;
-  max-width: var(--content-measure);
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-}
-
-.aiChatLog {
-  min-height: 240px;
-  height: calc(100vh - 250px);
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column-reverse;
-  scrollbar-width: thin;
-  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
-}
-
-.aiChatLogInner {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  min-height: 100%;
-}
+/* THE SECTION IS THE CHAT MIRROR'S OWN LAYOUT - BARE #messageContainer
+   (column-reverse SCROLLER), .messageContainerInner LOG, chatBar COMPOSER.
+   ONLY THE MIRROR'S #chatLog-KEYED CONVENTIONS NEED RE-KEYING TO THE
+   THREAD-SCOPED LOG ID, PLUS THE AI-ONLY DRESSING BELOW. */
 
 /* WS APPENDS ARRIVE WRAPPED - THE WRAPPER MUST NOT BREAK ROW FLOW */
-.aiChatLogInner .aiMessageWrapper,
 .aiChatLog .aiMessageWrapper {
   display: contents;
 }
 
-.aiChatEmptyHint {
-  padding: 24px 0 32px;
+/* CLASSIC WELCOME HIDES ONCE A LIVE ROW LANDS, SAME AS THE MIRROR'S #chatLog */
+.aiChatLog:has(.chatMessageRow) .noMessagesDiv {
+  display: none;
 }
 
-.aiChatComposer {
-  padding: 12px 0 4px;
+/* THE PROVIDER ICON SITS IN THE WELCOME CIRCLE WHERE THE HASH GOES */
+.welcomeHashCircle img {
+  width: 42px;
+  height: 42px;
 }
 
-.aiChatComposer .aiChatBar {
-  padding: 0 16px;
+.welcomeActions {
+  margin-top: 14px;
 }
 
 /* AI ROWS RIDE THE CHAT MIRROR'S ROW FAMILY - ONLY THE EXTRAS LIVE HERE */
@@ -2907,29 +3078,6 @@
   margin-top: 6px;
   font-size: 12px;
   color: var(--red);
-}
-
-/* TYPING ROW - THREE PULSING DOTS, DISCORD-STYLE */
-.aiTypingDots {
-  display: flex;
-  gap: 4px;
-  padding: 8px 0 4px;
-}
-
-.aiTypingDots span {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background-color: var(--interactive-normal);
-  animation: aiTypingPulse 1.2s infinite ease-in-out;
-}
-
-.aiTypingDots span:nth-child(2) { animation-delay: 0.15s; }
-.aiTypingDots span:nth-child(3) { animation-delay: 0.3s; }
-
-@keyframes aiTypingPulse {
-  0%, 60%, 100% { opacity: 0.35; transform: translateY(0); }
-  30% { opacity: 1; transform: translateY(-3px); }
 }
 
 /* ---- AI THREADS RAIL (THE TAKEOVER'S RIGHT PANE) ---- */

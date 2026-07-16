@@ -209,39 +209,50 @@ module.exports = {
   },
 
   // EXTERNAL IDS MATCH FIRST, TITLE+YEAR CATCHES THE REST
-  _matchInIndexes(indexes, result) {
+  _matchInIndex(index, result) {
     const wantKind = result.contentType === 'show' ? 'show' : 'movie';
     const wantIds = {
       tmdb: result.tmdbId ? String(result.tmdbId) : null,
       imdb: result.imdbId ? String(result.imdbId) : null,
       tvdb: result.tvdbId ? String(result.tvdbId) : null
     };
+    for (const key of ['tmdb', 'imdb', 'tvdb']) {
+      const item = wantIds[key] && index.byId[key].get(`${wantKind}:${wantIds[key]}`);
+      if (item) return { instance: index.instance, item };
+    }
     const wantTitle = this.comparableTitle(result.title);
-    for (const index of indexes) {
-      for (const key of ['tmdb', 'imdb', 'tvdb']) {
-        const item = wantIds[key] && index.byId[key].get(`${wantKind}:${wantIds[key]}`);
-        if (item) return { instance: index.instance, item };
-      }
-      if (wantTitle) {
-        const item = index.byTitle.get(`${wantKind}:${wantTitle}`);
-        if (item && (!result.year || !item.year || item.year === result.year)) {
-          return { instance: index.instance, item };
-        }
+    if (wantTitle) {
+      const item = index.byTitle.get(`${wantKind}:${wantTitle}`);
+      if (item && (!result.year || !item.year || item.year === result.year)) {
+        return { instance: index.instance, item };
       }
     }
     return null;
   },
 
-  // THE BOT'S AVAILABILITY ANSWER: IS THIS LOOKUP RESULT ALREADY STREAMABLE
-  // ON A CONNECTED MEDIA SERVER? RETURNS { instance, item } OR null;
-  // FAILURES NEVER BLOCK A REQUEST FLOW.
-  async findOnMediaServers(result) {
-    return this._matchInIndexes(await this._mediaServerIndexes(), result);
+  _matchInIndexes(indexes, result) {
+    for (const index of indexes) {
+      const match = this._matchInIndex(index, result);
+      if (match) return match;
+    }
+    return null;
   },
 
-  // ADVISORY BADGES FOR A BATCH OF LOOKUP RESULTS - ONE STRING (OR null) PER
-  // RESULT, ALIGNED BY INDEX. PRECEDENCE: STREAMABLE > IN LIBRARY > PENDING
-  // REQUEST. THE SELECTION-TIME GUARDS STAY AUTHORITATIVE.
+  // THE BOT'S AVAILABILITY ANSWER: EVERY CONNECTED MEDIA SERVER THIS LOOKUP
+  // RESULT IS ALREADY STREAMABLE ON - [{ instance, item }], EMPTY WHEN NONE.
+  // ALL SERVERS, NOT THE FIRST: "ALREADY ON PLEX" IS A LIE WHEN IT'S ALSO ON
+  // TWO OTHERS. FAILURES NEVER BLOCK A REQUEST FLOW.
+  async findOnMediaServers(result) {
+    const indexes = await this._mediaServerIndexes();
+    return indexes.map(index => this._matchInIndex(index, result)).filter(Boolean);
+  },
+
+  // ADVISORY BADGES FOR A BATCH OF LOOKUP RESULTS - ONE { text, servers }
+  // (OR null) PER RESULT, ALIGNED BY INDEX; servers LISTS EVERY MEDIA SERVER
+  // THE TITLE STREAMS ON ({ appType, name }, EMPTY FOR NON-STREAMING BADGES)
+  // SO RENDER SITES CAN BADGE EACH WITH ITS BRAND EMOJI. PRECEDENCE:
+  // STREAMABLE > IN LIBRARY > PENDING REQUEST. THE SELECTION-TIME GUARDS
+  // STAY AUTHORITATIVE.
   async annotateAvailability(results, client) {
     const badges = new Array(results.length).fill(null);
     // MUSIC NEVER MATCHES A MEDIA SERVER - THEIR NORMALIZERS ONLY EMIT
@@ -253,20 +264,26 @@ module.exports = {
     for (let i = 0; i < results.length; i++) {
       const result = results[i];
       if (result.contentType !== 'music') {
-        const streaming = this._matchInIndexes(indexes, result);
-        if (streaming) {
-          badges[i] = `Available on ${streaming.instance.display_name}`;
+        const streaming = indexes.map(index => this._matchInIndex(index, result)).filter(Boolean);
+        if (streaming.length) {
+          badges[i] = {
+            text: `Available on ${streaming.map(match => match.instance.display_name).join(', ')}`,
+            servers: streaming.map(match => ({ appType: match.instance.app_type, name: match.instance.display_name }))
+          };
           continue;
         }
       }
       if (result.libraryId) {
-        badges[i] = this.safeIsImported(client, result.raw) ? 'In library' : 'In library - waiting';
+        badges[i] = {
+          text: this.safeIsImported(client, result.raw) ? 'In library' : 'In library - waiting',
+          servers: []
+        };
         continue;
       }
       const media = await this.core.models.media.findByResult(result);
       if (media) {
         const open = await this.core.models.mediaRequest.findFirst({ mediaId: media.id, status: null });
-        if (open) badges[i] = 'Requested - pending approval';
+        if (open) badges[i] = { text: 'Requested - pending approval', servers: [] };
       }
     }
     return badges;

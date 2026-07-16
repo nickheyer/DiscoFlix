@@ -19,6 +19,7 @@ const SECTION_LABELS = {
   users: 'Users',
   logs: 'Logs',
   chat: 'Chat',
+  directives: 'Directives',
   settings: 'Settings'
 };
 
@@ -67,11 +68,29 @@ function interactionDefs() {
   return _interactionDefs;
 }
 
+// MANIFEST-DECLARED BOT FEATURES WITH NO INTERACTION DEF OF THEIR OWN, EACH
+// TAGGED WITH ITS OWNING APP TYPE. NEVER MERGED ACROSS MANIFESTS - PER-APP
+// GRANULARITY IS THE POINT (THE AI PROVIDERS' PER-DOOR ROWS LIVE HERE, ONE
+// MATRIX GROUP PER PROVIDER).
+let _manifestFeatures = null;
+function manifestFeatures() {
+  if (!_manifestFeatures) {
+    _manifestFeatures = [];
+    for (const manifest of Object.values(APP_TYPES)) {
+      for (const feature of manifest.botFeatures || []) {
+        _manifestFeatures.push({ providers: [manifest.id], ...feature });
+      }
+    }
+  }
+  return _manifestFeatures;
+}
+
 module.exports = {
   APP_TYPES,
   SECTION_LABELS,
   getType,
   allTypes,
   contentTypeDefs,
-  interactionDefs
+  interactionDefs,
+  manifestFeatures
 };

@@ -11,7 +11,7 @@
 // PAGER STRIPS ITSELF WHEN THE COLLECTOR ENDS). SHARED BY THE
 // PLEX/EMBY/JELLYFIN MANIFESTS; INSTANCES ARE POOLED.
 const { AttachmentBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
-const { appEmoji } = require('../../../../bot/interactions/appEmojis');
+const { appBadge } = require('../../../../bot/interactions/appEmojis');
 
 const POSTER_ROWS = 5;
 const COMPACT_ROWS = 7;
@@ -128,8 +128,7 @@ function factsOf(group, ui) {
 
 // ICON + NAME BADGE PER SERVER - PLAIN NAME UNTIL AN EMOJI SYNC LANDS
 function serverBadge(instance) {
-  const icon = appEmoji(instance.app_type);
-  return icon ? `${icon} ${instance.display_name}` : instance.display_name;
+  return appBadge(instance.app_type, instance.display_name);
 }
 
 // POSTERS FOR ONE PAGE'S FEATURED ROWS, FETCHED IN PARALLEL THROUGH EACH
