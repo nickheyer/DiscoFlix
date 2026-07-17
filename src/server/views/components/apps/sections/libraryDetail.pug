@@ -7,11 +7,11 @@
 - var backTarget = (typeof backTo === 'string' && ['search', 'hub', 'requests'].includes(backTo)) ? backTo : 'library'
 .appSectionDoc
   if backTarget === 'search'
-    //- RE-RUNS THE TERM STILL SITTING IN THE RAIL INPUT - SAME RESULTS, SAME VIEW
+    //- ?last=1 RE-RUNS THE TERM THE SERVER REMEMBERED FOR THIS INSTANCE - THE
+    //- SEARCH BAR ITSELF WAS DESTROYED WHEN THIS DETAIL SWAPPED IN
     button.appDetailBack(
       type="button"
-      hx-get=`/apps/${activeApp.id}/search`
-      hx-include="#appRailSearchInput"
+      hx-get=`/apps/${activeApp.id}/search?last=1`
       hx-swap="none"
       hx-disabled-elt="this"
     )

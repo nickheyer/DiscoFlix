@@ -232,6 +232,8 @@ async function buildSelfSectionData(core, instance, section, opts = {}) {
     case 'library': {
       data.unified = await core.apps.getUnifiedPage({});
       data.view = core.apps.getBrowseView(instance.id, 'library');
+      // THE HUB ESCALATES A FILTER TERM INTO ANY CONTENT MANAGER'S ADD-NEW SEARCH
+      data.escalation = await libraryEscalationFor(core, instance);
       break;
     }
     case 'logs': {
@@ -355,12 +357,13 @@ async function buildSectionData(core, instance, section, opts = {}) {
       data.sessionsError = error;
       break;
     }
-    // RELEASES - THE INDEXER'S SEARCH SURFACE. A TERM RUNS THE META SEARCH,
-    // IDLE SHOWS THE INDEXER ROSTER (WHERE THE SERVICE EXPOSES ONE) AND A HINT
+    // RELEASES - THE INDEXER'S SEARCH SURFACE. THE BIG BAR AT THE TOP OF THE
+    // SECTION RUNS THE META SEARCH; IDLE SHOWS THE INDEXER ROSTER UNDER IT
     case 'releases': {
       const term = String(opts.searchTerm || '').trim();
       data.mode = term ? 'search' : 'idle';
       data.searchTerm = term;
+      data.searchPlaceholder = searchPlaceholderOf(core, instance);
       if (term && configured) {
         const [{ releases, error }, grabTargets] = await Promise.all([
           core.apps.getReleaseResults(instance, term),
@@ -385,12 +388,14 @@ async function buildSectionData(core, instance, section, opts = {}) {
       break;
     }
     // ONE SURFACE, TWO SOURCES: THE UNIFIED LIBRARY SCOPED TO THIS INSTANCE
-    // (BROWSE) OR LIVE SEARCH RESULTS WHEN THE RAIL SEARCH BAR CARRIES A TERM
+    // (BROWSE, WHERE THE BIG BAR FILTERS AND ESCALATES) OR LIVE SEARCH
+    // RESULTS WHEN A TERM RODE IN THROUGH /apps/:id/search
     case 'library': {
       const manifest = core.apps.getType(instance.app_type);
       data.contentTypeLabel = manifest.contentTypes[0]?.label || manifest.browseLabel || 'item';
       data.contentKind = manifest.contentTypes[0]?.type || 'movie';
       data.searchable = !!(client && client.capabilities.search);
+      data.searchPlaceholder = searchPlaceholderOf(core, instance);
       const term = String(opts.searchTerm || '').trim();
       data.mode = term ? 'search' : 'library';
       data.view = core.apps.getBrowseView(instance.id, data.mode);
@@ -416,6 +421,7 @@ async function buildSectionData(core, instance, section, opts = {}) {
       } else {
         // THE SAME GLOBAL COMPONENT EVERY TAKEOVER RENDERS - JUST FILTERED
         data.unified = await core.apps.getUnifiedPage({ scopeAppId: instance.id });
+        data.escalation = await libraryEscalationFor(core, instance);
       }
       break;
     }
@@ -524,6 +530,36 @@ async function buildSectionData(core, instance, section, opts = {}) {
   return data;
 }
 
+// THE ADD-NEW SEARCH PLACEHOLDER FOR ONE INSTANCE'S IN-SURFACE BAR
+function searchPlaceholderOf(core, instance) {
+  const manifest = core.apps.getType(instance.app_type) || {};
+  return `Search ${manifest.contentTypes?.[0]?.label || manifest.browseLabel || 'media'}s...`;
+}
+
+// WHERE A LIBRARY FILTER TERM CAN ESCALATE INTO A SERVICE SEARCH - THE SCOPED
+// TAKEOVER OFFERS ITS OWN INSTANCE, THE HUB OFFERS EVERY SEARCHABLE CONTENT
+// MANAGER (MEDIA-SERVER SEARCH WOULD ONLY RE-FIND WHAT THE MERGE ALREADY HAS)
+async function libraryEscalationFor(core, instance) {
+  if (instance.app_type !== 'discoflix') {
+    const client = core.apps.getClientForInstance(instance);
+    return client && client.capabilities.search
+      ? [{ id: instance.id, label: instance.display_name }]
+      : [];
+  }
+  const rows = await core.models.app.getMany(
+    { enabled: true },
+    {},
+    [{ sort_position: 'asc' }, { created_at: 'asc' }]
+  );
+  return rows
+    .filter(row => {
+      if (core.apps.getType(row.app_type)?.kind !== 'content-manager') return false;
+      const client = core.apps.getClientForInstance(row);
+      return !!(client && client.capabilities.search);
+    })
+    .map(row => ({ id: row.id, label: row.display_name }));
+}
+
 // SECTION-NAV LOCALS - SIDEBAR TOGGLES USE THIS
 function buildSectionNav(core, instance) {
   const manifest = core.apps.getType(instance.app_type);
@@ -549,13 +585,6 @@ async function buildTakeoverLocals(core, instance, opts = {}) {
     // THE ACTIVITY FEED RAIL RIDES ALONG IN EVERY SECTION (CACHED PAGE 1)
     core.apps.getFeedViewModel(instance)
   ]);
-  // THE RAIL SEARCH BAR RIDES EVERY SECTION OF A SEARCH-CAPABLE APP - TYPING
-  // ANYWHERE DROPS THE SURFACE INTO ITS SEARCH SECTION (LIBRARY OR RELEASES)
-  const client = core.apps.getClientForInstance(instance);
-  const railSearch = client && client.capabilities.search ? {
-    term: String(opts.searchTerm || '').trim(),
-    placeholder: `Search ${nav.appManifest.contentTypes[0]?.label || nav.appManifest.browseLabel || 'media'}s...`
-  } : null;
   // AI TAKEOVERS CARRY THE CONVERSATION LIST WHERE OTHER APPS SHOW THEIR
   // ACTIVITY FEED - SAME RAIL SLOT, THREAD-SHAPED. THE DIRECTIVES SECTION
   // SWAPS IN THE TEMPLATE-VARIABLE REFERENCE INSTEAD (THREADS MEAN NOTHING
@@ -587,7 +616,6 @@ async function buildTakeoverLocals(core, instance, opts = {}) {
     ...nav,
     sectionData,
     feed,
-    railSearch,
     aiRail,
     aiVarsRail,
     aiComposer,
@@ -908,7 +936,8 @@ async function appUnifiedLibrary(ctx) {
   return ctx.compileView('apps/sections/dfLibraryBody.pug', {
     activeApp: instance,
     unified,
-    view: core.apps.getBrowseView(instance.id, 'library')
+    view: core.apps.getBrowseView(instance.id, 'library'),
+    escalation: await libraryEscalationFor(core, instance)
   });
 }
 
@@ -1251,7 +1280,11 @@ async function appSearch(ctx) {
     return;
   }
 
-  const term = String(ctx.query.term || '').trim();
+  let term = String(ctx.query.term || '').trim();
+  // ?last=1 = A DETAIL VIEW'S BACK-TO-RESULTS BUTTON - RE-RUN THE TERM THE
+  // BAR HELD WHEN THE RESULTS LAST RENDERED (THE BAR ITSELF IS GONE BY THEN)
+  if (!term && ctx.query.last) term = core.apps.lastSearchTermOf(instance.id);
+  if (term) core.apps.rememberSearchTerm(instance.id, term);
   const view = String(ctx.query.view || '').trim();
   if (view && searchSection === 'library') {
     core.apps.setBrowseView(instance.id, term ? 'search' : 'library', view);

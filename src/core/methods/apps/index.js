@@ -22,6 +22,7 @@ module.exports = (core) => {
   apps.feedCache = new Map();     // appId -> { feed, fetchedAt } (ACTIVITY FEED PAGE 1)
   apps.libraryCache = new Map();  // appId -> { items, fetchedAt } (FULL NORMALIZED LISTING)
   apps.browseViews = new Map();   // `appId:mode` -> 'covers' | 'detailed' (LIBRARY VIEW TOGGLE)
+  apps.searchTerms = new Map();   // appId -> LAST SERVICE-SEARCH TERM (BACK-TO-RESULTS)
   apps._lastRailKey = null;
   apps._lastTickerKey = null;
   apps.startHeartbeat();

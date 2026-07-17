@@ -31,6 +31,17 @@ module.exports = {
     this.browseViews.set(`${appId}:${mode}`, view);
   },
 
+  // THE LAST SERVICE-SEARCH TERM PER INSTANCE - LETS DETAIL VIEWS OFFER A
+  // BACK-TO-RESULTS BUTTON WITHOUT THREADING THE TERM THROUGH EVERY SWAP.
+  // IN-MEMORY BY DESIGN, SAME AS browseViews - A NAVIGATION WHIM, NOT CONFIG.
+  rememberSearchTerm(appId, term) {
+    this.searchTerms.set(appId, term);
+  },
+
+  lastSearchTermOf(appId) {
+    return this.searchTerms.get(appId) || '';
+  },
+
   // isImported REACHES INTO SERVICE-SHAPED raw - NEVER LET A SHAPE SURPRISE
   // TAKE A BROWSE RENDER DOWN
   safeIsImported(client, raw) {

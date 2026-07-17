@@ -2,14 +2,34 @@
 //- SWAPPED WHOLE ON EVERY FILTER CHANGE SO TABS AND GRID ALWAYS AGREE.
 //- RENDERED BY THE HUB AND BY EVERY SCOPED APP TAKEOVER ALIKE. LOCALS:
 //- activeApp, unified { items, total, hasMore, page, counts, presentKinds,
-//- errors, kind, term, scopeAppId }, view
+//- errors, kind, term, scopeAppId }, view, escalation [{ id, label }]
 //- TABS ONLY EARN THEIR ROW WHEN THE (SCOPED) LIBRARY SPANS MULTIPLE KINDS
 - var kindLabels = { movie: 'Movies', show: 'Shows', music: 'Music' }
 - var presentKinds = unified.presentKinds || []
 - var kindTabs = presentKinds.length > 1 ? [{ key: 'all', label: 'All' }].concat(presentKinds.map(function(key) { return { key: key, label: kindLabels[key] } })) : []
+- var escalationTargets = (typeof escalation !== 'undefined' && escalation) || []
 
 //- THE ACTIVE KIND RIDES FILTER REQUESTS VIA hx-include
 input#dfLibKind(type="hidden" name="kind" value=unified.kind)
+
+//- A TYPED TERM CAN ESCALATE INTO ADD-NEW SEARCH - THE ROW RIDES THE BODY
+//- SWAP SO IT ALWAYS NAMES THE CURRENT TERM, AND hx-include SENDS WHATEVER
+//- THE BAR HOLDS AT CLICK TIME (ENTER IN THE BAR SUBMITS THE SAME REQUEST)
+if unified.term && escalationTargets.length
+  //- NOTHING MATCHED = THE ESCALATION IS THE WHOLE POINT - MAKE IT THE HERO
+  .appSearchEscalateRow(class=!unified.items.length ? 'hero' : undefined)
+    each target in escalationTargets
+      button.appSearchEscalate(
+        type="button"
+        hx-get=`/apps/${target.id}/search`
+        hx-include="#dfLibrarySearch"
+        hx-swap="none"
+        hx-disabled-elt="this"
+      )
+        svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true")
+          circle(cx="11" cy="11" r="7")
+          path(d="M20 20l-4.2-4.2")
+        span Search #{target.label} for “#{unified.term}”
 
 .request-section-header.appLibraryHeader
   if unified.term

@@ -1,0 +1,29 @@
+//- THE IN-SURFACE ADD-NEW SEARCH BAR - THE BIG BAR AT THE TOP OF A SEARCH
+//- SURFACE (LIBRARY SEARCH MODE, INDEXER RELEASES). ENTER RUNS THE SERVICE
+//- SEARCH (LIVE LOOKUPS ARE EXPENSIVE - NEVER PER-KEYSTROKE); CLEARING THE
+//- BOX WITH THE X RESTORES THE BROWSE SURFACE. THE RESPONSE IS THE SELF-OOB
+//- SURFACE SET, WHICH DESTROYS THIS VERY INPUT - THE on load REFOCUS KEEPS
+//- THE CARET WHERE THE TYPIST LEFT IT.
+mixin serviceSearchBar(activeApp, term, placeholder)
+  form.appSearchBar.appServiceSearch(
+    hx-get=`/apps/${activeApp.id}/search`
+    hx-swap="none"
+    hx-trigger="submit"
+    hx-indicator=".appServiceSearchIndicator"
+  )
+    input.appSearchInput#appServiceSearchInput(
+      type="search"
+      name="term"
+      value=term || ''
+      placeholder=placeholder
+      autocomplete="off"
+      spellcheck="false"
+      aria-label=placeholder
+      hx-get=`/apps/${activeApp.id}/search`
+      hx-swap="none"
+      hx-trigger="search[target.value=='']"
+      _="on load call me.focus() then call me.setSelectionRange(me.value.length, me.value.length)"
+    )
+    .appSearchIndicator.appServiceSearchIndicator
+      svg.appSpinner(viewBox="0 0 24 24" aria-hidden="true")
+        circle(cx="12" cy="12" r="10")

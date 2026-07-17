@@ -1,34 +1,11 @@
-//- TAKEOVER RIGHT RAIL - THE SEARCH BAR (SEARCH-CAPABLE APPS) PINNED ABOVE
-//- THE APP'S ACTIVITY FEED, LIVING WHERE THE MEMBERS PANE DOES IN MIRROR MODE
-//- (SAME #memberContainer, HOUSE ID-REUSE CONVENTION), SO EVERY EXISTING SWAP
-//- PATH RESTORES MEMBERS WHOLESALE ON BACK-OUT. THE FEED BODY IS ITS OWN
-//- FRAGMENT (appFeedBody) SO HEARTBEAT PUSHES NEVER STOMP THE SEARCH INPUT.
-//- LOCALS: activeApp, feed { rows, hasMore, error? }, railSearch { term, placeholder } | null
+//- TAKEOVER RIGHT RAIL - THE APP'S ACTIVITY FEED, LIVING WHERE THE MEMBERS
+//- PANE DOES IN MIRROR MODE (SAME #memberContainer, HOUSE ID-REUSE
+//- CONVENTION), SO EVERY EXISTING SWAP PATH RESTORES MEMBERS WHOLESALE ON
+//- BACK-OUT. THE FEED BODY IS ITS OWN FRAGMENT (appFeedBody) FOR HEARTBEAT
+//- PUSHES. ADD-NEW SEARCH LIVES IN THE LIBRARY/RELEASES SURFACES, NOT HERE.
+//- LOCALS: activeApp, feed { rows, hasMore, error? }
 div.memberContainer.appFeed#memberContainer(
   hx-select-oob="#memberContainer"
   hx-swap-oob="outerHTML"
 )
-  if railSearch
-    //- TYPING (DEBOUNCED, 3+ CHARS) OR ENTER DROPS THE SURFACE INTO THE
-    //- LIBRARY'S SEARCH MODE; CLEARING THE BOX RESTORES BROWSING. THE INPUT
-    //- IS NEVER PART OF THE SURFACE SWAP, SO THE TERM AND FOCUS CARRY OVER.
-    .appRailSearch
-      .appRailSearchBox
-        input.appRailSearchInput#appRailSearchInput(
-          type="search"
-          name="term"
-          value=railSearch.term || false
-          placeholder=railSearch.placeholder
-          autocomplete="off"
-          spellcheck="false"
-          aria-label=railSearch.placeholder
-          hx-get=`/apps/${activeApp.id}/search`
-          hx-trigger="input[target.value.length > 2 || target.value.length == 0] changed delay:400ms, keyup[key=='Enter']"
-          hx-swap="none"
-        )
-        svg.appRailSearchGlyph(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true")
-          circle(cx="11" cy="11" r="7")
-          path(d="M20 20l-4.2-4.2")
-        svg.appSpinner.appRailSearchSpinner(viewBox="0 0 24 24" aria-hidden="true")
-          circle(cx="12" cy="12" r="10")
   include appFeedBody

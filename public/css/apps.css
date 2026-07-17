@@ -1095,86 +1095,8 @@
   margin: 8px 8px 12px;
 }
 
-/* ---- RAIL SEARCH (PINNED OVER THE ACTIVITY FEED) ---- */
-
-/* THE STRIP IS THE HEADER'S 48px ROW CONTINUED INTO THE RAIL - ITS HAIRLINE
-   SITS LEVEL WITH THE PANEL HEADER'S BOTTOM EDGE, FULL-BLEED ACROSS THE RAIL */
-.appRailSearch {
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  height: 48px;
-  min-height: 48px;
-  margin: 0 -8px;
-  padding: 0 10px;
-  background-color: var(--bg-secondary);
-  box-shadow: var(--elevation-low);
-}
-
-.appRailSearchBox {
-  position: relative;
-  flex: 1;
-  min-width: 0;
-}
-
-.appRailSearchInput {
-  width: 100%;
-  height: 28px;
-  border: none;
-  border-radius: 3px;
-  outline: none;
-  background-color: var(--bg-tertiary);
-  color: var(--text-normal);
-  font-size: 13px;
-  padding: 0 30px 0 8px;
-  box-sizing: border-box;
-}
-
-.appRailSearchInput::placeholder {
-  color: var(--text-muted);
-}
-
-/* THE GLYPH/SPINNER PAIR OWNS THE RIGHT EDGE - WEBKIT'S CANCEL WOULD OVERLAP */
-.appRailSearchInput::-webkit-search-cancel-button {
-  display: none;
-}
-
-.appRailSearchGlyph {
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  width: 14px;
-  height: 14px;
-  transform: translateY(-50%);
-  color: var(--text-muted);
-  pointer-events: none;
-  transition: opacity 0.15s ease;
-}
-
-.appRailSearchSpinner {
-  display: none;
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-  margin-top: -7px;
-  width: 14px;
-  height: 14px;
-  color: var(--interactive-normal);
-}
-
-.appRailSearchInput.htmx-request ~ .appRailSearchGlyph {
-  opacity: 0;
-}
-
-.appRailSearchInput.htmx-request ~ .appRailSearchSpinner {
-  display: block;
-}
-
-/* SEARCHLESS APPS WITH NO HISTORY GIVE THE RAIL BACK (MEMBERS-MODE :empty TWIN) */
-.memberContainer.appFeed:not(:has(.appRailSearch, .appFeedRow, .appFeedMore)) {
+/* APPS WITH NO HISTORY GIVE THE RAIL BACK (MEMBERS-MODE :empty TWIN) */
+.memberContainer.appFeed:not(:has(.appFeedRow, .appFeedMore)) {
   display: none;
 }
 
@@ -1438,6 +1360,61 @@
 
 .appSearchInput::placeholder {
   color: var(--text-muted);
+}
+
+/* THE ADD-NEW ESCALATION ROW - A TYPED FILTER TERM OFFERS EACH SERVICE'S
+   LIVE SEARCH ("Search Radarr for X"), RENDERED INSIDE THE LIBRARY BODY */
+.appSearchEscalateRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.appSearchEscalate {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  border-radius: 5px;
+  padding: 8px 12px;
+  background-color: var(--bg-tertiary);
+  color: var(--text-normal);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.appSearchEscalate svg {
+  width: 14px;
+  height: 14px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.appSearchEscalate:hover {
+  background-color: var(--blurple);
+  color: #ffffff;
+}
+
+.appSearchEscalate:hover svg {
+  color: #ffffff;
+}
+
+.appSearchEscalate:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+/* NOTHING MATCHED THE FILTER - THE ESCALATION IS THE MAIN EVENT */
+.appSearchEscalateRow.hero {
+  justify-content: center;
+  margin: 18px 0 6px;
+}
+
+.appSearchEscalateRow.hero .appSearchEscalate {
+  padding: 12px 18px;
+  font-size: 14px;
 }
 
 /* LOOKUP AND LIBRARY OVERVIEWS RUN LONG - CLAMP THEM TO TWO LINES */
