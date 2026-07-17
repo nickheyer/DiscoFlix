@@ -1,0 +1,12 @@
+include servers/servers
+
+div#serverSideBar(
+  class=(state.sidebar_exp_state ? 'expanded' : 'collapsed')
+)
+  include servers/serverBannerContainer
+  //- APP TAKEOVER: THE APP'S SECTIONS REPLACE THE CHANNEL LIST
+  if activeApp
+    include ../apps/appChannelsLayout
+  else
+    include channels/channelsLayout
+  include userControls/userControlsLayout

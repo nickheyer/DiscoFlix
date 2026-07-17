@@ -1,0 +1,188 @@
+# RELEASE PIPELINE - FIRES ON v* TAGS (E.G. `git tag v3.0.0 && git push --tags`):
+#   1. binaries: PACKAGED STANDALONE BUILDS (pkg + NODE 26) FOR 5 OS/ARCH
+#      TARGETS, EACH SMOKE-TESTED BY BOOTING THE REAL SERVER TOKENLESS.
+#   2. docker:   LEAN MULTI-ARCH IMAGE (linux/amd64 + linux/arm64) -> DOCKER HUB.
+#   3. release:  GITHUB RELEASE WITH ARCHIVES + SHA256SUMS + NOTES.
+
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  binaries:
+    name: Binary (${{ matrix.name }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: linux-x64
+            os: ubuntu-24.04
+            target: node26-linux-x64
+            smoke: true
+          - name: linux-arm64
+            os: ubuntu-24.04-arm
+            target: node26-linux-arm64
+            smoke: true
+          - name: macos-arm64
+            os: macos-15
+            target: node26-macos-arm64
+            smoke: true
+          # CROSS-BUILT ON THE ARM RUNNER (GITHUB RETIRED FREE INTEL MACS).
+          # PRISMA MUST BUNDLE THE darwin (x64) ENGINE ALONGSIDE native.
+          - name: macos-x64
+            os: macos-15
+            target: node26-macos-x64
+            smoke: false
+            prisma_extra_target: darwin
+          - name: windows-x64
+            os: windows-2025
+            target: node26-win-x64
+            smoke: true
+            ext: .exe
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # PRISMA_CLI_BINARY_TARGETS IS NOT USABLE HERE
+      - name: Add cross-build Prisma engine target
+        if: matrix.prisma_extra_target
+        run: >-
+          perl -pi -e 's/provider = "prisma-client-js"/provider      = "prisma-client-js"\n  binaryTargets = ["native", "${{ matrix.prisma_extra_target }}"]/'
+          prisma/schema.prisma
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Build binary
+        run: npx pkg . --target ${{ matrix.target }} --no-bytecode --public --public-packages "*" --output dist/discoflix${{ matrix.ext }}
+
+      - name: Smoke test (boot server, no tokens)
+        if: matrix.smoke
+        run: node scripts/smoke.js dist/discoflix${{ matrix.ext }}
+
+      - name: Package (tar.gz)
+        if: runner.os != 'Windows'
+        run: |
+          mkdir -p out
+          tar -C dist -czf "out/discoflix-${{ github.ref_name }}-${{ matrix.name }}.tar.gz" discoflix
+
+      - name: Package (zip)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path out | Out-Null
+          Compress-Archive -Path dist/discoflix.exe -DestinationPath "out/discoflix-${{ github.ref_name }}-${{ matrix.name }}.zip"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: binary-${{ matrix.name }}
+          path: out/*
+          if-no-files-found: error
+
+  docker:
+    name: Docker (amd64 + arm64)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-qemu-action@v3
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        if: github.ref_type == 'tag'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: nickheyer/discoflix
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.ref_type == 'tag' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: false
+
+  release:
+    name: GitHub Release
+    if: github.ref_type == 'tag'
+    needs: [binaries, docker]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download binaries
+        uses: actions/download-artifact@v4
+        with:
+          pattern: binary-*
+          merge-multiple: true
+          path: dist
+
+      - name: Checksums
+        run: cd dist && sha256sum * > SHA256SUMS.txt
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          cat > notes.md <<'EOF'
+          ## Docker
+
+          ```
+          docker pull nickheyer/discoflix:latest
+          ```
+
+          See `docker-compose.example.yml` in the repo. All persistent state lives in the `/data` volume.
+
+          ## Standalone binaries
+
+          Download the archive for your platform, extract, and run `./discoflix` (`discoflix.exe` on Windows). No Node.js install required.
+
+          - The web console listens on `PORT` (default `4000`; the examples use `5001`).
+          - All state (sqlite db, cache, logs) is written to `./discoflix-data` next to where you launch it — override with `DF_DATA_DIR`.
+          - A `.env` in the launch directory seeds first-run settings (see `.env.example`).
+          - Linux binaries need glibc + OpenSSL 3 (any current mainstream distro).
+          EOF
+          gh release create "$TAG" dist/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "DiscoFlix $TAG" \
+            --notes-file notes.md \
+            --generate-notes

@@ -1,0 +1,58 @@
+//- READ-ONLY RECORD CARDS - INFO POPUPS NEVER TAKE INPUT; EDITS LIVE IN THE
+//- DISCOFLIX AND APP TAKEOVER SURFACES. THE HIDDEN STATE FORM ONLY FEEDS
+//- SEARCH + PAGINATION hx-includes.
+include ../../../mixins/field
+include ../../../mixins/paginate
+
+- const paginationData = { type, currentPage: pg.currentPage, totalRecords: pg.totalRecords, perPage: pg.perPage }
+
+form#state-management
+  input(type="hidden" name="current-page" value=paginationData.currentPage)
+  input(type="hidden" name="page-size" value=paginationData.perPage)
+  input(type="hidden" name="search" value=searchQuery || '')
+
+if !isSingleton
+  +paginate(paginationData.type, paginationData.currentPage, paginationData.totalRecords, paginationData.perPage)
+
+if records && records.length > 0
+  each record in records
+    .record-container.readonly
+      if !isSingleton
+        .record-header
+          h6.record-title= record.fields[Object.keys(record.fields)[0]].value
+      .settings-fields-container
+        each field, fieldKey in record.fields
+          +field(field, fieldKey, record.id, true)
+      //- OPT-IN OPS PANEL - PER-RECORD STATS THE MODEL COMPUTES (GUILD ACTIVITY)
+      if opsPanels && opsPanels[record.id]
+        - const panel = opsPanels[record.id]
+        .record-ops
+          .record-ops-heading= panel.heading
+          .record-ops-stats
+            each stat in panel.stats
+              .record-ops-stat
+                .record-ops-stat-value= stat.value
+                .record-ops-stat-label= stat.label
+          each list in panel.lists
+            .record-ops-list
+              .record-ops-list-label= list.label
+              if list.rows.length
+                each row in list.rows
+                  .record-ops-row
+                    span.record-ops-row-name= row.name
+                    if typeof row.percent === 'number'
+                      .record-ops-row-meter
+                        .request-progress-track
+                          .request-progress-bar(class=row.percent >= 100 ? 'maxed' : undefined style=`width: ${row.percent}%`)
+                    span.record-ops-row-detail= row.detail
+                if list.moreCount
+                  .record-ops-more #{list.moreCount} more not shown
+              else
+                .record-ops-empty= list.empty
+else
+  .empty-state
+    .empty-state-icon
+      svg(width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg")
+        path(d="M3 6.2C3 5.07989 3 4.51984 3.21799 4.09202C3.40973 3.71569 3.71569 3.40973 4.09202 3.21799C4.51984 3 5.07989 3 6.2 3H17.8C18.9201 3 19.4802 3 19.908 3.21799C20.2843 3.40973 20.5903 3.71569 20.782 4.09202C21 4.51984 21 5.07989 21 6.2V17.8C21 18.9201 21 19.4802 20.782 19.908C20.5903 20.2843 20.2843 20.5903 19.908 20.782C19.4802 21 18.9201 21 17.8 21H6.2C5.07989 21 4.51984 21 4.09202 20.782C3.71569 20.5903 3.40973 20.2843 3.21799 19.908C3 19.4802 3 18.9201 3 17.8V6.2Z" stroke="#72767d" stroke-width="2")
+        path(d="M12 8V16M8 12H16" stroke="#72767d" stroke-width="2" stroke-linecap="round")
+    .empty-state-text= searchQuery ? `No records found matching "${searchQuery}"` : 'No records found'

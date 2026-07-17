@@ -1,0 +1,11 @@
+//- TAKEOVER RIGHT RAIL - THE APP'S ACTIVITY FEED, LIVING WHERE THE MEMBERS
+//- PANE DOES IN MIRROR MODE (SAME #memberContainer, HOUSE ID-REUSE
+//- CONVENTION), SO EVERY EXISTING SWAP PATH RESTORES MEMBERS WHOLESALE ON
+//- BACK-OUT. THE FEED BODY IS ITS OWN FRAGMENT (appFeedBody) FOR HEARTBEAT
+//- PUSHES. ADD-NEW SEARCH LIVES IN THE LIBRARY/RELEASES SURFACES, NOT HERE.
+//- LOCALS: activeApp, feed { rows, hasMore, error? }
+div.memberContainer.appFeed#memberContainer(
+  hx-select-oob="#memberContainer"
+  hx-swap-oob="outerHTML"
+)
+  include appFeedBody

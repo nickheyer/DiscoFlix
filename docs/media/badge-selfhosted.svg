@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="193" height="26" font-family="'gg sans','Noto Sans','Helvetica Neue',Arial,sans-serif">
+  <defs><clipPath id="r"><rect width="193" height="26" rx="6"/></clipPath></defs>
+  <g clip-path="url(#r)">
+    <rect width="90" height="26" fill="#2f3136"/>
+    <rect x="90" width="103" height="26" fill="#202225"/>
+    <rect x="90" width="103" height="26" fill="#7289da" opacity="0.16"/>
+    <rect x="90" y="4" width="1.5" height="18" fill="#7289da" opacity="0.85" rx="0.75"/>
+  </g>
+  <text x="45" y="17.5" text-anchor="middle" fill="#b9bbbe" font-size="11.5" font-weight="600">self-hosted</text>
+  <text x="141.5" y="17.5" text-anchor="middle" fill="#7289da" font-size="11.5" font-weight="700">single binary</text>
+</svg>

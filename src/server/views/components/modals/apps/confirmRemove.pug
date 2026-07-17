@@ -1,0 +1,24 @@
+//- 440px DANGER CONFIRM (POWER-MODAL PATTERN). THE REMOVE BUTTON'S RESPONSE
+//- IS THE MIRROR-RESTORE FRAGMENT SET - REMOVING THE ACTIVE APP ENDS ITS
+//- TAKEOVER BY DEFINITION. locals: app (ROW), typeLabel, requestCount
+.modal-dialog.modal-dialog-centered#modal-container(hx-target="#modals-here")
+  .modal-content.io-modal
+    .modal-header
+      h5.modal-title Remove #{app.display_name}
+      button.modal-close-button(type="button" data-bs-dismiss="modal") ×
+    .modal-body
+      .power-modal-content
+        p.power-status-text
+          | This removes
+          strong  #{app.display_name}
+          |  and its connection settings from DiscoFlix. The #{typeLabel} server itself isn't touched.
+          if requestCount
+            |  Its #{requestCount} request#{requestCount === 1 ? '' : 's'} keep their history.
+    .modal-footer
+      button#modal-cancel-button.modal-button(type="button" data-bs-dismiss="modal") Cancel
+      button.modal-button.appRemoveConfirm(
+        hx-delete=`/apps/${app.id}`
+        hx-swap="none"
+        hx-select-oob="#serverSelector,#guildNameBanner"
+        data-bs-dismiss="modal"
+      ) Remove App

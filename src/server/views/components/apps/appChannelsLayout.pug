@@ -1,0 +1,7 @@
+//- APP TAKEOVER: THE APP'S SECTIONS REPLACE THE CHANNEL LIST IN #channelView
+//- (SAME SLOT-SWAP MECHANISM AS THE SETTINGS SIDEBAR TAKEOVER)
+.channelViewContainer.appView#channelView(
+  hx-select-oob='#channelView'
+  hx-swap-oob='outerHTML'
+)
+  include appChannels

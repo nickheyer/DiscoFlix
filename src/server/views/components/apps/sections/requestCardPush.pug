@@ -1,0 +1,8 @@
+//- ONE FRAME, EVERY SURFACE: THE SECTION PIPELINE CARD AND THE CHAT MIRROR'S
+//- INLINE CARD SWAP THEMSELVES IN BY ID WHEREVER THEY EXIST - MISSING TARGETS
+//- (SECTION CLOSED, MESSAGE OFF-SCREEN) ARE HARMLESS NO-OPS. NO TOAST HERE:
+//- PROGRESS TICKS RIDE THIS FRAME TOO.
+include ../../../mixins/dfRequestCard
+include ../../../mixins/chatRequestCard
++dfRequestCard(req, null, true)
++chatRequestCard(req, true)

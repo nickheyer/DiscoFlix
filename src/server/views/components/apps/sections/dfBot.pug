@@ -1,0 +1,35 @@
+//- THE DISCORD BOT TAB - BOT IDENTITY + AUDIENCE MAPPING (MOVED OFF
+//- dfSettings; THEIR METADATA IS computed SO THE SETTINGS FORM CAN'T WIPE
+//- THEM) FOLLOWED BY THE FEATURE MATRIX. sectionData: { bot } BUILT BY
+//- src/server/api/botMatrix.js
+include ../../../mixins/field
+
+include ../sectionTitleDivider
+
+- var bot = sectionData.bot
+
+form.appSettingsForm(
+  hx-post=`/apps/${activeApp.id}/bot/config`
+  hx-trigger="change, submit"
+  hx-swap="none"
+)
+  .appSettingsGroup
+    .appSettingsGroupInfo
+      .request-section-header Bot Identity
+      .appSettingsGroupBlurb The keyword that wakes the bot in chat, and the presence line it wears on Discord.
+    .appSettingsGroupBody
+      .appFormCard
+        .appSettingsFields
+          each f in bot.identityFields
+            +field(f, f.key, activeApp.id, false)
+  .appSettingsGroup
+    .appSettingsGroupInfo
+      .request-section-header Audiences
+      .appSettingsGroupBlurb Guild roles that grant the whitelisted / staff / admin tiers the matrix below targets. Role grants only ever add - revoke people in Users.
+    .appSettingsGroupBody
+      .appFormCard
+        .appSettingsFields
+          each f in bot.audienceFields
+            +field(f, f.key, activeApp.id, false)
+
+include dfBotMatrix

@@ -1,0 +1,32 @@
+//- LOG ROWS + VIEW MORE - INCLUDED BY dfLogs AND RETURNED BARE BY
+//- GET /apps/:id/logs (SEARCH/LEVEL FILTERS AND PAGINATION SHARE THIS
+//- FRAGMENT). WHEN THE ROUTE SETS oob THE COUNT SPAN TAGS ALONG AS AN
+//- OUT-OF-BAND SWAP TO KEEP THE TOOLBAR TALLY HONEST.
+- var logRows = (logs && logs.rows) || []
+- var currentLogsPage = (logs && logs.page) || 1
+- var filtered = !!(logs && (logs.level || logs.search))
+
+if oob
+  span#dfLogCount.dfLogCount(hx-swap-oob="true")= `${logs.total} ${logs.total === 1 ? 'entry' : 'entries'}`
+
+if !logRows.length
+  .appQueueEmpty= filtered ? 'Nothing in the log matches those filters.' : 'No log entries recorded yet.'
+else
+  each entry in logRows
+    .dfLogRow.dfLogGrid
+      span.dfLogWhen= entry.when
+      span.dfLogLevel(class=`dfLogLevel-${entry.level}`)= entry.level
+      .dfLogBody
+        .dfLogMessage= entry.message
+        if entry.metadata
+          .dfLogMetadata(title=entry.metadata)= entry.metadata
+  if logs.hasMore
+    button.appLoadMore.dfLogsMore(
+      type="button"
+      hx-get=`/apps/${activeApp.id}/logs?page=${currentLogsPage + 1}&level=${encodeURIComponent(logs.level || '')}&search=${encodeURIComponent(logs.search || '')}`
+      hx-swap="outerHTML"
+      hx-disabled-elt="this"
+    )
+      span View More
+      svg.appSpinner(viewBox="0 0 24 24" aria-hidden="true")
+        circle(cx="12" cy="12" r="10")

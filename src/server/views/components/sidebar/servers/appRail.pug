@@ -1,0 +1,50 @@
+//- PSEUDO-GUILDS FOR INSTALLED APP INSTANCES (nzb360-STYLE) - RENDERED BELOW
+//- THE REAL GUILDS BEHIND THEIR OWN DIVIDER. `apps` COMES FROM
+//- core.apps.getRailViewModel; THE ROOT IS ALWAYS RENDERED (SELF-OOB) SO WS
+//- PUSHES CAN ALWAYS FIND IT. DOT SEMANTICS: NONE = UNCONFIGURED, GREEN =
+//- SERVING (REACHABILITY FROM THE HEARTBEAT CACHE, OPTIMISTIC UNTIL CHECKED),
+//- RED = DISABLED OR UNREACHABLE. THE GREEN "+" OPENS THE ADD-AN-APP PICKER.
+.appRail#appRail(hx-select-oob="#appRail" hx-swap-oob="outerHTML")
+  //- THE PARTITION ALWAYS RENDERS: THE ADD-APP "+" BELOW IT ALWAYS DOES TOO,
+  //- AND IT'S WHAT SEPARATES THE GUILD GROUP (INVITE "+") FROM APP-LAND
+  hr.serverDivider
+  //- DRAG-SORTABLE LIKE THE GUILD BUBBLES - SAME SortableJS WIRING
+  //- (source.js makeRailSortable), SAME hidden-input FORM POST ON DROP
+  form.appBubbles.sortable#appBubbleContainer(
+    hx-post="/app-sort"
+    hx-trigger="end"
+    hx-swap="none"
+  )
+    //- HIDDEN ENTRIES (THE DISCOFLIX SELF APP) BUBBLE THROUGH THE HOME BADGE
+    - var railApps = (apps || []).filter(function(a) { return !a.hidden; })
+    if railApps.length
+      each app in railApps
+        .server.appBubble(
+          class=app.active ? 'active' : undefined
+          aria-label=app.label
+          data-tooltip-dir="right"
+          role="button"
+          tabindex="0"
+          hx-post=!app.active && `/change-active-app/${app.id}`
+          hx-trigger=!app.active ? "click, keyup[key=='Enter']" : undefined
+          hx-select-oob=!app.active && "#serverSelector,#guildNameBanner"
+        )
+          span.railPill
+          input(type='hidden' name='item' value=app.id)
+          if app.configured && app.enabled && app.reachable !== false
+            .statusBubble.online
+          else if app.configured
+            .statusBubble.offline
+          img.appIcon(src=app.icon alt=app.label)
+  .server.invite.addAppButton(
+    aria-label="Add an App"
+    data-tooltip-dir="right"
+    role="button"
+    tabindex="0"
+    hx-get="/modal/apps/picker"
+    hx-target="#modals-here"
+    hx-trigger="click, keyup[key=='Enter']"
+    data-bs-toggle="modal"
+    data-bs-target="#modals-here"
+  )
+    p.inviteButton +

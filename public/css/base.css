@@ -1,0 +1,49 @@
+/* ROOT, BODY, HTML, AND THINGS LIKE THAT */
+
+html, body, #root {
+  height: 100%;
+}
+
+* {
+  border: 0;
+  outline: 0;
+  font-family: var(--font-family);
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+/* THE GLOBAL RESET ABOVE KILLS FOCUS RINGS - GIVE KEYBOARD USERS ONE BACK */
+input:focus-visible,
+button:focus-visible,
+a:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--blurple);
+  outline-offset: 1px;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-primary);
+  color: var(--header-primary);
+  font-family: var(--font-family);
+  font-weight: 400;
+}
+
+.rootDiv {
+  display: flex;
+  align-content: flex-start;
+  flex-direction: row;
+  justify-content: flex-start;
+  box-sizing: border-box;
+  overflow: hidden;
+  width: 100%;
+  height: 100vh;
+  --anim-length: 2500ms;
+  -webkit-text-size-adjust: 100%;
+}
+
+::selection {
+  background-color: var(--blurple);
+  color: var(--header-primary);
+}

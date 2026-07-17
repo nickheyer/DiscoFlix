@@ -1,0 +1,48 @@
+//- PERSISTED MESSAGE RENDERED FROM THE DB (HISTORY). accent_color IS BARE HEX.
+include ../../mixins/chatRequestCard
+- var avatarUrl = user.avatar_url
+- var authorColor = user.accent_color ? `#${String(user.accent_color).replace('#', '')}` : null
+- var isBot = user.is_bot
+- var isClient = user.is_client
+- var username = user.username
+- var userId = user.id
+- var timeStamp = created_at
+- var messageText = content
+//- PERSISTED EMBEDS/ATTACHMENTS ARE JSON COLUMNS - PARSE DEFENSIVELY
+- var embedList = []
+- try { embedList = embeds ? JSON.parse(embeds) : [] } catch (err) {}
+- var attachmentList = []
+- try { attachmentList = attachments ? JSON.parse(attachments) : [] } catch (err) {}
+- var componentList = []
+- try { componentList = typeof components !== 'undefined' && components ? JSON.parse(components) : [] } catch (err) {}
+//- CLASSIC DATE DIVIDER - compileMessages FLAGS THE FIRST MESSAGE OF EACH DAY
+if dayDivider
+  include dateDivider
+if isFirstUnread
+  .newMessagesDivider
+    span.newMessagesTag NEW
+//- requestCard ROWS GET THE OLD-DISCORD MENTION TREATMENT (TINT + LEFT BAR).
+//- oobReplace: EDIT PUSHES REPLACE THE EXISTING ROW IN PLACE OVER THE SOCKET.
+//- grouped ROWS DROP THE AVATAR + AUTHOR HEADER - HOVER REVEALS THE TIME.
+.chatMessageRow(
+  id=`msg-${message_id}`
+  class=`${isClient ? "botMsg" : "userMsg"}${requestCard ? " mentioned" : ""}${grouped ? " grouped" : ""}`
+  hx-swap-oob=oobReplace ? `outerHTML:#msg-${message_id}` : undefined
+)
+  .chatContentContainer
+    if grouped
+      .chatGutterStamp= hoverStamp
+    else
+      include message/messageAvatar
+    .chatMessageContent()
+      if !grouped
+        include message/messageAuthor
+      include message/messageText
+      include message/messageEmbed
+      include message/messageComponents
+      include message/messageAttachment
+      //- THE FULL INLINE REQUEST CARD - APPROVE/DENY LIVE ON IT, AND WS
+      //- PUSHES UPDATE IT IN PLACE BY ID (pushRequestCard)
+      if requestCard
+        +chatRequestCard(requestCard, false)
+      //include message/messageTyping

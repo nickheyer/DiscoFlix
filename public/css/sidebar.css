@@ -1,0 +1,591 @@
+/* NAV BAR AND SERVER BUTTONS */
+
+/* ---- SERVER RAIL (FAR LEFT) ---- */
+
+.servers {
+  order: 1;
+  min-width: 72px;
+  height: 100%;
+  background-color: var(--bg-tertiary);
+  overflow-y: auto !important;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  user-select: none;
+}
+
+.servers::-webkit-scrollbar, .nav::-webkit-scrollbar {
+  width: 0px;
+}
+
+.serverBtnGroup {
+  align-items: center;
+  position: absolute;
+  width: fit-content;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* 12px INLINE PADDING LEAVES ROOM FOR THE CLASSIC LEFT PILL INDICATOR
+   (CLIPPING HAPPENS AT THE PADDING EDGE, SO THE PILL SURVIVES overflow-x) */
+.serverBubbles.sortable {
+  padding-inline: 12px;
+  scrollbar-width: none;
+  overflow-y: scroll;
+  overflow-x: clip;
+  border-radius: 10px;
+}
+
+/* CONSTANT 8px GAP FROM THE LAST GUILD TO THE INVITE "+": SCROLL CONTAINERS
+   SWALLOW THE LAST BUBBLE'S BOTTOM MARGIN ONCE THE LIST OVERFLOWS, SO THE GAP
+   LIVES ON THE INVITE BUTTON (OUTSIDE THE SCROLLER) INSTEAD */
+.serverBubbles.sortable > .server:last-child {
+  margin-bottom: 0;
+}
+
+#serverInviteButton {
+  margin-top: 8px;
+}
+
+.homeButton {
+  position: relative;
+  flex-shrink: 0;
+  background-color: var(--bg-primary);
+  color: #ffffff;
+  border-radius: 50%;
+  text-align: center;
+  height: 48px;
+  width: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 12px;
+  cursor: pointer;
+  transition: background-color 0.15s ease-out, border-radius 0.15s ease-out;
+}
+
+.homeButton:hover {
+  background-color: var(--blurple);
+  border-radius: 30%;
+}
+
+/* THE BADGE IS DISCOFLIX'S OWN RAIL BUBBLE - PILL/DOT MATCH THE .server SET */
+.homeButton.active {
+  background-color: var(--blurple);
+  border-radius: 30%;
+}
+
+.homeButton:hover .railPill {
+  opacity: 1;
+  height: 20px;
+}
+
+.homeButton.active .railPill {
+  opacity: 1;
+  height: 40px;
+}
+
+.homeButton .statusBubble {
+  visibility: visible;
+  border-color: var(--bg-tertiary);
+}
+
+/* THE COOL SETTINGS COG LIVES HERE NOW - ON BADGE HOVER IT SWAPS IN FOR THE
+   DISCORD LOGO. BOTH ICONS ARE STACKED DEAD-CENTER AND CROSSFADE SO NOTHING
+   EVER SHIFTS. THE COG ELEMENT STAYS SMALLER THAN THE BADGE SO THE RING
+   AROUND IT STILL CLICKS THROUGH TO THE TAKEOVER; THE COG ITSELF = SETTINGS */
+.homeButton .homeIcon {
+  transition: opacity 0.15s ease-out;
+}
+
+.homeButton:hover .homeIcon,
+.homeButton:has(.homeSettingsCog:focus-visible) .homeIcon {
+  opacity: 0;
+}
+
+/* position MUST STAY EXPLICIT - THE COG OVERLAYS THE LOGO, AND ANY HOST RULE
+   THAT PUT IT BACK IN THE FLEX FLOW WOULD SHOVE THE LOGO LEFT */
+.homeButton div.homeSettingsCog {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease-out;
+}
+
+.homeButton:hover .homeSettingsCog,
+.homeButton:has(.homeSettingsCog:focus-visible) .homeSettingsCog {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.homeSettingsCog svg {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+}
+
+.homeSettingsCog:hover svg {
+  transition: transform 1.4s cubic-bezier(0.5, 0, 0, 1);
+  transform: rotate(360deg);
+}
+
+
+.server {
+  position: relative;
+  background-color: var(--bg-primary);
+  color: #ffffff;
+  border-radius: 50%;
+  text-align: center;
+  height: 48px;
+  width: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: background-color 0.15s ease-out, border-radius 0.15s ease-out;
+}
+
+/* THE CLASSIC SQUIRCLE MORPH - CIRCLE AT REST, ROUNDED SQUARE WHEN ACTIVE/HOVERED */
+.server.active,
+.server:hover {
+  background-color: var(--blurple);
+  border-radius: 30%;
+}
+
+/* THE CLASSIC WHITE PILL IN THE RAIL GUTTER - A REAL CHILD ELEMENT BECAUSE
+   COOLTIPZ ALREADY OWNS ::before/::after ON THE BUBBLES. SHORT ON HOVER,
+   TALL ON ACTIVE; THE GREEN "+" BUBBLES OPT OUT. */
+.railPill {
+  position: absolute;
+  left: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 8px;
+  border-radius: 0 4px 4px 0;
+  background-color: var(--header-primary, #ffffff);
+  opacity: 0;
+  transition: height 0.15s ease-out, opacity 0.15s ease-out;
+  pointer-events: none;
+}
+
+.server:hover .railPill {
+  opacity: 1;
+  height: 20px;
+}
+
+.server.active .railPill {
+  opacity: 1;
+  height: 40px;
+}
+
+.server.invite .railPill {
+  display: none;
+}
+
+.server img {
+  height: 48px;
+  width: 48px;
+  border-radius: 50%;
+  text-align: center;
+  transition: border-radius 0.15s ease-out;
+  user-select: none;
+}
+
+.server:hover img,
+.server.active img {
+  border-radius: 30%;
+}
+
+.server p.serverIcon {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 48px;
+  color: var(--text-normal);
+}
+
+.server.ghost {
+  opacity: 0.5;
+  box-shadow: var(--elevation-high);
+  transform: scale(1.1);
+  z-index: 1000;
+}
+
+.invite {
+  color: var(--green) !important;
+  font-size: 33px;
+  font-weight: 200;
+  margin-bottom: 0;
+}
+
+.invite:hover {
+  color: #ffffff !important;
+  background-color: var(--green) !important;
+}
+
+.invite .inviteButton {
+  margin: 0;
+  line-height: 1;
+}
+
+.serverDivider {
+  margin-top: 8px;
+  margin-bottom: 8px;
+  width: 32px;
+  background-color: var(--bg-modifier-accent);
+  height: 2px;
+  border: none;
+  border-radius: 1px;
+  flex-shrink: 0;
+}
+
+/* ---- APP RAIL - PSEUDO-GUILDS FOR CONNECTED SERVICES (RADARR/SONARR/…) ---- */
+
+.appRail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  /* MATCHES .serverBubbles - KEEPS THE PILL GUTTER ALIGNED RAIL-WIDE */
+  padding-inline: 12px;
+}
+
+/* THE PARTITION KEEPS ITS DEFAULT 8px MARGINS - THE INVITE "+" ABOVE IT HAS
+   margin-bottom: 0, SO THE DIVIDER'S OWN MARGIN IS THE WHOLE GAP */
+
+/* APP LOGOS SIT INSET INSIDE THE BUBBLE INSTEAD OF FILLING IT LIKE GUILD ICONS */
+.server.appBubble .appIcon {
+  width: 26px;
+  height: 26px;
+  border-radius: 0;
+  user-select: none;
+  transition: none;
+}
+
+/* STATUS DOTS ON RAIL BUBBLES RING WITH THE RAIL COLOR */
+.servers .statusBubble {
+  border-color: var(--bg-tertiary);
+}
+
+/* ---- CHANNEL SIDEBAR ---- */
+
+#serverSideBar {
+  order: 2;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 60px;
+  height: 100vh;
+  background-color: var(--bg-secondary);
+  transition: width 0.3s ease;
+  overflow-x: visible;
+}
+
+#serverSideBar.expanded {
+  width: 240px;
+
+  .guildSelectorName,
+  .userInfo,
+  .userMenuIcons,
+  .channelViewContainer {
+    opacity: 1;
+    transition: opacity 0.4s ease 0.15s;
+  }
+
+  .guildSelectorName {
+    position: initial;
+    top: initial;
+  }
+
+  .guildSelectorDropdown {
+    transform: translateY(-50%) rotate(0deg);
+    transform-origin: center;
+  }
+}
+
+#serverSideBar:not(.expanded) {
+  width: 60px;
+
+  .guildSelectorDropdown {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    transform: translateY(-50%) rotate(90deg);
+    transform-origin: center;
+    color: var(--interactive-normal);
+    cursor: pointer;
+    display: inline-block;
+    vertical-align: middle;
+    margin: 0px;
+    padding: 0px;
+    box-sizing: border-box;
+    right: 0;
+  }
+  .guildSelectorDropdown:hover {
+    color: var(--interactive-active);
+  }
+
+  .navGuildItems {
+    padding: 0;
+  }
+  .nav {
+    overflow: hidden;
+  }
+
+  .guildSelectorName,
+  .userInfo,
+  .userMenuIcons,
+  .channelViewContainer {
+    opacity: 0;
+  }
+
+  .guildSelectorName {
+    position: fixed;
+    top: -1000vh;
+  }
+}
+
+/* GUILD NAME BANNER */
+.nav {
+  flex-shrink: 0;
+}
+
+.navGuildItems {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0px 8px 0px 16px;
+  background-color: var(--bg-secondary);
+  z-index: 2;
+  height: 48px;
+  position: relative;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.navGuildItems:hover {
+  background-color: var(--bg-modifier-hover);
+}
+
+.navGuild {
+  box-shadow: var(--elevation-low);
+}
+
+.guildSelectorName {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: 15px !important;
+  font-weight: 600;
+  color: var(--header-primary);
+  user-select: none;
+  cursor: pointer;
+  transition: opacity 0.2s ease 0s;
+}
+
+.guildNameText {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+/* SERVER INFO (i) - RIDES THE BANNER, FADES IN ON HOVER LIKE THE CHANNEL GEAR */
+.serverInfoButton {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: var(--interactive-normal);
+  opacity: 0;
+  cursor: pointer;
+  transition: opacity 0.15s ease, color 0.15s ease;
+}
+
+.navGuildItems:hover .serverInfoButton {
+  opacity: 1;
+}
+
+.serverInfoButton:hover {
+  color: var(--interactive-active);
+}
+
+.guildSelectorDropdown {
+  max-height: 48px;
+  width: 32px;
+  height: 32px;
+  color: var(--interactive-normal);
+  cursor: pointer;
+
+  position: absolute;
+  transform: translateY(-50%);
+  transform-origin: center;
+  right: 6px;
+  top: 50%;
+
+  margin: 0px;
+  padding: 6px;
+  box-sizing: border-box;
+  transition-property: transform, color;
+  transition-duration: 0.3s;
+  transition-timing-function: ease;
+}
+
+.guildSelectorDropdown:hover {
+  color: var(--interactive-active);
+}
+
+/* CHANNEL LIST - FILLS THE SPACE BETWEEN BANNER AND USERBOX */
+.channelViewContainer {
+  background-color: var(--bg-secondary);
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 8px 8px 8px;
+  transition: opacity 0.2s ease 0s;
+}
+
+.channelViewOption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  padding: 5px 8px;
+  border-radius: 4px;
+  background-color: transparent;
+  font-family: var(--font-family) !important;
+  margin-top: 2px;
+  flex-shrink: 0;
+
+  > div {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+  }
+  > div span {
+    margin-left: 6px;
+    color: var(--channel-default);
+    font-size: 15px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  &:hover {
+    background-color: var(--bg-modifier-hover);
+    > div span {
+      color: var(--interactive-hover);
+    }
+  }
+  &.active {
+    background-color: var(--bg-modifier-selected);
+    > div span {
+      color: var(--interactive-active);
+    }
+  }
+  &:hover .channelViewOptionConfig,
+  &.active .channelViewOptionConfig {
+    visibility: visible !important;
+  }
+
+  .channelViewOptionConfig {
+    visibility: hidden;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+}
+
+.btnInter {
+  color: var(--interactive-normal);
+  transition: color 0.15s ease;
+}
+
+.btnInter:hover,
+.btnInter:active {
+  color: var(--interactive-active);
+}
+
+.channelViewOptionInfo {
+  display: flex;
+  align-items: center;
+}
+
+.hashTagIcon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.channelViewOption.active .channelViewOptionInfo span {
+  color: var(--interactive-active);
+}
+
+.channelViewOptionConfig svg {
+  width: 16px;
+  height: 16px;
+  color: var(--interactive-normal);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.channelViewOptionConfig svg:hover {
+  color: var(--interactive-active);
+}
+
+svg.noInter {
+  cursor: unset !important;
+}
+
+.channelViewOptionConfig svg:last-child {
+  margin-left: 4px;
+}
+
+/* CATEGORY / SECTION HEADERS */
+.channelViewHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 18px;
+  margin-bottom: 2px;
+  padding: 0 8px 0 2px;
+  flex-shrink: 0;
+
+  > span {
+    text-transform: uppercase;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--channel-default);
+    user-select: none;
+  }
+}
+
+.channelViewHeader:first-child {
+  margin-top: 8px;
+}
+
+.channelViewHeader > svg {
+  width: 18px;
+  height: 18px;
+  color: var(--interactive-normal);
+  cursor: pointer;
+}

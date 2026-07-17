@@ -1,0 +1,16 @@
+//- WHO ANSWERS THIS DOOR, BY AUDIENCE TIER - COMPUTED FROM THE SAME WALK
+//- resolveAiDoor RUNS (SEGMENTS BUILT BY botMatrix.aiRibbonOf). RENDERED
+//- INLINE BY dfBotAiBoard AND OOB BY THE FEATURE SAVE/RESET ROUTES SO ROW
+//- EDITS UPDATE THE STRIP IN THE SAME SWAP. LOCALS: door, oob (OOB ONLY)
+- var isOob = typeof oob !== 'undefined' && !!oob
+.dfBotAiRibbon(id=`ai-ribbon-${door.door}` hx-swap-oob=isOob ? 'outerHTML' : undefined)
+  span.dfBotAiRibbonLead who answers
+  each seg in door.ribbon
+    span.dfBotAiRibbonSeg
+      span.dfBotAiRibbonTier= seg.label
+      if seg.provider
+        span.dfBotAiChip
+          img.dfBotAiChipIcon(src=seg.provider.icon alt="")
+          | #{seg.provider.label}
+      else
+        span.dfBotAiChip.none no one

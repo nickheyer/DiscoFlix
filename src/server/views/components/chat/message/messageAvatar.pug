@@ -1,0 +1,18 @@
+//- CACHED AVATARS ARE STORED AS BARE PATHS (user_images/…) - SERVE ROOT-RELATIVE
+- var avatarSrc = avatarUrl ? (/^https?:\/\//.test(avatarUrl) ? avatarUrl : `/${avatarUrl.replace(/^\/+/, '')}`) : "https://cdn.discordapp.com/embed/avatars/0.png"
+//- CLICKING AN AVATAR OPENS THAT USER'S PROFILE MODAL (TIER, LIMITS, NOTES,
+//- REQUESTS) - ONLY WHEN THE RENDER PATH SUPPLIED A userId
+- var canOpenUser = typeof userId !== 'undefined' && userId
+img.userAvatar.chatAuthorAvatar(
+    src=avatarSrc
+    alt="avatar"
+    referrerpolicy="no-referrer"
+    class=canOpenUser ? 'clickable' : undefined
+    role=canOpenUser ? 'button' : undefined
+    tabindex=canOpenUser ? '0' : undefined
+    hx-get=canOpenUser ? `/user/${userId}/profile` : undefined
+    hx-target=canOpenUser ? '#modals-here' : undefined
+    hx-trigger=canOpenUser ? "click, keyup[key=='Enter']" : undefined
+    data-bs-toggle=canOpenUser ? 'modal' : undefined
+    data-bs-target=canOpenUser ? '#modals-here' : undefined
+)

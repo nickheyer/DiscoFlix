@@ -1,0 +1,94 @@
+//- THE LIBRARY SECTION'S BROWSE PIECES, WORN BY SEARCH RESULTS AND LIBRARY
+//- LISTINGS ALIKE: DETAILED ROWS (POSTER / TITLE / OVERVIEW / STATE) AND
+//- COVER CARDS. EVERY PIECE OPENS THE DETAIL VIEW - EPHEMERAL FOR RESULTS
+//- NOT YET IN THE LIBRARY, THE REAL ONE FOR EVERYTHING ELSE.
+
+mixin browsePoster(posterUrl, kind)
+  .request-poster
+    if posterUrl
+      img(src=posterUrl alt="poster" loading="lazy" referrerpolicy="no-referrer")
+    else
+      .request-poster-placeholder
+        svg(viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" aria-hidden="true")
+          if kind === 'show'
+            rect(x="3" y="7" width="18" height="13" rx="2" stroke-width="2")
+            path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 3l4 4 4-4")
+          else if kind === 'music'
+            path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 18V5l12-2v13")
+            circle(cx="6" cy="18" r="3" stroke-width="2")
+            circle(cx="18" cy="16" r="3" stroke-width="2")
+          else
+            rect(x="3" y="5" width="18" height="14" rx="2" stroke-width="2")
+            path(stroke-linecap="round" stroke-width="2" d="M3 9h18M8 5v14M16 5v14")
+
+//- ONE SEARCH RESULT ROW - rowState: addable | in-library | available | added | error
+mixin searchBrowseRow(result, appId)
+  - var detailUrl = result.libraryId ? `/apps/${appId}/library/item/${result.libraryId}?from=search` : `/apps/${appId}/lookup/${result.externalKey}`
+  .request-row.appBrowseRow.appSearchRow(
+    role="button"
+    tabindex="0"
+    aria-label=`Open ${result.title}`
+    hx-get=detailUrl
+    hx-target="#appSectionBody"
+    hx-swap="innerHTML show:#messageContainer:top"
+    hx-trigger="click, keyup[key=='Enter']"
+  )
+    +browsePoster(result.posterUrl, result.contentType)
+    .request-info
+      .request-title= result.year ? `${result.title} (${result.year})` : result.title
+      if result.overview
+        .request-orig-message= result.overview
+    .request-status
+      case result.rowState
+        when 'available'
+          span.requestChip.chip-available Available
+        when 'in-library'
+          span.requestChip.chip-approved In Library
+        when 'added'
+          span.requestChip.chip-downloading Added - watch the Queue
+        when 'error'
+          span.requestChip.chip-denied(title=result.error)= result.error || 'Add failed'
+        default
+          //- QUICK ADD MUST NOT ALSO OPEN THE DETAIL VIEW UNDERNEATH
+          button.request-approve-button(
+            hx-post=`/apps/${appId}/add-media`
+            hx-vals=JSON.stringify({ externalKey: result.externalKey, title: result.title })
+            hx-target="closest .appSearchRow"
+            hx-swap="outerHTML"
+            hx-on:click="event.stopPropagation()"
+          ) Add
+
+//- ONE COVER CARD - entry: { clickUrl, title, year, posterUrl, badge, kind }
+mixin browsePosterCard(entry)
+  .posterCard(
+    role="button"
+    tabindex="0"
+    aria-label=`Open ${entry.title}`
+    hx-get=entry.clickUrl
+    hx-target="#appSectionBody"
+    hx-swap="innerHTML show:#messageContainer:top"
+    hx-trigger="click, keyup[key=='Enter']"
+  )
+    if entry.posterUrl
+      img(src=entry.posterUrl alt=entry.title loading="lazy" referrerpolicy="no-referrer")
+    else
+      .posterCardFallback
+        svg(viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true")
+          if entry.kind === 'show'
+            rect(x="3" y="7" width="18" height="13" rx="2")
+            path(stroke-linecap="round" stroke-linejoin="round" d="M8 3l4 4 4-4")
+          else if entry.kind === 'music'
+            path(stroke-linecap="round" stroke-linejoin="round" d="M9 18V5l12-2v13")
+            circle(cx="6" cy="18" r="3")
+            circle(cx="18" cy="16" r="3")
+          else
+            rect(x="3" y="5" width="18" height="14" rx="2")
+            path(stroke-linecap="round" d="M3 9h18M8 5v14M16 5v14")
+    if entry.badge === 'available'
+      .posterBadge(title="On disk")
+    else if entry.badge === 'in-library'
+      .posterBadge.inLibrary(title="In library")
+    .posterCardInfo
+      .posterCardTitle(title=entry.title)= entry.title
+      if entry.year
+        .posterCardMeta= entry.year

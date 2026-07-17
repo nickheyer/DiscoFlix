@@ -1,0 +1,67 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    title DiscoFlix - Log In
+    link(rel="icon", type="image/png", href="/images/favicon.png")
+    style.
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #202225;
+        font-family: 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+      }
+      .login-card {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        width: 320px;
+        padding: 32px 28px;
+        background-color: #36393f;
+        border-radius: 8px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
+      }
+      .login-logo { width: 56px; height: 56px; align-self: center; }
+      .login-title { color: #fff; font-size: 20px; font-weight: 600; text-align: center; }
+      .login-subtitle { color: #b9bbbe; font-size: 13px; text-align: center; }
+      .login-error {
+        background-color: rgba(240, 71, 71, 0.15);
+        color: #f04747;
+        border-radius: 4px;
+        padding: 8px 10px;
+        font-size: 13px;
+        text-align: center;
+      }
+      .login-input {
+        background-color: #202225;
+        border: 1px solid #17181a;
+        border-radius: 4px;
+        padding: 10px 12px;
+        color: #dcddde;
+        font-size: 14px;
+      }
+      .login-input:focus { outline: none; border-color: #7289da; }
+      .login-button {
+        background-color: #7289da;
+        border: none;
+        border-radius: 4px;
+        padding: 10px;
+        color: #fff;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .login-button:hover { background-color: #677bc4; }
+  body
+    form.login-card(method="POST" action="/login")
+      img.login-logo(src="/images/df_server_on.svg" alt="DiscoFlix")
+      .login-title DiscoFlix
+      .login-subtitle Enter the admin password to continue
+      if error
+        .login-error= error
+      input.login-input(type="password" name="password" placeholder="Admin password" autofocus required autocomplete="current-password")
+      button.login-button(type="submit") Log In

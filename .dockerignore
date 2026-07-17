@@ -1,25 +1,29 @@
-/venv
-*.tldr
-__pycache__/
-deploy/
-data/db.sqlite3
-data/django_key.txt
-.env
-.pytest_cache
-filetree.txt
+# VCS / CI / EDITOR
 .git
-__pycache__
-*.pyc
-.venv
-venv
-.DS_Store
-.idea
-tests
-docs
-*.md
-docker-compose.yml
+.github
+.gitignore
+.vscode
+.claude
+
+# DEPENDENCIES + BUILD OUTPUT (IMAGE INSTALLS ITS OWN)
+node_modules
+dist
+
+# RUNTIME STATE - NEVER BAKE A DB, CACHE, OR LOGS INTO THE IMAGE
+logs
+.cache
+prisma/disco.db*
+*.log
+
+# SECRETS
+.env
+.env.*
+
+# DOCKER + DOCS + DEV-ONLY TOOLING
 Dockerfile
-requirements.txt
-./node_modules/
-./logs/
-./prisma/
+.dockerignore
+docker-compose*.yml
+Makefile
+scripts
+*.md
+new-design.txt

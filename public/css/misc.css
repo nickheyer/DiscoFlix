@@ -1,0 +1,212 @@
+/* EVERYTHING ELSE - ANIMATIONS, ALERTS, WHATEVER I COULDNT FIND A FILE FOR */
+
+/* KEYFRAME NAMES ARE GLOBAL - EVERY ANIMATION HERE GETS ITS OWN PREFIXED NAME
+   SO FILES CANT SILENTLY OVERRIDE EACH OTHER (dash/fadeIn USED TO COLLIDE) */
+
+.loading-bar {
+  z-index: 9999;
+  opacity: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent,
+      var(--blurple), transparent,
+      var(--blurple), transparent);
+}
+
+.htmx-request.loading-bar {
+  opacity: 1;
+  animation: loadbar-fade-in 2s linear forwards, loadbar-slide 0.8s ease-in-out infinite;
+}
+
+@keyframes loadbar-slide {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* DELIBERATELY HOLDS AT 0 UNTIL HALFWAY - SHORT REQUESTS NEVER FLASH THE BAR */
+@keyframes loadbar-fade-in {
+  0% {
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+.htmx-indicator {
+  display: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0.8);
+  padding: 1rem;
+  border-radius: 0.5rem;
+}
+
+.htmx-request .htmx-indicator {
+  display: block;
+}
+
+.alert {
+  max-width: 300px;
+}
+
+.notification-container {
+  margin-right: auto;
+  min-width: 200px;
+  min-height: 38px;
+  visibility: hidden;
+}
+
+.notification {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--bg-secondary);
+  border-radius: 4px;
+  border: 1px solid var(--bg-tertiary);
+  opacity: 0;
+  transform: translateX(-10px);
+  transition: all 0.2s ease;
+  visibility: hidden;
+}
+
+.notification.show {
+  opacity: 1;
+  transform: translateX(0);
+  visibility: visible;
+}
+
+.notification-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--green);
+}
+
+.notification-message {
+  font-size: 14px;
+  color: var(--text-normal);
+  font-weight: 500;
+}
+
+/* CUSTOM SELECT STYLING */
+.select-box {
+  position: relative;
+  display: block;
+  min-width: calc(6rem + 20px);
+  font-family: var(--font-family);
+  font-size: 12px;
+  color: var(--text-normal);
+  background-color: var(--bg-tertiary);
+  border-radius: 3px;
+  padding: 10px 0 10px 14px;
+}
+
+.select-box.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.select-box__current {
+  position: relative;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.select-box:focus .select-box__current {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+}
+
+.select-box__input-text {
+  margin: 0;
+  padding-right: 30px;
+}
+
+.select-box__icon {
+  position: absolute;
+  right: 15px;
+  width: 20px;
+  height: 20px;
+  opacity: 0.7;
+  transition: transform 0.2s;
+}
+
+.select-box:focus .select-box__icon {
+  transform: rotate(180deg);
+}
+
+.select-box__list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin: 4px 0 0;
+  padding: 4px;
+  list-style: none;
+  background: var(--bg-floating);
+  border-radius: 4px;
+  box-shadow: var(--elevation-high);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-10px);
+  transition: all 0.2s;
+  z-index: 100;
+}
+
+.select-box:focus .select-box__list {
+  opacity: 1;
+  pointer-events: all;
+  transform: translateY(0);
+}
+
+.select-box__option {
+  display: block;
+  padding: 10px 12px;
+  color: var(--interactive-normal);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  text-decoration: none;
+  text-align: center;
+}
+
+.select-box__option:hover {
+  background-color: var(--bg-modifier-hover);
+  color: var(--interactive-hover);
+}
+
+.select-box__option.selected {
+  background-color: var(--blurple);
+  color: #fff;
+}
+
+.select-box__option[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.select-box:focus:not(:focus-visible) .select-box__current {
+  box-shadow: none;
+}
+
+.select-box:not(:focus) .select-box__list {
+  display: none;
+}

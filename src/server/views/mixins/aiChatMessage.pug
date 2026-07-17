@@ -1,0 +1,34 @@
+//- ONE AI CHAT ROW - THE DISCORD MIRROR'S VISUAL LANGUAGE (SAME ROW/AUTHOR/
+//- TEXT CLASSES) WITH AI-SPECIFIC DRESSING: THE PROVIDER ICON AS THE
+//- ASSISTANT'S AVATAR, AN "AI" TAG, TOOL CHIPS UNDER TURNS THAT ACTED, AND
+//- A FAILURE NOTE ON ERRORED TURNS. m IS A buildAiMessageViewModels SHAPE.
+mixin aiChatMessage(m)
+  .chatMessageRow.aiChatRow(
+    id=`aimsg-${m.id}`
+    class=`${m.isAssistant ? "botMsg" : "userMsg"}${m.grouped ? " grouped" : ""}${m.error ? " aiErrorRow" : ""}`
+  )
+    .chatContentContainer
+      if m.grouped
+        .chatGutterStamp= m.hoverStamp
+      else if m.isAssistant && m.icon
+        img.userAvatar.chatAuthorAvatar(src=m.icon alt="" referrerpolicy="no-referrer")
+      else
+        .aiOperatorAvatar
+          svg(viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true")
+            path(d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2")
+            circle(cx="12" cy="7" r="4")
+      .chatMessageContent
+        if !m.grouped
+          .chatAuthor
+            b.chatAuthorUsername= m.author
+            if m.isAssistant
+              .chatMessageTag.aiTag AI
+            .chatMessageDate= m.timeStamp
+        if m.content
+          p.chatMessageText !{md(m.content)}
+        if m.toolsUsed && m.toolsUsed.length
+          .aiToolChips
+            each tool in m.toolsUsed
+              span.aiToolChip= tool
+        if m.error
+          .aiTurnError This turn failed - check the provider settings or logs.

@@ -1,0 +1,9 @@
+//- SCROLL-UP PAGINATION - REVEALING THIS PULLS THE NEXT OLDER PAGE, WHICH
+//- REPLACES IT (WITH A FRESH SENTINEL ON TOP WHILE MORE HISTORY REMAINS)
+.chatHistorySentinel(
+  hx-get=`/chat/history/${history.channelId}?before=${history.beforeId}`
+  hx-trigger="intersect once"
+  hx-swap="outerHTML"
+)
+  svg.appSpinner(viewBox="0 0 24 24" aria-hidden="true")
+    circle(cx="12" cy="12" r="10")

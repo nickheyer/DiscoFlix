@@ -1,0 +1,76 @@
+//- LIVE ADD-NEW SEARCH RESULTS - THE BIG BAR AT THE TOP RE-RUNS THE SERVICE
+//- SEARCH ON ENTER, CLEARING IT RESTORES BROWSING. TWO VIEW STYLES (COVER
+//- GRID / DETAILED ROWS, STICKY PER MODE). BROWSING WITHOUT A TERM RENDERS
+//- THE UNIFIED LIBRARY COMPONENT INSTEAD (SEE appSurface). sectionData:
+//- { configured, view, searchTerm, searchPlaceholder, searchResults,
+//- searchError, instanceTabs, contentKind, searchable }
+include ../../../mixins/browse
+include ../../../mixins/serviceSearch
+
+if !sectionData.configured
+  .appQueueEmpty Connect #{activeApp.display_name} in Settings before browsing.
+else
+  - var view = sectionData.view || 'detailed'
+  - var results = sectionData.searchResults || []
+  - var contentKind = sectionData.contentKind || 'movie'
+  //- ONE DOC WRAPS HEADER + GRID + LIST SO BOTH VIEW STYLES SIT ON THE SAME
+  //- MEASURE THE LIBRARY HUB USES (dfLibrary WRAPS EVERYTHING ONCE TOO)
+  .appSectionDoc
+    +serviceSearchBar(activeApp, sectionData.searchTerm, sectionData.searchPlaceholder)
+    .request-section-header.appLibraryHeader
+      span Results - #{results.length} for “#{sectionData.searchTerm}”
+      .appLibraryHeaderTools
+        if sectionData.instanceTabs.length
+          .appInstanceTabs
+            span Add to:
+            each tab in sectionData.instanceTabs
+              //- INACTIVE TABS RE-RUN THE SEARCH INSIDE THE RIVAL'S TAKEOVER
+              .appInstanceTab(
+                class=tab.active ? 'active' : ''
+                hx-get=!tab.active ? `/apps/${tab.id}/search` : undefined
+                hx-include=!tab.active ? '#appServiceSearchInput' : undefined
+                hx-swap=!tab.active ? 'none' : undefined
+              )= tab.label
+        if results.length
+          .appViewToggle(role="group" aria-label="View style")
+            button.appViewToggleButton(
+              type="button"
+              aria-label="Cover view"
+              data-tooltip-dir="top"
+              class=view === 'covers' ? 'active' : ''
+              hx-get=view !== 'covers' ? `/apps/${activeApp.id}/search?view=covers` : undefined
+              hx-include=view !== 'covers' && sectionData.searchable ? '#appServiceSearchInput' : undefined
+              hx-swap=view !== 'covers' ? 'none' : undefined
+              hx-disabled-elt="this"
+            )
+              svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true")
+                rect(x="3" y="3" width="7" height="7" rx="1")
+                rect(x="14" y="3" width="7" height="7" rx="1")
+                rect(x="3" y="14" width="7" height="7" rx="1")
+                rect(x="14" y="14" width="7" height="7" rx="1")
+            button.appViewToggleButton(
+              type="button"
+              aria-label="Detailed view"
+              data-tooltip-dir="top"
+              class=view === 'detailed' ? 'active' : ''
+              hx-get=view !== 'detailed' ? `/apps/${activeApp.id}/search?view=detailed` : undefined
+              hx-include=view !== 'detailed' && sectionData.searchable ? '#appServiceSearchInput' : undefined
+              hx-swap=view !== 'detailed' ? 'none' : undefined
+              hx-disabled-elt="this"
+            )
+              svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true")
+                path(d="M4 6h16M4 12h16M4 18h16")
+    if sectionData.searchError
+      .appQueueEmpty Search failed - #{sectionData.searchError}
+    else if !results.length
+      .appQueueEmpty No results for “#{sectionData.searchTerm}” on #{activeApp.display_name}.
+    else if view === 'detailed'
+      .appBrowseList
+        each result in results
+          +searchBrowseRow(result, activeApp.id)
+    else
+      .posterGrid#posterGrid
+        each result in results
+          - var cardUrl = result.libraryId ? `/apps/${activeApp.id}/library/item/${result.libraryId}?from=search` : `/apps/${activeApp.id}/lookup/${result.externalKey}`
+          - var cardBadge = result.rowState === 'available' ? 'available' : (result.rowState === 'in-library' ? 'in-library' : null)
+          +browsePosterCard({ clickUrl: cardUrl, title: result.title, year: result.year, posterUrl: result.posterUrl, badge: cardBadge, kind: contentKind })

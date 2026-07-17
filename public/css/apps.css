@@ -1,0 +1,3270 @@
+/* APP TAKEOVER SURFACE (nzb360-STYLE PSEUDO-GUILDS) - POSTER GRID, SECTION
+   VIEWS, ADD-APP PICKER. EVERYTHING RIDES THE CLASSIC-DISCORD TOKENS FROM
+   variables.css; NEW SHAPES ONLY WHERE NO EXISTING FAMILY FITS. */
+
+/* ---- THE SURFACE (REPLACES THE MESSAGE SCROLLER IN TAKEOVER) ---- */
+
+.messageContainer.appSurface {
+  flex-direction: column; /* CHAT IS column-reverse; APP CONTENT READS TOP-DOWN */
+  padding: 16px 16px 24px;
+  overflow-y: auto;
+}
+
+/* SECTIONS OWN THE WHOLE CHAT-VIEW WIDTH - DENSITY COMES FROM GRIDS INSIDE,
+   NEVER FROM A SURFACE-WIDE CAP */
+.appSectionBody {
+  width: 100%;
+}
+
+/* "OPEN <APP>" LINK-OUT ON THE TAKEOVER HEADER'S RIGHT EDGE */
+.appHeaderLink {
+  display: flex;
+  align-items: center;
+  color: var(--interactive-normal);
+  flex-shrink: 0;
+}
+
+.appHeaderLink:hover {
+  color: var(--interactive-hover);
+}
+
+.appHeaderLink svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* ---- OVERVIEW (THE "ABOUT THIS APP" PAGE) ---- */
+
+/* CENTERED IDENTITY, macOS ABOUT-THIS-MAC STYLE - AIR ABOVE, EVERYTHING ELSE
+   RENDERS BELOW IT ON THE DOCUMENT MEASURE */
+.appAboutBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  margin: 40px auto 28px;
+}
+
+.appAboutBlock img.appAboutIcon {
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
+}
+
+.appAboutBlock img.appAboutIcon.round {
+  border-radius: 50%;
+}
+
+/* NAME, DISCRIMINATOR, AND STATUS PILL ON ONE FLEX LINE - THE GAP KEEPS THE
+   PILL OFF THE NAME AT EVERY LENGTH, WRAPPING KEEPS IT HONEST ON NARROW VIEWS */
+.appAboutName {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--header-primary);
+}
+
+.appAboutTitle {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* PRODUCT CHIP - DISCOFLIX MARK + RELEASE VERSION (CONTAINER DEPLOYS ARE
+   VERSIONED, SO THE OPERATOR CAN ALWAYS SEE WHICH ONE IS RUNNING) */
+.appAboutBrand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px 4px 8px;
+  border-radius: 999px;
+  background-color: var(--bg-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--header-secondary);
+}
+
+.appAboutBrandIcon {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+}
+
+.appVersionPill {
+  padding: 1px 7px;
+  border-radius: 10px;
+  background-color: var(--bg-modifier-selected);
+  color: var(--interactive-normal);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.appAboutSub {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.appOverviewUrl {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.appOverviewUrl:hover {
+  color: var(--interactive-hover);
+  text-decoration: underline;
+}
+
+/* STAT TILES - THE dfOverview GRID, PROMOTED TO EVERY APP'S AT-A-GLANCE ROW */
+.appStatsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 150px));
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.appStat {
+  background: var(--bg-secondary);
+  border-radius: 5px;
+  padding: 12px;
+  text-align: center;
+}
+
+.appStatValue {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--header-primary);
+}
+
+.appStat.attention .appStatValue {
+  color: var(--yellow);
+}
+
+.appStatLabel {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+}
+
+/* COLD-CACHE COUNTS RENDER DASHES WITH THIS ONE-LINE EXPLANATION */
+.appStatsHint {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: -12px 0 20px;
+}
+
+/* STORAGE - PER-DISK ROWS WITH A USED-SPACE METER (CONTENT MANAGERS) */
+.appStorageList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+
+.appStorageRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--bg-secondary);
+  border-radius: 5px;
+  padding: 10px 12px;
+}
+
+.appStorageInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.appStorageLabel {
+  font-weight: 600;
+  color: var(--header-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.appStorageMeta {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.appStorageMeter {
+  flex: 0 0 220px;
+}
+
+.appStorageMeter .request-progress-bar.warn {
+  background-color: var(--yellow);
+}
+
+.appStorageMeter .request-progress-bar.danger {
+  background-color: var(--red);
+}
+
+.appSectionActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.appSectionActions.centered {
+  justify-content: center;
+}
+
+/* ---- SHARED IN-FLIGHT SPINNER (VIEW MORE, SEARCH, SECTION ROWS) ---- */
+
+.appSpinner {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  animation: apps-spin 1s linear infinite;
+}
+
+.appSpinner circle {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 60;
+  stroke-dashoffset: 30;
+  transform-origin: center;
+}
+
+@keyframes apps-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* EXPLICIT VIEW MORE BUTTON - THE ARRS ANSWER PAGINATION TOO SLOWLY FOR
+   SCROLL-TRIGGERED LOADS TO FEEL RESPONSIVE */
+.appLoadMore {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+  border-radius: 3px;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  background-color: var(--bg-secondary);
+  color: var(--interactive-normal);
+  cursor: pointer;
+}
+
+.appLoadMore:hover {
+  background-color: var(--bg-modifier-hover);
+  color: var(--interactive-hover);
+}
+
+.appLoadMore:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.appLoadMore .appSpinner {
+  display: none;
+}
+
+.appLoadMore.htmx-request .appSpinner {
+  display: block;
+}
+
+/* SECTION-ROW SPINNER RIDES THE ROW'S space-between RIGHT EDGE */
+.sectionRowSpinner {
+  display: none;
+  width: 14px;
+  height: 14px;
+  color: var(--interactive-normal);
+}
+
+.channelViewOption.htmx-request .sectionRowSpinner {
+  display: block;
+}
+
+.appInstanceTab.htmx-request {
+  opacity: 0.5;
+  cursor: progress;
+}
+
+/* ---- QUEUE ---- */
+
+#appQueueList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.queueSectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.queueHeaderActions {
+  display: flex;
+  gap: 6px;
+}
+
+.queueHeaderButton {
+  border: none;
+  border-radius: 3px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  background-color: var(--bg-secondary);
+  color: var(--interactive-normal);
+  cursor: pointer;
+}
+
+.queueHeaderButton:hover {
+  background-color: var(--bg-modifier-hover);
+  color: var(--interactive-hover);
+}
+
+.queueHeaderButton:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.queueRowActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.queueActionButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 3px;
+  background-color: transparent;
+  color: var(--interactive-normal);
+  cursor: pointer;
+}
+
+.queueActionButton:hover {
+  background-color: var(--bg-modifier-hover);
+  color: var(--interactive-hover);
+}
+
+.queueActionButton.danger:hover {
+  color: var(--red);
+}
+
+.queueActionButton:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+/* TWO-STEP CONFIRM - ARMING HIDES THE ICON AND REVEALS A RED "Sure?" */
+.queueRowConfirm {
+  display: flex;
+  align-items: center;
+}
+
+.queueRowConfirm .queueConfirmButton {
+  display: none;
+  border: none;
+  border-radius: 3px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  background-color: var(--red);
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.queueRowConfirm .queueConfirmButton:hover {
+  background-color: var(--red-hover);
+}
+
+.queueRowConfirm.armed .queueActionButton {
+  display: none;
+}
+
+.queueRowConfirm.armed .queueConfirmButton {
+  display: block;
+}
+
+.request-progress-bar.paused {
+  background-color: var(--text-muted);
+}
+
+/* ENRICHED QUEUE ROWS - RELEASE LINE, SERVICE CHIPS, WARNING TOOLTIP */
+.queueRow {
+  align-items: flex-start;
+}
+
+.queueRow .request-status {
+  margin-top: 2px;
+}
+
+.queueRowTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.queueWarning {
+  display: inline-flex;
+  align-items: center;
+  color: var(--yellow);
+  flex-shrink: 0;
+  cursor: help;
+}
+
+.queueRowRelease {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.queueRowChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 5px;
+}
+
+.queueRowChip {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  color: var(--interactive-normal);
+  background-color: var(--bg-modifier-selected);
+  border-radius: 3px;
+  padding: 2px 6px;
+}
+
+/* ---- LIBRARY POSTER GRID ---- */
+
+.posterGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.posterCard {
+  display: block;
+  background-color: var(--bg-secondary);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+  color: inherit;
+  text-decoration: none;
+}
+
+.posterCard img {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  display: block;
+}
+
+.posterCardFallback {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  background-color: var(--bg-secondary-alt);
+}
+
+.posterCardInfo {
+  padding: 8px 10px;
+}
+
+.posterCardTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--header-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.posterCardMeta {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.posterCard {
+  cursor: pointer;
+}
+
+.posterCard:hover {
+  box-shadow: var(--elevation-low);
+}
+
+.posterCard:hover .posterCardTitle {
+  color: var(--interactive-active);
+}
+
+.posterCard.htmx-request {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+/* GREEN DOT = ON DISK, RINGED WITH THE SURFACE COLOR LIKE STATUS BUBBLES */
+.posterBadge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--green);
+  border: 3px solid var(--bg-primary);
+  box-sizing: content-box;
+}
+
+/* THE BUTTON LIVES INSIDE THE GRID - SPAN THE FULL ROW, CENTER THE PILL */
+.libraryLoadMore {
+  grid-column: 1 / -1;
+  justify-self: center;
+  margin: 8px 0 4px;
+  min-width: 160px;
+}
+
+/* ---- LIBRARY ITEM DETAIL (IN-CONSOLE TWIN OF THE ARR'S DETAIL PAGE) ---- */
+
+.appDetailBack {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  border-radius: 3px;
+  padding: 6px 12px 6px 8px;
+  margin-bottom: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  background-color: var(--bg-secondary);
+  color: var(--interactive-normal);
+  cursor: pointer;
+}
+
+.appDetailBack:hover {
+  background-color: var(--bg-modifier-hover);
+  color: var(--interactive-hover);
+}
+
+/* FANART HERO - THE SCRIM KEEPS TEXT READABLE OVER ANY BACKDROP */
+.appDetailHero {
+  border-radius: 6px;
+  overflow: hidden;
+  background-color: var(--bg-secondary);
+  background-size: cover;
+  background-position: center 20%;
+}
+
+.appDetailHeroScrim {
+  display: flex;
+  gap: 24px;
+  padding: 24px;
+  background: linear-gradient(90deg, rgba(24, 25, 28, 0.94) 0%, rgba(24, 25, 28, 0.82) 55%, rgba(24, 25, 28, 0.65) 100%);
+}
+
+.appDetailPoster {
+  flex-shrink: 0;
+  width: 154px;
+}
+
+.appDetailPoster img,
+.appDetailPoster .posterCardFallback {
+  width: 154px;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: 4px;
+  box-shadow: var(--elevation-high);
+}
+
+.appDetailHeadline {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.appDetailTitle {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--header-primary);
+  line-height: 1.2;
+}
+
+.appDetailYear {
+  font-weight: 400;
+  color: var(--header-secondary);
+}
+
+.appDetailSubMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--header-secondary);
+}
+
+.appDetailCert {
+  border: 1px solid var(--bg-modifier-accent);
+  border-radius: 3px;
+  padding: 1px 6px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.appDetailGenre {
+  background-color: var(--bg-modifier-selected);
+  border-radius: 3px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--interactive-normal);
+}
+
+.appDetailChips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.appDetailMonitorChip {
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 3px;
+  padding: 2px 8px;
+  color: #ffffff;
+}
+
+.appDetailMonitorChip.on {
+  background-color: var(--blurple);
+}
+
+.appDetailMonitorChip.off {
+  background-color: var(--interactive-muted);
+}
+
+.appDetailRatings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+}
+
+.appDetailRating {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.appDetailRatingSource {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.appDetailRatingValue {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--header-primary);
+}
+
+.appDetailActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+}
+
+/* METADATA REFERENCES (IMDB/TMDB/TRAILER) - NOT APP LINK-OUTS */
+.appDetailLink {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--interactive-normal);
+  background-color: var(--bg-modifier-selected);
+  border-radius: 3px;
+  padding: 5px 10px;
+  text-decoration: none;
+}
+
+.appDetailLink:hover {
+  color: var(--interactive-hover);
+  background-color: var(--bg-modifier-accent);
+}
+
+/* BODY SPLITS INTO CONTENT + FACTS RAIL, COLLAPSING WHEN NARROW */
+.appDetailColumns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 32px;
+  margin-top: 20px;
+}
+
+.appDetailMain {
+  flex: 1 1 480px;
+  min-width: 0;
+}
+
+.appDetailFacts {
+  flex: 0 1 340px;
+  min-width: 260px;
+}
+
+.appDetailOverview {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-normal);
+  margin: 0 0 8px;
+}
+
+.appDetailFactList {
+  display: flex;
+  flex-direction: column;
+}
+
+.appDetailFact {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--bg-modifier-accent);
+  font-size: 13px;
+}
+
+.appDetailFact:last-child {
+  border-bottom: none;
+}
+
+.appDetailFactLabel {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.appDetailFactValue {
+  color: var(--text-normal);
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.appDetailFileCard {
+  background-color: var(--bg-secondary);
+  border-radius: 5px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+}
+
+.appDetailFileName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--header-primary);
+  overflow-wrap: anywhere;
+}
+
+.appDetailFileChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.appDetailFileChip {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  color: var(--interactive-normal);
+  background-color: var(--bg-modifier-selected);
+  border-radius: 3px;
+  padding: 2px 6px;
+}
+
+.appDetailFileMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* SEASONS - NAME / PROGRESS / HAVE-OF-TOTAL / SIZE */
+.appSeasonTable {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.appSeasonRow {
+  display: grid;
+  grid-template-columns: minmax(90px, 140px) 1fr 70px 80px;
+  align-items: center;
+  gap: 14px;
+  background-color: var(--bg-secondary);
+  border-radius: 4px;
+  padding: 8px 12px;
+}
+
+.appSeasonName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--header-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.appSeasonName.unmonitored {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.appSeasonProgress .request-progress-track {
+  width: 100%;
+}
+
+.appSeasonProgress .request-progress-bar.complete {
+  background-color: var(--green);
+}
+
+.appSeasonCount,
+.appSeasonSize {
+  font-size: 12px;
+  color: var(--header-secondary);
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* ---- DETAIL PHASE 2 - EXPANDABLE SEASONS, EPISODE TABLES, MANAGE PANEL ---- */
+
+/* EXPANDABLE ARR SEASONS GAIN A CHEVRON COLUMN AND A RELEASE-PICKER COLUMN */
+.appSeasonRow.expandable {
+  grid-template-columns: 14px minmax(90px, 140px) 1fr 70px 80px auto;
+  cursor: pointer;
+}
+
+.appSeasonRow.expandable:hover {
+  background-color: var(--bg-modifier-hover);
+}
+
+.appSeasonChevron {
+  color: var(--interactive-normal);
+  transition: transform 0.15s ease;
+}
+
+.appSeasonGroup.open .appSeasonChevron {
+  transform: rotate(90deg);
+}
+
+.appSeasonEpisodes {
+  display: none;
+}
+
+.appSeasonGroup.open .appSeasonEpisodes {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 4px 0 8px 28px;
+}
+
+.appSeasonBrowse,
+.appEpisodeSearch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--interactive-normal);
+  cursor: pointer;
+}
+
+.appSeasonBrowse:hover,
+.appEpisodeSearch:hover {
+  color: var(--interactive-hover);
+  background-color: var(--bg-modifier-hover);
+}
+
+.appSeasonBrowse:disabled,
+.appEpisodeSearch:disabled {
+  opacity: 0.5;
+  cursor: progress;
+}
+
+/* EPISODE ROWS - CODE / TITLE / AIR DATE / STATE / PICKER */
+.appEpisodeRow {
+  display: grid;
+  grid-template-columns: 34px 1fr auto auto 24px;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  background-color: var(--bg-secondary-alt);
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+.appEpisodeRow.unmonitored {
+  opacity: 0.55;
+}
+
+.appEpisodeCode {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.appEpisodeTitle {
+  color: var(--text-normal);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.appEpisodeAir {
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.appEpisodeState {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.appEpisodeSize,
+.appEpisodeUnaired {
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.appEpisodeLoading,
+.appEpisodeEmpty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.appEpisodeLoading .appSpinner {
+  width: 14px;
+  height: 14px;
+}
+
+/* MANAGE PANEL - QUALITY/ROOT EDIT IN THE FACTS COLUMN */
+.appManageForm {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.appManageLabel {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
+.appManageForm .appManageSelect {
+  width: 100%;
+}
+
+.appManageMove {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 6px;
+  cursor: pointer;
+}
+
+.appManageSave {
+  align-self: flex-start;
+  margin-top: 8px;
+}
+
+/* DANGER VERB ON THE DETAIL ACTION ROW */
+.modal-button.appDetailDanger {
+  background-color: transparent;
+  color: var(--red);
+  border: 1px solid var(--red);
+}
+
+.modal-button.appDetailDanger:hover {
+  background-color: var(--red);
+  color: #ffffff;
+}
+
+/* ---- ACTIVITY FEED (TAKEOVER RIGHT RAIL - THE MEMBERS PANE'S APP-MODE TWIN,
+   REPLACED THE OLD HISTORY SECTION) ---- */
+
+.appFeedRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 8px;
+  margin-top: 2px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.appFeedRow:hover {
+  background-color: var(--bg-modifier-hover);
+}
+
+.appFeedGlyph {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  height: 18px;
+  color: var(--text-muted);
+}
+
+.appFeedGlyph.kind-grabbed { color: var(--cyan); }
+.appFeedGlyph.kind-imported,
+.appFeedGlyph.kind-completed,
+.appFeedGlyph.kind-added { color: var(--green); }
+.appFeedGlyph.kind-failed,
+.appFeedGlyph.kind-deleted { color: var(--red); }
+/* SELF-APP (DISCOFLIX) FEED - REQUEST LIFECYCLE KINDS */
+.appFeedGlyph.kind-pending { color: var(--yellow); }
+.appFeedGlyph.kind-approved,
+.appFeedGlyph.kind-available { color: var(--green); }
+.appFeedGlyph.kind-denied { color: var(--red); }
+
+.appFeedInfo {
+  min-width: 0;
+  flex: 1;
+}
+
+.appFeedTitle {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-normal);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.appFeedMeta {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.appFeedMetaDivider {
+  margin: 0 4px;
+}
+
+.appFeedTime {
+  flex-shrink: 0;
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 18px;
+}
+
+.appFeedMore {
+  flex-shrink: 0;
+  margin: 8px 8px 12px;
+}
+
+/* APPS WITH NO HISTORY GIVE THE RAIL BACK (MEMBERS-MODE :empty TWIN) */
+.memberContainer.appFeed:not(:has(.appFeedRow, .appFeedMore)) {
+  display: none;
+}
+
+/* ---- LIBRARY BROWSE (SEARCH MODE + COVERS/DETAILED TOGGLE) ---- */
+
+.appLibraryHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  flex-wrap: wrap;
+}
+
+.appLibraryHeaderTools {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.appLibraryHeader .appInstanceTabs {
+  margin-bottom: 0;
+}
+
+.appViewToggle {
+  display: flex;
+  gap: 2px;
+  background-color: var(--bg-secondary);
+  border-radius: 4px;
+  padding: 2px;
+}
+
+.appViewToggleButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 22px;
+  border: none;
+  border-radius: 3px;
+  background-color: transparent;
+  color: var(--interactive-normal);
+  cursor: pointer;
+}
+
+.appViewToggleButton:hover {
+  background-color: var(--bg-modifier-hover);
+  color: var(--interactive-hover);
+}
+
+.appViewToggleButton.active {
+  background-color: var(--bg-modifier-selected);
+  color: var(--interactive-active);
+  cursor: default;
+}
+
+.appViewToggleButton svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* DETAILED ROWS ARE JUST THE COLUMN STACK - THE BOUNDED MEASURE IS OWNED BY
+   .appSectionDoc, COMPOSED ON THIS ELEMENT OR AN ANCESTOR BY EVERY CALLER */
+.appBrowseList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.appBrowseRow {
+  cursor: pointer;
+}
+
+.appBrowseRow:hover {
+  background-color: var(--bg-modifier-hover);
+}
+
+.appBrowseRow:hover .request-title {
+  color: var(--interactive-active);
+}
+
+.appBrowseRow.htmx-request {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.appBrowseList .libraryLoadMore {
+  align-self: center;
+  min-width: 160px;
+  margin: 8px 0 4px;
+}
+
+.requestChip.chip-missing {
+  background-color: var(--interactive-muted);
+}
+
+/* SEARCH-RESULT CARDS NOT YET ADDED CARRY A BLURPLE LIBRARY DOT */
+.posterBadge.inLibrary {
+  background-color: var(--blurple);
+}
+
+/* ---- ADD-TO INSTANCE TABS (MULTI-INSTANCE SEARCH) ---- */
+
+.appInstanceTabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.appInstanceTab {
+  padding: 3px 10px;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--interactive-normal);
+  background-color: var(--bg-secondary);
+  cursor: pointer;
+  user-select: none;
+}
+
+.appInstanceTab:hover {
+  color: var(--interactive-hover);
+  background-color: var(--bg-modifier-hover);
+}
+
+.appInstanceTab.active {
+  color: #ffffff;
+  background-color: var(--blurple);
+  cursor: default;
+}
+
+/* ---- THE UNIFIED LIBRARY (EVERY TAKEOVER - THE HUB BROWSES ALL, APPS BROWSE THEIR SCOPE) ---- */
+
+/* KIND TABS RIDE THE HEADER - KILL THE STANDALONE TAB ROW'S MARGIN */
+.appLibKindTabs {
+  margin-bottom: 0;
+}
+
+/* QUIET PER-SERVICE FAILURE NOTE ABOVE THE LISTING */
+.appLibHubNote {
+  font-size: 12px;
+  color: var(--yellow);
+  margin-bottom: 12px;
+}
+
+/* SOURCE CHIPS - EVERY SERVICE HOLDING THE ITEM, EACH A JUMP TO ITS COPY */
+.unifiedSourceChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.unifiedSourceChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--interactive-normal);
+  background-color: var(--bg-secondary-alt);
+  cursor: pointer;
+  user-select: none;
+}
+
+.unifiedSourceChip:hover {
+  color: var(--interactive-hover);
+  background-color: var(--bg-modifier-hover);
+}
+
+.unifiedSourceChip img {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+}
+
+.unifiedSourceDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.unifiedSourceDot.ok {
+  background-color: var(--green);
+}
+
+.unifiedSourceDot.down {
+  background-color: var(--interactive-muted);
+}
+
+/* COVER CARD META - YEAR AND COUNTS LEFT, SOURCE ICON STRIP PINNED RIGHT */
+.unifiedCardMeta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+}
+
+.unifiedCardCounts {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* SEASON/EPISODE COUNTS ON DETAILED ROWS */
+.unifiedItemCounts {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.unifiedCardIcons {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.unifiedCardIcons img {
+  width: 12px;
+  height: 12px;
+  object-fit: contain;
+  opacity: 0.85;
+}
+
+/* SURFACE-WIDTH FILTER BOX (THE DISCOFLIX USERS SECTION) */
+.appSearchBar {
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.appSearchIndicator {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--interactive-normal);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.appSearchIndicator.htmx-request {
+  opacity: 1;
+}
+
+.appSearchInput {
+  width: 100%;
+  background-color: var(--bg-chat-input);
+  color: var(--text-normal);
+  border: none;
+  border-radius: 5px;
+  padding: 10px 14px;
+  font-size: 14px;
+  outline: none;
+}
+
+.appSearchInput::placeholder {
+  color: var(--text-muted);
+}
+
+/* THE ADD-NEW ESCALATION ROW - A TYPED FILTER TERM OFFERS EACH SERVICE'S
+   LIVE SEARCH ("Search Radarr for X"), RENDERED INSIDE THE LIBRARY BODY */
+.appSearchEscalateRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.appSearchEscalate {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  border-radius: 5px;
+  padding: 8px 12px;
+  background-color: var(--bg-tertiary);
+  color: var(--text-normal);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.appSearchEscalate svg {
+  width: 14px;
+  height: 14px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.appSearchEscalate:hover {
+  background-color: var(--blurple);
+  color: #ffffff;
+}
+
+.appSearchEscalate:hover svg {
+  color: #ffffff;
+}
+
+.appSearchEscalate:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+/* NOTHING MATCHED THE FILTER - THE ESCALATION IS THE MAIN EVENT */
+.appSearchEscalateRow.hero {
+  justify-content: center;
+  margin: 18px 0 6px;
+}
+
+.appSearchEscalateRow.hero .appSearchEscalate {
+  padding: 12px 18px;
+  font-size: 14px;
+}
+
+/* LOOKUP AND LIBRARY OVERVIEWS RUN LONG - CLAMP THEM TO TWO LINES */
+.appBrowseRow .request-orig-message {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  white-space: normal;
+}
+
+/* ---- SETTINGS ---- */
+
+/* THE ONE CONTENT MEASURE EVERY SECTION SHARES.
+   CONVENTION: EVERY SECTION INCLUDE WRAPS ITS SWAPPABLE CONTENT IN EXACTLY ONE
+   .appSectionDoc; ONLY FULL-BLEED DECORATIONS (.appSectionTitleDivider,
+   .appSettingsGroup BOXES) SIT OUTSIDE IT AS DIRECT CHILDREN OF
+   #appSectionBody. NEVER CAP #appSectionBody ITSELF - THAT WOULD DRAG THE
+   DECORATIONS IN WITH IT. */
+.appSectionDoc {
+  width: 100%;
+  max-width: var(--content-measure);
+  margin: 0 auto;
+}
+
+/* GROUP BOXES RUN FULL-BLEED SO THE DIVIDERS DECORATE THE WHOLE SURFACE WHILE THE PADDING FORMULA CENTERS THE RAIL+CARD INTERIOR ON THE CONTENT MEASURE */
+.appSettingsGroup {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 12px 40px;
+  padding: 32px max(0px, calc(50% - var(--content-measure) / 2));
+}
+
+.appSettingsGroup + .appSettingsGroup {
+  border-top: 1px solid var(--bg-modifier-accent);
+}
+
+/* A FLEXIBLE RAIL DRIFTS THE LABEL AWAY FROM ITS CARD ON WIDE VIEWS, SO IT STAYS FIXED */
+.appSettingsGroupInfo {
+  flex: 0 0 var(--form-rail);
+}
+
+.appSettingsGroupInfo .request-section-header {
+  margin: 0;
+}
+
+.appSettingsGroupBlurb {
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+.appSettingsGroupBody {
+  flex: 1 1 480px;
+  max-width: var(--form-body-measure);
+  min-width: 0;
+}
+
+/* PAGE-TITLE DIVIDER - FULL-BLEED LINE, SECTION LABEL INSET CENTER, DRESSED
+   LIKE THE GROUP RAIL HEADERS (BASE .divider/.dividerText LIVE IN chat.css) */
+.appSectionTitleDivider {
+  margin: 12px 0 16px;
+}
+
+.appSectionTitleDivider .dividerText {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--channel-default);
+}
+
+.appSettingsGroupBody .appFormCard {
+  margin-bottom: 0;
+}
+
+.appSettingsGroupBody .appSectionActions {
+  margin-top: 12px;
+}
+
+/* THE WELCOME BLOCK RIDES THE SAME CENTERED MEASURE AS THE GROUP INTERIORS */
+.appSettingsWelcome {
+  width: 100%;
+  max-width: var(--content-measure);
+  margin: 8px auto 0;
+}
+
+.appSettingsWelcome .welcomeTitle {
+  font-size: 20px; /* THE CHAT EMPTY-STATE SCALE (28px) SHOUTS IN A FORM */
+}
+
+/* FORM FIELDS SIT IN A CARD DRESSED LIKE THE INFO POPUPS' RECORD CONTAINERS */
+.appFormCard {
+  background: var(--bg-secondary);
+  border-radius: 5px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+/* THE CARD INTERIOR IS A PLAIN STACK - THE FIELD ROWS CARRY THEIR OWN RHYTHM AND HAIRLINES */
+.appSettingsFields {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---- DISCOFLIX (THE SELF APP) ---- */
+
+.dfDiscriminator {
+  color: var(--text-muted);
+  font-weight: 400;
+  font-size: 16px;
+}
+
+.appHealthNotice.good {
+  background-color: rgba(67, 181, 129, 0.1);
+  border-left-color: var(--green);
+}
+
+.dfAppList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+
+.dfAppRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg-secondary);
+  border-radius: 5px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.dfAppRow:hover {
+  background: var(--bg-modifier-hover);
+}
+
+.dfAppIcon {
+  width: 24px;
+  height: 24px;
+}
+
+.dfAppName {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+  color: var(--header-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---- DISCORD BOT TAB (FEATURE MATRIX) ---- */
+
+.dfBotScopeBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin: 8px auto 4px;
+}
+
+.dfBotScopeBar .request-section-header {
+  margin: 0;
+}
+
+.dfBotScopeControls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.dfBotScopeHint {
+  font-size: 12px;
+  color: var(--text-muted);
+  max-width: 420px;
+}
+
+.dfBotProviderIcons {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+/* ROWS STACK INSIDE THE GROUP CARD WITH THE SETTINGS-FIELD HAIRLINE */
+.dfBotFeatureRow {
+  padding: 14px 16px;
+}
+
+.dfBotFeatureRow + .dfBotFeatureRow {
+  border-top: 1px solid var(--bg-modifier-accent);
+}
+
+.dfBotFeatureHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dfBotFeatureText {
+  flex: 1;
+  min-width: 0;
+}
+
+.dfBotFeatureName {
+  font-weight: 600;
+  color: var(--header-primary);
+}
+
+.dfBotFeatureDesc {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.dfBotFeatureTags {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.dfBotTag {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
+}
+
+.dfBotTag.override {
+  background: rgba(114, 137, 218, 0.2);
+  color: var(--blurple);
+}
+
+.dfBotTag.inherited {
+  background: var(--bg-modifier-hover);
+  color: var(--header-secondary);
+}
+
+.dfBotTag.unserved {
+  background: rgba(250, 166, 26, 0.15);
+  color: var(--yellow);
+}
+
+.dfBotFeatureControls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px 16px;
+  margin-top: 12px;
+}
+
+/* "FOLLOWING GLOBAL" ROWS READ AS PREVIEW, NOT EDIT SURFACE */
+.dfBotFeatureControls.inherited {
+  opacity: 0.55;
+}
+
+.dfBotControl {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dfBotControlLabel {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.dfBotFeatureActions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+/* ---- AI ROUTING BOARD (ONE CARD PER DOOR, PROVIDER ROWS RANKED INSIDE) ---- */
+
+.dfBotAiDoor + .dfBotAiDoor {
+  margin-top: 12px;
+}
+
+.dfBotAiDoorTitle {
+  font-weight: 700;
+  color: var(--header-primary);
+}
+
+.dfBotAiDoorDesc {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.dfBotAiDoorHint {
+  font-size: 12px;
+  font-style: italic;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
+/* THE WHO-ANSWERS STRIP - THE DOOR'S EFFECTIVE ROUTING AT A GLANCE */
+.dfBotAiRibbon {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 16px;
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: var(--bg-tertiary);
+  border-radius: 4px;
+}
+
+.dfBotAiRibbonLead {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.dfBotAiRibbonSeg {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.dfBotAiRibbonTier {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+}
+
+.dfBotAiChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 600;
+  color: var(--header-primary);
+}
+
+.dfBotAiChip.none {
+  font-weight: 400;
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+.dfBotAiChipIcon {
+  width: 14px;
+  height: 14px;
+}
+
+/* PROVIDER ROWS - RANK BADGE + ICON + NAME REPLACE THE FEATURE PROSE */
+.dfBotAiProviderRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dfBotAiPriority {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.dfBotAiProviderIcon {
+  width: 18px;
+  height: 18px;
+}
+
+/* RIBBON AND FIRST PROVIDER ROW SEPARATE LIKE ROWS DO */
+.dfBotAiRibbon + .dfBotFeatureRow {
+  border-top: 1px solid var(--bg-modifier-accent);
+  margin-top: 10px;
+}
+
+/* ---- DISCOFLIX USER CARDS ---- */
+
+/* CARDS SHARE THE DOCUMENT MEASURE AND FILL IT TWO-UP WHEN IT FITS */
+#dfUserList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+
+#dfUserList .appFormCard {
+  margin-bottom: 0;
+}
+
+#dfUserList .appLoadMore,
+#dfUserList .appQueueEmpty {
+  grid-column: 1 / -1;
+}
+
+#dfUserList .appLoadMore {
+  justify-self: center;
+  min-width: 160px;
+}
+
+.dfUserHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--bg-tertiary);
+}
+
+.dfUserAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.dfUserIdent {
+  min-width: 0;
+}
+
+.dfUserName {
+  font-weight: 600;
+  color: var(--header-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dfUserSub {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.dfUserChips {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+.dfUserChip {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: #fff;
+  background-color: var(--interactive-muted);
+}
+
+.dfUserChip.admin { background-color: var(--blurple); }
+.dfUserChip.staff { background-color: var(--cyan); }
+.dfUserChip.whitelisted { background-color: var(--green); }
+.dfUserChip.inactive { background-color: var(--red); }
+.dfUserChip.wants { background-color: var(--yellow, #faa61a); color: #1e1f22; }
+
+/* THE WANTS-ACCESS TAB CARRIES ITS OWN URGENCY TINT */
+.appInstanceTab.dfWantsTab:not(.active) { color: var(--yellow, #faa61a); }
+
+.dfUserInfoButton {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: var(--interactive-normal);
+  cursor: pointer;
+}
+
+.dfUserInfoButton:hover {
+  color: var(--interactive-hover);
+}
+
+.dfUserSelfNote {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* SAVE TOAST RIDES THE TAKEOVER HEADER - SETTINGS-MODAL CONVENTION */
+.messageChannelHeader .notification-container {
+  min-height: 0;
+  min-width: 0;
+  margin-left: auto;
+  margin-right: 12px;
+}
+
+.messageChannelHeader .notification {
+  padding: 4px 10px;
+}
+
+#appTestResult {
+  display: inline-flex;
+  align-items: center;
+}
+
+.appDefaultRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 0 8px;
+}
+
+.appDefaultChip {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  background-color: var(--blurple);
+  color: #ffffff;
+  border-radius: 3px;
+  padding: 2px 5px;
+  flex-shrink: 0;
+}
+
+.appDefaultText {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* FILLED RED - OLD DISCORD'S DANGER BUTTON */
+.appRemoveButton,
+.modal-button.appRemoveConfirm {
+  padding: 8px 16px;
+  border-radius: 3px;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  background-color: var(--red);
+  color: #ffffff;
+  flex-shrink: 0;
+  transition: background-color 0.15s ease;
+}
+
+.appRemoveButton:hover,
+.modal-button.appRemoveConfirm:hover {
+  background-color: var(--red-hover);
+}
+
+/* LIBRARY-DELETE CONFIRM - THE EXPLICIT OPT-IN ROWS */
+.libraryDeleteOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.libraryDeleteOption {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--text-normal);
+  cursor: pointer;
+}
+
+.request-section-header.danger {
+  color: var(--red);
+}
+
+.appDangerZone {
+  border: 1px solid var(--bg-modifier-accent);
+  border-radius: 4px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.appDangerZoneText {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* ---- DASHBOARD INSTANCE OVERRIDE SELECT (MULTI-INSTANCE ROUTING) ---- */
+
+.request-instance-select {
+  background-color: var(--bg-chat-input);
+  color: var(--text-normal);
+  border: none;
+  border-radius: 3px;
+  font-size: 12px;
+  padding: 4px 6px;
+  outline: none;
+}
+
+/* ---- ADD-AN-APP PICKER ---- */
+
+.appPickerGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+/* GRID SO THE EXPANDED DETAIL CAN SPAN UNDER ICON + INFO + (i) */
+.appPickerCard {
+  display: grid;
+  grid-template-columns: 40px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  background-color: var(--bg-secondary);
+  border-radius: 4px;
+  padding: 12px;
+  cursor: pointer;
+  user-select: none;
+  align-self: start;
+}
+
+.appPickerCard:hover {
+  background-color: var(--bg-modifier-hover);
+}
+
+.appPickerCard img {
+  width: 40px;
+  height: 40px;
+}
+
+.appPickerInfo {
+  min-width: 0;
+}
+
+.appPickerInfoToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--interactive-normal);
+  cursor: pointer;
+}
+
+.appPickerInfoToggle:hover,
+.appPickerCard.expanded .appPickerInfoToggle {
+  color: var(--header-primary);
+  background-color: var(--bg-modifier-selected);
+}
+
+.appPickerDetail {
+  display: none;
+  grid-column: 1 / -1;
+  border-top: 1px solid var(--bg-modifier-accent);
+  padding-top: 10px;
+  cursor: default;
+}
+
+.appPickerCard.expanded .appPickerDetail {
+  display: block;
+}
+
+.appPickerFunctions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.appPickerFunctions li {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  font-size: 12px;
+  color: var(--text-normal);
+  line-height: 1.35;
+}
+
+.appPickerFunctions svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--green);
+}
+
+.appPickerWhy {
+  margin-top: 8px;
+  font-size: 12px;
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+.appPickerName {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--header-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.appPickerKind {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  padding: 2px 5px;
+  border-radius: 3px;
+  color: #ffffff;
+  background-color: var(--blurple);
+  flex-shrink: 0;
+}
+
+.appPickerKind.download {
+  background-color: var(--cyan);
+}
+
+.appPickerKind.media {
+  background-color: var(--green);
+}
+
+.appPickerKind.indexer {
+  background-color: var(--yellow);
+  color: #1e2124;
+}
+
+.appPickerBlurb {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.appPickerCard.expanded .appPickerBlurb {
+  white-space: normal;
+}
+
+.appPickerInstalled {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+@media (max-width: 576px) {
+  .appPickerGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---- NOW PLAYING (MEDIA-SERVER SESSIONS) ---- */
+
+.sessionRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sessionStateGlyph {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-modifier-selected);
+  color: var(--green);
+}
+
+.sessionStateGlyph.paused {
+  color: var(--text-muted);
+}
+
+.sessionSubtitle {
+  margin-left: 8px;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+/* ---- QUEUE ADD-BY-LINK ---- */
+
+.queueAddForm {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.queueAddInput {
+  flex: 1;
+  min-width: 0;
+  background-color: var(--bg-tertiary);
+  border: none;
+  border-radius: 4px;
+  color: var(--text-normal);
+  font-size: 13px;
+  padding: 8px 12px;
+  outline: none;
+}
+
+.queueAddInput::placeholder {
+  color: var(--text-muted);
+}
+
+/* ---- RELEASES (INDEXER SEARCH + ARR INTERACTIVE SEARCH) ----
+   ONE TABLE GRID FOR BOTH SURFACES: EVERY ROW AND THE HEAD SHARE
+   .releaseGrid'S COLUMN TEMPLATE SO SIZES, AGES, AND SEED COUNTS ALIGN.
+   SORTING IS CLIENT-SIDE (source.js) OVER THE ROWS' data-* KEYS. */
+
+.releaseGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 96px 72px 52px 52px 112px;
+  gap: 12px;
+  align-items: center;
+}
+
+.releaseRows {
+  display: flex;
+  flex-direction: column;
+}
+
+/* STRIPED TABLE ROWS INSTEAD OF GAPPED CARDS - DENSE LISTS SCAN BETTER */
+.releaseEntry {
+  padding: 8px 10px;
+  border-radius: 4px;
+}
+
+.releaseEntry:nth-child(odd) {
+  background-color: var(--bg-secondary);
+}
+
+.releaseEntry:hover {
+  background-color: var(--bg-modifier-hover);
+}
+
+/* REJECTED RELEASES STAY GRABBABLE BUT READ AS SECOND-CHOICE - HOVER
+   RESTORES FULL INK SO THE REJECTION TOOLTIP IS READ IN FOCUS */
+.releaseEntry.rejected {
+  opacity: 0.55;
+}
+
+.releaseEntry.rejected:hover {
+  opacity: 1;
+}
+
+/* COLUMN HEAD - STICKS TO THE SURFACE'S SCROLL EDGE ON LONG SWEEPS */
+.releaseHead {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 6px 10px 8px;
+  background-color: var(--bg-primary);
+  align-items: end;
+}
+
+.releaseSort {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px;
+  padding: 0;
+  background: none;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--channel-default);
+  cursor: pointer;
+}
+
+.releaseSort:hover {
+  color: var(--interactive-hover);
+}
+
+.releaseSort.asc::after,
+.releaseSort.desc::after {
+  font-size: 8px;
+  line-height: 1;
+}
+
+.releaseSort.asc::after {
+  content: '▲';
+}
+
+.releaseSort.desc::after {
+  content: '▼';
+}
+
+.releaseSort.releaseCellNum {
+  justify-content: flex-end;
+}
+
+/* TITLE CELL - SCENE NAME WRAPS FREELY, THE META LINE CARRIES PROTOCOL,
+   INDEXER, AND LANGUAGES SO THE TITLE ROW STAYS CLEAN */
+.releaseCellTitle {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+}
+
+.releaseTitleWrap {
+  min-width: 0;
+}
+
+.releaseName {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--header-primary);
+  overflow-wrap: anywhere;
+}
+
+.releaseMetaLine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 3px 8px;
+  margin-top: 3px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.releaseProtocol {
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.releaseProtocol.torrent {
+  color: var(--blurple);
+  background-color: rgba(114, 137, 218, 0.15);
+}
+
+.releaseProtocol.usenet {
+  color: var(--green);
+  background-color: rgba(67, 181, 129, 0.15);
+}
+
+.releaseRejectedIcon {
+  display: inline-flex;
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--yellow);
+  cursor: help;
+}
+
+.releaseCellQuality {
+  min-width: 0;
+}
+
+.releaseCellQuality .queueRowChip {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.releaseCellBlank {
+  color: var(--text-muted);
+}
+
+.releaseCellNum {
+  font-size: 12px;
+  color: var(--header-secondary);
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.releaseSeeders.good {
+  color: var(--green);
+}
+
+.releaseSeeders.low {
+  color: var(--yellow);
+}
+
+.releaseSeeders.dead {
+  color: var(--red);
+}
+
+/* ACTION CELL - BUTTON, TARGET SELECT, OR OUTCOME CHIP; ALWAYS ONE COLUMN
+   WIDE SO EVERY ROW'S ACTION LINES UP */
+.releaseCellAction {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+}
+
+.releaseCellAction .requestChip {
+  text-align: center;
+}
+
+.releaseGrabForm {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.releaseGrabForm .request-instance-select {
+  width: 100%;
+  min-width: 0;
+}
+
+.releaseGrabButton {
+  padding: 5px 10px;
+  border-radius: 3px;
+  background-color: var(--green);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.releaseGrabButton:hover {
+  background-color: var(--green-hover);
+}
+
+.releaseGrabButton:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.releaseNoTarget {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  text-align: center;
+}
+
+/* NARROW VIEWS DROP THE QUALITY + AGE COLUMNS - TITLE, SIZE, SEEDS, AND THE
+   ACTION ARE THE DECISION-MAKERS */
+@media (max-width: 780px) {
+  .releaseGrid {
+    grid-template-columns: minmax(0, 1fr) 60px 44px 96px;
+    gap: 8px;
+  }
+
+  .releaseCellQuality,
+  .releaseCellAge {
+    display: none;
+  }
+}
+
+.releaseIndexerRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.indexerStatusDot {
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--green);
+}
+
+.indexerStatusDot.down {
+  background-color: var(--red);
+}
+
+/* ---- DISCOFLIX LOGS - THE EventLog TABLE DRESSED LIKE THE RELEASE GRID:
+   ONE SHARED COLUMN TEMPLATE, STICKY HEAD, STRIPED HOVERABLE ROWS, TINTED
+   LEVEL CHIPS. THE PANEL SCROLLS ON ITS OWN BOUNDED BOX SO THE VIEW MORE
+   SENTINEL STAYS AT ITS FLOOR INSTEAD OF STRETCHING THE SURFACE. ---- */
+
+.dfLogControls {
+  margin-bottom: 4px;
+}
+
+/* THE TOOLBAR TALLY - OOB-SWAPPED BY EVERY FILTER RESPONSE; SECTION-HEADER
+   TYPOGRAPHY SO THE ROW READS LIKE EVERY OTHER SURFACE'S HEADER LINE */
+.dfLogCount {
+  margin-right: auto;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--channel-default);
+  white-space: nowrap;
+}
+
+.dfLogSearch {
+  flex: 0 1 320px;
+  min-width: 140px;
+  background-color: var(--bg-chat-input);
+  color: var(--text-normal);
+  border: none;
+  border-radius: 5px;
+  padding: 8px 12px;
+  font-size: 13px;
+  outline: none;
+}
+
+.dfLogSearch::placeholder {
+  color: var(--text-muted);
+}
+
+.dfLogLevelSelect {
+  background-color: var(--bg-chat-input);
+  color: var(--text-normal);
+  border: none;
+  border-radius: 5px;
+  padding: 8px 12px;
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+}
+
+/* EVERY ROW AND THE HEAD SHARE ONE COLUMN TEMPLATE - TIMES, CHIPS, AND
+   MESSAGES ALIGN THE WAY THE RELEASE TABLE'S CELLS DO */
+.dfLogGrid {
+  display: grid;
+  grid-template-columns: 132px 64px minmax(0, 1fr);
+  gap: 12px;
+  align-items: baseline;
+}
+
+.dfLogPanel {
+  min-height: 180px;
+  max-height: calc(100vh - 280px);
+  overflow-y: auto;
+}
+
+.dfLogPanel .appQueueEmpty {
+  padding: 24px 12px;
+}
+
+/* COLUMN HEAD - STICKS TO THE PANEL'S SCROLL EDGE ON LONG SWEEPS */
+.dfLogHead {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 6px 10px 8px;
+  background-color: var(--bg-primary);
+}
+
+.dfLogHeadLabel {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--channel-default);
+}
+
+.dfLogRow {
+  padding: 8px 10px;
+  border-radius: 4px;
+}
+
+.dfLogRow:nth-child(odd) {
+  background-color: var(--bg-secondary);
+}
+
+.dfLogRow:hover {
+  background-color: var(--bg-modifier-hover);
+}
+
+.dfLogWhen {
+  font-size: 12px;
+  color: var(--header-secondary);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* LEVELS ARE TINTED CHIPS LIKE THE RELEASE TABLE'S PROTOCOL PILLS - DEBUG
+   AND FRIENDS FALL THROUGH TO THE MUTED BASE */
+.dfLogLevel {
+  justify-self: start;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: var(--interactive-normal);
+  background-color: var(--bg-modifier-selected);
+}
+
+.dfLogLevel-error {
+  color: var(--red);
+  background-color: rgba(240, 71, 71, 0.12);
+}
+
+.dfLogLevel-warn {
+  color: var(--yellow);
+  background-color: rgba(250, 166, 26, 0.12);
+}
+
+.dfLogLevel-info {
+  color: var(--blurple);
+  background-color: rgba(114, 137, 218, 0.15);
+}
+
+.dfLogBody {
+  min-width: 0;
+}
+
+.dfLogMessage {
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--text-normal);
+  overflow-wrap: anywhere;
+}
+
+/* STRUCTURED PAYLOAD TAIL - ONE MONO LINE, FULL TEXT ON HOVER VIA title */
+.dfLogMetadata {
+  margin-top: 3px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+#dfLogList .appLoadMore {
+  margin: 12px auto 0;
+  min-width: 160px;
+  display: flex;
+}
+
+/* NARROW VIEWS DROP THE TIME COLUMN - LEVEL AND MESSAGE ARE THE READ */
+@media (max-width: 640px) {
+  .dfLogGrid {
+    grid-template-columns: 64px minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .dfLogWhen,
+  .dfLogHead .dfLogHeadLabel:first-child {
+    display: none;
+  }
+}
+
+/* UNREACHABLE-SERVICE NOTE WHERE THE ADD-DEFAULT SELECTS WOULD RENDER */
+.appSettingsOptionNote {
+  padding: 10px 0 2px;
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ---- DISCOFLIX REQUESTS SECTION (LIFECYCLE PIPELINE CARDS) ---- */
+
+#dfRequestList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+#dfRequestList .appLoadMore {
+  align-self: center;
+  min-width: 160px;
+}
+
+.dfRequestCard {
+  background-color: var(--bg-secondary);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+
+.dfRequestTop {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+/* REQUESTER CHIPS - AVATAR + NAME, CLICK OPENS THE USER PROFILE MODAL */
+.dfRequesterChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 8px 1px 2px;
+  border-radius: 10px;
+  background-color: var(--bg-tertiary);
+  color: var(--header-secondary);
+  cursor: pointer;
+  user-select: none;
+}
+
+.dfRequesterChip:hover,
+.dfRequesterChip:focus-visible {
+  background-color: var(--bg-modifier-hover);
+  color: var(--interactive-hover);
+}
+
+.dfRequesterChip + .dfRequesterChip {
+  margin-left: 4px;
+}
+
+.dfRequesterAvatar {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+}
+
+/* THE STEPPER - DOTS JOINED BY BARS, EACH STOP TINTED BY ITS STATE. WIDE
+   PIPELINES SCROLL INSIDE THE CARD INSTEAD OF BREAKING THE GRID */
+.dfRequestPipeline {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--bg-tertiary);
+  overflow-x: auto;
+}
+
+.dfRequestPipeline:empty {
+  display: none;
+}
+
+.dfStage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  flex: 0 0 auto;
+  min-width: 96px;
+  max-width: 170px;
+  text-align: center;
+}
+
+.dfStageBar {
+  flex: 1 1 24px;
+  min-width: 16px;
+  height: 3px;
+  border-radius: 2px;
+  background-color: var(--bg-tertiary);
+  margin-top: 5px;
+}
+
+.dfStageBar.stage-done { background-color: var(--green); }
+.dfStageBar.stage-active { background-color: var(--cyan); }
+.dfStageBar.stage-failed { background-color: var(--red); }
+
+.dfStageDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--text-muted);
+}
+
+.dfStage.stage-done .dfStageDot {
+  border-color: var(--green);
+  background-color: var(--green);
+}
+
+.dfStage.stage-active .dfStageDot {
+  border-color: var(--cyan);
+  background-color: var(--cyan);
+  animation: dfStagePulse 2s ease-in-out infinite;
+}
+
+.dfStage.stage-failed .dfStageDot {
+  border-color: var(--red);
+  background-color: var(--red);
+}
+
+@keyframes dfStagePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+.dfStageLabel {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--header-secondary);
+}
+
+.dfStage.stage-pending .dfStageLabel {
+  color: var(--text-muted);
+}
+
+/* A LINKED STAGE JUMPS TO WHERE THE REQUEST LIVES NOW - THE DOTTED
+   UNDERLINE SIGNALS CLICKABILITY WITHOUT MOVING THE STEPPER GEOMETRY */
+.dfStage.dfStageLink {
+  cursor: pointer;
+}
+
+.dfStage.dfStageLink .dfStageLabel {
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+
+.dfStage.dfStageLink:hover .dfStageLabel,
+.dfStage.dfStageLink:focus-visible .dfStageLabel {
+  color: var(--interactive-hover);
+  text-decoration-style: solid;
+}
+
+.dfStageDetail {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.dfStageWhen {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.dfStage .request-progress-track {
+  width: 110px;
+  margin-top: 2px;
+}
+
+/* ---- AI DIRECTIVES TAB (LIFECYCLE CARDS IN THE REQUEST-PIPELINE DRESS) ---- */
+
+#aiDirectiveList,
+#aiToolDirectiveList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.aiDirectivesIntro {
+  margin: 8px 0 12px;
+}
+
+.aiDirectivesToolsIntro {
+  margin-top: 28px;
+}
+
+.aiDirectivesIntro .request-section-header {
+  margin: 0;
+}
+
+.aiDirectivesBlurb {
+  margin-top: 4px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text-muted);
+  max-width: 680px;
+}
+
+/* STOCK = SHIPPED TEXT, QUIET; CUSTOMIZED WEARS THE APPROVED BLURPLE */
+.requestChip.chip-stock {
+  background-color: var(--bg-tertiary);
+  color: var(--text-muted);
+}
+
+.aiDirectiveToolName {
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 14px;
+}
+
+/* THE EDITOR SITS UNDER THE PIPELINE LIKE THE REQUEST ACTIONS ROW */
+.aiDirectiveEditor {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--bg-tertiary);
+}
+
+.aiDirectiveText {
+  /* NO GLOBAL RESET IN THIS CODEBASE - WITHOUT THIS, width:100% + PADDING
+     OVERHANGS THE CARD'S RIGHT EDGE */
+  box-sizing: border-box;
+  width: 100%;
+  background-color: var(--bg-tertiary);
+  border: none;
+  border-radius: 4px;
+  padding: 10px 12px;
+  color: var(--text-normal);
+  font-size: 13px;
+  line-height: 1.45;
+  font-family: var(--font-family);
+  resize: vertical;
+}
+
+.aiDirectiveText:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--blurple);
+}
+
+.aiDirectiveFoot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.aiDirectiveHint {
+  font-size: 11px;
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+.dfRequestActions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+/* ---- LIBRARY DETAIL ORIGIN (WHO REQUESTED THIS TITLE) ---- */
+
+.appDetailOrigin {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.appDetailOriginRow {
+  padding: 8px 10px;
+  background-color: var(--bg-secondary);
+  border-radius: 5px;
+}
+
+.appDetailOriginWho {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.appDetailOriginConsole {
+  font-size: 13px;
+  color: var(--header-secondary);
+}
+
+.appDetailOriginMeta {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.appDetailOriginState {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.appDetailOriginEmpty {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-bottom: 14px;
+}
+
+/* ---- AI CHAT (ai-provider TAKEOVERS) ---- */
+
+/* THE SECTION IS THE CHAT MIRROR'S OWN LAYOUT - BARE #messageContainer
+   (column-reverse SCROLLER), .messageContainerInner LOG, chatBar COMPOSER.
+   ONLY THE MIRROR'S #chatLog-KEYED CONVENTIONS NEED RE-KEYING TO THE
+   THREAD-SCOPED LOG ID, PLUS THE AI-ONLY DRESSING BELOW. */
+
+/* WS APPENDS ARRIVE WRAPPED - THE WRAPPER MUST NOT BREAK ROW FLOW */
+.aiChatLog .aiMessageWrapper {
+  display: contents;
+}
+
+/* CLASSIC WELCOME HIDES ONCE A LIVE ROW LANDS, SAME AS THE MIRROR'S #chatLog */
+.aiChatLog:has(.chatMessageRow) .noMessagesDiv {
+  display: none;
+}
+
+/* THE PROVIDER ICON SITS IN THE WELCOME CIRCLE WHERE THE HASH GOES */
+.welcomeHashCircle img {
+  width: 42px;
+  height: 42px;
+}
+
+.welcomeActions {
+  margin-top: 14px;
+}
+
+/* AI ROWS RIDE THE CHAT MIRROR'S ROW FAMILY - ONLY THE EXTRAS LIVE HERE */
+.aiChatRow .chatAuthorAvatar {
+  background-color: var(--bg-tertiary);
+  object-fit: cover;
+}
+
+/* THE OPERATOR'S GUTTER GLYPH - SAME FOOTPRINT AS AN AVATAR */
+.aiOperatorAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--bg-tertiary);
+  color: var(--interactive-normal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-right: 16px;
+}
+
+/* TOOL CHIPS - WHAT THE ASSISTANT ACTUALLY DID THIS TURN, WORN HONESTLY */
+.aiToolChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.aiToolChip {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background-color: var(--bg-modifier-selected);
+  color: var(--header-secondary);
+  font-family: 'Consolas', 'Courier New', monospace;
+}
+
+.aiTurnError {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--red);
+}
+
+/* ---- AI THREADS RAIL (THE TAKEOVER'S RIGHT PANE) ---- */
+
+.aiThreadsRail {
+  padding: 8px;
+}
+
+.aiThreadsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 8px 4px;
+}
+
+.aiThreadsHeader .memberListHeader {
+  padding: 0;
+}
+
+.aiThreadNewButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  color: var(--interactive-normal);
+  background: transparent;
+  cursor: pointer;
+}
+
+.aiThreadNewButton:hover,
+.aiThreadNewButton:focus-visible {
+  color: var(--interactive-hover);
+  background-color: var(--bg-modifier-hover);
+}
+
+.aiThreadsEmpty {
+  padding: 12px 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.aiThreadRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px;
+  border-radius: 4px;
+  color: var(--channel-default);
+  cursor: pointer;
+}
+
+.aiThreadRow:hover {
+  background-color: var(--bg-modifier-hover);
+  color: var(--interactive-hover);
+}
+
+.aiThreadRow.active {
+  background-color: var(--bg-modifier-selected);
+  color: var(--interactive-active);
+  cursor: default;
+}
+
+.aiThreadGlyph {
+  flex-shrink: 0;
+}
+
+.aiThreadInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.aiThreadTitle {
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* DELETE X - VISIBLE ON HOVER/FOCUS, NEVER STEALS THE ROW CLICK */
+.aiThreadDelete {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 3px;
+  color: var(--interactive-muted);
+  background: transparent;
+  cursor: pointer;
+  opacity: 0;
+  flex-shrink: 0;
+}
+
+.aiThreadRow:hover .aiThreadDelete,
+.aiThreadDelete:focus-visible {
+  opacity: 1;
+}
+
+.aiThreadDelete:hover {
+  color: var(--red);
+  background-color: var(--bg-modifier-hover);
+}
+
+/* ---- AI VARS RAIL (DIRECTIVES TAB - THE {placeholder} REFERENCE) ---- */
+
+.aiVarsRail {
+  padding: 8px;
+}
+
+.aiVarsRail .memberListHeader {
+  padding: 8px 8px 4px;
+}
+
+.aiVarsBlurb {
+  padding: 0 8px 8px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+.aiVarsGroupHead {
+  text-transform: uppercase;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+  padding: 10px 8px 2px;
+}
+
+.aiVarsGroupHint {
+  padding: 0 8px 4px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.aiVarRow {
+  padding: 8px;
+  border-radius: 4px;
+}
+
+.aiVarRow:hover {
+  background-color: var(--bg-modifier-hover);
+}
+
+.aiVarToken {
+  display: inline-block;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 12px;
+  color: var(--header-primary);
+  background-color: var(--bg-tertiary);
+  border-radius: 3px;
+  padding: 1px 5px;
+}
+
+.aiVarBlurb {
+  margin-top: 3px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--channel-default);
+}
+
+.aiVarNow {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 4px;
+  min-width: 0;
+}
+
+.aiVarNowLabel {
+  text-transform: uppercase;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.aiVarNowIcon {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.aiVarNowValue {
+  font-size: 12px;
+  color: var(--interactive-active);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.aiVarNowValue.aiVarNowDynamic {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.aiVarUsedBy {
+  margin-top: 3px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* PICKER BADGE FOR THE NEW KIND */
+.appPickerKind.ai {
+  background-color: #9b72cb;
+}

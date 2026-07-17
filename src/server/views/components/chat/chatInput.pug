@@ -1,0 +1,16 @@
+//- ws-send SUBMITS { chatMessage } OVER THE PAGE SOCKET (htmx ws EXTENSION);
+//- THE SERVER RELAYS IT INTO THE ACTIVE CHANNEL AS THE BOT (wsroutes/onConnect)
+if (servers.activeChannel && servers.activeChannel.channel_name)
+  form.chatInputForm(ws-send)
+    input.chatMessageInput#chatMessageInput(
+      name="chatMessage"
+      autocomplete="off"
+      maxlength=2000
+      placeholder="Message #" + servers.activeChannel.channel_name
+    )
+else
+  //- NO ACTIVE CHANNEL - DISABLED INPUT, HONEST COPY
+  input.chatMessageInput(
+    placeholder="Select a channel to start chatting"
+    disabled=true
+  )

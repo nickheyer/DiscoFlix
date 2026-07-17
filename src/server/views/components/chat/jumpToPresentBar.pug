@@ -1,0 +1,18 @@
+//- OLD-DISCORD "VIEWING OLDER MESSAGES" BAR - FLOATS OVER THE BOTTOM OF THE
+//- MESSAGE AREA WHILE THE VIEW IS TIME-TRAVELLING (ANCHORED WINDOW). EMPTY
+//- IN LIVE MODE (:empty COLLAPSES IT), AND ALWAYS OOB-ADDRESSABLE SO ANY
+//- RESPONSE OR WS PUSH CAN FLIP IT: LIVE MESSAGES PUSH THE "New messages"
+//- PILL, THE CATCH-UP/JUMP RESPONSES CLEAR IT.
+.jumpToPresentBar#jumpToPresent(
+  hx-select-oob="#jumpToPresent"
+  hx-swap-oob="outerHTML"
+)
+  if anchored
+    span.jumpBarText You're viewing older messages
+    if hasNew
+      span.jumpBarNewPill New messages
+    button.jumpBarButton(
+      type="button"
+      hx-post="/chat/jump-to-present"
+      hx-swap="none"
+    ) Jump To Present

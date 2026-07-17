@@ -1,0 +1,28 @@
+//- FEATURE ACCESS SUMMARY - RE-RENDERED ALONE WHEN THE SCOPE SELECT MOVES
+//- (GET /user/:id/profile/access?scope=). LOCALS: profile
+if !profile.isActive
+  .userProfileEmpty Deactivated - every feature is denied until the account is reactivated.
+else
+  select.settings-input.settings-select.userAccessScope(
+    name="scope"
+    hx-get=`/user/${profile.id}/profile/access`
+    hx-target="#user-profile-access"
+    hx-swap="innerHTML"
+  )
+    each opt in profile.scopeOptions
+      option(value=opt.value selected=profile.scope === opt.value)= opt.label
+  if profile.scope && !profile.access.liveRoles
+    .userTierSource.muted Their Discord roles can't be checked right now - this reads from tier alone.
+  .userAccessRows
+    each row in profile.access.rows
+      .userAccessRow
+        .userAccessHead
+          .userAccessLabel= row.label
+          if row.allowed
+            span.userAccessChip.allowed allowed
+          else
+            span.userAccessChip.denied= row.reason || 'denied'
+        if row.allowed && row.extents
+          .userAccessExtents= row.extents
+        else if !row.allowed && row.rolesMayWiden
+          .userAccessExtents.muted +roles may widen this in-server

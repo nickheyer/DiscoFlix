@@ -1,0 +1,29 @@
+//- REQUESTS BODY - LIFECYCLE TABS + THE CARD LIST, SWAPPED WHOLE ON EVERY
+//- SEARCH/FILTER CHANGE SO TABS AND COUNTS ALWAYS AGREE.
+//- LOCALS: activeApp, requests, instanceOptions
+- var filterTabs = [{ key: 'all', label: 'All' }, { key: 'pending', label: 'Pending' }, { key: 'active', label: 'Active' }, { key: 'done', label: 'Done' }, { key: 'denied', label: 'Denied' }]
+
+//- THE ACTIVE FILTER RIDES SEARCH REQUESTS VIA hx-include
+input#dfRequestFilter(type="hidden" name="filter" value=requests.filter)
+
+.request-section-header.appLibraryHeader
+  if requests.search
+    span Requests - #{requests.counts[requests.filter]} for “#{requests.search}”
+  else
+    span Requests - #{requests.counts[requests.filter]}
+  .appLibraryHeaderTools
+    .appInstanceTabs.appLibKindTabs
+      each tab in filterTabs
+        .appInstanceTab(
+          role="button"
+          tabindex=requests.filter !== tab.key ? "0" : undefined
+          class=requests.filter === tab.key ? 'active' : ''
+          hx-get=requests.filter !== tab.key ? `/apps/${activeApp.id}/requests?filter=${tab.key}` : undefined
+          hx-include=requests.filter !== tab.key ? '.appSearchInput' : undefined
+          hx-target=requests.filter !== tab.key ? '#dfRequestsBody' : undefined
+          hx-swap=requests.filter !== tab.key ? 'innerHTML' : undefined
+          hx-trigger=requests.filter !== tab.key ? "click, keyup[key=='Enter']" : undefined
+        ) #{tab.label} (#{requests.counts[tab.key]})
+
+#dfRequestList
+  include dfRequestCards

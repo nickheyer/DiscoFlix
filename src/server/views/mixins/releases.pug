@@ -1,0 +1,143 @@
+//- RELEASE TABLE - BOTH RELEASE SURFACES (INDEXER SEARCH-AND-SEND + ARR
+//- INTERACTIVE SEARCH) SHARE ONE ALIGNED GRID SO EVERY SIZE, AGE, AND SEED
+//- COUNT LINES UP. THE HEAD'S SORT BUTTONS REORDER THE ROW CONTAINER
+//- CLIENT-SIDE (source.js) FROM THE data-* KEYS EACH ROW CARRIES - THE SWEEP
+//- THAT ALREADY LANDED IS NEVER RE-ASKED FROM THE (SLOW) SERVICES.
+
+//- COLUMN HEAD - qualityLabel NAMES THE CHIP COLUMN ('Quality' FOR ARRS,
+//- 'Category' FOR RAW INDEXERS); EVERY LABEL IS A SORT BUTTON EXCEPT ACTION
+mixin releaseTableHead(qualityLabel)
+  .releaseHead.releaseGrid
+    button.releaseSort(type="button" data-sort="title") Release
+    button.releaseSort.releaseCellQuality(type="button" data-sort="quality")= qualityLabel
+    button.releaseSort.releaseCellNum(type="button" data-sort="size") Size
+    button.releaseSort.releaseCellNum.releaseCellAge(type="button" data-sort="age") Age
+    button.releaseSort.releaseCellNum(type="button" data-sort="seeders") Seeds
+    span.releaseHeadAction
+
+//- THE DISPLAY CELLS EVERY VARIANT SHARES: TITLE + META LINE, CHIP, NUMBERS
+mixin releaseCells(release, quality)
+  .releaseCellTitle
+    if release.rejected
+      span.releaseRejectedIcon(
+        aria-label=(release.rejections || []).join(' • ') || 'Rejected by the service'
+        data-tooltip-dir="top"
+        tabindex="0"
+      )
+        svg(viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true")
+          path(d="M12 2L1 21h22L12 2zm1 14h-2v2h2v-2zm0-7h-2v5h2V9z")
+    .releaseTitleWrap
+      .releaseName(title=release.title)= release.title
+      .releaseMetaLine
+        span.releaseProtocol(class=release.protocol)= release.protocol
+        if release.indexer
+          span= release.indexer
+        if release.languages
+          span= release.languages
+  .releaseCellQuality
+    if quality
+      span.queueRowChip(title=quality)= quality
+    else
+      span.releaseCellBlank —
+  .releaseCellNum= release.sizeHuman || '—'
+  .releaseCellNum.releaseCellAge= release.age || '—'
+  - var seedClass = release.seeders == null ? '' : (release.seeders === 0 ? 'dead' : (release.seeders < 10 ? 'low' : 'good'))
+  .releaseCellNum.releaseSeeders(class=seedClass)= release.seeders != null ? release.seeders : '—'
+
+//- ONE INDEXER-SEARCH ROW - ITS ACTION SENDS THE LINK TO A CONNECTED
+//- DOWNLOAD CLIENT. THE GRAB FORM CARRIES THE ROW'S DISPLAY + SORT FIELDS SO
+//- THE SWAP-IN RESPONSE CAN REBUILD IT SERVER-SIDE.
+//- rowState: undefined (grabbable) | sent | error
+mixin releaseRow(release, appId, grabTargets)
+  - var targets = (grabTargets && grabTargets[release.protocol]) || []
+  .releaseEntry.releaseGrid.releaseRow(
+    data-title=(release.title || '').toLowerCase()
+    data-quality=(release.category || '').toLowerCase()
+    data-size=release.size != null ? release.size : ''
+    data-age=release.ageMinutes != null ? release.ageMinutes : ''
+    data-seeders=release.seeders != null ? release.seeders : ''
+  )
+    +releaseCells(release, release.category)
+    .releaseCellAction
+      case release.rowState
+        when 'sent'
+          span.requestChip.chip-available(title=`Sent to ${release.sentTo}`) Sent
+        when 'error'
+          span.requestChip.chip-denied(title=release.error) Failed
+        default
+          if targets.length
+            form.releaseGrabForm
+              input(type="hidden" name="releaseId" value=release.id)
+              input(type="hidden" name="title" value=release.title)
+              input(type="hidden" name="indexer" value=release.indexer || '')
+              input(type="hidden" name="category" value=release.category || '')
+              input(type="hidden" name="protocol" value=release.protocol)
+              input(type="hidden" name="size" value=release.size != null ? release.size : '')
+              input(type="hidden" name="sizeHuman" value=release.sizeHuman || '')
+              input(type="hidden" name="seeders" value=release.seeders != null ? release.seeders : '')
+              input(type="hidden" name="age" value=release.age || '')
+              input(type="hidden" name="ageMinutes" value=release.ageMinutes != null ? release.ageMinutes : '')
+              input(type="hidden" name="url" value=release.downloadUrl)
+              if targets.length > 1
+                select.request-instance-select(name="targetId")
+                  each target in targets
+                    option(value=target.id)= target.label
+              else
+                input(type="hidden" name="targetId" value=targets[0].id)
+              button.releaseGrabButton(
+                type="button"
+                aria-label=targets.length > 1 ? 'Send to the selected download client' : `Send to ${targets[0].label}`
+                data-tooltip-dir="left"
+                hx-post=`/apps/${appId}/grab`
+                hx-include="closest form"
+                hx-target="closest .releaseRow"
+                hx-swap="outerHTML"
+                hx-disabled-elt="this"
+              ) Send
+          else
+            span.releaseNoTarget(
+              aria-label=`Connect a ${release.protocol} download client to send releases from here`
+              data-tooltip-dir="left"
+            ) No client
+
+//- ONE INTERACTIVE-SEARCH ROW - AN ARR /release CANDIDATE. GRABS GO BACK
+//- THROUGH THE ARR SO ITS OWN DOWNLOAD CLIENT AND HISTORY DO THE WORK.
+//- rowState: undefined (grabbable) | grabbed | error
+mixin interactiveReleaseRow(release, appId, itemId)
+  .releaseEntry.releaseGrid.releaseRow.libraryReleaseRow(
+    class=release.rejected ? 'rejected' : ''
+    data-title=(release.title || '').toLowerCase()
+    data-quality=(release.quality || '').toLowerCase()
+    data-size=release.size != null ? release.size : ''
+    data-age=release.ageMinutes != null ? release.ageMinutes : ''
+    data-seeders=release.seeders != null ? release.seeders : ''
+  )
+    +releaseCells(release, release.quality)
+    .releaseCellAction
+      case release.rowState
+        when 'grabbed'
+          span.requestChip.chip-downloading(title="Watch the Queue") Grabbed
+        when 'error'
+          span.requestChip.chip-denied(title=release.error) Failed
+        default
+          form.releaseGrabForm
+            input(type="hidden" name="guid" value=release.guid)
+            input(type="hidden" name="indexerId" value=release.indexerId)
+            input(type="hidden" name="title" value=release.title)
+            input(type="hidden" name="indexer" value=release.indexer || '')
+            input(type="hidden" name="quality" value=release.quality || '')
+            input(type="hidden" name="protocol" value=release.protocol)
+            input(type="hidden" name="size" value=release.size != null ? release.size : '')
+            input(type="hidden" name="sizeHuman" value=release.sizeHuman || '')
+            input(type="hidden" name="seeders" value=release.seeders != null ? release.seeders : '')
+            input(type="hidden" name="age" value=release.age || '')
+            input(type="hidden" name="ageMinutes" value=release.ageMinutes != null ? release.ageMinutes : '')
+            input(type="hidden" name="languages" value=release.languages || '')
+            button.releaseGrabButton(
+              type="button"
+              hx-post=`/apps/${appId}/library/item/${itemId}/grab`
+              hx-include="closest form"
+              hx-target="closest .libraryReleaseRow"
+              hx-swap="outerHTML"
+              hx-disabled-elt="this"
+            ) Grab

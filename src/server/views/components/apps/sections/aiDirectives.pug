@@ -1,0 +1,23 @@
+//- THE DIRECTIVES TAB (AI PROVIDERS ONLY - THE MANIFEST IS THE GUARD).
+//- EVERYTHING THE APP SAYS TO THIS INSTANCE'S LLM, EACH BLOCK A LIFECYCLE
+//- CARD IN THE REQUEST-PIPELINE DRESS: THE STEPPER TRACES DIRECTIVE ->
+//- WHERE IT LANDS -> WHEN IT FIRES -> TASK PERFORMED. STOCK TEXT IS THE
+//- SHIPPED PROMPT; EDITS AUTOSAVE PER CARD AND OVERRIDE THIS INSTANCE ONLY.
+//- sectionData: { directives: { prompt, tools, customizedCount } } BUILT BY
+//- src/server/api/aiDirectives.js
+- var directivesData = sectionData.directives
+
+.appSectionDoc
+  .aiDirectivesIntro
+    .request-section-header System prompt
+    .aiDirectivesBlurb These blocks compose the system prompt #{activeApp.display_name} reads before every conversation turn, in the order shown. Live data (the date, connected services, who is speaking) is woven in between them automatically.
+  #aiDirectiveList
+    each directive in directivesData.prompt
+      include aiDirectiveCard
+
+  .aiDirectivesIntro.aiDirectivesToolsIntro
+    .request-section-header Tool briefings
+    .aiDirectivesBlurb Each tool in the assistant's toolbox carries a briefing - the model reads it to decide when and how to call the tool. Rewrite one to change how eagerly or carefully it gets used.
+  #aiToolDirectiveList
+    each directive in directivesData.tools
+      include aiDirectiveCard

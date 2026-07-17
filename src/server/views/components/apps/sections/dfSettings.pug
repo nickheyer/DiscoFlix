@@ -1,0 +1,25 @@
+//- DISCOFLIX SETTINGS - THE Configuration SINGLETON IN THE TAKEOVER SURFACE.
+//- ONE .appSettingsGroup ROW PER CONFIG_FIELD_GROUPS ENTRY (TITLE+BLURB RAIL
+//- | FIELD CARD); SAVES AUTO-FIRE ON CHANGE AND THE TOAST RIDES THE TAKEOVER
+//- HEADER, SAME AS EVERY APP FORM.
+//- sectionData: { formGroups [{label, blurb, fields [+field DESCRIPTORS + key]}] }
+include ../../../mixins/field
+
+include ../sectionTitleDivider
+
+form.appSettingsForm(
+  hx-post=`/apps/${activeApp.id}/save`
+  hx-trigger="change, submit"
+  hx-swap="none"
+)
+  each group in sectionData.formGroups
+    .appSettingsGroup
+      .appSettingsGroupInfo
+        .request-section-header= group.label
+        if group.blurb
+          .appSettingsGroupBlurb= group.blurb
+      .appSettingsGroupBody
+        .appFormCard
+          .appSettingsFields
+            each f in group.fields
+              +field(f, f.key, activeApp.id, false)

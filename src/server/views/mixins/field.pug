@@ -1,0 +1,72 @@
+//- THE HOUSE FORM FIELD - RENDERS METADATA/MANIFEST DESCRIPTORS FOR EVERY
+//- EDITABLE SURFACE (APP SETTINGS, DISCOFLIX SETTINGS, USER CARDS) AND THE
+//- READ-ONLY INFO POPUPS. SENSITIVE FIELDS KEEP-ON-BLANK + <key>__clear.
+//- EVERY FIELD IS A ROW - LABEL AND HINT OWN THE LEFT, THE CONTROL PINS
+//- RIGHT SIZED TO ITS EXPECTED INPUT, WIDE CONTROLS STACK UNDERNEATH.
+mixin field(field, fieldKey, recordId, readonly)
+  - const fieldId = `${recordId || ''}-${fieldKey}`
+  //- DESCRIPTOR size OVERRIDES THE TYPE DEFAULT (sm | md | full)
+  - const size = field.size || (field.type === 'number' ? 'sm' : field.sensitive ? 'full' : 'md')
+  - const stacked = field.type !== 'boolean' && size === 'full'
+  //- ZERO IS A REAL VALUE FOR THE LIMIT FIELDS - ONLY BLANKS OMIT THE ATTR
+  - const inputValue = (field.value != null && field.value !== '') ? field.value : false
+  .settings-field(class=field.type class=stacked ? 'stacked' : 'inline')
+    .settings-field-text
+      label.settings-label(for=!readonly && fieldId)
+        = field.label
+        if !readonly && field.required
+          span.text-danger *
+      if field.description
+        .settings-description= field.description
+    .settings-field-control
+      if field.type === 'boolean'
+        label.settings-switch
+          input(
+            type='checkbox'
+            name=!readonly && fieldKey
+            id=!readonly && fieldId
+            checked=field.value
+            disabled=readonly || field.readonly
+          )
+          span.settings-slider(class=(readonly || field.readonly) ? 'readonly' : '')
+      else if field.multiline
+        textarea.settings-input.settings-textarea(
+          class=`size-${size}`
+          name=!readonly && fieldKey
+          id=!readonly && fieldId
+          rows=3
+          placeholder=field.placeholder
+          readonly=readonly || field.readonly
+          disabled=readonly || field.readonly
+          class=(readonly || field.readonly) ? 'readonly' : ''
+        )= (field.value != null && field.value !== '') ? field.value : ''
+      else if field.options && field.options.length
+        select.settings-input.settings-select(
+          class=`size-${size}`
+          name=!readonly && fieldKey
+          id=!readonly && fieldId
+          disabled=readonly || field.readonly
+          class=(readonly || field.readonly) ? 'readonly' : ''
+        )
+          each opt in field.options
+            option(value=opt.value selected=String(field.value == null ? '' : field.value) === String(opt.value))= opt.label
+      else
+        input.settings-input(
+          class=`size-${size}`
+          type=field.type === 'number' ? 'number' : field.sensitive ? 'password' : 'text'
+          name=!readonly && fieldKey
+          id=!readonly && fieldId
+          value=inputValue
+          placeholder=field.sensitive ? (field.isSet ? '•••••••• (saved - leave blank to keep)' : 'Not set') : field.placeholder
+          autocomplete=field.sensitive ? 'new-password' : undefined
+          min=field.min
+          max=field.max
+          title=(readonly || field.readonly) && field.value ? String(field.value) : undefined
+          readonly=readonly || field.readonly
+          disabled=readonly || field.readonly
+          class=(readonly || field.readonly) ? 'readonly' : ''
+        )
+        if field.sensitive && field.isSet && !readonly && !field.readonly
+          label.settings-clear-secret
+            input(type='checkbox' name=`${fieldKey}__clear`)
+            span Clear saved value

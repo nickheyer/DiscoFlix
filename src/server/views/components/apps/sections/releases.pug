@@ -1,0 +1,42 @@
+//- RELEASES - THE INDEXER'S SEARCH SURFACE. THE BIG BAR AT THE TOP RUNS THE
+//- META SEARCH ON ENTER; IDLE SHOWS THE INDEXER ROSTER (WHEN THE SERVICE
+//- EXPOSES ONE) UNDER IT. sectionData: { configured, mode, searchTerm,
+//- searchPlaceholder, releases, releasesError, grabTargets, indexers }
+include ../../../mixins/releases
+include ../../../mixins/serviceSearch
+
+if !sectionData.configured
+  .appQueueEmpty Connect #{activeApp.display_name} in Settings before searching.
+else if sectionData.mode === 'search'
+  - var releases = sectionData.releases || []
+  .appSectionDoc
+    +serviceSearchBar(activeApp, sectionData.searchTerm, sectionData.searchPlaceholder)
+    .request-section-header.appLibraryHeader
+      span Releases - #{releases.length} for “#{sectionData.searchTerm}”
+    if sectionData.releasesError
+      .appQueueEmpty Search failed - #{sectionData.releasesError}
+    else if !releases.length
+      .appQueueEmpty No releases for “#{sectionData.searchTerm}” on #{activeApp.display_name}.
+    else
+      .releaseTable
+        +releaseTableHead('Category')
+        .releaseRows
+          each release in releases
+            +releaseRow(release, activeApp.id, sectionData.grabTargets)
+else
+  .appSectionDoc
+    +serviceSearchBar(activeApp, '', sectionData.searchPlaceholder)
+    if sectionData.indexers && sectionData.indexers.length
+      .request-section-header Indexers - #{sectionData.indexers.length}
+      each indexer in sectionData.indexers
+        .request-row.releaseIndexerRow
+          .indexerStatusDot(class=indexer.error ? 'down' : 'ok')
+          .request-info
+            .request-title= indexer.name
+            if indexer.error
+              .request-orig-message= indexer.error
+          if indexer.kind
+            span.queueRowChip= indexer.kind
+    .welcomeBlock
+      .welcomeTitle Search every indexer at once
+      .welcomeSubtitle Releases from #{activeApp.display_name} can be sent straight to a connected download client.

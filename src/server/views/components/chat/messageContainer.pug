@@ -1,0 +1,34 @@
+- var welcomeName = servers && servers.activeChannel && servers.activeChannel.channel_name
+.messageContainer#messageContainer(
+  hx-select-oob="#messageContainer"
+  hx-swap-oob="outerHTML"
+)
+  .messageContainerInner#chatLog
+    // DISCORD MESSAGES WILL GO HERE
+    if (messages && messages.length > 0)
+      //- A FULL FIRST PAGE MEANS OLDER HISTORY MAY EXIST - SENTINEL ON TOP
+      if history
+        include historySentinel
+      for messageShard in messages
+        | !{messageShard}
+      //- ANCHORED (TIME-TRAVEL) WINDOWS PAGE DOWNWARD TOO - THE FUTURE
+      //- SENTINEL TAKES THE END STAMP'S SLOT UNTIL THE WINDOW CATCHES UP
+      if typeof future !== 'undefined' && future
+        include futureSentinel
+      else
+        include endOfMessages
+    else
+      //- CLASSIC EMPTY-CHANNEL WELCOME BLOCK (chat.css HIDES IT ONCE A LIVE
+      //- MESSAGE LANDS IN #chatLog)
+      .noMessagesDiv
+        if welcomeName
+          .welcomeBlock
+            .welcomeHashCircle
+              svg(viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor")
+                path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14")
+            .welcomeTitle Welcome to ##{welcomeName}!
+            .welcomeSubtitle This is the start of the ##{welcomeName} channel.
+        else
+          .divider
+            p.noMessageText
+              | No messages in here!

@@ -1,0 +1,62 @@
+//- THE CHAT MIRROR'S INLINE REQUEST CARD - RENDERED BENEATH THE MESSAGE THAT
+//- TRIGGERED THE REQUEST, STYLED LIKE AN OLD-DISCORD EMBED (STATE-COLORED
+//- ACCENT BAR). WITH oob=true IT SWAPS ITSELF IN PLACE WHEN PUSHED OVER WS -
+//- A MISSING TARGET (MESSAGE OFF-SCREEN) IS A HARMLESS NO-OP. NO JUMP BUTTON:
+//- THE CARD ALREADY SITS ON THE MESSAGE. card.instanceOptions IS THE CARD'S
+//- OWN PRE-RESOLVED LIST (SEE cardsForMessages / pushRequestCard).
+mixin chatRequestCard(card, oob)
+  - var posterSrc = card.posterUrl ? (/^https?:\/\//i.test(card.posterUrl) ? card.posterUrl : `/${card.posterUrl}`) : null
+  - var options = card.instanceOptions || []
+  .chatRequestCard(id=`chat-request-${card.id}` class=`card-${card.state}` hx-swap-oob=oob ? 'outerHTML' : undefined)
+    .chatRequestCardMain
+      if posterSrc
+        img.chatRequestPoster(src=posterSrc alt="poster" referrerpolicy="no-referrer")
+      .chatRequestInfo
+        .chatRequestTitle= card.title
+        .chatRequestMeta
+          span= card.requestedBy || 'Unknown user'
+          if card.requestedAtLabel
+            span.request-meta-divider •
+            span= card.requestedAtLabel
+          if card.seasonsLabel
+            span.request-meta-divider •
+            span= card.seasonsLabel
+          if card.appLabel && card.state !== 'pending'
+            span.request-meta-divider •
+            span= card.appLabel
+        .chatRequestStateRow
+          span.requestChip(class=`chip-${card.state}`)= card.stateLabel
+          if card.progress
+            .chatRequestProgress
+              .request-progress-track
+                .request-progress-bar(style=`width: ${card.progress.percent}%;`)
+              .request-progress-text
+                | #{card.progress.percent}%
+                if card.progress.timeleft
+                  |  • #{card.progress.timeleft} left
+          //- INTO THE REQUESTS SECTION'S FULL PIPELINE VIEW, PRE-FILTERED
+          //- TO THIS TITLE (?request= SEEDS THE SECTION SEARCH)
+          button.request-jump-button.chatRequestOpen(
+            type="button"
+            aria-label="Open in the Requests section"
+            data-tooltip-dir="top"
+            hx-post=`/discoflix/section/requests?request=${card.id}`
+          )
+            svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true")
+              path(d="M8 6h13M8 12h13M8 18h13")
+              path(d="M3 6h.01M3 12h.01M3 18h.01")
+    if card.state === 'pending'
+      .chatRequestActions
+        if options.length > 1
+          select.request-instance-select(name='appId' id=`chat-request-instance-${card.id}`)
+            each opt in options
+              option(value=opt.id selected=(card.appId ? opt.id === card.appId : opt.isDefault))= opt.label
+        button.request-approve-button(
+          hx-post=`/requests/${card.id}/approve`
+          hx-include=options.length > 1 ? `#chat-request-instance-${card.id}` : undefined
+          hx-swap='none'
+        ) Approve
+        button.request-deny-button(
+          hx-post=`/requests/${card.id}/deny`
+          hx-swap='none'
+        ) Deny

@@ -1,0 +1,12 @@
+div.chatContainer
+  //- APP TAKEOVER: THE ACTIVE SECTION REPLACES THE MESSAGE MIRROR
+  if activeApp
+    include ../apps/appHeader
+    include ../apps/appSurface
+  else
+    include messageChannelHeader
+    include messageContainer
+  //- TIME-TRAVEL BAR - FLOATS OVER THE MESSAGE AREA, EMPTY IN LIVE MODE
+  include jumpToPresentBar
+  include downloadTicker
+  include chatBar

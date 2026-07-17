@@ -1,0 +1,59 @@
+//- ONE COMPACT REQUEST ROW (BUILT BY core.apps.buildRequestView) - THE USER
+//- PROFILE MODAL'S REQUEST HISTORY. READ + JUMP ONLY: APPROVE/DENY LIVE ON
+//- THE REQUESTS SECTION'S PIPELINE CARDS AND THE CHAT MIRROR'S INLINE CARDS.
+mixin requestRow(req, oob)
+  - var posterSrc = req.posterUrl ? (/^https?:\/\//i.test(req.posterUrl) ? req.posterUrl : `/${req.posterUrl}`) : null
+  .request-row(id=`request-row-${req.id}` hx-swap-oob=oob ? 'outerHTML' : undefined)
+    .request-poster
+      if posterSrc
+        img(src=posterSrc alt="poster" referrerpolicy="no-referrer")
+      else
+        .request-poster-placeholder
+          svg(viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" aria-hidden="true")
+            if req.contentType === 'show'
+              rect(x="3" y="7" width="18" height="13" rx="2" stroke-width="2")
+              path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 3l4 4 4-4")
+            else
+              rect(x="3" y="5" width="18" height="14" rx="2" stroke-width="2")
+              path(stroke-linecap="round" stroke-width="2" d="M3 9h18M8 5v14M16 5v14")
+    .request-info
+      .request-title= req.title
+      .request-meta
+        if req.requestedAtLabel
+          span= req.requestedAtLabel
+        if req.serverName
+          span.request-meta-divider •
+          span= req.serverName
+        if req.appLabel && req.state !== 'pending'
+          span.request-meta-divider •
+          span= req.appLabel
+      if req.origMessage
+        .request-orig-message= req.origMessage
+    .request-status
+      .request-row-actions
+        //- INTO THE REQUESTS SECTION'S PIPELINE VIEW, PRE-FILTERED TO THIS
+        //- TITLE - THE MODAL DISMISSES ITSELF SO THE TAKEOVER IS VISIBLE
+        button.request-jump-button(
+          type="button"
+          aria-label="Open in the Requests section"
+          data-tooltip-dir="top"
+          data-bs-dismiss="modal"
+          hx-post=`/discoflix/section/requests?request=${req.id}`
+        )
+          svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true")
+            path(d="M8 6h13M8 12h13M8 18h13")
+            path(d="M3 6h.01M3 12h.01M3 18h.01")
+        if req.canJump
+          button.request-jump-button(
+            type="button"
+            aria-label="Jump to the original message"
+            data-tooltip-dir="top"
+            data-bs-dismiss="modal"
+            hx-post=`/requests/${req.id}/jump`
+            hx-swap="none"
+            hx-select-oob="#serverSelector,#guildNameBanner"
+          )
+            svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true")
+              path(d="M9 10l-5 5 5 5")
+              path(d="M20 4v7a4 4 0 0 1-4 4H4")
+      span.requestChip(class=`chip-${req.state}`)= req.stateLabel

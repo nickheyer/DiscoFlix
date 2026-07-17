@@ -1,0 +1,19 @@
+//- NOW PLAYING SECTION SHELL - THE INNER LIST (#appSessionList) IS THE
+//- WS-PUSHABLE FRAGMENT (THE HEARTBEAT SWAPS IT WHILE THE SECTION IS OPEN);
+//- IT SWAPS BY ID INSIDE THE .appSectionDoc SO PUSHES LAND ON THE MEASURE.
+//- sectionData: { configured, sessions, sessionsError }
+.appSectionDoc
+  if !sectionData.configured
+    .appQueueEmpty Connect #{activeApp.display_name} in Settings to see who is watching.
+  else
+    .request-section-header.queueSectionHeader
+      span Now Playing
+      button.queueHeaderButton(
+        type="button"
+        hx-post=`/apps/${activeApp.id}/section/sessions`
+        hx-disabled-elt="this"
+      ) Refresh
+    if sectionData.sessionsError
+      .appHealthNotice.error= sectionData.sessionsError
+    - var sessions = sectionData.sessions || []
+    include sessionsBody

@@ -1,0 +1,28 @@
+.modal-dialog.modal-dialog-centered#modal-container(hx-target="#modals-here")
+  .modal-content.io-modal
+    .modal-header
+      h5.modal-title.d-flex.align-items-center
+        i.fas.fa-power-off.me-2
+        span Toggle Bot Power
+      button.modal-close-button(type="button" data-bs-dismiss="modal") ×
+    .modal-body
+      .power-modal-content
+        p.power-status-text Are you sure you want to turn the bot #{state.discord_state ? 'off' : 'on'}?
+        if loading
+          .power-loader-container
+            .power-loader
+              svg(viewBox="0 0 100 100")
+                circle(cx="50" cy="50" r="40")
+        else
+          .power-switch-container
+            label.power-switch
+              input#bot-power-switch(
+                type="checkbox"
+                hx-post="/toggle-bot"
+                hx-target="#modals-here"
+                hx-trigger="click"
+                checked=state.discord_state
+              )
+              span.power-slider
+    .modal-footer
+      button#modal-cancel-button.modal-button(type="button" data-bs-dismiss="modal") Cancel

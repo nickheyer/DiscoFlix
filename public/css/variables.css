@@ -1,0 +1,83 @@
+/* DESIGN TOKENS - CLASSIC DISCORD (~2019) PALETTE. ONE NAME PER COLOR, USED EVERYWHERE. */
+
+:root {
+  /* SURFACES */
+  --bg-primary: #36393f;        /* chat / modals */
+  --bg-secondary: #2f3136;      /* channel sidebar, cards, embeds */
+  --bg-secondary-alt: #292b2f;  /* userbox strip */
+  --bg-tertiary: #202225;       /* server rail, inputs, deep wells */
+  --bg-floating: #18191c;       /* tooltips / popouts */
+  --bg-chat-input: #40444b;
+
+  /* STATE MODIFIERS (LAYER OVER ANY SURFACE) */
+  --bg-modifier-hover: rgba(79, 84, 92, 0.16);
+  --bg-modifier-active: rgba(79, 84, 92, 0.24);
+  --bg-modifier-selected: rgba(79, 84, 92, 0.32);
+  --bg-modifier-accent: rgba(79, 84, 92, 0.48);
+
+  /* TEXT */
+  --header-primary: #ffffff;
+  --header-secondary: #b9bbbe;
+  --text-normal: #dcddde;
+  --text-muted: #72767d;
+  --text-link: #00aff4;
+  --channel-default: #8e9297;
+
+  /* INTERACTIVE (ICONS, BUTTON-ISH TEXT) */
+  --interactive-normal: #b9bbbe;
+  --interactive-hover: #dcddde;
+  --interactive-active: #ffffff;
+  --interactive-muted: #4f545c;
+
+  /* ACCENTS - CLASSIC BLURPLE, NOT THE 2021 REBRAND */
+  --blurple: #7289da;
+  --blurple-hover: #677bc4;
+  --blurple-active: #5b6eae;
+  --green: #43b581;
+  --green-hover: #3ca374;
+  --red: #f04747;
+  --red-hover: #d84040;
+  --yellow: #faa61a;
+  --cyan: #00b0f4;
+
+  /* ELEVATION */
+  --elevation-low: 0 1px 0 rgba(4, 4, 5, 0.2), 0 1.5px 0 rgba(6, 6, 7, 0.05), 0 2px 0 rgba(4, 4, 5, 0.05);
+  --elevation-high: 0 8px 16px rgba(0, 0, 0, 0.24);
+
+  /* SCROLLBARS */
+  --scrollbar-thumb: #202225;
+  --scrollbar-track: transparent;
+
+  /* LAYOUT MEASURES - THE TAKEOVER'S DOCUMENT WIDTH FAMILY */
+  --content-measure: 1040px;   /* .appSectionDoc and centered group interiors */
+  --form-rail: 240px;          /* settings group label rail */
+  --form-body-measure: 760px;  /* settings group card body (rail + gap + body = measure) */
+
+  --font-family: 'Roboto', sans-serif;
+
+  /* LEGACY ALIASES - OLD NAMES STILL REFERENCED ANYWHERE MAP ONTO THE TOKENS ABOVE */
+  --dark-bg: var(--bg-primary);
+  --chat-bar: var(--bg-chat-input);
+  --dark-server-list: var(--bg-tertiary);
+  --server-divider: var(--bg-modifier-accent);
+  --dark-blurple: var(--blurple-active);
+  --dark-primary: var(--bg-secondary);
+  --text-gray: var(--text-normal);
+  --user-box: var(--bg-secondary-alt);
+  --dark-member-list: var(--bg-secondary);
+  --iconColor: var(--interactive-normal);
+  --primary: var(--bg-primary);
+  --secondary: var(--bg-secondary);
+  --tertiary: var(--bg-tertiary);
+  --quaternary: var(--bg-secondary-alt);
+  --quinary: var(--bg-modifier-selected);
+  --senary: var(--channel-default);
+  --white: #ffffff;
+  --gray: var(--channel-default);
+  --chat-input: var(--bg-chat-input);
+  --symbol: var(--text-muted);
+  --notification: var(--red);
+  --discord: var(--blurple);
+  --link: var(--text-link);
+  --message-text: var(--text-normal);
+}

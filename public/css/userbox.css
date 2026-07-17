@@ -1,0 +1,226 @@
+/* USER INFO AND CONTROLS IN BOTTOM LEFT CORNER */
+
+.userBox {
+  flex-shrink: 0;
+  margin-top: auto; /* PINS TO THE BOTTOM OF THE FLEX-COLUMN SIDEBAR */
+  background-color: var(--bg-secondary-alt);
+  width: 100%;
+  height: 52px;
+  display: flex;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.userAvatar {
+  height: 32px;
+  width: 32px;
+  border-radius: 50%;
+}
+
+.userInfo {
+  margin-left: 48px;
+  padding-top: 8px;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.username {
+  display: block !important;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--header-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#userInfoContainer {
+  min-width: fit-content;
+}
+
+.discriminator {
+  display: block !important;
+  margin: 0;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.userMenuIcons {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.botPowerIcon, .serverPowerIcon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.botPowerIcon svg, .serverPowerIcon svg {
+  height: 20px;
+  width: 20px;
+  fill: var(--interactive-normal);
+}
+
+.botPowerIcon:hover, .serverPowerIcon:hover {
+  background-color: var(--bg-modifier-selected);
+}
+
+.botPowerIcon:hover svg, .serverPowerIcon:hover svg {
+  fill: var(--interactive-hover);
+}
+
+.iconStrikethrough {
+  fill: var(--red);
+}
+
+.userBoxShutdownContainer {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  background-color: transparent;
+  transition: background-color 0.2s;
+  font-family: var(--font-family) !important;
+  margin: 8px;
+  width: 100%;
+  text-align: center;
+
+  > #shutdownButton {
+    display: flex;
+    align-items: center;
+    margin: auto;
+    width: auto;
+    border-radius: 4px;
+  }
+  > #shutdownButton span {
+    padding: 3px 8px;
+    color: var(--channel-default);
+    font-size: 13px;
+  }
+  &:hover > #shutdownButton,
+  &.active > #shutdownButton {
+    background-color: var(--bg-modifier-selected);
+    > span {
+      color: var(--interactive-active);
+    }
+  }
+}
+
+.userAvatarBubble {
+  position: absolute;
+  height: 32px;
+  top: 50%;
+  transform: translateY(-50%);
+  left: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.userAvatarBubble:hover {
+  opacity: 0.8;
+}
+
+.statusBubble {
+  background-color: var(--yellow);
+  width: 10px;
+  height: 10px;
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  border-radius: 50%;
+  border: 3px solid var(--bg-secondary-alt);
+  text-align: right;
+  font-size: 13px;
+  font-weight: bold;
+  color: #ffffff;
+  display: inline;
+  visibility: hidden;
+}
+
+.statusBubble.offline {
+  background-color: var(--red);
+  visibility: visible !important;
+}
+
+.statusBubble.online {
+  background-color: var(--green);
+  visibility: visible !important;
+}
+
+/* UNREAD COUNT BADGE (RAIL BUBBLES) */
+.statusBubble.unread {
+  background-color: var(--red);
+  visibility: visible !important;
+  text-align: center;
+  align-content: center;
+  width: 16px;
+  height: 16px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+/* UNREAD COUNT BADGE (CHANNEL ROWS) */
+.statusBubble.unread-channel {
+  background-color: var(--red);
+  visibility: visible !important;
+  text-align: center;
+  align-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #ffffff;
+  width: 16px;
+  height: 16px;
+  position: relative;
+  bottom: unset;
+  right: unset;
+  border: none;
+}
+
+.userMenuBtnGroup {
+  position: absolute;
+  display: flex;
+  gap: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+  right: 8px;
+}
+
+/* LOGOUT - RIDES THE POWER-BUTTON GROUP, ONLY RENDERED WHEN AUTH IS ON */
+.logoutForm {
+  display: flex;
+}
+
+.logoutButton {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: none;
+  border-radius: 4px;
+  color: var(--interactive-normal);
+  cursor: pointer;
+}
+
+.logoutButton svg {
+  height: 18px;
+  width: 18px;
+}
+
+.logoutButton:hover {
+  background-color: var(--bg-modifier-selected);
+  color: var(--interactive-hover);
+}

@@ -1,0 +1,29 @@
+//- REQUESTS - THE UNIFIED REQUEST PIPELINE: EVERY MediaRequest TRACED FROM
+//- THE ASK (BOT OR CONSOLE) THROUGH INDEXER, DOWNLOAD, IMPORT, AND MEDIA
+//- SERVER. THE SEARCH BOX LIVES OUTSIDE #dfRequestsBody SO SWAPS NEVER STEAL
+//- ITS FOCUS. sectionData: { requests {rows,hasMore,page,search,filter,counts},
+//- instanceOptions }
+- var requests = sectionData.requests
+- var instanceOptions = sectionData.instanceOptions
+
+.appSectionDoc
+  .appSearchBar
+    input.appSearchInput(
+      type="search"
+      name="search"
+      value=requests.search || ''
+      placeholder="Filter requests..."
+      autocomplete="off"
+      hx-get=`/apps/${activeApp.id}/requests`
+      hx-include="#dfRequestFilter"
+      hx-trigger="keyup changed delay:400ms, search"
+      hx-target="#dfRequestsBody"
+      hx-swap="innerHTML"
+      hx-indicator=".appSearchIndicator"
+    )
+    .appSearchIndicator
+      svg.appSpinner(viewBox="0 0 24 24" aria-hidden="true")
+        circle(cx="12" cy="12" r="10")
+
+  #dfRequestsBody
+    include dfRequestsBody

@@ -1,0 +1,14 @@
+include ../../../mixins/search
+
+//- READ-ONLY INFO POPUP - NO FOOTER, NO FORMS: X / BACKDROP / ESC ALL CLOSE
+.modal-dialog.modal-dialog-centered.modal-dialog-scrollable.modal-lg
+  .modal-content
+    .modal-header
+      h5.modal-title= title
+      button.modal-close-button(type='button' data-bs-dismiss='modal' aria-label='Close') ×
+
+    .modal-body
+      if !isSingleton
+        +SearchBar(type)
+      #records-container.settings-records-container
+        include _records

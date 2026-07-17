@@ -1,0 +1,16 @@
+// SERVER POWER BUTTON - STATEFUL
+div.serverPowerIcon#serverPowerToggle(
+  hx-get="/modal/bot/server"
+  hx-target="#modals-here"
+  hx-trigger="click"
+
+  hx-swap-oob="outerHTML"
+  data-bs-toggle="modal"
+  data-bs-target="#modals-here"
+
+  aria-label=`Turn Server off`
+  data-tooltip-dir='top'
+)
+  svg(aria-hidden="false" viewBox="0 0 16 16")
+    path(d="M7.5 1v7h1V1h-1z")
+    path(d="M3 8.812a4.999 4.999 0 0 1 2.578-4.375l-.485-.874A6 6 0 1 0 11 3.616l-.501.865A5 5 0 1 1 3 8.812z")

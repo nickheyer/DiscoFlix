@@ -1,0 +1,77 @@
+//- SETTINGS - MANIFEST-DRIVEN CONFIG FORM ON THE HOUSE +field MIXIN, SO
+//- SENSITIVE KEEP-ON-BLANK + __clear COME FOR FREE. SAVES AUTO-FIRE ON
+//- CHANGE (HOUSE FORM CONVENTION); THE RESPONSE RE-RENDERS THIS SURFACE
+//- AND DROPS THE TOAST IN THE TAKEOVER HEADER. LAYOUT = .appSettingsGroup
+//- ROWS (TITLE+BLURB RAIL | CARD) - SEE apps.css SETTINGS BLOCK.
+//- sectionData: { configured, formFields [+field DESCRIPTORS + key],
+//-               optionFields, optionsError, showDefault, contentTypeLabels }
+include ../../../mixins/field
+
+include ../sectionTitleDivider
+
+if !sectionData.configured
+  .appSettingsWelcome
+    .welcomeTitle Welcome to #{activeApp.display_name}!
+    .welcomeSubtitle Let's get it connected - fill in the fields below and the rail dot goes green.
+
+.appSettingsGroup
+  .appSettingsGroupInfo
+    .request-section-header Connection
+    .appSettingsGroupBlurb Where #{activeApp.display_name} lives and how DiscoFlix signs in. Changes save as you make them.
+  .appSettingsGroupBody
+    form.appSettingsForm(
+      hx-post=`/apps/${activeApp.id}/save`
+      hx-trigger="change, submit"
+      hx-swap="none"
+    )
+      .appFormCard
+        .appSettingsFields
+          each f in sectionData.formFields
+            +field(f, f.key, activeApp.id, false)
+          //- ADD DEFAULTS (ROOT FOLDER / QUALITY PROFILE) POST WITH THE SAME
+          //- FORM - SEPARATE FORMS WOULD RESET ABSENT FIELDS ON SAVE
+          if sectionData.optionFields && sectionData.optionFields.length
+            each f in sectionData.optionFields
+              +field(f, f.key, activeApp.id, false)
+          else if sectionData.optionsError
+            .appSettingsOptionNote= sectionData.optionsError
+    .appSectionActions
+      button.modal-button.button-secondary(
+        hx-post=`/apps/${activeApp.id}/test`
+        hx-target="#appTestResult"
+        hx-swap="outerHTML"
+      ) Test Connection
+      span#appTestResult
+
+if sectionData.showDefault
+  .appSettingsGroup
+    .appSettingsGroupInfo
+      .request-section-header Request Routing
+      .appSettingsGroupBlurb Which instance catches new #{sectionData.contentTypeLabels.join(' and ')} requests when more than one could serve them.
+    .appSettingsGroupBody
+      .appDefaultRow
+        if activeApp.is_default
+          span.appDefaultChip Default
+          span.appDefaultText New #{sectionData.contentTypeLabels.join(' and ')} requests land here unless an admin picks another instance.
+        else
+          span.appDefaultText Another instance currently takes new #{sectionData.contentTypeLabels.join(' and ')} requests.
+          button.modal-button.button-secondary(
+            hx-post=`/apps/${activeApp.id}/default`
+            hx-swap="none"
+          ) Make Default
+
+.appSettingsGroup
+  .appSettingsGroupInfo
+    .request-section-header.danger Danger Zone
+    .appSettingsGroupBlurb Disconnect #{activeApp.display_name} from DiscoFlix.
+  .appSettingsGroupBody
+    .appDangerZone
+      .appDangerZoneText
+        | Removing #[strong #{activeApp.display_name}] deletes its connection settings from DiscoFlix. The service itself isn't touched, and past requests keep their history.
+      button.appRemoveButton(
+        hx-get=`/modal/apps/remove/${activeApp.id}`
+        hx-target="#modals-here"
+        hx-trigger="click"
+        data-bs-toggle="modal"
+        data-bs-target="#modals-here"
+      ) Remove App

@@ -1,0 +1,42 @@
+//- UNIFIED LIBRARY - EVERY SERVICE'S LISTING MERGED INTO COMMON MEDIA ITEMS
+//- BY EXTERNAL ID (tmdb/imdb/tvdb), PATH, OR TITLE+YEAR. THE FILTER INPUT
+//- LIVES OUTSIDE #dfLibraryBody SO SWAPS NEVER STEAL ITS FOCUS. ON A
+//- SEARCHABLE SCOPED TAKEOVER THE BAR IS A FORM - ENTER ESCALATES THE TERM
+//- INTO THE SERVICE'S ADD-NEW SEARCH (THE BODY'S ESCALATION ROW, AS A KEY).
+//- sectionData: { unified, view, searchable?, escalation? }
+- var unified = sectionData.unified
+- var view = sectionData.view || 'covers'
+- var escalation = sectionData.escalation || []
+
+mixin dfLibraryFilterInput
+  input.appSearchInput#dfLibrarySearch(
+    type="search"
+    name="term"
+    value=unified.term || ''
+    placeholder="Filter the library..."
+    autocomplete="off"
+    hx-get=`/apps/${activeApp.id}/unified`
+    hx-include="#dfLibKind"
+    hx-trigger="input changed delay:400ms"
+    hx-target="#dfLibraryBody"
+    hx-swap="innerHTML"
+    hx-indicator=".appSearchIndicator"
+  )
+  .appSearchIndicator
+    svg.appSpinner(viewBox="0 0 24 24" aria-hidden="true")
+      circle(cx="12" cy="12" r="10")
+
+.appSectionDoc.appLibraryHub
+  if sectionData.searchable
+    form.appSearchBar(
+      hx-get=`/apps/${activeApp.id}/search`
+      hx-swap="none"
+      hx-trigger="submit"
+    )
+      +dfLibraryFilterInput
+  else
+    .appSearchBar
+      +dfLibraryFilterInput
+
+  #dfLibraryBody
+    include dfLibraryBody

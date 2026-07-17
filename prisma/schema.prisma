@@ -1,0 +1,352 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+// DB INFORMATION
+datasource db {
+  provider = "sqlite"
+  url      = "file:./disco.db"
+}
+
+// MODELS
+// BOT BEHAVIOR (LIMITS, ACCESS, PER-FEATURE TOGGLES) LIVES ON BotFeatureRule -
+// CONFIGURATION KEEPS ONLY IDENTITY/INFRA SETTINGS AND THE ROLE->TIER MAPPING
+model Configuration {
+  id                        String   @id @default(cuid())
+  media_server_name         String   @default("The Server")
+  prefix_keyword            String   @default("!df")
+  admin_password            String?
+  discord_token             String?
+  is_debug                  Boolean  @default(false)
+  bot_presence_activity     String   @default("none")
+  bot_presence_text         String   @default("")
+  // GRANT-ONLY ROLE->TIER MAPPING (SEE access.js roleGrantsFor)
+  whitelist_role_ids        String   @default("")
+  staff_role_ids            String   @default("")
+  admin_role_ids            String   @default("")
+  created_at                DateTime @default(now())
+  updated_at                DateTime @updatedAt @default(now())
+
+  @@map("configuration")
+}
+
+// PER-FEATURE BOT GRANTS - THE DISCORD BOT TAB'S FEATURE MATRIX. ONE ROW PER
+// (feature, scope): server_id NULL = THE GLOBAL RULE, SET = A PER-SERVER
+// OVERRIDE (A FULL CLONE THAT WINS OUTRIGHT). NO ROW = DESCRIPTOR DEFAULTS.
+// SQLITE TREATS NULLS AS DISTINCT IN UNIQUE INDEXES - THE MODEL'S upsertRule
+// (findFirst -> update/create) IS THE REAL GUARD AGAINST DUPLICATE GLOBALS.
+model BotFeatureRule {
+  id           String         @id @default(cuid())
+  feature_id   String
+  server_id    String?
+  enabled      Boolean        @default(true)
+  // MINIMUM TIER: everyone | whitelisted | staff | admin
+  audience     String         @default("everyone")
+  // EXTRA COMMA-SEPARATED DISCORD ROLE NAMES/IDS THAT QUALIFY REGARDLESS OF TIER
+  role_ids     String         @default("")
+  // SPARSE PER-FEATURE PARAMS (JSON), KEYS DECLARED BY THE FEATURE DESCRIPTOR
+  extents_json String?
+  created_at   DateTime       @default(now())
+  updated_at   DateTime       @updatedAt @default(now())
+  server       DiscordServer? @relation(fields: [server_id], references: [server_id], onDelete: Cascade)
+
+  @@unique([feature_id, server_id])
+  @@index([feature_id])
+  @@map("bot_feature_rules")
+}
+
+// GLOBAL PROCESS STATE ONLY - EVERYTHING VIEW-SHAPED LIVES ON ViewSession
+model State {
+  id            String   @id @default(cuid())
+  discord_state Boolean  @default(false)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt @default(now())
+
+  @@map("state")
+}
+
+// ONE ROW PER BROWSER (df_view COOKIE) - EACH OPERATOR BROWSES INDEPENDENTLY.
+// active_channels IS A JSON MAP server_id -> channel_id OF THE SESSION'S
+// CHANNEL PICKS; DiscordServer.active_channel_id STAYS THE GLOBAL FALLBACK.
+model ViewSession {
+  id                String         @id @default(cuid())
+  sidebar_exp_state Boolean        @default(true)
+  active_server_id  String?
+  active_app_id     String?
+  active_channels   String?
+  // NON-NULL = TIME-TRAVEL MODE: JSON { channel_id, message_id } OF THE
+  // ANCHORED WINDOW - LIVE APPENDS SUPPRESS UNTIL THE ANCHOR CLEARS
+  chat_anchor       String?
+  last_seen_at      DateTime       @default(now())
+  created_at        DateTime       @default(now())
+  updated_at        DateTime       @updatedAt @default(now())
+  activeServer      DiscordServer? @relation(fields: [active_server_id], references: [server_id], onDelete: SetNull)
+  activeApp         App?           @relation(fields: [active_app_id], references: [id], onDelete: SetNull)
+
+  @@index([last_seen_at])
+  @@map("view_sessions")
+}
+
+// INSTALLED APP INSTANCES (RADARR/SONARR/SABNZBD/QBITTORRENT...). MULTI-INSTANCE:
+// TWO RADARRS = TWO ROWS. app_type KEYS INTO THE CODE-LEVEL MANIFEST REGISTRY
+// (src/core/methods/apps/registry.js), WHICH DECLARES WHICH CONFIG COLUMNS APPLY.
+model App {
+  id             String         @id @default(cuid())
+  app_type       String
+  display_name   String
+  enabled        Boolean        @default(true)
+  url            String?
+  api_key        String?
+  username       String?
+  password       String?
+  settings_json  String?
+  is_default     Boolean        @default(false)
+  sort_position  Int            @default(0)
+  active_section String         @default("overview")
+  created_at     DateTime       @default(now())
+  updated_at     DateTime       @updatedAt @default(now())
+  requests       MediaRequest[]
+  view_sessions  ViewSession[]
+  ai_conversations AiConversation[]
+
+  @@index([app_type])
+  @@index([sort_position])
+  @@map("apps")
+}
+
+// AI PROVIDER CONVERSATION THREADS - ONE ROW PER THREAD. CONSOLE THREADS ARE
+// OPERATOR-MADE (context_key NULL, MANY PER INSTANCE); DISCORD THREADS ARE
+// KEYED BY CHANNEL (SHARED CHANNEL MEMORY - ONE THREAD PER (INSTANCE, CHANNEL))
+model AiConversation {
+  id          String      @id @default(cuid())
+  appId       String
+  surface     String      @default("console")
+  context_key String?
+  title       String      @default("New conversation")
+  created_at  DateTime    @default(now())
+  updated_at  DateTime    @updatedAt @default(now())
+  app         App         @relation(fields: [appId], references: [id], onDelete: Cascade)
+  messages    AiMessage[]
+
+  @@index([appId, surface])
+  @@index([surface, context_key])
+  @@index([updated_at])
+  @@map("ai_conversations")
+}
+
+// ONE TURN IN AN AI CONVERSATION. content IS THE FLAT RENDERABLE TEXT;
+// blocks_json HOLDS THE PROVIDER-NEUTRAL CONTENT BLOCKS (TOOL CALLS/RESULTS
+// INCLUDED) THAT REPLAY INTO THE MODEL ON THE NEXT TURN.
+model AiMessage {
+  id             String         @id @default(cuid())
+  conversationId String
+  role           String
+  content        String         @default("")
+  blocks_json    String?
+  author_label   String?
+  author_key     String?
+  usage_json     String?
+  error          String?
+  created_at     DateTime       @default(now())
+  conversation   AiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, created_at])
+  @@index([author_key, created_at])
+  @@map("ai_messages")
+}
+
+model EventLog {
+  id        String   @id @default(uuid())
+  timestamp DateTime @default(now())
+  level     String
+  message   String
+  metadata  String?
+
+  @@index([timestamp])
+  @@map("event_logs")
+}
+
+model DiscordBot {
+  id                String   @id @default(cuid())
+  bot_id            String   @default("0")
+  bot_username      String   @default("Unavailable")
+  bot_discriminator String   @default("0000")
+  bot_avatar_url    String?
+  bot_invite_link   String?
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt @default(now())
+
+  @@map("discord_bots")
+}
+
+model DiscordServer {
+  server_id            String                 @id @default(uuid())
+  unread_message_count Int?                   @default(0)
+  server_name          String?                @default("TBD")
+  server_avatar_url    String?
+  sort_position        Int?                   @default(-1)
+  active_channel_id    String?
+  available            Boolean?               @default(true)
+  created_at           DateTime               @default(now())
+  updated_at           DateTime               @updatedAt @default(now())
+  users                User[]                 @relation("UserDiscordServers")
+  requests             MediaRequest[]         @relation("DiscordServerRequests")
+  channels             DiscordServerChannel[]
+  messages             DiscordMessage[]
+  view_sessions        ViewSession[]
+  feature_rules        BotFeatureRule[]
+
+  @@index([sort_position])
+  @@map("discord_servers")
+}
+
+model DiscordServerChannel {
+  channel_id           String           @id @default(uuid())
+  channel_name         String?          @default("TBD")
+  position             Int?             @default(-1)
+  discord_server       String
+  channel_type         Int              @default(0)
+  isTextChannel        Boolean          @default(false)
+  isVoiceChannel       Boolean          @default(false)
+  isCategory           Boolean          @default(false)
+  parent_id            String           @default("")
+  unread_message_count Int              @default(0)
+  created_at           DateTime         @default(now())
+  updated_at           DateTime         @updatedAt @default(now())
+  server               DiscordServer    @relation(fields: [discord_server], references: [server_id], onDelete: Cascade)
+  messages             DiscordMessage[]
+
+  @@index([discord_server])
+  @@index([parent_id])
+  @@index([position])
+  @@map("discord_channels")
+}
+
+model DiscordMessage {
+  message_id  String               @id @default(uuid())
+  server_id   String
+  channel_id  String
+  user_id     String
+  content     String
+  embeds      String?
+  attachments String?
+  // COMPONENTS V2 JSON - BOT SURFACES MIRROR WITH THEIR REAL STRUCTURE
+  components  String?
+  previous_content String?
+  edited_at        DateTime?
+  created_at DateTime             @default(now())
+  updated_at DateTime             @updatedAt @default(now())
+  server     DiscordServer        @relation(fields: [server_id], references: [server_id], onDelete: Cascade)
+  channel    DiscordServerChannel @relation(fields: [channel_id], references: [channel_id], onDelete: Cascade)
+  user       User                 @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([server_id])
+  @@index([channel_id])
+  @@index([user_id])
+  @@index([created_at])
+  @@map("discord_messages")
+}
+
+model Media {
+  id           String         @id @default(cuid())
+  title        String?
+  overview     String?
+  poster_url   String?
+  year         Int?
+  path         String?
+  monitored    Boolean?
+  runtime      Int?
+  added        String?
+  season_count Int?
+  network      String?
+  air_time     String?
+  tvdb_id      String?
+  tmdb_id      String?
+  imdb_id      String?        @unique
+  // MUSICBRAINZ RELEASE-GROUP ID - LIDARR'S EXTERNAL KEY FOR ALBUMS
+  musicbrainz_id String?
+  first_aired  String?
+  series_type  String?
+  in_theaters  String?
+  website_url  String?
+  trailer_url  String?
+  is_available Boolean        @default(false)
+  created_at   DateTime       @default(now())
+  updated_at   DateTime       @updatedAt @default(now())
+  requests     MediaRequest[]
+
+  // EVERY SERVICE LINKS TO A COMMON MEDIA ROW BY EXTERNAL ID OR PATH
+  @@index([imdb_id])
+  @@index([tmdb_id])
+  @@index([tvdb_id])
+  @@index([musicbrainz_id])
+  @@index([path])
+  @@map("media")
+}
+
+model MediaRequest {
+  id                String         @id @default(cuid())
+  created_at        DateTime       @default(now())
+  updated_at        DateTime       @updatedAt @default(now())
+  // NULL = CONSOLE-INITIATED (SEARCH & ADD) - NO ORIGINATING GUILD
+  made_in           DiscordServer? @relation("DiscordServerRequests", fields: [madeInId], references: [server_id])
+  madeInId          String?
+  media             Media         @relation(fields: [mediaId], references: [id])
+  mediaId           String
+  orig_message      String?
+  orig_parsed_title String?
+  orig_parsed_type  String?
+  orig_channel_id   String?
+  orig_message_id   String?
+  // SERVICE-SIDE ITEM ID STAMPED ON ADD SO QUEUE WATCHES SURVIVE A RESTART
+  arr_id            String?
+  // JSON ARRAY OF PICKED SEASON NUMBERS, NULL = ALL SEASONS / NOT A SHOW
+  seasons           String?
+  status            Boolean?
+  // LIFECYCLE STAMPS - updated_at MOVES ON ANY WRITE (addUser, arr_id), SO
+  // THE PIPELINE'S DECISION/IMPORT TIMES GET THEIR OWN COLUMNS
+  decided_at        DateTime?
+  imported_at       DateTime?
+  users             User[]        @relation("UserMediaRequests")
+  app               App?          @relation(fields: [appId], references: [id], onDelete: SetNull)
+  appId             String?
+
+  @@index([madeInId])
+  @@index([mediaId])
+  @@index([appId])
+  // EVERY CHAT RENDER RESOLVES A PAGE OF MESSAGE IDS TO THEIR REQUEST CARDS
+  @@index([orig_message_id])
+  @@map("media_requests")
+}
+
+model User {
+  id                        String           @id @default(uuid())
+  username                  String           @default("DiscordUser")
+  display_name              String           @default("ADiscordUser")
+  accent_color              String           @default("ffffff")
+  avatar_url                String           @default("https://cdn.discordapp.com/embed/avatars/3.png")
+  is_superuser              Boolean          @default(false)
+  is_staff                  Boolean          @default(false)
+  is_active                 Boolean          @default(true)
+  is_whitelisted            Boolean          @default(false)
+  is_bot                    Boolean          @default(false)
+  is_client                 Boolean          @default(false)
+  // WHITELIST FLOW - STAMPED WHEN A DENIED USER ASKS TO REQUEST, CLEARED ON GRANT
+  access_requested_at       DateTime?
+  // LAST BOT SIGHTING (MESSAGE, INTERACTION, OR ROSTER SYNC)
+  last_seen_at              DateTime?
+  // PER-USER EXCEPTIONS - >0 BEATS THE FEATURE RULE'S EXTENT (0 = NO OVERRIDE)
+  max_results               Int              @default(0)
+  max_seasons_for_non_admin Int              @default(0)
+  max_requests_in_day       Int              @default(0)
+  // FREEFORM OPERATOR NOTES - CONSOLE-ONLY, NEVER SHOWN IN DISCORD
+  notes                     String           @default("")
+  created_at                DateTime         @default(now())
+  updated_at                DateTime         @updatedAt @default(now())
+  discord_servers           DiscordServer[]  @relation("UserDiscordServers")
+  requests                  MediaRequest[]   @relation("UserMediaRequests")
+  messages                  DiscordMessage[]
+
+  @@index([username])
+  @@map("users")
+}

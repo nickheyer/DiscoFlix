@@ -1,255 +1,175 @@
-# DiscoFlix
-![image](https://user-images.githubusercontent.com/60236014/230698969-6d09c60e-b265-4ef2-8e79-08140e04d3bc.png)
+<div align="center">
 
+<img src="docs/media/hero.svg" alt="DiscoFlix - the Discord concierge for your media server" width="100%">
 
-### The ideal way for you and your users to request media via Discord.
-Compatible with Radarr & Sonarr. Includes a [REST API](https://www.postman.com/galactic-equinox-215583/workspace/discoflixpublic/documentation/23251960-1f000df7-56aa-495e-9a00-fd0eeefe33ab).
+<br><br>
 
-<hr />
+<img src="docs/media/badge-selfhosted.svg" alt="self-hosted: single binary">&nbsp;<img src="docs/media/badge-discord.svg" alt="discord.js v14">&nbsp;<img src="docs/media/badge-stack.svg" alt="koa + htmx, no build step">&nbsp;<img src="docs/media/badge-db.svg" alt="prisma + sqlite">
 
-![Peek 2023-04-07 20-39](https://user-images.githubusercontent.com/60236014/230701633-986cf0d0-0534-498e-8f4b-26e413c2b241.gif)
+<br><br>
 
-<hr />
-<br />
+**Ask for a movie in Discord. DiscoFlix searches your services, handles the approval,<br>tracks the download, and replies when it's ready to watch.**
 
+</div>
 
-## General Requirements
-Running the discord bot requires a [discord developer account](https://discord.com/developers/applications), and a bot created/invited (via your developer account) to your chosen discord server.
+<br>
 
-As this application is intended to interface with [Sonarr](https://sonarr.tv) and [Radarr](https://radarr.video), you will need one or both installed. If you are installing to a machine that is not also hosting your Radarr/Sonarr, you must be able to access Radarr/Sonarr from the host (locally or remotely).
+## One request, start to finish
 
-<br />
+<div align="center">
 
+<img src="docs/media/discord-flow.svg" alt="Animated: a user requests a movie, staff approves it on a Discord button, the download progresses to 100%, and the movie becomes available" width="760">
 
-## Installation (Recommended Method)
+<sub>Request lifecycle.</sub>
 
-### Linux (Fully Automated)
+</div>
+
+<br>
+
+## The console is a Discord mirror
+
+The og discord, the good one. 
+
+<img src="docs/media/console-chat-cards.png" alt="DiscoFlix web console mirroring a Discord channel: request cards show pending approval buttons, a live download at 62%, and an approved request">
+
+<br>
+
+## Mission control for the whole stack
+
+<table>
+<tr>
+<td width="50%">
+<img src="docs/media/console-overview.png" alt="Overview: bot identity, health notices, at-a-glance stats, and every connected app with live version pills">
+<br><sub><b>Overview</b> - all the apps.</sub>
+</td>
+<td width="50%">
+<img src="docs/media/console-requests.png" alt="Requests: pipeline cards with stage steppers from Requested through Decision, Radarr, Download, Imported, and media server">
+<br><sub><b>Requests</b> - approval pipelines and the ability to track the lifecycle of a request.</sub>
+</td>
+</tr>
+<tr>
+<td width="50%">
+<img src="docs/media/console-library.png" alt="Unified library: poster grid across Radarr and Sonarr with availability dots and movie/show filters">
+<br><sub><b>Library</b> - combined library, derived (and deduped) from all media servers.</sub>
+</td>
+<td width="50%">
+<img src="docs/media/radarr-queue.png" alt="Download queue: progress bars, quality and indexer chips, time remaining, and a grabbed/imported activity feed">
+<br><sub><b>Queue</b> - live progress for all your download clients in one place.</sub>
+</td>
+</tr>
+<tr>
+<td width="50%">
+<img src="docs/media/plex-sessions.png" alt="Now playing: active Plex sessions with direct play and transcode chips, watch progress, and recently added">
+<br><sub><b>Now playing</b> - who is watching what.</sub>
+</td>
+<td width="50%">
+<img src="docs/media/console-users.png" alt="Users: cards with tier chips, wants-access flags, per-user limits, and operator notes">
+<br><sub><b>Users</b> - tiers, limits, and a WANTS ACCESS flags.</sub>
+</td>
+</tr>
+<tr>
+<td width="50%">
+<img src="docs/media/console-profile.png" alt="User profile modal: permission tier ladder, limits, notes, and the user's request history">
+<br><sub><b>Profiles</b> - grant a tier, cap requests, keep receipts.</sub>
+</td>
+<td width="50%">
+<img src="docs/media/console-logs.png" alt="Logs: searchable, level-filtered event log rows with metadata">
+<br><sub><b>Logs</b> - ...I dont know how to excite people about logs.</sub>
+</td>
+</tr>
+</table>
+
+<br>
+
+## Optional AI-powered everything
+
+Plug in Anthropic, OpenAI, Gemini, or a local Ollama. The assistant has access to all your users, what media you have downloaded/monitored/queued, and of course - the discord bot (**you can turn these off incrementally if thats too intrusive for you, but thats why we include ollama**). 
+
+<img src="docs/media/ai-chat-thread.png" alt="Console AI chat: the assistant plans a triple feature from the library, citing the tools it used - media_library, open_requests, download_queue">
+
+<table>
+<tr>
+<td width="50%">
+<img src="docs/media/console-bot-ai.png" alt="AI routing board: a who-answers ribbon and ranked provider rows per door, each with audience, daily caps, and memory settings">
+<br><sub><b>Routing</b> - commands, mentions, and DMs each pick their own provider, audience, and memory.</sub>
+</td>
+<td width="50%">
+<img src="docs/media/ai-directives.png" alt="Directives: every system prompt block is a card with a lifecycle stepper, customizable text, and a live template-variables rail">
+<br><sub><b>Directives</b> - system prompt, go nuts.</sub>
+</td>
+</tr>
+</table>
+
+<br>
+
+## How it fits together
+
+```mermaid
+flowchart LR
+    discord(["Discord"]) <--> core{{"DiscoFlix"}}
+    console(["Web console"]) <--> core
+    core --> arr["Radarr / Sonarr / Lidarr"]
+    core --> dl["SABnzbd / qBittorrent / NZBGet / +5"]
+    core --> media["Plex / Emby / Jellyfin"]
+    core --> ai["Anthropic / OpenAI / Gemini / Ollama"]
+```
+
+<br>
+
+## Run it
+
+<details>
+<summary><b>Docker</b> (recommended)</summary>
 
 ```bash
-wget https://raw.githubusercontent.com/nickheyer/DiscoFlix/main/auto_install_update.sh
-sudo ./auto_install_update.sh
+docker run -d --name discoflix \
+  -p 5001:5001 \
+  -v discoflix_data:/data \
+  nickheyer/discoflix:latest
 ```
 
-### Installation Using Docker CLI (All Operating Systems)
+Or grab [`docker-compose.yml`](docker-compose.yml) and `docker compose up -d`.
 
+</details>
 
-#### Download Docker Image
-
-To get the latest version of Discoflix, run:
+<details>
+<summary><b>From source</b></summary>
 
 ```bash
-docker image pull nickheyer/discoflix:latest
+git clone https://github.com/nickheyer/DiscoFlix.git
+cd DiscoFlix
+npm install
+npm start        # or: make dev (auto-restarts on change)
 ```
 
-#### Run Docker Container
+Node 20+. The schema migrates itself on first boot.
 
-To run Discoflix in a container, use the following command. Make sure to mount a volume to `/app/data` in the container so that your data persists across container restarts. Here's how to do it:
+</details>
 
-**Example**:  
-```bash
-docker run -d -p 5454:5454 --name discoflix -v /opt/discoflix/data:/app/data nickheyer/discoflix
-```
-
-**On Other Platforms**:  
-You can replace `/opt/discoflix/data` with an appropriate path on your local system. For Windows and macOS, specify the full path you want to use for data storage.
-This allows DiscoFlix's database to remain on your pc even if you delete or update your container!
-
-##### The server within the docker container can be accessed locally at [http://127.0.0.1:5454](http://127.0.0.1:5454)
-
-
-### Installation Using Docker-Compose
-
-#### Prep
-
-First, get the compose file:
+<details>
+<summary><b>Single binary</b></summary>
 
 ```bash
-mkdir -p /opt/discoflix/data && cd /opt/discoflix
-wget https://raw.githubusercontent.com/nickheyer/DiscoFlix/main/docker-compose.yml
+npm install
+npm run build:binary   # -> dist/discoflix
 ```
 
-#### Start the Container Using Docker Compose
+Data lands next to the binary in `discoflix-data/` (override with `DF_DATA_DIR`).
 
-With Docker Compose installed on your system, you can start Discoflix by running:
+</details>
 
-```bash
-docker-compose -f /opt/discoflix/docker-compose.yml up -d
-```
+Then open `http://localhost:5001`, paste your Discord bot token, and flip the power switch. Everything is configured in the console - or seed first-boot settings from the environment with [.env.example](.env.example).
 
-This will pull the latest Discoflix image and run it, mounting the volume specified in the `docker-compose.yml` file. This will use the default /opt/discoflix/data, so modify this path if needed.
+<br>
 
-##### The server within the docker container can be accessed locally at [http://127.0.0.1:5454](http://127.0.0.1:5454)
+---
 
-**To stop the service**, use:
+<div align="center">
 
-```bash
-docker-compose -f /opt/discoflix/docker-compose.yml down
-```
+<sub>Every screenshot above is the real UI (kinda?), captured live against a fictional showcase dataset - the movies, the users, and yes, the posters were all invented for this README (imagine if I used real movie posters, id never do that).</sub>
 
-<hr />
-<br />
+<br><br>
 
+<sub>Built by Nicholas Heyer &nbsp;&middot;&nbsp; ISC License</sub>
 
-## Installation From Source (Not Recommended)
-
-### Prerequisites, Dependencies, and Requirements
-**_NOTE:_**  Installation from source using Windows has been deprecated with the introduction of web-socket functionality, gevent, and other integral parts of this application that are not currently supported by Microsoft.
-
-1. Python - Download and install Python [here](https://www.python.org/downloads/). Make sure that you choose "Add Python to environmental variables" during installation.
-2. Git - Download and install Git [here](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
-
-### Next Steps
-
-1. Change directory to preferred install location
-```bash 
-cd /where/you/want/this/installed
-```
-
-2. Clone DiscoFlix
-
-```bash 
-git clone https://github.com/nickheyer/DiscoFlix
-```
- 
-3. Change directory to DiscoFlix
-```bash 
-cd ./DiscoFlix
-```
-
-4. Install Requirements
-```bash 
-pip install -r requirements.txt
-```
-
-5. Run Migrations
-```bash 
-python manage.py migrate
-```
-
-6. Run DiscoFlix
-```bash
-sh ./run.sh
-```
-
-<hr />
-<br />
-
-## General Instructions
-
-
-### Accessing The Web-UI
-
-![Peek 2023-04-07 20-49](https://user-images.githubusercontent.com/60236014/230701931-2bf15aaa-93e5-4060-89a8-60233f0ac211.gif)
-
-#### *You will need to get the IP address of the computer hosting DiscoFlix. On Windows, you would typically type `ipconfig` on the host machine and look for your `ipv4`.*
-
-> If you are hosting DiscoFlix (using Docker) on the same machine that you are hosting Radarr & Sonarr, you might not be able to access your Radarr & Sonarr using `http://localhost:<port>`, as that would be referencing the localhost of the docker container itself. Instead, use `http://host.docker.internal:<port>` - consider this the `localhost` of the machine hosting the docker container. In some cases, this may not be an issue.
-
-#### *If you would like to access DiscoFlix remotely, as in not on the same network as the host machine, you will need to do some port forwarding to expose port 5454 to the internet. Run into trouble? Feel free to join the [Discord](https://discord.com/invite/6Z9yKTbsrP)!*
-
-<hr />
-
-### Configuration
-
-![Peek 2023-04-07 19-50](https://user-images.githubusercontent.com/60236014/230700291-5b3149af-2eb6-4d41-99d9-50c93a5049b7.gif)
-#### *DiscoFlix requires a small amount of configuration before you can begin making requests. Discord Token + Radarr and/or Sonarr URL and Token, depending on your use case. If you plan to only use Radarr, disable the Sonarr switch in your configuration menu. Same goes for only using Sonarr.*
-
-<hr />
-
-#### *To get your Discord Token, go to the "bot" tab in your developer portal. You may need to click "reset Token" and/or enter authentication code if you have 2FA enabled. Make sure to enable all `Privileged Gateway Intents`)*
-![Peek 2023-05-22 22-06](https://github.com/nickheyer/DiscoFlix/assets/60236014/b197418d-ef70-4a74-9b0d-d43d6802f45b)
-
-#### *If you haven't already, now is also a good time to invite the bot to the server or servers you would like to monitor, you can do that via the Discord Developer Portal. Admin access is the only level we have tested. Anything less may result in errors.*
-![Peek 2023-04-07 20-01](https://user-images.githubusercontent.com/60236014/230700480-36a89984-59ea-4c65-a269-1d4e34230872.gif)
-
-<hr />
-
-<br />
-
-## Usage
-
-
-### Add Yourself As An Admin
-
-![Peek 2023-04-07 20-10](https://user-images.githubusercontent.com/60236014/230700808-3e6c6663-4d42-467f-9130-542f054b73ce.gif)
-
-
-
-
-### Test That The Bot Is Running
-
-Type the following into a discord chat message that the bot can see:
-
-```
-!df test
-```
-
-![Peek 2023-04-07 20-15](https://user-images.githubusercontent.com/60236014/230700917-a54846b6-804c-461f-83df-fa2c6b003e64.gif)
-
-### Your First Request
-Test that the bot is able to access Radarr/Sonarr by making your first test request. Let's use "Dark Phoenix" as an example.
-
-```
-!df movie Dark Phoenix
-```
-![Peek 2023-04-07 20-21](https://user-images.githubusercontent.com/60236014/230701093-3d2afff4-605a-4f04-97af-446fba9e79c7.gif)
-
-We can also test our Sonarr requests. Let's try "Cyberpunk Edgerunners".
-
-```
-!df show Cyberpunk Edgerunners
-```
-![Peek 2023-04-07 20-23](https://user-images.githubusercontent.com/60236014/230701137-9c13eb0d-88b1-4fce-9479-e3288742f615.gif)
-
-*Looks like we already have that on our server, or it's already being monitored!*
-
-
-### Available Commands
-
-To see the commands available to you, type `!df help`. DiscoFlix should respond with a table containing some or all of the below commands.
-
-
-| Command | Aliases                       | Description                               | Usage                     |
-|---------|-------------------------------|-------------------------------------------|---------------------------|
-| Test    | test                          | Confirm bot is on and listening           | `!df test`           |
-| Help    | help                          | Display all authorized commands.          | `!df help`                |
-| Echo    | echo                          | Confirm bot is handling input as intended.| `!df echo <text to echo>`|
-| Error   | error, err, raise             | Confirm bot is handling errors as intended| `!df error [-s]`          |
-| Log     | log, add-log                  | Confirm bot is logging information to console as intended | `!df log <text to log>`|
-| Movie   | movie, add-movie              | Request a movie                           | `!df movie <title>`       |
-| Show    | show, add-show, tv-show, add-tv-show, tv, tvshow | Request a tv-show   | `!df show <title>`         |
-| User    | user, add-user, add | Add a user   | `!df user <user_to_add>`         |
-
-> The above commands assume that your command prefix is set to the default `!df`. Adjust accordingly.
-
-> Keep in mind that you will need to mark yourself as "server owner" in the user control panel to use the debug commands.
-
-<br />
-
-## API
-
-[![Run in Postman](https://run.pstmn.io/button.svg)](https://app.getpostman.com/run-collection/23251960-1f000df7-56aa-495e-9a00-fd0eeefe33ab?action=collection%2Ffork&collection-url=entityId%3D23251960-1f000df7-56aa-495e-9a00-fd0eeefe33ab%26entityType%3Dcollection%26workspaceId%3Ded14656f-43d1-4444-affa-ebb323d67835)
-
-Or just view the [docs](https://www.postman.com/galactic-equinox-215583/workspace/discoflixpublic/documentation/23251960-1f000df7-56aa-495e-9a00-fd0eeefe33ab).
-
-<br />
-
-## Further Notes
-
-
-- For any other comments or questions, feel free to reach me on discord via NicholasHeyer#4212
-- Feel free to join the [Discord](https://discord.com/invite/6Z9yKTbsrP)!
-
-
-<br />
-
-## Authors
-
-- [@nickheyer](https://www.github.com/nickheyer)
-
-
-## Contributing
-
-Contributions are always welcome!
-
-Email `nick@heyer.app` for ways to get started.
+</div>

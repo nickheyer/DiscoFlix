@@ -1,0 +1,214 @@
+const _ = require('lodash');
+
+module.exports = {
+  // ONE BUBBLE'S TEMPLATE LOCALS - SHARED BY THE STRIP RENDER AND THE SCOPED
+  // PER-BUBBLE OOB PUSHES
+  bubbleLocals(serverRow, activeID, appActive) {
+    return {
+      id: serverRow.server_id,
+      serverSortPosition: serverRow.sort_position,
+      serverName: serverRow.server_name,
+      serverTrunc: serverRow.server_name.slice(0, 2),
+      serverActive: serverRow.server_id === activeID,
+      appActive,
+      serverUnread: serverRow.unread_message_count,
+      serverImage: serverRow.server_avatar_url,
+      serverAvailable: serverRow.available
+    };
+  },
+
+  async createServerBubbles(serverRows = [], view = null) {
+    const serverBubbles = [];
+    const activeID = view?.active_server_id || null;
+    const appActive = !!view?.active_app_id;
+
+    for (const serverRow of serverRows) {
+      const serverBubbleHTML = await this.compile(
+        ['sidebar/servers/serverBubble.pug'],
+        this.bubbleLocals(serverRow, activeID, appActive)
+      );
+
+      serverBubbles.push(serverBubbleHTML);
+    }
+    return serverBubbles;
+  },
+
+  async createActiveChannels(channels, currentChannelID = null) {
+    const sortedChannels = _.sortBy(channels, ['parent_id', 'position']);
+    const categories = {};
+    const uncategorized = [];
+
+    for (const channel of sortedChannels) {
+      if (channel.isCategory) {
+        categories[channel.channel_id] = { category: channel, channels: [] };
+      }
+    }
+
+    for (const channel of sortedChannels) {
+      if (!channel.isTextChannel) continue;
+      if (channel.parent_id && categories[channel.parent_id]) {
+        categories[channel.parent_id].channels.push(channel);
+      } else {
+        // TEXT CHANNELS OUTSIDE ANY CATEGORY RENDER FIRST, LIKE DISCORD
+        uncategorized.push(channel);
+      }
+    }
+
+    const channelElems = [];
+
+    const renderChannel = async (channel) => {
+      channel.isActiveChannel = channel.channel_id === currentChannelID;
+      return this.compile(['sidebar/channels/chatChannel.pug'], channel);
+    };
+
+    for (const channel of uncategorized) {
+      channelElems.push(await renderChannel(channel));
+    }
+
+    const validCategories = _.filter(_.values(categories), (ch) => !_.isEmpty(ch.channels));
+    for (const { category, channels: categoryChannels } of validCategories) {
+      const categoryHTML = await this.compile([
+        'sidebar/channels/chatChannelsHeader.pug'
+      ], category);
+      channelElems.push(categoryHTML);
+
+      for (const channel of categoryChannels) {
+        channelElems.push(await renderChannel(channel));
+      }
+    }
+    return channelElems;
+  },
+
+  // A VIEW WITHOUT A SERVER LANDS ON THE FIRST ONE - PERSISTED WHEN THE VIEW
+  // IS A REAL SESSION, IN-MEMORY ONLY FOR THE ANONYMOUS DEFAULT SHAPE
+  async ensureViewServer(view, serverRows = []) {
+    if (view.active_server_id || _.isEmpty(serverRows)) return view;
+    const firstId = serverRows[0].server_id;
+    if (view.id) {
+      return this.core.models.viewSession.updateView(view.id, { active_server_id: firstId });
+    }
+    return { ...view, active_server_id: firstId, activeServer: serverRows[0] };
+  },
+
+  // THE MIRROR'S WHOLE VIEW MODEL FOR ONE BROWSER SESSION - THE SESSION'S
+  // CHANNEL PICK WINS, THE SERVER ROW'S GLOBAL DEFAULT CATCHES THE REST
+  async getServerTemplateObj(serverRows = [], view = null) {
+    if (_.isEmpty(serverRows)) {
+      serverRows = await this.core.models.discordServer.getSorted();
+    }
+
+    view = await this.ensureViewServer(view || {}, serverRows);
+
+    let channels = [];
+    let activeServer = null;
+    let activeChannel = null;
+
+    if (view.active_server_id) {
+      // ONE CHANNELS LOAD PER RENDER PASS
+      activeServer = await this.core.models.discordServer.getWithChannels(view.active_server_id);
+
+      if (activeServer?.channels) {
+        const validChannelIds = activeServer.channels
+          .filter(ch => ch.isTextChannel)
+          .map(ch => ch.channel_id);
+
+        const sessionPick = this.core.models.viewSession.channelMapOf(view)[activeServer.server_id];
+        const currentChannelView = sessionPick && validChannelIds.includes(sessionPick)
+          ? sessionPick
+          : await this.ensureActiveChannel(activeServer, validChannelIds);
+        activeServer.active_channel_id = currentChannelView;
+
+        activeChannel = _.find(activeServer.channels, ['channel_id', currentChannelView]);
+        channels = await this.createActiveChannels(activeServer.channels, currentChannelView);
+      }
+    }
+
+    const serverBubbles = await this.createServerBubbles(serverRows, view);
+
+    return {
+      serverBubbles,
+      serverRows,
+      activeServer,
+      channels,
+      activeChannel
+    };
+  },
+
+  // MEMBERS PANE VIEW MODEL, PHASE 2 - TRACKED USERS (THE JOIN TABLE FILLS AS
+  // MESSAGES SYNC) ENRICHED WITH LIVE GUILD DATA WHILE THE BOT IS ONLINE:
+  // HOISTED-ROLE GROUPS LIKE OLD DISCORD, PRESENCE DOTS WHEN THE PRIVILEGED
+  // INTENT IS ON (DF_PRESENCE_INTENT=1 + THE DEV-PORTAL TOGGLE), OFFLINE
+  // MEMBERS SINK TO A FADED OFFLINE GROUP. RETURNS { groups, total }.
+  async getServerMembers(serverId) {
+    if (!serverId) return { groups: [], total: 0 };
+
+    const rows = await this.core.models.user.getMany(
+      { discord_servers: { some: { server_id: serverId } } },
+      {},
+      [{ is_client: 'desc' }, { username: 'asc' }]
+    );
+    if (!rows.length) return { groups: [], total: 0 };
+
+    const client = this.core.client;
+    const botOnline = !!(client && client.isReady());
+    const guild = botOnline ? client.guilds.cache.get(serverId) : null;
+    const { GatewayIntentBits } = require('discord.js');
+    const presenceOn = !!guild && client.options.intents.has(GatewayIntentBits.GuildPresences);
+
+    const roleGroups = new Map();
+    const ungrouped = [];
+    const offline = [];
+    for (const row of rows) {
+      const member = guild?.members.cache.get(row.id);
+      const status = row.is_client
+        ? (botOnline ? 'online' : 'offline')
+        : (presenceOn ? (member?.presence?.status || 'offline') : null);
+      const vm = { ...row, status };
+
+      // THE CLIENT BOT ALWAYS SHOWS AT THE TOP OF THE FIRST GROUP
+      if (!row.is_client && presenceOn && status === 'offline') {
+        offline.push(vm);
+        continue;
+      }
+      const hoisted = member?.roles?.hoist || null;
+      if (hoisted && !row.is_client) {
+        if (!roleGroups.has(hoisted.id)) {
+          roleGroups.set(hoisted.id, { label: hoisted.name, position: hoisted.position, members: [] });
+        }
+        roleGroups.get(hoisted.id).members.push(vm);
+      } else {
+        ungrouped.push(vm);
+      }
+    }
+
+    const groups = [...roleGroups.values()].sort((a, b) => b.position - a.position);
+    if (ungrouped.length) groups.push({ label: presenceOn ? 'Online' : 'Members', members: ungrouped });
+    if (offline.length) groups.push({ label: 'Offline', offline: true, members: offline });
+    return { groups, total: rows.length };
+  },
+
+  // ACCEPTS A LOADED SERVER RECORD (WITH OR WITHOUT CHANNELS) OR AN ID, AND
+  // RETURNS THE VALID ACTIVE CHANNEL ID - CALLERS DON'T NEED TO REFETCH.
+  async ensureActiveChannel(serverOrId, validChannelIds) {
+    const server = typeof serverOrId === 'string'
+      ? await this.core.models.discordServer.getById(serverOrId)
+      : serverOrId;
+    if (!server) return null;
+
+    const current = server.active_channel_id;
+    if (current && validChannelIds.includes(current)) return current;
+
+    const channels = server.channels ||
+      await this.core.models.discordChannel.getMany({ discord_server: server.server_id });
+    const firstTextChannel =
+      _.find(channels, (ch) => ch.isTextChannel && ch.parent_id && ch.position === 0) ||
+      _.find(channels, (ch) => ch.isTextChannel);
+    if (!firstTextChannel) return null;
+
+    await this.core.models.discordServer.update(
+      { server_id: server.server_id },
+      { active_channel_id: firstTextChannel.channel_id }
+    );
+    return firstTextChannel.channel_id;
+  },
+};

@@ -1,0 +1,18 @@
+//- ONE PAGE OF PROFILE REQUEST ROWS + VIEW MORE - INCLUDED BY _profileBody
+//- AND RETURNED BARE BY GET /user/:id/profile/requests/page/:n (THE BUTTON
+//- SWAPS ITSELF FOR THE NEXT PAGE). NEVER INFINITE SCROLL.
+//- LOCALS: requestsPage, requestsUserId
+include ../../../mixins/requestRow
+
+each req in requestsPage.rows
+  +requestRow(req, false)
+if requestsPage.hasMore
+  button.appLoadMore.userProfileRequestsMore(
+    type="button"
+    hx-get=`/user/${requestsUserId}/profile/requests/page/${requestsPage.page + 1}`
+    hx-swap="outerHTML"
+    hx-disabled-elt="this"
+  )
+    span View More
+    svg.appSpinner(viewBox="0 0 24 24" aria-hidden="true")
+      circle(cx="12" cy="12" r="10")

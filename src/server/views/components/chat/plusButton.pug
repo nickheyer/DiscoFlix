@@ -1,0 +1,31 @@
+//- OG-DISCORD ATTACH - THE + STAGES A FILE FOR THE ACTIVE CHANNEL (SENT AS
+//- THE BOT); THE CHAT INPUT'S ENTER SHIPS IT THROUGH POST /chat/upload.
+//- NO ACTIVE CHANNEL = NO PICKER (SAME HONESTY AS THE DISABLED INPUT).
+//- ONE GLYPH, TWO STATES - THE CSS SIZES/CENTERS IT INSIDE THE CIRCLE
+mixin plusGlyph
+  svg(
+    xmlns="http://www.w3.org/2000/svg",
+    viewBox="0 0 24 24",
+    fill="none", stroke="currentColor", stroke-width="4",
+    stroke-linecap="round", stroke-linejoin="round",
+    aria-hidden="true"
+  )
+    line(x1="12", y1="4", x2="12", y2="20")
+    line(x1="4", y1="12", x2="20", y2="12")
+
+//- AI COMPOSERS HAVE NOTHING TO ATTACH - SAME HONEST DISABLED STATE
+if typeof aiComposer !== 'undefined' && aiComposer
+  .plusButton.disabled(aria-hidden="true")
+    +plusGlyph
+else if servers.activeChannel && servers.activeChannel.channel_name
+  label.plusButton(
+    for="chatUploadFile"
+    aria-label="Attach a file"
+    data-tooltip-dir="top"
+    role="button"
+    tabindex="0"
+  )
+    +plusGlyph
+else
+  .plusButton.disabled(aria-hidden="true")
+    +plusGlyph

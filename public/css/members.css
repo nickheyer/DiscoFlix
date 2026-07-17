@@ -1,0 +1,101 @@
+/* MEMBERS PANE - RIGHT RAIL, POPULATED FROM USERS TRACKED PER SERVER */
+
+.memberContainer {
+  order: 4;
+  height: 100%;
+  width: 240px;
+  min-width: 240px;
+  background-color: var(--bg-secondary);
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 0 8px;
+  box-sizing: border-box;
+  user-select: none;
+}
+
+/* NOTHING TO SHOW (NO ACTIVE SERVER / NO TRACKED USERS) - GIVE THE SPACE BACK */
+.memberContainer:empty {
+  display: none;
+}
+
+.memberListHeader {
+  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--channel-default);
+  padding: 24px 8px 4px;
+  flex-shrink: 0;
+}
+
+.memberRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 8px;
+  margin-top: 2px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  cursor: pointer; /* ROW CLICK OPENS THE MEMBER'S SETTINGS MODAL */
+  user-select: none;
+}
+
+.memberRow:hover {
+  background-color: var(--bg-modifier-hover);
+}
+
+.memberRow:hover .memberName {
+  color: var(--interactive-hover);
+}
+
+.memberAvatarWrapper {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.memberAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+
+/* STATUS DOTS IN THE PANE RING WITH THE PANE COLOR */
+.memberContainer .statusBubble {
+  border-color: var(--bg-secondary);
+}
+
+.memberName {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--channel-default);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+/* BOT TAG STYLING COMES FROM THE SHARED .chatMessageTag RULE (chat.css) */
+
+/* PRESENCE DOTS - IDLE AND DND JOIN THE EXISTING GREEN/RED PAIR */
+.statusBubble.idle {
+  background-color: var(--yellow);
+  visibility: visible !important;
+}
+
+.statusBubble.dnd {
+  background-color: var(--red);
+  visibility: visible !important;
+}
+
+/* OFFLINE GROUP ROWS FADE LIKE OLD DISCORD INSTEAD OF WEARING A DOT */
+.memberRow.offlineMember {
+  opacity: 0.4;
+}
+
+.memberRow.offlineMember:hover {
+  opacity: 1;
+}

@@ -1,43 +1,53 @@
-# BASE
-FROM python:3.13-slim AS build
+# syntax=docker/dockerfile:1
 
-ENV PIP_DEFAULT_TIMEOUT=100 \
-    PYTHONUNBUFFERED=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    PIP_NO_CACHE_DIR=1 \
-    POETRY_VERSION=1.8.4
+# ---- PROD DEPS ONLY (NO devDependencies, NO PRISMA CLI) ----
+FROM node:26-alpine AS deps
+WORKDIR /app
+COPY package.json package-lock.json ./
+# THE PRISMA CLI + SCHEMA ENGINE (~60MB) ARE USELESS AT RUNTIME - MIGRATIONS
+# RUN IN-PROCESS VIA src/core/migrate.js AGAINST THE GENERATED CLIENT
+RUN npm ci --omit=dev && npm cache clean --force \
+ && rm -rf node_modules/prisma node_modules/@prisma/engines node_modules/.bin/prisma
+
+# ---- PRISMA CLIENT GENERATION (CLI COMES FROM devDependencies) ----
+FROM node:26-alpine AS build
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+COPY prisma/schema.prisma ./prisma/schema.prisma
+RUN npx prisma generate
+
+# ---- RUNTIME ----
+FROM node:26-alpine
+LABEL org.opencontainers.image.source="https://github.com/nickheyer/DiscoFlix" \
+      org.opencontainers.image.description="DiscoFlix - Discord media request bot + web console" \
+      org.opencontainers.image.licenses="ISC"
+
+# PRISMA'S musl QUERY ENGINE LINKS AGAINST SHARED OPENSSL
+RUN apk add --no-cache openssl
+
+ENV NODE_ENV=production \
+    PORT=5001 \
+    DF_DATA_DIR=/data
 
 WORKDIR /app
-COPY pyproject.toml poetry.lock ./
-RUN pip install "poetry==$POETRY_VERSION" \
-    && poetry config warnings.export false \
-    && poetry install --no-root --no-ansi --no-interaction \
-    && poetry export -f requirements.txt -o requirements.txt
+RUN addgroup -S discoflix && adduser -S discoflix -G discoflix \
+ && mkdir -p /data && chown discoflix:discoflix /data /app
 
-# PROD
-FROM python:3.13-slim AS prod
+COPY --from=deps --chown=discoflix:discoflix /app/node_modules ./node_modules
+# GENERATED CLIENT + QUERY ENGINE LAND IN node_modules/.prisma
+COPY --from=build --chown=discoflix:discoflix /app/node_modules/.prisma ./node_modules/.prisma
+COPY --chown=discoflix:discoflix package.json logging.js ./
+COPY --chown=discoflix:discoflix prisma/schema.prisma ./prisma/schema.prisma
+COPY --chown=discoflix:discoflix prisma/migrations ./prisma/migrations
+COPY --chown=discoflix:discoflix public ./public
+COPY --chown=discoflix:discoflix src ./src
 
-WORKDIR /app
-COPY . /app/
-COPY --from=build /app/requirements.txt .
+USER discoflix
+EXPOSE 5001
 
-RUN set -ex \
-    && if id -u 1000 >/dev/null 2>&1; then \
-         userdel -r "$(id -nu 1000)"; \
-       fi \
-    && if getent group 1000 >/dev/null 2>&1; then \
-         groupdel "$(getent group 1000 | cut -d: -f1)"; \
-       fi \
-    && apt-get update \
-    && apt-get upgrade -y \
-    && apt-get install -y --no-install-recommends procps \
-    && pip install -r requirements.txt \
-    && apt-get autoremove -y \
-    && apt-get clean -y \
-    && rm -rf /var/lib/apt/lists/* \
-    && find /usr/local/lib/python3.13 -name '__pycache__' -exec rm -r {} + \
-    && find /usr/local/lib/python3.13 -name '*.pyc' -delete
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD node -e 'fetch("http://127.0.0.1:"+(process.env.PORT||5001)+"/").then(r=>process.exit(r.status<500?0:1)).catch(()=>process.exit(1))'
 
-EXPOSE 5454
-CMD ["sh", "./run.sh"]
-USER root
+# MIGRATIONS RUN IN-PROCESS AT BOOT (src/core/migrate.js) - NO ENTRYPOINT NEEDED
+CMD ["node", "src/server/server.js"]

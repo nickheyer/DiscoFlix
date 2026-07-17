@@ -1,0 +1,114 @@
+//- UNIFIED LIBRARY PAGE FRAGMENT - MERGED ITEMS AS COVER CARDS OR DETAILED
+//- ROWS PLUS THE VIEW MORE SENTINEL; INCLUDED BY dfLibraryBody AND RETURNED
+//- BARE BY GET /apps/:id/unified/page/:n. ON THE HUB AN ITEM OPENS ITS
+//- PRIMARY SOURCE'S DETAIL (from=hub POINTS BACK); IN A SCOPED TAKEOVER THE
+//- SCOPE SOURCE LEADS AND BACK RETURNS TO THAT APP'S LIBRARY. SOURCE CHIPS
+//- ON DETAILED ROWS OPEN EACH SERVICE'S OWN COPY. LOCALS: activeApp,
+//- unified, view
+include ../../mixins/browse
+- var unifiedItems = (unified && unified.items) || []
+- var unifiedView = typeof view === 'string' ? view : 'covers'
+- var pageQuery = `kind=${unified.kind}&term=${encodeURIComponent(unified.term || '')}`
+- var backFrom = activeApp.app_type === 'discoflix' ? 'hub' : 'library'
+
+each entry in unifiedItems
+  - var detailUrl = `/apps/${entry.primary.appId}/library/item/${entry.primary.itemId}?from=${backFrom}`
+  if unifiedView === 'detailed'
+    .request-row.appBrowseRow.unifiedRow(
+      role="button"
+      tabindex="0"
+      aria-label=`Open ${entry.title}`
+      hx-get=detailUrl
+      hx-target="#appSectionBody"
+      hx-swap="innerHTML show:#messageContainer:top"
+      hx-trigger="click, keyup[key=='Enter']"
+    )
+      +browsePoster(entry.posterUrl, entry.kind)
+      .request-info
+        .request-title= entry.year ? `${entry.title} (${entry.year})` : entry.title
+        if entry.kind === 'show' && (entry.seasonCount || entry.episodeCount)
+          - var countBits = []
+          - if (entry.seasonCount) countBits.push(`${entry.seasonCount} season${entry.seasonCount === 1 ? '' : 's'}`)
+          - if (entry.episodeCount && entry.episodeFileCount != null && entry.episodeFileCount < entry.episodeCount) countBits.push(`${entry.episodeFileCount} of ${entry.episodeCount} episodes`)
+          - else if (entry.episodeCount) countBits.push(`${entry.episodeCount} episode${entry.episodeCount === 1 ? '' : 's'}`)
+          .unifiedItemCounts= countBits.join(' • ')
+        if entry.overview
+          .request-orig-message= entry.overview
+        .unifiedSourceChips
+          each source in entry.sources
+            .unifiedSourceChip(
+              role="button"
+              tabindex="0"
+              aria-label=`Open ${entry.title} on ${source.label}`
+              data-tooltip-dir="top"
+              hx-get=`/apps/${source.appId}/library/item/${source.itemId}?from=${backFrom}`
+              hx-target="#appSectionBody"
+              hx-swap="innerHTML show:#messageContainer:top"
+              hx-trigger="click, keyup[key=='Enter']"
+              hx-on:click="event.stopPropagation()"
+              hx-on:keyup="event.stopPropagation()"
+            )
+              if source.icon
+                img(src=source.icon alt="" aria-hidden="true")
+              span= source.label
+              span.unifiedSourceDot(class=source.available ? 'ok' : 'down' title=source.available ? 'On disk' : 'Missing')
+      .request-status
+        if entry.streamable
+          span.requestChip.chip-available Available
+        else if entry.onDisk
+          span.requestChip.chip-approved On Disk
+        else
+          span.requestChip.chip-missing Missing
+        if entry.media && entry.media.requested
+          span.requestChip.chip-pending Requested
+  else
+    .posterCard(
+      role="button"
+      tabindex="0"
+      aria-label=`Open ${entry.title}`
+      hx-get=detailUrl
+      hx-target="#appSectionBody"
+      hx-swap="innerHTML show:#messageContainer:top"
+      hx-trigger="click, keyup[key=='Enter']"
+    )
+      if entry.posterUrl
+        img(src=entry.posterUrl alt=entry.title loading="lazy" referrerpolicy="no-referrer")
+      else
+        .posterCardFallback
+          svg(viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true")
+            if entry.kind === 'show'
+              rect(x="3" y="7" width="18" height="13" rx="2")
+              path(stroke-linecap="round" stroke-linejoin="round" d="M8 3l4 4 4-4")
+            else if entry.kind === 'music'
+              path(stroke-linecap="round" stroke-linejoin="round" d="M9 18V5l12-2v13")
+              circle(cx="6" cy="18" r="3")
+              circle(cx="18" cy="16" r="3")
+            else
+              rect(x="3" y="5" width="18" height="14" rx="2")
+              path(stroke-linecap="round" d="M3 9h18M8 5v14M16 5v14")
+      if entry.streamable
+        .posterBadge(title="Streamable")
+      else if entry.onDisk
+        .posterBadge.inLibrary(title="On disk")
+      .posterCardInfo
+        .posterCardTitle(title=entry.title)= entry.title
+        .posterCardMeta.unifiedCardMeta
+          if entry.year
+            span= entry.year
+          if entry.kind === 'show' && entry.seasonCount
+            span.unifiedCardCounts= `${entry.seasonCount} season${entry.seasonCount === 1 ? '' : 's'}`
+          .unifiedCardIcons
+            each source in entry.sources
+              if source.icon
+                img(src=source.icon alt=source.label title=source.label)
+
+if unified && unified.hasMore
+  button.appLoadMore.libraryLoadMore(
+    type="button"
+    hx-get=`/apps/${activeApp.id}/unified/page/${unified.page + 1}?${pageQuery}`
+    hx-swap="outerHTML"
+    hx-disabled-elt="this"
+  )
+    span View More
+    svg.appSpinner(viewBox="0 0 24 24" aria-hidden="true")
+      circle(cx="12" cy="12" r="10")

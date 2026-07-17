@@ -1,0 +1,100 @@
+//- UNIFIED LIBRARY BODY - COUNTS, KIND TABS, VIEW TOGGLE, AND THE LISTING.
+//- SWAPPED WHOLE ON EVERY FILTER CHANGE SO TABS AND GRID ALWAYS AGREE.
+//- RENDERED BY THE HUB AND BY EVERY SCOPED APP TAKEOVER ALIKE. LOCALS:
+//- activeApp, unified { items, total, hasMore, page, counts, presentKinds,
+//- errors, kind, term, scopeAppId }, view, escalation [{ id, label }]
+//- TABS ONLY EARN THEIR ROW WHEN THE (SCOPED) LIBRARY SPANS MULTIPLE KINDS
+- var kindLabels = { movie: 'Movies', show: 'Shows', music: 'Music' }
+- var presentKinds = unified.presentKinds || []
+- var kindTabs = presentKinds.length > 1 ? [{ key: 'all', label: 'All' }].concat(presentKinds.map(function(key) { return { key: key, label: kindLabels[key] } })) : []
+- var escalationTargets = (typeof escalation !== 'undefined' && escalation) || []
+
+//- THE ACTIVE KIND RIDES FILTER REQUESTS VIA hx-include
+input#dfLibKind(type="hidden" name="kind" value=unified.kind)
+
+//- A TYPED TERM CAN ESCALATE INTO ADD-NEW SEARCH - THE ROW RIDES THE BODY
+//- SWAP SO IT ALWAYS NAMES THE CURRENT TERM, AND hx-include SENDS WHATEVER
+//- THE BAR HOLDS AT CLICK TIME (ENTER IN THE BAR SUBMITS THE SAME REQUEST)
+if unified.term && escalationTargets.length
+  //- NOTHING MATCHED = THE ESCALATION IS THE WHOLE POINT - MAKE IT THE HERO
+  .appSearchEscalateRow(class=!unified.items.length ? 'hero' : undefined)
+    each target in escalationTargets
+      button.appSearchEscalate(
+        type="button"
+        hx-get=`/apps/${target.id}/search`
+        hx-include="#dfLibrarySearch"
+        hx-swap="none"
+        hx-disabled-elt="this"
+      )
+        svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true")
+          circle(cx="11" cy="11" r="7")
+          path(d="M20 20l-4.2-4.2")
+        span Search #{target.label} for “#{unified.term}”
+
+.request-section-header.appLibraryHeader
+  if unified.term
+    span Results - #{unified.total} for “#{unified.term}”
+  else
+    span Library - #{unified.total} item#{unified.total === 1 ? '' : 's'}
+  .appLibraryHeaderTools
+    if kindTabs.length
+      .appInstanceTabs.appLibKindTabs
+        each tab in kindTabs
+          .appInstanceTab(
+            role="button"
+            tabindex=unified.kind !== tab.key ? "0" : undefined
+            class=unified.kind === tab.key ? 'active' : ''
+            hx-get=unified.kind !== tab.key ? `/apps/${activeApp.id}/unified?kind=${tab.key}` : undefined
+            hx-include=unified.kind !== tab.key ? '#dfLibrarySearch' : undefined
+            hx-target=unified.kind !== tab.key ? '#dfLibraryBody' : undefined
+            hx-swap=unified.kind !== tab.key ? 'innerHTML' : undefined
+            hx-trigger=unified.kind !== tab.key ? "click, keyup[key=='Enter']" : undefined
+          ) #{tab.label} (#{unified.counts[tab.key]})
+    if unified.items.length
+      .appViewToggle(role="group" aria-label="View style")
+        button.appViewToggleButton(
+          type="button"
+          aria-label="Cover view"
+          data-tooltip-dir="top"
+          class=view === 'covers' ? 'active' : ''
+          hx-get=view !== 'covers' ? `/apps/${activeApp.id}/unified?view=covers` : undefined
+          hx-include=view !== 'covers' ? '#dfLibrarySearch, #dfLibKind' : undefined
+          hx-target=view !== 'covers' ? '#dfLibraryBody' : undefined
+          hx-swap=view !== 'covers' ? 'innerHTML' : undefined
+          hx-disabled-elt="this"
+        )
+          svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true")
+            rect(x="3" y="3" width="7" height="7" rx="1")
+            rect(x="14" y="3" width="7" height="7" rx="1")
+            rect(x="3" y="14" width="7" height="7" rx="1")
+            rect(x="14" y="14" width="7" height="7" rx="1")
+        button.appViewToggleButton(
+          type="button"
+          aria-label="Detailed view"
+          data-tooltip-dir="top"
+          class=view === 'detailed' ? 'active' : ''
+          hx-get=view !== 'detailed' ? `/apps/${activeApp.id}/unified?view=detailed` : undefined
+          hx-include=view !== 'detailed' ? '#dfLibrarySearch, #dfLibKind' : undefined
+          hx-target=view !== 'detailed' ? '#dfLibraryBody' : undefined
+          hx-swap=view !== 'detailed' ? 'innerHTML' : undefined
+          hx-disabled-elt="this"
+        )
+          svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true")
+            path(d="M4 6h16M4 12h16M4 18h16")
+
+if unified.errors && unified.errors.length
+  .appLibHubNote #{unified.errors.map(function(error) { return error.message }).join(' - ')} - showing everything that answered
+
+if !unified.items.length
+  if unified.term
+    .appQueueEmpty No library items match “#{unified.term}”.
+  else if unified.scopeAppId
+    .appQueueEmpty Nothing in #{activeApp.display_name}'s library yet - approved requests and adds land here.
+  else
+    .appQueueEmpty Nothing to browse yet - connect a media server or content manager and its library lands here.
+else if view === 'detailed'
+  .appBrowseList
+    include ../unifiedCards
+else
+  .posterGrid
+    include ../unifiedCards

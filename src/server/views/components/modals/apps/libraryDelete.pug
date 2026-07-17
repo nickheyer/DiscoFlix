@@ -1,0 +1,30 @@
+//- 440px DANGER CONFIRM (POWER-MODAL PATTERN) FOR REMOVING A LIBRARY ITEM.
+//- FILE DELETION AND LIST EXCLUSION ARE EXPLICIT OPT-INS; THE CONFIRM'S
+//- RESPONSE RESTORES WHATEVER TAKEOVER SURFACE THE OPERATOR IS ON.
+//- locals: app (ROW), itemId, itemTitle
+.modal-dialog.modal-dialog-centered#modal-container(hx-target="#modals-here")
+  .modal-content.io-modal
+    .modal-header
+      h5.modal-title Remove #{itemTitle}
+      button.modal-close-button(type="button" data-bs-dismiss="modal") ×
+    .modal-body
+      .power-modal-content
+        p.power-status-text
+          | This removes
+          strong  #{itemTitle}
+          |  from #{app.display_name}. Files stay on disk and lists may re-add it unless you say otherwise.
+        form#libraryDeleteOptions.libraryDeleteOptions
+          label.libraryDeleteOption
+            input(type="checkbox" name="deleteFiles")
+            span Also delete the files from disk
+          label.libraryDeleteOption
+            input(type="checkbox" name="addExclusion")
+            span Block lists from re-adding it
+    .modal-footer
+      button#modal-cancel-button.modal-button(type="button" data-bs-dismiss="modal") Cancel
+      button.modal-button.appRemoveConfirm(
+        hx-post=`/apps/${app.id}/library/item/${itemId}/delete`
+        hx-include="#libraryDeleteOptions"
+        hx-swap="none"
+        data-bs-dismiss="modal"
+      ) Remove

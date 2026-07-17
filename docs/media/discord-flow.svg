@@ -1,0 +1,170 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 424" font-family="'gg sans','Noto Sans','Helvetica Neue',Arial,sans-serif">
+  <defs>
+    <linearGradient id="tjGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#43b581"/><stop offset="1" stop-color="#1f7a5c"/>
+    </linearGradient>
+    <linearGradient id="posterGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#08060d"/><stop offset="1" stop-color="#150b20"/>
+    </linearGradient>
+    <radialGradient id="bloomGrad" cx="0.5" cy="0.42" r="0.62">
+      <stop offset="0" stop-color="#ffdcf0"/><stop offset="0.4" stop-color="#ff54b4"/><stop offset="0.75" stop-color="#c448ff" stop-opacity="0.8"/><stop offset="1" stop-color="#c448ff" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="posterClip"><rect x="0" y="0" width="64" height="96" rx="4"/></clipPath>
+  </defs>
+
+  <style>
+    :root { }
+    .msg, .typing, .btns, .chipPending, .chipApproved, .progressRow, .chipDone, .doneMsg { opacity: 0; }
+
+    .m1        { animation: fadeUp    16s cubic-bezier(.2,.7,.3,1) infinite; animation-delay: 0s; }
+    .typing    { animation: typingWin 16s linear infinite; }
+    .m2        { animation: fadeUp2   16s cubic-bezier(.2,.7,.3,1) infinite; }
+    .btns      { animation: btnsWin   16s linear infinite; }
+    .approveBtn{ animation: press     16s linear infinite; transform-origin: center; transform-box: fill-box; }
+    .chipPending  { animation: chipPendingWin  16s linear infinite; }
+    .chipApproved { animation: chipApprovedWin 16s linear infinite; }
+    .progressRow  { animation: progressWin     16s linear infinite; }
+    .progressFill { animation: fill            16s cubic-bezier(.45,.05,.35,1) infinite; transform-origin: left center; transform-box: fill-box; transform: scaleX(0.001); }
+    .pctLabel     { animation: pctSwap  16s linear infinite; }
+    .pctLabel2    { animation: pctSwap2 16s linear infinite; opacity: 0; }
+    .chipDone  { animation: chipDoneWin 16s linear infinite; }
+    .doneMsg   { animation: fadeUp3     16s cubic-bezier(.2,.7,.3,1) infinite; }
+    .dot1 { animation: blink 1.2s linear infinite; }
+    .dot2 { animation: blink 1.2s linear infinite 0.2s; }
+    .dot3 { animation: blink 1.2s linear infinite 0.4s; }
+
+    /* windows (percent of 16s): m1 in at 3%; typing 8-17%; m2 at 18%; approve press ~34%;
+       buttons out 38%; approved chip 38-46%; progress 46%..; fill to 62% by 62%, 100% by 76%;
+       done chip 78%; done msg 82%; everything eases out 96-100% */
+    @keyframes fadeUp  { 0%,2% { opacity:0; transform:translateY(10px);} 5%,95% { opacity:1; transform:translateY(0);} 99%,100% { opacity:0; } }
+    @keyframes typingWin { 0%,7% { opacity:0; } 9%,15% { opacity:1; } 17%,100% { opacity:0; } }
+    @keyframes fadeUp2 { 0%,17% { opacity:0; transform:translateY(12px);} 21%,95% { opacity:1; transform:translateY(0);} 99%,100% { opacity:0; } }
+    @keyframes btnsWin { 0%,20% { opacity:0; } 23%,36% { opacity:1; } 39%,100% { opacity:0; } }
+    @keyframes press   { 0%,31% { transform:scale(1); filter:brightness(1);} 33% { transform:scale(0.94); filter:brightness(1.35);} 35%,100% { transform:scale(1); } }
+    @keyframes chipPendingWin  { 0%,20% { opacity:0; } 23%,37% { opacity:1; } 40%,100% { opacity:0; } }
+    @keyframes chipApprovedWin { 0%,39% { opacity:0; } 42%,74% { opacity:1; } 77%,100% { opacity:0; } }
+    @keyframes progressWin { 0%,44% { opacity:0; } 47%,93% { opacity:1; } 97%,100% { opacity:0; } }
+    @keyframes fill { 0%,46% { transform:scaleX(0.001);} 62% { transform:scaleX(0.62);} 68% { transform:scaleX(0.66);} 76%,100% { transform:scaleX(1);} }
+    @keyframes pctSwap  { 0%,46% { opacity:0;} 48%,74% { opacity:1;} 76%,100% { opacity:0;} }
+    @keyframes pctSwap2 { 0%,76% { opacity:0;} 78%,93% { opacity:1;} 97%,100% { opacity:0;} }
+    @keyframes chipDoneWin { 0%,76% { opacity:0; } 79%,95% { opacity:1; } 99%,100% { opacity:0; } }
+    @keyframes fadeUp3 { 0%,80% { opacity:0; transform:translateY(10px);} 84%,95% { opacity:1; transform:translateY(0);} 99%,100% { opacity:0; } }
+    @keyframes blink { 0%,100% { opacity:0.25; } 30% { opacity:1; } }
+    @keyframes sheen { 0%,100% { opacity:0.25; } 50% { opacity:0.7; } }
+  </style>
+
+  <!-- window -->
+  <rect x="0" y="0" width="720" height="424" rx="14" fill="#36393f"/>
+  <line x1="0" y1="48" x2="720" y2="48" stroke="#202225" stroke-width="1.5"/>
+
+  <!-- channel header -->
+  <g fill="none" stroke="#72767d" stroke-width="2.6" stroke-linecap="round">
+    <path d="M26 18 L22 32 M36 18 L32 32 M19 22.5 H39 M17.5 27.5 H37.5"/>
+  </g>
+  <text x="48" y="30" fill="#ffffff" font-size="16" font-weight="700">media-requests</text>
+  <text x="185" y="30" fill="#72767d" font-size="13">Movie night pipeline. The bot lives here.</text>
+
+  <!-- M1: user request -->
+  <g class="msg m1">
+    <circle cx="44" cy="86" r="20" fill="url(#tjGrad)"/>
+    <text x="44" y="92" text-anchor="middle" fill="#ffffff" font-size="14" font-weight="800">TJ</text>
+    <text x="76" y="80" fill="#43b581" font-size="15" font-weight="600">tj_okafor</text>
+    <text x="149" y="80" fill="#72767d" font-size="11">Today at 9:12 PM</text>
+    <text x="76" y="101" fill="#dcddde" font-size="15">!df movie Static Bloom</text>
+  </g>
+
+  <!-- typing indicator -->
+  <g class="typing">
+    <circle class="dot1" cx="80" cy="132" r="3.5" fill="#b9bbbe"/>
+    <circle class="dot2" cx="92" cy="132" r="3.5" fill="#b9bbbe"/>
+    <circle class="dot3" cx="104" cy="132" r="3.5" fill="#b9bbbe"/>
+    <text x="116" y="136" fill="#b9bbbe" font-size="12" font-weight="600">DiscoFlix is typing</text>
+  </g>
+
+  <!-- M2: bot reply with request card -->
+  <g class="msg m2">
+    <g>
+      <circle cx="44" cy="146" r="20" fill="#6577cc"/>
+      <image href="data:image/png;base64,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" x="31" y="133" width="26" height="26"/>
+    </g>
+    <text x="76" y="140" fill="#7289da" font-size="15" font-weight="600">DiscoFlix</text>
+    <rect x="152" y="128" width="34" height="16" rx="3" fill="#7289da"/>
+    <text x="169" y="140" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="700">BOT</text>
+    <text x="192" y="140" fill="#72767d" font-size="11">Today at 9:12 PM</text>
+    <text x="76" y="161" fill="#dcddde" font-size="15">Found one match. Needs a staff sign-off:</text>
+
+    <!-- card -->
+    <g transform="translate(76,174)">
+      <rect x="0" y="0" width="470" height="128" rx="6" fill="#2f3136"/>
+      <rect x="0" y="0" width="4" height="128" rx="2" fill="#7289da"/>
+
+      <!-- mini poster: Static Bloom -->
+      <g transform="translate(16,16)">
+        <rect width="64" height="96" rx="4" fill="url(#posterGrad)"/>
+        <g clip-path="url(#posterClip)">
+          <circle cx="32" cy="38" r="26" fill="url(#bloomGrad)"/>
+          <rect x="0" y="30" width="64" height="3" fill="#00ffe0" opacity="0.35"/>
+          <rect x="0" y="52" width="64" height="2" fill="#ff4040" opacity="0.3"/>
+          <text x="32" y="82" text-anchor="middle" fill="#f4eefc" font-size="8.5" font-weight="800" font-family="'JetBrains Mono',monospace" letter-spacing="0.5">STATIC</text>
+          <text x="32" y="91" text-anchor="middle" fill="#00ffd9" font-size="8.5" font-weight="800" font-family="'JetBrains Mono',monospace" letter-spacing="0.5">_BLOOM</text>
+        </g>
+      </g>
+
+      <text x="96" y="34" fill="#ffffff" font-size="16" font-weight="700">Static Bloom (2026)</text>
+      <text x="96" y="54" fill="#b9bbbe" font-size="12.5">Requested by tj_okafor - just now - Radarr</text>
+
+      <!-- status chips (stacked, cross-fading) -->
+      <g class="chipPending">
+        <rect x="96" y="66" width="72" height="22" rx="11" fill="none" stroke="#faa61a" stroke-width="1.4"/>
+        <text x="132" y="81" text-anchor="middle" fill="#faa61a" font-size="11.5" font-weight="700">Pending</text>
+      </g>
+      <g class="chipApproved">
+        <rect x="96" y="66" width="150" height="22" rx="11" fill="none" stroke="#7289da" stroke-width="1.4"/>
+        <text x="171" y="81" text-anchor="middle" fill="#7289da" font-size="11.5" font-weight="700">Approved - searching</text>
+      </g>
+      <g class="chipDone">
+        <rect x="96" y="66" width="212" height="22" rx="11" fill="none" stroke="#43b581" stroke-width="1.4"/>
+        <text x="202" y="81" text-anchor="middle" fill="#43b581" font-size="11.5" font-weight="700">Available on Heyer Home Media</text>
+      </g>
+
+      <!-- approve / deny buttons -->
+      <g class="btns" transform="translate(96,96)">
+        <g class="approveBtn">
+          <rect x="0" y="0" width="74" height="26" rx="4" fill="#43b581"/>
+          <text x="37" y="17.5" text-anchor="middle" fill="#ffffff" font-size="12.5" font-weight="700">Approve</text>
+        </g>
+        <rect x="82" y="0" width="58" height="26" rx="4" fill="#f04747"/>
+        <text x="111" y="17.5" text-anchor="middle" fill="#ffffff" font-size="12.5" font-weight="700">Deny</text>
+        <rect x="148" y="0" width="130" height="26" rx="4" fill="#4f545c"/>
+        <text x="213" y="17.5" text-anchor="middle" fill="#dcddde" font-size="12">Radarr - HD-1080p</text>
+      </g>
+
+      <!-- progress row (replaces buttons) -->
+      <g class="progressRow" transform="translate(96,96)">
+        <rect x="0" y="10" width="280" height="8" rx="4" fill="#202225"/>
+        <rect class="progressFill" x="0" y="10" width="280" height="8" rx="4" fill="#43b581"/>
+        <g class="pctLabel">
+          <text x="290" y="19" fill="#b9bbbe" font-size="11.5" font-weight="700">62%</text>
+          <text x="0" y="3" fill="#72767d" font-size="10.5">Static.Bloom.2026.1080p.WEB-DL - SABnzbd - 45 MB/s</text>
+        </g>
+        <g class="pctLabel2">
+          <text x="290" y="19" fill="#43b581" font-size="11.5" font-weight="700">100%</text>
+          <text x="0" y="3" fill="#72767d" font-size="10.5">Imported - notified tj_okafor by DM</text>
+        </g>
+      </g>
+    </g>
+  </g>
+
+  <!-- M3: bot signoff -->
+  <g class="doneMsg">
+    <text x="76" y="332" fill="#dcddde" font-size="15">Enjoy the glow.</text>
+    <text x="187" y="332" fill="#72767d" font-size="11">(edited)</text>
+  </g>
+
+  <!-- input bar -->
+  <rect x="16" y="364" width="688" height="44" rx="8" fill="#40444b"/>
+  <circle cx="44" cy="386" r="11" fill="#b9bbbe"/>
+  <rect x="39" y="384.2" width="10" height="3.6" rx="1.8" fill="#40444b"/>
+  <rect x="42.2" y="381" width="3.6" height="10" rx="1.8" fill="#40444b"/>
+  <text x="66" y="391" fill="#72767d" font-size="14">Message #media-requests</text>
+</svg>

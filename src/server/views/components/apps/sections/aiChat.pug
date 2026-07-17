@@ -1,0 +1,38 @@
+//- AI CHAT SECTION - THE OPERATOR'S THREAD WITH THE PROVIDER, WEARING THE
+//- CHAT MIRROR'S OWN LAYOUT: appSurface RENDERS THE BARE column-reverse
+//- #messageContainer FOR THIS SECTION, THIS IS ITS .messageContainerInner
+//- LOG, AND THE COMPOSER IS THE REAL chatBar (aiComposer LOCAL). THE SEND IS
+//- SILENT - EVERY VISIBLE CHANGE ARRIVES OVER THE SOCKET AS ID-KEYED OOB
+//- APPENDS INTO #aiChatLogInner-<threadId> (aiChatPush.pug).
+//- sectionData: { configured, threads, activeThread, messages, provider, thinking }
+include ../../../mixins/aiChatMessage
+include aiChatTyping
+
+- var thread = sectionData.activeThread
+.messageContainerInner.aiChatLog(id=`aiChatLogInner-${thread ? thread.id : 'none'}`)
+  if !sectionData.configured
+    //- CLASSIC EMPTY-CHANNEL WELCOME BLOCK, HONEST ABOUT WHY IT'S QUIET
+    .noMessagesDiv
+      .welcomeBlock
+        .welcomeHashCircle
+          img(src=sectionData.provider.icon alt="")
+        .welcomeTitle Almost there
+        .welcomeSubtitle #{activeApp.display_name} needs its connection details before it can chat.
+        .welcomeActions
+          button.modal-button(
+            hx-post=`/apps/${activeApp.id}/section/settings`
+          ) Open Settings
+  else if thread
+    //- CLASSIC EMPTY-CHANNEL WELCOME BLOCK (CSS HIDES IT ONCE A LIVE ROW
+    //- LANDS IN THE LOG, EXACTLY LIKE THE MIRROR'S #chatLog)
+    if !sectionData.messages.length
+      .noMessagesDiv
+        .welcomeBlock
+          .welcomeHashCircle
+            img(src=sectionData.provider.icon alt="")
+          .welcomeTitle Welcome to @#{activeApp.display_name}!
+          .welcomeSubtitle This is the start of #{thread.title === 'New conversation' ? 'your conversation' : `"${thread.title}"`}. Ask about the library, downloads, and requests - it can see and use every connected app.
+    each m in sectionData.messages
+      +aiChatMessage(m)
+    if sectionData.thinking
+      +aiChatTyping(activeApp, thread.id, sectionData.provider.icon)
