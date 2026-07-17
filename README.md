@@ -81,7 +81,7 @@ The og discord, the good one.
 
 <br>
 
-## An AI concierge with house rules
+## Optional AI-powered everything
 
 Plug in Anthropic, OpenAI, Gemini, or a local Ollama. The assistant has access to all your users, what media you have downloaded/monitored/queued, and of course - the discord bot (**you can turn these off incrementally if thats too intrusive for you, but thats why we include ollama**). 
 
@@ -113,8 +113,6 @@ flowchart LR
     core --> media["Plex / Emby / Jellyfin"]
     core --> ai["Anthropic / OpenAI / Gemini / Ollama"]
 ```
-
-One Node process. Koa + pug + htmx over websockets - no build step, no SPA. Prisma on SQLite. Migrations run themselves at boot.
 
 <br>
 
@@ -168,7 +166,7 @@ Then open `http://localhost:5001`, paste your Discord bot token, and flip the po
 
 <div align="center">
 
-<sub>Every screenshot above is the real UI, captured live against a fictional showcase dataset - the movies, the users, and yes, the posters were all invented for this README. No real Discord servers were harmed.</sub>
+<sub>Every screenshot above is the real UI (kinda?), captured live against a fictional showcase dataset - the movies, the users, and yes, the posters were all invented for this README (imagine if I used real movie posters, id never do that).</sub>
 
 <br><br>
 
