@@ -12,7 +12,7 @@ async function renderLogin(ctx) {
   if (!config.admin_password || isValidSession(ctx.cookies.get(SESSION_COOKIE))) {
     return ctx.redirect('/');
   }
-  await ctx.render('login', {});
+  await ctx.renderPage('login', {});
 }
 
 async function processLogin(ctx) {
@@ -31,7 +31,7 @@ async function processLogin(ctx) {
 
   ctx.core.logger.warn('Failed web console login attempt');
   ctx.status = 401;
-  await ctx.render('login', { error: 'Incorrect password' });
+  await ctx.renderPage('login', { error: 'Incorrect password' });
 }
 
 async function processLogout(ctx) {

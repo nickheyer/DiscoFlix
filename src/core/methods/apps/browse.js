@@ -130,14 +130,27 @@ module.exports = {
     return feedKey(feed) !== feedKey(previous?.feed) ? feed : null;
   },
 
-  // THE TTL-CACHED FULL LISTING - SERVICES RETURN THE WHOLE LIBRARY IN ONE
-  // CALL, AND SCROLL PAGINATION (OR AVAILABILITY MATCHING) MUST NOT REFETCH
-  // IT PER USE. THE CACHE IS INVALIDATED ON CONSOLE ADDS (SEARCH & ADD).
+  // THE TTL-CACHED FULL LISTING
   async _getFullLibrary(instance, client) {
-    let cached = this.libraryCache.get(instance.id);
-    if (!cached || Date.now() - cached.fetchedAt > LIBRARY_TTL_MS) {
-      cached = { items: await client.getLibrary(), fetchedAt: Date.now() };
-      this.libraryCache.set(instance.id, cached);
+    const cached = this.libraryCache.get(instance.id);
+    if (cached && Date.now() - cached.fetchedAt < LIBRARY_TTL_MS) return cached.items;
+
+    // COLD CACHE - NOTHING TO SERVE, THE CALLER WAITS FOR THE REAL FETCH
+    if (!cached) {
+      const items = await client.getLibrary();
+      this.libraryCache.set(instance.id, { items, fetchedAt: Date.now() });
+      return items;
+    }
+
+    if (!cached.refreshing) {
+      cached.refreshing = client.getLibrary()
+        .then((items) => {
+          this.libraryCache.set(instance.id, { items, fetchedAt: Date.now() });
+        })
+        .catch((err) => {
+          this.logger.debug(`${instance.display_name} library refresh failed, keeping stale copy: ${err.message}`);
+          cached.refreshing = null;
+        });
     }
     return cached.items;
   },

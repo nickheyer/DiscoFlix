@@ -104,9 +104,8 @@ module.exports = {
     let activeChannel = null;
 
     if (view.active_server_id) {
-      // ONE getComplete PER RENDER PASS; ensureActiveChannel WORKS ON THE
-      // ALREADY-LOADED RECORD
-      activeServer = await this.core.models.discordServer.getComplete(view.active_server_id);
+      // ONE CHANNELS LOAD PER RENDER PASS
+      activeServer = await this.core.models.discordServer.getWithChannels(view.active_server_id);
 
       if (activeServer?.channels) {
         const validChannelIds = activeServer.channels

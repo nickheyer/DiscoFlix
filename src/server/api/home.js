@@ -20,7 +20,7 @@ async function renderHome(ctx) {
     : null;
   if (activeInstance) {
     const takeover = await buildTakeoverLocals(core, activeInstance);
-    return ctx.render('index', {
+    return ctx.renderPage('index', {
       state,
       servers,
       discordBot,
@@ -40,7 +40,7 @@ async function renderHome(ctx) {
   const eomStamp = _.get(_.last(messageData), 'created_at');
   const members = await core.render.getServerMembers(state.active_server_id);
 
-  await ctx.render('index', {
+  await ctx.renderPage('index', {
     state,
     servers,
     discordBot,

@@ -1,6 +1,5 @@
 const serve = require('koa-static');
 const bodyParser = require('koa-bodyparser');
-const Pug = require('koa-pug');
 const { PUBLIC_DIR, CACHE_DIR } = require('../core/paths');
 const { runMigrations } = require('../core/migrate');
 
@@ -17,11 +16,6 @@ const { runMigrations } = require('../core/migrate');
   const { authHandler } = require('./middlewares/authHandler');
   const { viewSessionHandler } = require('./middlewares/viewSessionHandler');
   const routes = require('./routes');
-  new Pug({
-    viewPath: `${__dirname}/views`,
-    basedir: `${__dirname}/views`,
-    app: app
-  });
 
   // Middlewares - Incoming Requests
   app.use(bodyParser());
@@ -30,7 +24,8 @@ const { runMigrations } = require('../core/migrate');
   app.use(compileMiddleware);
   app.use(defermentMiddleware);
   app.use(serve(PUBLIC_DIR));
-  app.use(serve(CACHE_DIR));
+  // CACHED ART (POSTERS/AVATARS) IS NAMED BY STABLE ID - LET BROWSERS HOLD IT
+  app.use(serve(CACHE_DIR, { maxage: 60 * 60 * 1000 }));
 
   // AUTH SITS AFTER STATIC - LOGIN PAGE ASSETS STAY REACHABLE
   app.use(authHandler());
