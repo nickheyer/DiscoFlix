@@ -453,15 +453,17 @@ module.exports = {
 
   // PROVIDER-NEUTRAL DEFINITIONS FOR ONE SURFACE. DESCRIPTIONS COME THROUGH
   // THE DIRECTIVE CATALOG (tool.<name> KEYS) SO THE DIRECTIVES TAB CAN
-  // RE-BRIEF A TOOL PER INSTANCE; SCHEMAS ARE FIXED. LAZY REQUIRE -
-  // directives.js READS TOOLS FROM HERE (CYCLE-SAFE).
-  aiToolDefinitionsFor(toolCtx) {
+  // RE-BRIEF A TOOL PER INSTANCE; SCHEMAS ARE FIXED, BUT BRIEFING TEXT
+  // SPEAKS THE UNIVERSAL {var} SET LIKE EVERY OTHER DIRECTIVE. LAZY
+  // REQUIRE - directives.js READS TOOLS FROM HERE (CYCLE-SAFE).
+  async aiToolDefinitionsFor(toolCtx) {
     const { directiveText } = require('./directives');
+    const vars = await this.directiveVarsFor(toolCtx.instance);
     return TOOLS
       .filter(tool => tool.surfaces.includes(toolCtx.surface))
       .map(tool => ({
         name: tool.name,
-        description: directiveText(toolCtx.instance, `tool.${tool.name}`),
+        description: directiveText(toolCtx.instance, `tool.${tool.name}`, vars),
         input_schema: tool.input_schema
       }));
   },

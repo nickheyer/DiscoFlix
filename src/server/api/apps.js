@@ -4,7 +4,7 @@
 const _ = require('lodash');
 const { buildOverviewData } = require('./appOverview');
 const { buildBotMatrix } = require('./botMatrix');
-const { buildDirectivesData } = require('./aiDirectives');
+const { buildDirectivesData, buildVarsRail } = require('./aiDirectives');
 const { version: DISCOFLIX_VERSION } = require('../../../package.json');
 
 // RAIL VIEW MODEL - EVERY INSTALLED INSTANCE RENDERS A BUBBLE
@@ -557,16 +557,23 @@ async function buildTakeoverLocals(core, instance, opts = {}) {
     placeholder: `Search ${nav.appManifest.contentTypes[0]?.label || nav.appManifest.browseLabel || 'media'}s...`
   } : null;
   // AI TAKEOVERS CARRY THE CONVERSATION LIST WHERE OTHER APPS SHOW THEIR
-  // ACTIVITY FEED - SAME RAIL SLOT, THREAD-SHAPED
+  // ACTIVITY FEED - SAME RAIL SLOT, THREAD-SHAPED. THE DIRECTIVES SECTION
+  // SWAPS IN THE TEMPLATE-VARIABLE REFERENCE INSTEAD (THREADS MEAN NOTHING
+  // THERE, AND THE EDITORS NEED THE {placeholder} DOCS IN REACH)
   let aiRail = null;
+  let aiVarsRail = null;
   if (nav.appManifest.kind === 'ai-provider') {
-    const threads = sectionData.threads || await core.models.aiConversation.consoleThreadsFor(instance.id);
-    const pick = opts.viewState ? core.models.viewSession.aiThreadPickFor(opts.viewState, instance.id) : null;
-    aiRail = {
-      threads,
-      activeThreadId: sectionData.activeThread?.id
-        || (threads.some(thread => thread.id === pick) ? pick : (threads[0]?.id || null))
-    };
+    if (nav.section === 'directives') {
+      aiVarsRail = await buildVarsRail(core, instance);
+    } else {
+      const threads = sectionData.threads || await core.models.aiConversation.consoleThreadsFor(instance.id);
+      const pick = opts.viewState ? core.models.viewSession.aiThreadPickFor(opts.viewState, instance.id) : null;
+      aiRail = {
+        threads,
+        activeThreadId: sectionData.activeThread?.id
+          || (threads.some(thread => thread.id === pick) ? pick : (threads[0]?.id || null))
+      };
+    }
   }
   // THE CHAT SECTION'S COMPOSER RIDES THE REAL chatBar (SAME OG BAR THE
   // MIRROR USES) - PRESENT ONLY WHEN THERE IS A LIVE THREAD TO POST INTO
@@ -582,6 +589,7 @@ async function buildTakeoverLocals(core, instance, opts = {}) {
     feed,
     railSearch,
     aiRail,
+    aiVarsRail,
     aiComposer,
     // queueBody.pug READS `queue`/`queueActions` DIRECTLY SO WS PUSHES AND HTTP RENDERS SHARE ONE SHAPE
     queue: sectionData.queue || [],
@@ -1544,9 +1552,12 @@ async function addApp(ctx) {
     return;
   }
   core.apps.syncSlashCommands().catch(() => {});
+  // TAKEOVER STATE MUST LAND BEFORE THE PER-VIEW REFRESH: emitPerView READS
+  // VIEW ROWS FRESH, AND A STALE mirror-STATE ROW WOULD PUSH FULL MIRROR
+  // CHROME OVER THIS SOCKET, STOMPING THE TAKEOVER THE HTTP RESPONSE BUILDS
+  const state = await ctx.updateView({ active_app_id: instance.id });
   // OTHER CONNECTED VIEWS PICK THE NEW APP UP IN THEIR RAILS
   core.discord.refreshUI().catch(() => {});
-  const state = await ctx.updateView({ active_app_id: instance.id });
   return respondWithTakeover(ctx, instance, state);
 }
 

@@ -1,0 +1,37 @@
+//- DIRECTIVES TAB RIGHT RAIL - THE {placeholder} REFERENCE, GROUPED BY
+//- SCOPE: THE UNIVERSAL SET FILLS IN EVERY DIRECTIVE (PROMPT BLOCKS AND
+//- TOOL BRIEFINGS ALIKE); REPLY-TIME VARS EXIST ONLY WHILE A DISCORD REPLY
+//- IS BEING BUILT AND NAME THE DIRECTIVES THAT ADD THEM. EACH ROW = BRACE
+//- TOKEN, WHAT IT FILLS WITH, AND THE VALUE IT RESOLVES TO RIGHT NOW
+//- (reply-TIME VARS SHOW A NOTE INSTEAD). SAME #memberContainer ID-REUSE
+//- CONVENTION AS THE THREADS RAIL, SO EVERY SWAP PATH RESTORES CLEANLY.
+//- LOCALS: aiVarsRail { universal: [row], reply: [row] },
+//- row = { key, blurb, scope, usedBy, now }
+mixin varRow(varDoc)
+  .aiVarRow
+    code.aiVarToken {#{varDoc.key}}
+    .aiVarBlurb= varDoc.blurb
+    .aiVarNow
+      span.aiVarNowLabel now
+      if varDoc.now
+        if varDoc.now.icon
+          img.aiVarNowIcon(src=varDoc.now.icon alt="")
+        span.aiVarNowValue= varDoc.now.text
+      else
+        span.aiVarNowValue.aiVarNowDynamic filled per reply
+    if varDoc.usedBy.length
+      .aiVarUsedBy= `Only in: ${varDoc.usedBy.join(', ')}`
+
+div.memberContainer.aiVarsRail#memberContainer(
+  hx-select-oob="#memberContainer"
+  hx-swap-oob="outerHTML"
+)
+  span.memberListHeader Template variables
+  .aiVarsBlurb Drop these into any directive - they fill in when the text is used, and unknown braces pass through untouched.
+  .aiVarsGroupHead Available everywhere
+  each varDoc in aiVarsRail.universal
+    +varRow(varDoc)
+  .aiVarsGroupHead Reply-time only
+  .aiVarsGroupHint These only exist while a Discord reply is being built.
+  each varDoc in aiVarsRail.reply
+    +varRow(varDoc)

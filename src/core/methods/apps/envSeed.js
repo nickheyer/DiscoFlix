@@ -1,7 +1,8 @@
 // SETTINGS SEED FROM THE ENVIRONMENT - THE HEADLESS FIRST-BOOT PATH. RUNS
 // ONCE PER PROCESS, FILLS ONLY EMPTY SETTINGS, AND NEVER CLOBBERS UI EDITS.
 // APP VARS ARE MANIFEST-DERIVED (<TYPE>_<FIELD>, e.g. RADARR_URL,
-// RADARR_API_KEY, QBITTORRENT_USERNAME) AND ADDRESS ONE INSTANCE PER TYPE -
+// RADARR_API_KEY, QBITTORRENT_USERNAME - AND <TYPE>_<OPTION> FOR INSTANCE
+// OPTIONS, e.g. DF_OPENAI_MODEL) AND ADDRESS ONE INSTANCE PER TYPE -
 // MULTI-INSTANCE SETUPS ARE CONFIGURED IN THE UI, ENV VARS CAN'T NAME THEM.
 module.exports = {
   async seedFromEnv() {
@@ -39,7 +40,15 @@ module.exports = {
       const value = (process.env[`${prefix}_${field.key.toUpperCase()}`] || '').trim();
       if (value) envValues[field.key] = value;
     }
-    if (!Object.keys(envValues).length) return;
+    // INSTANCE OPTIONS (MODEL PICKS, ROOT FOLDERS...) SEED THE SAME
+    // MANIFEST-DERIVED WAY - DF_OPENAI_MODEL, RADARR_ROOT_FOLDER - BUT LAND
+    // IN settings_json INSTEAD OF COLUMNS
+    const envOptions = {};
+    for (const option of manifest.instanceOptions || []) {
+      const value = (process.env[`${prefix}_${option.key.toUpperCase()}`] || '').trim();
+      if (value) envOptions[option.key] = value;
+    }
+    if (!Object.keys(envValues).length && !Object.keys(envOptions).length) return;
 
     const rows = await this.core.models.app.getMany({ app_type: manifest.id });
     if (rows.length > 1) {
@@ -54,12 +63,23 @@ module.exports = {
     for (const [key, value] of Object.entries(envValues)) {
       if (!instance[key]) data[key] = value;
     }
+    // OPTION PICKS FOLLOW THE SAME FILL-ONLY-EMPTY RULE, MERGE-WRITTEN SO
+    // SIBLING settings_json KEYS (DIRECTIVE OVERRIDES...) SURVIVE
+    let settings = {};
+    try { settings = JSON.parse(instance.settings_json || '{}'); } catch (err) { settings = {}; }
+    const seededOptions = Object.entries(envOptions).filter(([key]) => !settings[key]);
+    if (seededOptions.length) {
+      data.settings_json = JSON.stringify({ ...settings, ...Object.fromEntries(seededOptions) });
+    }
     // A FRESH ENV-BUILT INSTANCE SKIPS THE CONFIG-FIRST LANDING - IT HAS CONFIG
     if (created) data.active_section = 'overview';
     if (!Object.keys(data).length) return;
 
     await this.core.models.app.update({ id: instance.id }, data);
-    const seededKeys = Object.keys(data).filter(key => key !== 'active_section');
+    const seededKeys = Object.keys(data)
+      .filter(key => key !== 'active_section' && key !== 'settings_json')
+      .concat(seededOptions.map(([key]) => key));
+    if (!seededKeys.length) return;
     this.logger.info(`Seeded ${manifest.label} from env${created ? ' (new instance)' : ''}: ${seededKeys.join(', ')}`);
   }
 };

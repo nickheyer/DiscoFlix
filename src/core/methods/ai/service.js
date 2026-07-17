@@ -70,13 +70,28 @@ module.exports = {
   // dossier IS THE SPEAKER'S PRE-BUILT DATA BLOCK (_buildSpeakerDossier),
   // PRESENT ONLY WHEN THE PROVIDER'S "PERSONALIZED REPLIES" ROW ADMITTED
   // THE CALLER - ABSENT, THE PROMPT IS EXACTLY WHAT IT ALWAYS WAS.
+  // THE UNIVERSAL {var} SET - SUPPLIED TO EVERY DIRECTIVE OF EVERY FAMILY
+  // (SYSTEM PROMPT BLOCKS, TOOL BRIEFINGS, THE REPLY FOOTER). ONLY
+  // REPLY-TIME VARS (model, tools_used) LIVE OUTSIDE THIS MAP, BECAUSE THEY
+  // DON'T EXIST UNTIL A REPLY IS BEING BUILT. PASS config WHEN THE CALLER
+  // ALREADY HOLDS THE SINGLETON.
+  async directiveVarsFor(instance, config = null) {
+    const conf = config || await this.core.models.configuration.get();
+    return {
+      media_server_name: conf.media_server_name,
+      prefix_keyword: conf.prefix_keyword,
+      app_name: instance.display_name,
+      // THE BRAND EMOJIS, OR PLAIN NAMES UNTIL AN EMOJI SYNC LANDS
+      app_emoji: appEmoji(instance.app_type) || instance.display_name,
+      discoflix_emoji: appEmoji('discoflix') || 'DiscoFlix'
+    };
+  },
+
   async buildSystemPrompt({ surface, instance, dbUser, guildId, dossier = null }) {
     const core = this.core;
     const config = await core.models.configuration.get();
-    const say = key => directiveText(instance, key, {
-      media_server_name: config.media_server_name,
-      prefix_keyword: config.prefix_keyword
-    });
+    const vars = await this.directiveVarsFor(instance, config);
+    const say = key => directiveText(instance, key, vars);
     const rows = await core.models.app.getMany({ enabled: true });
     const connected = rows
       .filter(row => {
@@ -144,7 +159,7 @@ module.exports = {
   // ── THE LOOP ───────────────────────────────────────────────────────────
 
   async _runAgentLoop({ client, system, history, userText, toolCtx, maxTokens }) {
-    const tools = this.aiToolDefinitionsFor(toolCtx);
+    const tools = await this.aiToolDefinitionsFor(toolCtx);
     const messages = [...history, { role: 'user', content: [{ type: 'text', text: userText }] }];
     const usage = { input: 0, output: 0 };
     const toolsUsed = [];
@@ -323,12 +338,9 @@ module.exports = {
   async _sendDiscordReply(ctx, instance, { text, toolsUsed, model }) {
     const chunks = this._chunkText(this._discordifyMarkdown(text), DISCORD_CHUNK_CHARS);
     const footer = directiveText(instance, 'discord_footer', {
-      // THE BRAND EMOJI, OR THE PLAIN NAME UNTIL AN EMOJI SYNC LANDS
-      app_emoji: appEmoji(instance.app_type) || instance.display_name,
-      app_name: instance.display_name,
+      ...(await this.directiveVarsFor(instance, ctx.config)),
       model: model || '',
-      tools_used: toolsUsed.map(name => name.replace(/_/g, ' ')).join(', '),
-      prefix_keyword: ctx.config?.prefix_keyword || ''
+      tools_used: toolsUsed.map(name => name.replace(/_/g, ' ')).join(', ')
     }).split('\n').map(line => `-# ${line}`).join('\n');
 
     for (let i = 0; i < chunks.length; i++) {

@@ -7,8 +7,12 @@
 // CUSTOM TEXT LIVES SPARSE IN App.settings_json.directives (computed IN
 // METADATA, MERGED ON SAVE - FORM SEMANTICS CAN NEVER WIPE IT).
 //
-// {placeholders} INTERPOLATE AT PROMPT TIME (media_server_name,
-// prefix_keyword); UNKNOWN BRACES PASS THROUGH UNTOUCHED. DYNAMIC LINES
+// {placeholders} INTERPOLATE WHEN THE TEXT IS USED. THE UNIVERSAL SET
+// (media_server_name, prefix_keyword, app_name, app_emoji, discoflix_emoji -
+// service.directiveVarsFor) FILLS IN EVERY DIRECTIVE OF EVERY FAMILY; A
+// DIRECTIVE'S OWN `placeholders` ARRAY LISTS ONLY THE EXTRA MOMENT-SCOPED
+// VARS ITS CALL SITE ADDS (model/tools_used EXIST ONLY WHILE A REPLY IS
+// BEING BUILT). UNKNOWN BRACES PASS THROUGH UNTOUCHED. DYNAMIC LINES
 // (DATE, CONNECTED SERVICES, SPEAKER CONTEXT) STAY GENERATED - THEY ARE
 // DATA, NOT DIRECTIVES.
 
@@ -21,7 +25,7 @@ const PROMPT_DIRECTIVES = [
     key: 'identity',
     label: 'Identity',
     blurb: 'The opening line of every system prompt - who the assistant is and whose server it speaks for.',
-    placeholders: ['media_server_name'],
+    placeholders: [],
     whenLabel: 'Every turn',
     whenDetail: 'Discord + console',
     outcome: 'Speaks for your server',
@@ -71,7 +75,7 @@ const PROMPT_DIRECTIVES = [
     key: 'discord_manner',
     label: 'Discord manner',
     blurb: 'How the assistant carries itself on Discord - the bot commands it can point to, and the voice and length it keeps.',
-    placeholders: ['prefix_keyword'],
+    placeholders: [],
     whenLabel: 'Discord turns',
     whenDetail: '/chat, mentions & DMs',
     outcome: 'Replies fit Discord',
@@ -81,11 +85,11 @@ const PROMPT_DIRECTIVES = [
     key: 'discord_footer',
     label: 'Reply footer',
     blurb: "The subtext line under every Discord reply. Pure presentation - it renders in the reply's footer and is never sent to the model.",
-    placeholders: ['app_emoji', 'app_name', 'model', 'tools_used', 'prefix_keyword'],
+    placeholders: ['model', 'tools_used'],
     whenLabel: 'Every Discord reply',
     whenDetail: 'rendered under the reply, never prompted',
     outcome: 'Signs off each reply',
-    defaultText: '{app_emoji} /help for more commands'
+    defaultText: '{app_emoji} {discoflix_emoji} /help for more commands'
   },
   {
     key: 'console_manner',
@@ -96,6 +100,58 @@ const PROMPT_DIRECTIVES = [
     whenDetail: 'operator chat threads',
     outcome: 'The operator gets it all',
     defaultText: 'You are speaking to the server operator in the DiscoFlix web console. They administer everything, so be direct and complete - you may approve or deny pending requests when asked, and should confirm before deciding anything they did not explicitly name.\n\nStyle: markdown (bold, italics, `code`, [links](url), short headings). Be thorough but structured; never dump raw JSON.'
+  }
+];
+
+// EVERY {placeholder} THE CATALOG SPEAKS, DOCUMENTED FOR THE DIRECTIVES
+// TAB'S REFERENCE RAIL. scope 'universal' VARS FILL IN EVERY DIRECTIVE OF
+// EVERY FAMILY (SUPPLIED BY service.directiveVarsFor AT EVERY CALL SITE);
+// scope 'reply' VARS ONLY EXIST WHILE A REPLY IS BEING BUILT - WHICH
+// DIRECTIVES ADD THEM IS DERIVED FROM THE CATALOG'S placeholders ARRAYS.
+// `resolve` NAMES HOW THE LIVE VALUE IS FOUND: 'config' KEYS READ THE
+// Configuration SINGLETON, 'instance'/'emoji' COME OFF THE APP ROW.
+const PLACEHOLDER_DOCS = [
+  {
+    key: 'media_server_name',
+    blurb: 'Your media server\'s name, from DiscoFlix settings.',
+    scope: 'universal',
+    resolve: 'config'
+  },
+  {
+    key: 'prefix_keyword',
+    blurb: 'The bot\'s prefix keyword, from DiscoFlix settings.',
+    scope: 'universal',
+    resolve: 'config'
+  },
+  {
+    key: 'app_name',
+    blurb: 'This instance\'s display name.',
+    scope: 'universal',
+    resolve: 'instance'
+  },
+  {
+    key: 'app_emoji',
+    blurb: 'This provider\'s brand emoji - the plain instance name until the emoji sync lands.',
+    scope: 'universal',
+    resolve: 'emoji'
+  },
+  {
+    key: 'discoflix_emoji',
+    blurb: 'The DiscoFlix brand emoji - plain "DiscoFlix" until the emoji sync lands.',
+    scope: 'universal',
+    resolve: 'emoji'
+  },
+  {
+    key: 'model',
+    blurb: 'The model that produced the reply.',
+    scope: 'reply',
+    resolve: 'reply'
+  },
+  {
+    key: 'tools_used',
+    blurb: 'The tools the reply used, comma-separated - empty when none ran.',
+    scope: 'reply',
+    resolve: 'reply'
   }
 ];
 
@@ -166,6 +222,7 @@ function directiveText(instance, key, vars = {}) {
 
 module.exports = {
   MAX_DIRECTIVE_CHARS,
+  PLACEHOLDER_DOCS,
   directiveCatalog,
   getDirective,
   customDirectivesOf,

@@ -3,9 +3,12 @@
 //- when the intent is on, faded Offline group). RENDERS EMPTY (AND
 //- :empty-HIDES) WHEN THERE IS NOTHING TO SHOW.
 //- APP TAKEOVER: THE SAME RAIL CARRIES THE APP'S ACTIVITY FEED INSTEAD -
-//- EXCEPT AI PROVIDERS, WHOSE RAIL IS THE CONVERSATION LIST
+//- EXCEPT AI PROVIDERS, WHOSE RAIL IS THE CONVERSATION LIST (OR THE
+//- TEMPLATE-VARIABLE REFERENCE WHILE THE DIRECTIVES SECTION IS UP)
 if activeApp
-  if typeof aiRail !== 'undefined' && aiRail
+  if typeof aiVarsRail !== 'undefined' && aiVarsRail
+    include ../apps/aiVarsRail
+  else if typeof aiRail !== 'undefined' && aiRail
     include ../apps/aiThreadsRail
   else
     include ../apps/appFeed

@@ -37,9 +37,11 @@ form.dfRequestCard.aiDirectiveCard(
     .aiDirectiveFoot
       .aiDirectiveHint
         if directive.placeholders.length
-          | #{directive.placeholders.map(p => `{${p}}`).join(' and ')} fill#{directive.placeholders.length === 1 ? 's' : ''} in live. Clear the box to return to the stock text.
+          - var tokens = directive.placeholders.map(p => `{${p}}`)
+          - var tokenList = tokens.length > 1 ? `${tokens.slice(0, -1).join(', ')} and ${tokens[tokens.length - 1]}` : tokens[0]
+          | Any template variable from the right rail fills in live, plus #{tokenList} here. Clear the box to return to the stock text.
         else
-          | Clear the box to return to the stock text.
+          | Any template variable from the right rail fills in live. Clear the box to return to the stock text.
       if directive.customized
         button.modal-button.button-secondary(
           type="button"

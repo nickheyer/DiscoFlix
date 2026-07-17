@@ -49,6 +49,37 @@ function buildDirectivesData(core, instance) {
   };
 }
 
+// THE DIRECTIVES TAB'S RIGHT RAIL - EVERY {placeholder} THE CATALOG SPEAKS,
+// GROUPED BY SCOPE: universal VARS FILL IN EVERY DIRECTIVE OF EVERY FAMILY,
+// reply VARS ONLY EXIST WHILE A REPLY IS BEING BUILT (WHICH DIRECTIVES ADD
+// THEM DERIVES FROM THE CATALOG'S placeholders ARRAYS SO IT NEVER DRIFTS).
+// EMOJI VARS SHOW THE CONSOLE ICON - THE DISCORD-SIDE RENDER IS THE SYNCED
+// df_* APPLICATION EMOJI; reply-RESOLVED VARS HAVE NO "NOW" VALUE AT ALL.
+async function buildVarsRail(core, instance) {
+  const config = await core.models.configuration.get();
+  const manifest = core.apps.getType(instance.app_type);
+  const NOW = {
+    media_server_name: { text: config.media_server_name },
+    prefix_keyword: { text: config.prefix_keyword },
+    app_name: { text: instance.display_name },
+    app_emoji: { icon: manifest.icon, text: `df_${instance.app_type}` },
+    discoflix_emoji: { icon: '/images/favicon.png', text: 'df_discoflix' }
+  };
+  const rows = directives.PLACEHOLDER_DOCS.map(doc => ({
+    ...doc,
+    usedBy: doc.scope === 'reply'
+      ? directives.directiveCatalog()
+          .filter(entry => entry.placeholders.includes(doc.key))
+          .map(entry => entry.label)
+      : [],
+    now: NOW[doc.key] || null
+  }));
+  return {
+    universal: rows.filter(row => row.scope === 'universal'),
+    reply: rows.filter(row => row.scope === 'reply')
+  };
+}
+
 // ── ROUTE HANDLERS (AI-PROVIDER-GUARDED) ─────────────────────────────────
 
 async function aiInstanceOf(ctx) {
@@ -126,6 +157,7 @@ async function resetAiDirective(ctx) {
 
 module.exports = {
   buildDirectivesData,
+  buildVarsRail,
   saveAiDirective,
   resetAiDirective
 };
