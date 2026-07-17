@@ -352,19 +352,24 @@ module.exports = {
     }
   },
 
-  // MODELS EMIT GITHUB-ISH MARKDOWN; DISCORD RENDERS A SUBSET. HEADINGS
-  // DEMOTE TO ### (A CHAT REPLY NEVER SHOUTS; H4+ WOULD RENDER AS LITERAL
-  // HASHES), PIPE TABLES BECOME BOLD-LED LINES, HORIZONTAL RULES DROP (THE
-  // CONTAINER ALREADY FRAMES THE MESSAGE). CODE FENCES PASS THROUGH RAW.
+  // MODELS EMIT GITHUB-ISH MARKDOWN; A CHAT BUBBLE WANTS ALMOST NONE OF IT.
+  // INLINE MARKS PEOPLE ACTUALLY TYPE (BOLD, ITALICS, `code`, LINKS) PASS
+  // THROUGH; EVERYTHING DOCUMENT-SHAPED FLATTENS: HEADINGS BECOME BOLD
+  // LINES, LIST MARKERS ESCAPE TO LITERAL TYPED DASHES/NUMBERS (DISCORD'S
+  // RENDERED LIST WIDGET - INDENTED GLYPHS, DOC SPACING - IS WHAT MAKES A
+  // REPLY READ LIKE A MARKDOWN FILE), PIPE TABLES BECOME BOLD-LED LINES,
+  // HORIZONTAL RULES DROP (THE CONTAINER ALREADY FRAMES THE MESSAGE).
+  // CODE FENCES PASS THROUGH RAW.
   _discordifyMarkdown(text) {
     return String(text || '')
       .split(/(```[\s\S]*?```)/)
       .map((segment, i) => {
         if (i % 2 === 1) return segment;
         const cleaned = segment
-          .replace(/^#{1,3}\s+(.+)$/gm, '### $1')
-          .replace(/^#{4,6}\s+(.+)$/gm, '**$1**')
-          .replace(/^[ \t]*([-*_])[ \t]*(?:\1[ \t]*){2,}$/gm, '');
+          .replace(/^[ \t]*([-*_])[ \t]*(?:\1[ \t]*){2,}$/gm, '')
+          .replace(/^#{1,6}\s+(.+?)\s*#*\s*$/gm, (match, title) => `**${title.replace(/\*\*/g, '')}**`)
+          .replace(/^(\s*)[-*+]\s+/gm, '$1\\- ')
+          .replace(/^(\s*)(\d+)\.\s+/gm, '$1$2\\. ');
         return this._flattenTables(cleaned).replace(/\n{3,}/g, '\n\n');
       })
       .join('');

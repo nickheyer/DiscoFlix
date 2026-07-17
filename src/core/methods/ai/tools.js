@@ -99,7 +99,7 @@ const TOOLS = [
   {
     name: 'media_library',
     surfaces: ['discord', 'console'],
-    description: 'Look up what is already in the combined library across every connected app. Call this when the user asks what the server has, whether something is downloaded, or for library counts. Searches by title when query is given.',
+    description: 'Look up what is already in the combined library across every connected app. Call this when the user asks what the server has, whether something is downloaded, or for library counts - and proactively whenever you are about to recommend or discuss specific titles, so you know what is already sitting here before you speak. Searches by title when query is given.',
     input_schema: {
       type: 'object',
       properties: {
@@ -131,7 +131,7 @@ const TOOLS = [
   {
     name: 'whats_new',
     surfaces: ['discord', 'console'],
-    description: 'Recently added titles across the connected media servers. Call when the user asks what is new, recent, or just added.',
+    description: 'Recently added titles across the connected media servers. Call when the user asks what is new, recent, or just added - fresh arrivals are usually promising.',
     input_schema: { type: 'object', properties: {}, required: [] },
     async run(ctx) {
       const gate = await gateFor(ctx, 'whatsnew');
