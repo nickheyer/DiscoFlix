@@ -1,11 +1,14 @@
-//- STABLE id + oobReplace LET UNREAD-BADGE PUSHES SWAP ONE ROW IN PLACE
+//- STABLE id + oobReplace LET UNREAD-BADGE PUSHES SWAP ONE ROW IN PLACE.
+//- THE POST STAYS ON THE ACTIVE ROW TOO - RE-CLICKING YOUR CURRENT CHANNEL
+//- IS THE UNIVERSAL "MARK IT READ" (COUNTS CAN ACCRUE WHILE A SESSION IS
+//- DISCONNECTED OR TIME-TRAVELLING, AND A DEAD CLICK STRANDED THEM BEFORE)
 .channelViewOption(
   id=`chan-${channel_id}`
   class=(isActiveChannel ? 'active' : 'inactive'),
   role="button"
   tabindex="0"
-  hx-post=!isActiveChannel && `/change-active-channel/${channel_id}`
-  hx-trigger=!isActiveChannel ? "click, keyup[key=='Enter']" : undefined
+  hx-post=`/change-active-channel/${channel_id}`
+  hx-trigger="click, keyup[key=='Enter']"
   hx-swap-oob=oobReplace ? 'outerHTML' : undefined
 )
   .channelViewOptionInfo

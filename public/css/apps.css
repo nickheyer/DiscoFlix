@@ -3268,3 +3268,29 @@
 .appPickerKind.ai {
   background-color: #9b72cb;
 }
+
+/* THE UNSECURED-DB WARNING CARD (SETTINGS PAGE) - PAIRS WITH THE HOME
+   BADGE'S "!" BUBBLE; THE STANDALONE /admin PAGE HAS ITS OWN STYLESHEET */
+.dfDbWarnCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 4px;
+  border-left: 4px solid var(--yellow);
+  background-color: rgba(250, 166, 26, 0.08);
+}
+
+.dfDbWarnText {
+  font-size: 13px;
+  color: var(--text-normal);
+}
+
+/* THE DATABASE "CHANNEL" IS A LINK-OUT TO /admin - ANCHOR VARIANT OF THE
+   SECTION ROW KEEPS THE CHANNEL DRESSING */
+a.channelViewOption {
+  text-decoration: none;
+  color: inherit;
+}

@@ -5,13 +5,21 @@
 
 .settingsChannelContainer
   each s in appSections
-    //- ARR-BACKED SECTIONS CAN TAKE SECONDS - THE ROW SPINS WHILE ITS POST IS IN FLIGHT
-    .channelViewOption(
-      class=(s.key === section ? 'active' : 'inactive')
-      hx-post=s.key !== section && `/apps/${activeApp.id}/section/${s.key}`
-    )
-      .channelViewOptionInfo
-        include sectionHashIcon
-        span= s.label
-      svg.appSpinner.sectionRowSpinner(viewBox="0 0 24 24" aria-hidden="true")
-        circle(cx="12" cy="12" r="10")
+    //- THE DATABASE ROW IS A LAUNCHER, NOT A SECTION - THE ADMIN IS ITS
+    //- OWN PAGE AT /admin AND OPENS IN A NEW TAB
+    if s.key === 'database'
+      a.channelViewOption.inactive(href="/admin" target="_blank" rel="noopener")
+        .channelViewOptionInfo
+          include sectionHashIcon
+          span= s.label
+    else
+      //- ARR-BACKED SECTIONS CAN TAKE SECONDS - THE ROW SPINS WHILE ITS POST IS IN FLIGHT
+      .channelViewOption(
+        class=(s.key === section ? 'active' : 'inactive')
+        hx-post=s.key !== section && `/apps/${activeApp.id}/section/${s.key}`
+      )
+        .channelViewOptionInfo
+          include sectionHashIcon
+          span= s.label
+        svg.appSpinner.sectionRowSpinner(viewBox="0 0 24 24" aria-hidden="true")
+          circle(cx="12" cy="12" r="10")

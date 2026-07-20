@@ -1,5 +1,6 @@
 const axios = require('axios');
 const BaseClient = require('./baseClient');
+const tuning = require('../../../tuning');
 
 // TOKEN + GUID COOKIE SESSIONS KEYED BY APP-INSTANCE ID
 const SESSIONS = new Map();
@@ -43,7 +44,7 @@ class UtorrentClient extends BaseClient {
     this.cacheKey = cacheKey || this.baseUrl;
     this.http = axios.create({
       baseURL: this.baseUrl,
-      timeout: 10000,
+      timeout: tuning.value('download_client_http_timeout_seconds') * 1000,
       auth: { username: username || '', password: password || '' }
     });
   }

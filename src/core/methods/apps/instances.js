@@ -1,6 +1,3 @@
-// SERVICES APPLY QUEUE VERBS ASYNC - BRIEF PAUSE SO THE RE-PULL SEES THE RESULT
-const QUEUE_SETTLE_MS = 300;
-
 // DB-BACKED INSTANCE HELPERS. AN "INSTANCE" IS AN App ROW; ITS app_type KEYS
 // INTO THE MANIFEST REGISTRY (MERGED INTO THIS NAMESPACE, SO this.getType ETC.)
 module.exports = {
@@ -217,7 +214,8 @@ module.exports = {
       throw new Error(`${instance.display_name} does not support '${verb}' here`);
     }
     await client.queueAction(verb, itemId);
-    await new Promise(resolve => setTimeout(resolve, QUEUE_SETTLE_MS));
+    // SERVICES APPLY QUEUE VERBS ASYNC - BRIEF PAUSE SO THE RE-PULL SEES THE RESULT
+    await new Promise(resolve => setTimeout(resolve, this.core.tuning.value('queue_settle_ms')));
     try {
       this.queueCache.set(instance.id, await client.getQueue());
     } catch (err) {
@@ -253,7 +251,8 @@ module.exports = {
       throw new Error(`${instance.display_name} cannot take a pasted link`);
     }
     await client.addDownload(url);
-    await new Promise(resolve => setTimeout(resolve, QUEUE_SETTLE_MS));
+    // SERVICES APPLY ADDS ASYNC - BRIEF PAUSE SO THE RE-PULL SEES THE RESULT
+    await new Promise(resolve => setTimeout(resolve, this.core.tuning.value('queue_settle_ms')));
     try {
       this.queueCache.set(instance.id, await client.getQueue());
     } catch (err) {
@@ -301,6 +300,11 @@ module.exports = {
     // state IS A MERGED VIEW SHAPE - THE ANONYMOUS DEFAULT CARRIES NO ACTIVE APP
     if (!state) state = await this.core.models.viewSession.viewStateOf(null);
     const rows = await this.getInstalled();
+    // THE "!" BUBBLE ON THE HOME BADGE: DATABASE ADMIN ON + NO CONSOLE
+    // PASSWORD + NOT DISMISSED. SEPARATE FROM problems - THAT'S A HARD-ERROR
+    // COUNT, THIS IS A POSTURE WARNING
+    const config = await this.core.models.configuration.get();
+    const dbWarning = !!(config.db_admin_enabled && !config.admin_password && !config.db_admin_warning_dismissed);
     const viewModels = rows.map(row => {
       const manifest = this.getType(row.app_type) || {};
       const status = this.statusCache.get(row.id);
@@ -314,7 +318,8 @@ module.exports = {
         enabled: row.enabled,
         reachable: status ? status.ok : null,
         active: state.active_app_id === row.id,
-        problems: manifest.hidden ? this.countSelfProblems(rows, state) : 0
+        problems: manifest.hidden ? this.countSelfProblems(rows, state) : 0,
+        dbWarning: manifest.hidden ? dbWarning : false
       };
     });
     if (!viewModels.some(vm => vm.app_type === 'discoflix')) {
@@ -328,7 +333,8 @@ module.exports = {
         enabled: true,
         reachable: null,
         active: false,
-        problems: this.countSelfProblems(rows, state)
+        problems: this.countSelfProblems(rows, state),
+        dbWarning
       });
     }
     return viewModels;

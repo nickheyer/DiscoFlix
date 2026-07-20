@@ -1,10 +1,10 @@
 const Anthropic = require('@anthropic-ai/sdk');
 const AiBaseClient = require('./aiBaseClient');
+const tuning = require('../../../tuning');
 
 // ANTHROPIC (CLAUDE) PROVIDER - THE ONE CLIENT ON THE OFFICIAL SDK; THE
 // NORMALIZED BLOCK SHAPE IS ANTHROPIC-NATIVE SO TRANSLATION IS NEARLY 1:1.
 // url IS OPTIONAL (PROXY/GATEWAY OVERRIDE) - BLANK MEANS api.anthropic.com.
-const REQUEST_TIMEOUT_MS = 120 * 1000;
 
 // ADAPTIVE THINKING EXISTS ON THE 4.6+ FAMILIES; OLDER MODELS WOULD 400 ON
 // IT, SO THE PARAM IS ONLY SENT WHERE IT'S UNDERSTOOD (FABLE RUNS ADAPTIVE
@@ -24,7 +24,7 @@ class AnthropicAiClient extends AiBaseClient {
     return new Anthropic({
       apiKey: this.apiKey,
       ...(this.baseUrl ? { baseURL: this.baseUrl } : {}),
-      timeout: REQUEST_TIMEOUT_MS
+      timeout: tuning.value('ai_request_timeout_seconds') * 1000
     });
   }
 

@@ -1,7 +1,5 @@
 const ui = require('./ui');
 
-const MAX_STATUS_ROWS = 10;
-
 // ONE BLOCK PER REQUEST - LIVE QUEUE STATE RIDES THE HEARTBEAT'S CACHE SO
 // STATUS NEVER BLOCKS ON SERVICE HTTP
 function requestBlock(core, request) {
@@ -56,9 +54,10 @@ async function buildStatusPayload(core, discordUserId) {
 
   const parts = [];
   if (open.length) {
+    const maxRows = core.tuning.value('status_embed_rows');
     parts.push(ui.text('### Your open requests'), ui.separator());
-    open.slice(0, MAX_STATUS_ROWS).forEach(request => parts.push(ui.text(requestBlock(core, request))));
-    if (open.length > MAX_STATUS_ROWS) parts.push(ui.text(`-# ...and ${open.length - MAX_STATUS_ROWS} more`));
+    open.slice(0, maxRows).forEach(request => parts.push(ui.text(requestBlock(core, request))));
+    if (open.length > maxRows) parts.push(ui.text(`-# ...and ${open.length - maxRows} more`));
   }
   if (recentDone.length) {
     if (parts.length) parts.push(ui.separator({ large: true }));

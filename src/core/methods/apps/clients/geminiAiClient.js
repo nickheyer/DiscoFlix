@@ -1,11 +1,11 @@
 const axios = require('axios');
 const AiBaseClient = require('./aiBaseClient');
+const tuning = require('../../../tuning');
 
 // GOOGLE GEMINI (GENERATIVE LANGUAGE API, v1beta - THE FUNCTION-CALLING
 // SURFACE). GEMINI RETURNS NO TOOL-CALL IDS, SO THIS CLIENT SYNTHESIZES
 // `name#n` IDS AND PARSES THE NAME BACK OUT WHEN A RESULT RETURNS.
 const DEFAULT_BASE = 'https://generativelanguage.googleapis.com';
-const REQUEST_TIMEOUT_MS = 120 * 1000;
 
 // GEMINI'S SCHEMA DIALECT REJECTS JSON-SCHEMA HOUSEKEEPING KEYS
 const SCHEMA_KEY_BLOCKLIST = new Set(['additionalProperties', '$schema', 'default']);
@@ -28,7 +28,8 @@ class GeminiAiClient extends AiBaseClient {
     this.apiKey = options.token;
     this.http = axios.create({
       baseURL: this.baseUrl || DEFAULT_BASE,
-      timeout: REQUEST_TIMEOUT_MS,
+      // CLIENTS ARE BUILT PER-USE, SO THE TUNED DEADLINE APPLIES LIVE
+      timeout: tuning.value('ai_request_timeout_seconds') * 1000,
       headers: { 'x-goog-api-key': this.apiKey }
     });
   }

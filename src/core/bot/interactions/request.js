@@ -8,10 +8,6 @@ const { resolveForCtx } = require('./features');
 const MAX_LISTED_SEASONS = 24;
 const MAX_DETAIL_FACTS = 8;
 const MAX_DETAIL_SEASON_ROWS = 12;
-// COLLECTOR LIFETIME: selection_timeout IS AN IDLE TIMER (EACH CLICK RESETS
-// IT - MULTI-STEP PICKS MUST NOT DIE MID-FLOW), THE HARD CAP ENDS IMMORTAL
-// SESSIONS
-const COLLECTOR_HARD_CAP_MS = 15 * 60 * 1000;
 
 // ── FEATURE DESCRIPTORS ──────────────────────────────────────────────────
 
@@ -28,7 +24,11 @@ function featureFor(contentDef) {
   extents.push(
     { key: 'max_requests_per_day', label: 'Daily request cap', type: 'number', min: 0, default: 0, userOverride: 'max_requests_in_day', adminExempt: true },
     { key: 'selection_timeout', label: 'Selection timeout (s)', type: 'number', min: 30, max: 3600, default: 60 },
-    { key: 'max_check_time', label: 'Watch duration (s)', type: 'number', min: 60, max: 3600, default: 600 }
+    { key: 'max_check_time', label: 'Watch duration (s)', type: 'number', min: 60, max: 3600, default: 600 },
+    // THE "STILL PROCESSING - I'LL STOP WATCHING" NOTICE IS ONCE-PER-REQUEST
+    // BY DEFAULT (DURABLY STAMPED). ON = EVERY RESTART'S RE-CHECK THAT TIMES
+    // OUT AGAIN RE-SENDS IT - THE OLD DAILY-DRIP BEHAVIOR, NOW OPT-IN
+    { key: 'repeat_stall_notice', label: 'Repeat stalled notice', type: 'toggle', default: 0, zeroLabel: 'Off: the give-up notice sends once per request. On: it repeats when a restart re-checks and times out again.' }
   );
   return {
     id: `request.${contentDef.type}`,
@@ -808,7 +808,9 @@ async function runRequest(ctx, contentDef) {
     const message = await send(renderView(flow));
     const collector = message.createMessageComponentCollector({
       idle: selectionTimeout * 1000,
-      time: COLLECTOR_HARD_CAP_MS
+      // selection_timeout IS AN IDLE TIMER (EACH CLICK RESETS IT - MULTI-STEP
+      // PICKS MUST NOT DIE MID-FLOW); THE HARD CAP ENDS IMMORTAL SESSIONS
+      time: core.tuning.value('selection_hard_cap_minutes') * 60 * 1000
     });
 
     collector.on('collect', async (interaction) => {

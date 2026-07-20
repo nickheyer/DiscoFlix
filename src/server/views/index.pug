@@ -17,6 +17,9 @@ html(lang="en")
     script(src="/vendor/Sortable.min.js")
     script(src="/vendor/sweetalert2.min.js")
     script(src="/vendor/bootstrap.bundle.min.js")
+    //- TUNED GLOBALS LAND BEFORE source.js READS THEM (0 = USE ITS FALLBACK)
+    script.
+      window.DF_UPLOAD_CAP = #{uploadCapBytes || 0};
     script(src="/js/source.js")
 
   body

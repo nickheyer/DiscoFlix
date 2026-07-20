@@ -1,4 +1,3 @@
-const UNIFIED_PAGE_SIZE = 60;
 const UNIFIED_KINDS = ['movie', 'show', 'music'];
 
 // THE UNIFIED MEDIA LIBRARY - EVERY SERVING INSTANCE'S LISTING MERGED INTO
@@ -6,8 +5,6 @@ const UNIFIED_KINDS = ['movie', 'show', 'music'];
 // FILESYSTEM PATH, THEN TITLE+YEAR; THE Media LEDGER JOINS IN BY THE SAME
 // KEYS (BACKED BY ITS INDEXES) SO REQUEST HISTORY RIDES EVERY MERGED ITEM.
 module.exports = {
-  UNIFIED_PAGE_SIZE,
-
   // MERGE KEYS FOR ONE SERVICE ITEM - tmdb/tvdb NUMBERING COLLIDES ACROSS
   // KINDS SO THOSE SCOPE BY KIND; imdb IDS AND PATHS ARE GLOBALLY UNIQUE
   unifiedKeysOf({ kind, externalIds = {}, path = null, title = null, year = null }) {
@@ -216,8 +213,9 @@ module.exports = {
     };
     const wantKind = UNIFIED_KINDS.includes(kind) ? kind : 'all';
     const filtered = wantKind === 'all' ? searched : searched.filter(entry => entry.kind === wantKind);
-    const start = (Math.max(1, page) - 1) * UNIFIED_PAGE_SIZE;
-    const items = filtered.slice(start, start + UNIFIED_PAGE_SIZE);
+    const pageSize = this.core.tuning.value('unified_page_size');
+    const start = (Math.max(1, page) - 1) * pageSize;
+    const items = filtered.slice(start, start + pageSize);
     return {
       items,
       total: filtered.length,

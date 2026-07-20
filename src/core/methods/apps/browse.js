@@ -1,8 +1,3 @@
-const FEED_PAGE_SIZE = 15;
-const FEED_TTL_MS = 60 * 1000;
-const LIBRARY_TTL_MS = 5 * 60 * 1000;
-const SEARCH_RESULT_CAP = 20;
-const RELEASE_RESULT_CAP = 30;
 const BROWSE_VIEWS = ['covers', 'detailed'];
 const BROWSE_VIEW_DEFAULTS = { library: 'covers', search: 'detailed' };
 
@@ -11,8 +6,6 @@ const BROWSE_VIEW_DEFAULTS = { library: 'covers', search: 'detailed' };
 // PAGES. BOTH RIDE SMALL CACHES SO SECTION SWITCHES AND REVEALED-SENTINEL
 // PAGINATION DON'T HAMMER THE SERVICES.
 module.exports = {
-  FEED_PAGE_SIZE,
-
   // TITLE MATCHING FALLBACK FOR IDENTITY ANSWERS - EXTERNAL IDS WIN, THIS
   // ONLY CATCHES ITEMS A SERVICE NEVER GOT AN ID FOR
   comparableTitle(title) {
@@ -66,7 +59,7 @@ module.exports = {
     }
     try {
       const results = (await client.search(term))
-        .slice(0, SEARCH_RESULT_CAP)
+        .slice(0, this.core.tuning.value('search_result_cap'))
         .map(result => ({ ...result, rowState: this.rowStateOf(client, result) }));
       return { results, error: null };
     } catch (err) {
@@ -81,7 +74,7 @@ module.exports = {
     const client = this.getClientForInstance(instance);
     if (!client) return { rows: [], hasMore: false };
     try {
-      return await client.getHistory(page, FEED_PAGE_SIZE);
+      return await client.getHistory(page, this.core.tuning.value('feed_page_size'));
     } catch (err) {
       this.logger.debug(`${instance.display_name} feed fetch failed: ${err.message}`);
       return { rows: [], hasMore: false, error: err.message };
@@ -91,14 +84,15 @@ module.exports = {
   // THE SELF APP'S FEED IS THE BOT'S OWN LEDGER - RECENT MEDIA REQUESTS,
   // NEWEST FIRST, SAME ROW SHAPE THE CLIENT HISTORIES NORMALIZE TO
   async _getSelfFeedPage(page = 1) {
+    const pageSize = this.core.tuning.value('feed_page_size');
     try {
       const raw = await this.core.prisma.mediaRequest.findMany({
         include: { media: true, users: true },
         orderBy: { created_at: 'desc' },
-        skip: (page - 1) * FEED_PAGE_SIZE,
-        take: FEED_PAGE_SIZE + 1
+        skip: (page - 1) * pageSize,
+        take: pageSize + 1
       });
-      const rows = raw.slice(0, FEED_PAGE_SIZE).map(request => {
+      const rows = raw.slice(0, pageSize).map(request => {
         const media = request.media;
         let kind = 'pending';
         if (request.status === false) kind = 'denied';
@@ -114,7 +108,7 @@ module.exports = {
           at: request.updated_at || request.created_at
         };
       });
-      return { rows, hasMore: raw.length > FEED_PAGE_SIZE };
+      return { rows, hasMore: raw.length > pageSize };
     } catch (err) {
       this.logger.debug(`Self feed fetch failed: ${err.message}`);
       return { rows: [], hasMore: false, error: err.message };
@@ -125,7 +119,7 @@ module.exports = {
   async getFeedViewModel(instance) {
     if (!instance) return { rows: [], hasMore: false };
     const cached = this.feedCache.get(instance.id);
-    if (cached && Date.now() - cached.fetchedAt < FEED_TTL_MS) return cached.feed;
+    if (cached && Date.now() - cached.fetchedAt < this.core.tuning.value('feed_ttl_seconds') * 1000) return cached.feed;
     const feed = await this.getFeedPage(instance, 1);
     this.feedCache.set(instance.id, { feed, fetchedAt: Date.now() });
     return feed;
@@ -144,7 +138,7 @@ module.exports = {
   // THE TTL-CACHED FULL LISTING
   async _getFullLibrary(instance, client) {
     const cached = this.libraryCache.get(instance.id);
-    if (cached && Date.now() - cached.fetchedAt < LIBRARY_TTL_MS) return cached.items;
+    if (cached && Date.now() - cached.fetchedAt < this.core.tuning.value('library_ttl_seconds') * 1000) return cached.items;
 
     // COLD CACHE - NOTHING TO SERVE, THE CALLER WAITS FOR THE REAL FETCH
     if (!cached) {
@@ -167,10 +161,11 @@ module.exports = {
   },
 
   // CACHE-FIRST LIBRARY COUNTS FOR OVERVIEWS - NEVER BLOCKS A RENDER LONGER
-  // THAN timeoutMs. ON A COLD CACHE THE FETCH KEEPS RUNNING TO WARM THE TTL
-  // CACHE, AND THE CALLER RENDERS DASHES UNTIL THE NEXT VISIT. RETURNS
+  // THAN timeoutMs (library_count_wait_ms UNLESS THE CALLER OVERRIDES). ON A
+  // COLD CACHE THE FETCH KEEPS RUNNING TO WARM THE TTL CACHE, AND THE CALLER
+  // RENDERS DASHES UNTIL THE NEXT VISIT. RETURNS
   // { total, available, missing, monitored, byKind } OR null.
-  async getLibraryCounts(instance, { timeoutMs = 1500 } = {}) {
+  async getLibraryCounts(instance, { timeoutMs = null } = {}) {
     const client = this.getClientForInstance(instance);
     if (!client || !client.capabilities.library) return null;
 
@@ -187,13 +182,14 @@ module.exports = {
     };
 
     const cached = this.libraryCache.get(instance.id);
-    if (cached && Date.now() - cached.fetchedAt < LIBRARY_TTL_MS) return countItems(cached.items);
+    if (cached && Date.now() - cached.fetchedAt < this.core.tuning.value('library_ttl_seconds') * 1000) return countItems(cached.items);
 
     const fetch = this._getFullLibrary(instance, client);
     fetch.catch(err => this.logger.debug(`${instance.display_name} library warm-up failed: ${err.message}`));
+    const waitMs = timeoutMs ?? this.core.tuning.value('library_count_wait_ms');
     const items = await Promise.race([
       fetch,
-      new Promise(resolve => setTimeout(() => resolve(null), timeoutMs))
+      new Promise(resolve => setTimeout(() => resolve(null), waitMs))
     ]).catch(() => null);
     return items ? countItems(items) : null;
   },
@@ -320,7 +316,7 @@ module.exports = {
       return { releases: [], error: `${instance.display_name} cannot search releases` };
     }
     try {
-      const releases = (await client.searchReleases(term)).slice(0, RELEASE_RESULT_CAP);
+      const releases = (await client.searchReleases(term)).slice(0, this.core.tuning.value('release_result_cap'));
       return { releases, error: null };
     } catch (err) {
       this.logger.warn(`${instance.display_name} release search failed: ${err.message}`);

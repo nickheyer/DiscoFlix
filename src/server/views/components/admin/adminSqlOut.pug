@@ -1,0 +1,23 @@
+//- SQL CONSOLE OUTPUT - LOCALS: result ({kind:'rows'|'write'|'empty'}) OR
+//- error. ROWS ARE PRE-SERIALIZED STRINGS (BIGINT/DATE SAFE, CAPPED).
+if error
+  .adminSqlError= error
+else if result && result.kind === 'rows'
+  .adminSqlMeta= `${result.total} row${result.total === 1 ? '' : 's'}${result.truncated ? ` - showing first ${result.rows.length}` : ''}`
+  if result.rows.length
+    .adminPanel.adminSqlPanelOut
+      .adminScroll.adminSqlScroll
+        table.adminTable
+          thead
+            tr
+              each c in result.columns
+                th= c
+          tbody
+            each row in result.rows
+              tr
+                each c in result.columns
+                  td(class=row[c] === null ? 'isNull' : '')= row[c] === null ? 'null' : row[c]
+else if result && result.kind === 'write'
+  .adminSqlMeta= `${result.affected} row${result.affected === 1 ? '' : 's'} affected`
+else
+  .adminSqlMeta Nothing to run

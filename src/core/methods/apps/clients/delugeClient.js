@@ -1,5 +1,6 @@
 const axios = require('axios');
 const BaseClient = require('./baseClient');
+const tuning = require('../../../tuning');
 
 // WEB SESSION COOKIES KEYED BY APP-INSTANCE ID - SAME SURVIVING-SESSION
 // PATTERN AS qbittorrentClient (CLIENTS ARE BUILT PER-USE)
@@ -31,7 +32,7 @@ class DelugeClient extends BaseClient {
     this.password = password;
     this.cacheKey = cacheKey || this.baseUrl;
     this._rpcId = 0;
-    this.http = axios.create({ baseURL: this.baseUrl, timeout: 10000 });
+    this.http = axios.create({ baseURL: this.baseUrl, timeout: tuning.value('download_client_http_timeout_seconds') * 1000 });
   }
 
   _fingerprint() {

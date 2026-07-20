@@ -276,9 +276,10 @@ document.addEventListener('htmx:afterSettle', function () {
 
 // ---- CHAT UPLOAD (OG-DISCORD ATTACH) ----
 
-// DISCORD'S UNBOOSTED BOT CAP - THE SERVER ENFORCES IT TOO; THIS PRE-FLIGHT
-// JUST SAVES THE ROUND TRIP
-const DF_UPLOAD_CAP = 8 * 1024 * 1024;
+// SERVER-INJECTED TUNED CAP (upload_max_mb, SET IN index.pug BEFORE THIS
+// SCRIPT) - THE SERVER ENFORCES IT TOO; THIS PRE-FLIGHT JUST SAVES THE
+// ROUND TRIP. THE LITERAL IS THE FALLBACK WHEN THE GLOBAL IS ABSENT.
+const DF_UPLOAD_CAP = window.DF_UPLOAD_CAP || 8 * 1024 * 1024;
 
 function dfStagedUploadFile() {
   const input = document.getElementById('chatUploadFile');

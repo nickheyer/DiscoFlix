@@ -4,7 +4,7 @@ const {
   destroySession,
   isValidSession,
   SESSION_COOKIE,
-  SESSION_TTL_MS
+  sessionTtlMs
 } = require('../middlewares/authHandler');
 
 async function renderLogin(ctx) {
@@ -24,7 +24,7 @@ async function processLogin(ctx) {
     ctx.cookies.set(SESSION_COOKIE, createSession(), {
       httpOnly: true,
       sameSite: 'lax',
-      maxAge: SESSION_TTL_MS
+      maxAge: sessionTtlMs()
     });
     return ctx.redirect('/');
   }

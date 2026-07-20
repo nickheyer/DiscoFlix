@@ -9,7 +9,6 @@ const { rolesMatch } = require('./access');
 // WINS OUTRIGHT; DMs ALWAYS RESOLVE THE GLOBAL RULE).
 
 const TIER_RANK = { everyone: 0, whitelisted: 1, staff: 2, admin: 3 };
-const RULE_TTL_MS = 30 * 1000;
 
 // FEATURES WITH NO INTERACTION DEF OF THEIR OWN - RESOLVED WHERE THEY APPLY
 // (THE MONITOR CHECKS dm-notifications PER REQUESTER AT COMPLETION TIME)
@@ -55,7 +54,7 @@ let _rules = null;
 let _rulesFetchedAt = 0;
 
 async function loadRules(core) {
-  if (_rules && Date.now() - _rulesFetchedAt < RULE_TTL_MS) return _rules;
+  if (_rules && Date.now() - _rulesFetchedAt < core.tuning.value('feature_rule_cache_ttl_seconds') * 1000) return _rules;
   const rows = await core.models.botFeatureRule.allRules();
   const map = new Map();
   for (const row of rows) {

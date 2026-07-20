@@ -29,23 +29,30 @@
 }
 
 /* 12px INLINE PADDING LEAVES ROOM FOR THE CLASSIC LEFT PILL INDICATOR
-   (CLIPPING HAPPENS AT THE PADDING EDGE, SO THE PILL SURVIVES overflow-x) */
-.serverBubbles.sortable {
+   (CLIPPING HAPPENS AT THE PADDING EDGE, SO THE PILL SURVIVES overflow-x).
+   min-height IS THE PARTITION FLOOR: TWO 48px BUBBLES + THE 8px GAP BETWEEN
+   THEM - WITH THE ALWAYS-VISIBLE "+" BELOW, NEITHER PARTITION EVER SHOWS
+   FEWER THAN TWO BUBBLES + ITS "+" WHEN THE OTHER LIST GETS LONG */
+.serverBubbles.sortable,
+.appBubbles.sortable {
   padding-inline: 12px;
   scrollbar-width: none;
   overflow-y: scroll;
   overflow-x: clip;
   border-radius: 10px;
+  min-height: 104px;
 }
 
-/* CONSTANT 8px GAP FROM THE LAST GUILD TO THE INVITE "+": SCROLL CONTAINERS
+/* CONSTANT 8px GAP FROM THE LAST BUBBLE TO THE "+" BELOW: SCROLL CONTAINERS
    SWALLOW THE LAST BUBBLE'S BOTTOM MARGIN ONCE THE LIST OVERFLOWS, SO THE GAP
-   LIVES ON THE INVITE BUTTON (OUTSIDE THE SCROLLER) INSTEAD */
-.serverBubbles.sortable > .server:last-child {
+   LIVES ON THE "+" BUTTON (OUTSIDE THE SCROLLER) INSTEAD */
+.serverBubbles.sortable > .server:last-child,
+.appBubbles.sortable > .server:last-child {
   margin-bottom: 0;
 }
 
-#serverInviteButton {
+#serverInviteButton,
+.addAppButton {
   margin-top: 8px;
 }
 
@@ -230,6 +237,7 @@
   font-size: 33px;
   font-weight: 200;
   margin-bottom: 0;
+  flex-shrink: 0;
 }
 
 .invite:hover {
@@ -255,13 +263,15 @@
 
 /* ---- APP RAIL - PSEUDO-GUILDS FOR CONNECTED SERVICES (RADARR/SONARR/…) ---- */
 
+/* SHRINKABLE (UNLIKE BEFORE) SO A LONG APP LIST CAN'T CRUSH THE GUILD
+   PARTITION - THE FLOOR IS DIVIDER (18) + TWO-BUBBLE SCROLLER (104) +
+   GAP (8) + ADD-APP "+" (48). THE PILL GUTTER PADDING NOW LIVES ON
+   .appBubbles (THE SCROLLER), MATCHING .serverBubbles */
 .appRail {
   display: flex;
   flex-direction: column;
   align-items: center;
-  flex-shrink: 0;
-  /* MATCHES .serverBubbles - KEEPS THE PILL GUTTER ALIGNED RAIL-WIDE */
-  padding-inline: 12px;
+  min-height: 178px;
 }
 
 /* THE PARTITION KEEPS ITS DEFAULT 8px MARGINS - THE INVITE "+" ABOVE IT HAS

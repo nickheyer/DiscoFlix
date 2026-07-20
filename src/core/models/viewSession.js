@@ -2,7 +2,7 @@ const BaseModel = require('./base');
 
 // last_seen_at WRITES ARE THROTTLED SO BUSY SESSIONS DON'T WRITE PER REQUEST
 const TOUCH_INTERVAL_MS = 5 * 60 * 1000;
-const STALE_SESSION_MS = 60 * 24 * 60 * 60 * 1000;
+const DAY_MS = 24 * 60 * 60 * 1000;
 const VIEW_FIELDS = ['sidebar_exp_state', 'active_server_id', 'active_app_id', 'active_channels', 'chat_anchor'];
 const VIEW_INCLUDE = { activeServer: true, activeApp: true };
 
@@ -150,7 +150,8 @@ class ViewSession extends BaseModel {
     }
 
     async pruneStale() {
-        const cutoff = new Date(Date.now() - STALE_SESSION_MS);
+        // READ AT SWEEP TIME SO ADMIN CHANGES APPLY LIVE
+        const cutoff = new Date(Date.now() - this.core.tuning.value('stale_session_days') * DAY_MS);
         const { count } = await this.model.deleteMany({ where: { last_seen_at: { lt: cutoff } } });
         if (count) this.logger.info(`Pruned ${count} stale view sessions`);
     }

@@ -10,5 +10,7 @@ module.exports = {
   hidden: true,
   contentTypes: [],
   configFields: [],
-  sections: ['overview', 'requests', 'bot', 'library', 'users', 'logs', 'settings']
+  // database IS CONFIG-GATED (Configuration.db_admin_enabled) - THE NAV AND
+  // SECTION ROUTES FILTER IT VIA visibleSectionsOf, NOT THIS LIST
+  sections: ['overview', 'requests', 'bot', 'library', 'users', 'logs', 'database', 'settings']
 };

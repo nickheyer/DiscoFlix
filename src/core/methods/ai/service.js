@@ -8,19 +8,14 @@ const { directiveText } = require('./directives');
 // TURNS RUN AS THE OPERATOR. HISTORY REPLAYS AS PLAIN TEXT (TOOL BLOCKS
 // LIVE ONLY INSIDE THE IN-FLIGHT LOOP - NO PAIRING/WINDOWING HAZARDS).
 
-const MAX_TOOL_TURNS = 6;
-const DISCORD_MAX_TOKENS = 1024;
-const CONSOLE_MAX_TOKENS = 2048;
+// LOOP BOUNDS, TOKEN BUDGETS, AND CHUNK SIZES READ FROM core.tuning AT USE
+// TIME SO ADMIN CHANGES APPLY LIVE
 const DEFAULT_CONTEXT_TURNS = 24;
 // DISCORD SESSIONS END NATURALLY - A CHANNEL QUIET THIS LONG STARTS FRESH
 // (0 VIA THE context_idle_hours EXTENT = MEMORY NEVER FADES). CONSOLE
 // THREADS ARE EXPLICIT SESSIONS AND NEVER IDLE-CUT.
 const DEFAULT_IDLE_HOURS = 8;
-const CONSOLE_CONTEXT_TURNS = 30;
 const DAY_MS = 24 * 60 * 60 * 1000;
-// COMPONENTS V2 CAPS A MESSAGE'S TEXT AT 4000 - CHUNK WELL UNDER IT
-const DISCORD_CHUNK_CHARS = 3400;
-const TYPING_REFRESH_MS = 8 * 1000;
 
 module.exports = {
   // ENABLED + CONFIGURED AI INSTANCES, DEFAULT-FIRST LIKE CONTENT ROUTING
@@ -165,8 +160,11 @@ module.exports = {
     const toolsUsed = [];
     let response = null;
 
-    for (let turn = 0; turn <= MAX_TOOL_TURNS; turn++) {
-      const exhausted = turn === MAX_TOOL_TURNS;
+    // READ ONCE PER LOOP INVOCATION - A MID-LOOP ADMIN EDIT MUST NOT SKEW
+    // THE exhausted CHECK
+    const maxToolTurns = this.core.tuning.value('ai_max_tool_turns');
+    for (let turn = 0; turn <= maxToolTurns; turn++) {
+      const exhausted = turn === maxToolTurns;
       response = await client.complete({
         system,
         messages,
@@ -235,7 +233,7 @@ module.exports = {
     let typingTimer = null;
     if (ctx.source !== 'slash' && ctx.channel?.sendTyping) {
       ctx.channel.sendTyping().catch(() => {});
-      typingTimer = setInterval(() => ctx.channel.sendTyping().catch(() => {}), TYPING_REFRESH_MS);
+      typingTimer = setInterval(() => ctx.channel.sendTyping().catch(() => {}), core.tuning.value('ai_typing_refresh_seconds') * 1000);
     }
 
     try {
@@ -274,7 +272,7 @@ module.exports = {
           history,
           userText: `[${authorLabel}] ${text}`,
           toolCtx,
-          maxTokens: DISCORD_MAX_TOKENS
+          maxTokens: core.tuning.value('ai_discord_max_tokens')
         });
         await core.models.aiMessage.append(thread.id, {
           role: 'assistant', content: outcome.text,
@@ -336,7 +334,8 @@ module.exports = {
   // DIRECTIVE AS SUBTEXT - A PER-INSTANCE TEMPLATE ({app_emoji}, {model},
   // {tools_used}, ...), PURE PRESENTATION AND NEVER PROMPTED.
   async _sendDiscordReply(ctx, instance, { text, toolsUsed, model }) {
-    const chunks = this._chunkText(this._discordifyMarkdown(text), DISCORD_CHUNK_CHARS);
+    // COMPONENTS V2 CAPS A MESSAGE'S TEXT AT 4000 - CHUNK WELL UNDER IT
+    const chunks = this._chunkText(this._discordifyMarkdown(text), this.core.tuning.value('ai_discord_chunk_chars'));
     const footer = directiveText(instance, 'discord_footer', {
       ...(await this.directiveVarsFor(instance, ctx.config)),
       model: model || '',
@@ -437,7 +436,7 @@ module.exports = {
     if (!client) throw new Error(`${instance.display_name} is not fully configured`);
 
     return this._withThreadLock(conversationId, async () => {
-      const window = await core.models.aiMessage.windowFor(conversationId, CONSOLE_CONTEXT_TURNS);
+      const window = await core.models.aiMessage.windowFor(conversationId, core.tuning.value('ai_console_context_turns'));
       const history = this._historyMessagesOf(window);
       const userRow = await core.models.aiMessage.append(conversationId, {
         role: 'user', content: text, authorLabel: 'Operator', authorKey: 'console'
@@ -458,7 +457,7 @@ module.exports = {
           channel: null, messageId: null, origContent: text
         };
         const outcome = await this._runAgentLoop({
-          client, system, history, userText: text, toolCtx, maxTokens: CONSOLE_MAX_TOKENS
+          client, system, history, userText: text, toolCtx, maxTokens: core.tuning.value('ai_console_max_tokens')
         });
         assistantRow = await core.models.aiMessage.append(conversationId, {
           role: 'assistant', content: outcome.text,

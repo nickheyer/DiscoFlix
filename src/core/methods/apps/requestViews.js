@@ -6,8 +6,6 @@ const STATE_LABELS = {
   available: 'Available'
 };
 
-const REQUESTS_PAGE_SIZE = 20;
-
 // TAB FILTERS FOR THE REQUESTS SECTION - active/done SPLIT APPROVED ROWS BY
 // WHETHER THE MEDIA LANDED (is_available RIDES THE LEDGER, NOT THE REQUEST)
 const REQUEST_FILTERS = {
@@ -39,7 +37,6 @@ function shortStamp(timestamp) {
 // STATE + VIEW-MODEL DERIVATION FOR MediaRequest - THE ENGINE BEHIND THE
 // REQUESTS SECTION, THE CHAT MIRROR'S INLINE CARDS, AND LIBRARY ORIGIN ROWS
 module.exports = {
-  REQUESTS_PAGE_SIZE,
   REQUEST_FILTERS,
 
   // REQUEST MUST INCLUDE MEDIA RELATION
@@ -346,6 +343,7 @@ module.exports = {
   // ONE REQUESTS PAGE FOR THE SELF APP'S REQUESTS SECTION - SEARCH + FILTER
   // TABS + VIEW-MORE PAGINATION, MIRRORING THE USERS SECTION'S SHAPE
   async getRequestsPage({ page = 1, filter = 'all', search = '' } = {}) {
+    const pageSize = this.core.tuning.value('requests_page_size');
     const wantFilter = REQUEST_FILTERS[filter] ? filter : 'all';
     const searchWhere = search
       ? {
@@ -362,8 +360,8 @@ module.exports = {
         where: { ...searchWhere, ...REQUEST_FILTERS[wantFilter] },
         include: { media: true, users: true, made_in: true, app: true },
         orderBy: { created_at: 'desc' },
-        skip: (page - 1) * REQUESTS_PAGE_SIZE,
-        take: REQUESTS_PAGE_SIZE + 1
+        skip: (page - 1) * pageSize,
+        take: pageSize + 1
       }),
       ...Object.keys(REQUEST_FILTERS).map(key =>
         this.core.prisma.mediaRequest.count({ where: { ...searchWhere, ...REQUEST_FILTERS[key] } })
@@ -371,7 +369,7 @@ module.exports = {
     ]);
     const counts = Object.fromEntries(Object.keys(REQUEST_FILTERS).map((key, index) => [key, countValues[index]]));
 
-    const requests = raw.slice(0, REQUESTS_PAGE_SIZE);
+    const requests = raw.slice(0, pageSize);
     const [queueRows, channelNames, msIndexes, config] = await Promise.all([
       this._queueRowsFor(requests, { liveFallback: true }),
       this._channelNamesFor(requests),
@@ -386,7 +384,7 @@ module.exports = {
         msIndexes,
         withStages: true
       })),
-      hasMore: raw.length > REQUESTS_PAGE_SIZE,
+      hasMore: raw.length > pageSize,
       page,
       search,
       filter: wantFilter,

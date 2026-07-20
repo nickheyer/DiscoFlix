@@ -20,6 +20,7 @@ const SECTION_LABELS = {
   logs: 'Logs',
   chat: 'Chat',
   directives: 'Directives',
+  database: 'Database',
   settings: 'Settings'
 };
 

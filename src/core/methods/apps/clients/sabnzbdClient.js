@@ -1,5 +1,6 @@
 const axios = require('axios');
 const BaseClient = require('./baseClient');
+const tuning = require('../../../tuning');
 
 const MB = 1024 * 1024;
 
@@ -16,7 +17,7 @@ class SabnzbdClient extends BaseClient {
     super({ url, logger });
     this.serviceLabel = 'SABnzbd';
     this.apiKey = apiKey;
-    this.http = axios.create({ baseURL: this.baseUrl, timeout: 10000 });
+    this.http = axios.create({ baseURL: this.baseUrl, timeout: tuning.value('download_client_http_timeout_seconds') * 1000 });
   }
 
   async _call(mode, params = {}) {

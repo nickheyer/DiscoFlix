@@ -65,16 +65,27 @@ form.dfBotFeatureRow(
       )
     each extent in row.feature.extents
       .dfBotControl
-        label.dfBotControlLabel(for=`${row.slug}-${extent.key}` title=extent.zeroLabel || "0 means unlimited")= extent.label
-        input.settings-input.size-sm(
-          id=`${row.slug}-${extent.key}`
-          type="number"
-          name=`extent_${extent.key}`
-          value=row.effective.extents[extent.key]
-          min=extent.min
-          max=extent.max
-          disabled=inherited
-        )
+        label.dfBotControlLabel(for=`${row.slug}-${extent.key}` title=extent.zeroLabel || (extent.type === 'toggle' ? undefined : "0 means unlimited"))= extent.label
+        if extent.type === 'toggle'
+          label.settings-switch
+            input(
+              id=`${row.slug}-${extent.key}`
+              type="checkbox"
+              name=`extent_${extent.key}`
+              checked=!!Number(row.effective.extents[extent.key])
+              disabled=inherited
+            )
+            span.settings-slider(class=inherited ? 'readonly' : '')
+        else
+          input.settings-input.size-sm(
+            id=`${row.slug}-${extent.key}`
+            type="number"
+            name=`extent_${extent.key}`
+            value=row.effective.extents[extent.key]
+            min=extent.min
+            max=extent.max
+            disabled=inherited
+          )
   if (bot.scope || row.hasOverride) && !row.globalOnly
     .dfBotFeatureActions
       if bot.scope && !row.hasOverride

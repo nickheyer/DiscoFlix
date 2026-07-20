@@ -13,8 +13,8 @@ const { countRequestsSince } = require('../../bot/interactions/limits');
 // EVERY run() RETURNS A STRING (USUALLY JSON). THROWN ERRORS BECOME
 // is_error TOOL RESULTS SO THE MODEL CAN EXPLAIN AND RECOVER.
 
-const SEARCH_RESULT_CAP = 8;
-const LIST_CAP = 15;
+// RESULT CAPS READ FROM ctx.core.tuning AT CALL TIME (ai_tool_search_cap /
+// ai_tool_list_cap) SO ADMIN CHANGES APPLY LIVE
 
 function contentTypeEnum() {
   return registry.contentTypeDefs().map(def => def.type);
@@ -56,7 +56,7 @@ const TOOLS = [
       if (!instance) return JSON.stringify({ error: `No connected app handles ${input.type} searches - one can be added in the web console.` });
       const client = core.apps.getClientForInstance(instance);
       let results = await client.search(String(input.query || '').trim());
-      results = results.slice(0, SEARCH_RESULT_CAP);
+      results = results.slice(0, core.tuning.value('ai_tool_search_cap'));
       let badges = null;
       try {
         badges = await core.apps.annotateAvailability(results, client);
@@ -109,14 +109,15 @@ const TOOLS = [
       required: []
     },
     async run(ctx, input) {
+      const listCap = ctx.core.tuning.value('ai_tool_list_cap');
       const page = await ctx.core.apps.getUnifiedPage({
         term: String(input.query || ''),
         kind: input.kind && input.kind !== 'all' ? input.kind : 'all'
       });
       return JSON.stringify({
         counts: page.counts,
-        showing: Math.min(page.items.length, LIST_CAP),
-        items: page.items.slice(0, LIST_CAP).map(item => ({
+        showing: Math.min(page.items.length, listCap),
+        items: page.items.slice(0, listCap).map(item => ({
           title: item.title,
           year: item.year || null,
           kind: item.kind,
@@ -150,7 +151,7 @@ const TOOLS = [
         }
       }
       added.sort((a, b) => String(b.at || '').localeCompare(String(a.at || '')));
-      return JSON.stringify({ recently_added: added.slice(0, LIST_CAP) });
+      return JSON.stringify({ recently_added: added.slice(0, core.tuning.value('ai_tool_list_cap')) });
     }
   },
 
@@ -176,7 +177,7 @@ const TOOLS = [
           });
         }
       }
-      return JSON.stringify(queue.length ? { downloading: queue.slice(0, LIST_CAP), total: queue.length } : { downloading: [], note: 'The queue is empty.' });
+      return JSON.stringify(queue.length ? { downloading: queue.slice(0, core.tuning.value('ai_tool_list_cap')), total: queue.length } : { downloading: [], note: 'The queue is empty.' });
     }
   },
 
@@ -268,7 +269,7 @@ const TOOLS = [
         where,
         include: { media: true, users: true },
         orderBy: { created_at: 'desc' },
-        take: LIST_CAP
+        take: core.tuning.value('ai_tool_list_cap')
       });
       return JSON.stringify({
         requests: rows.map(row => ({

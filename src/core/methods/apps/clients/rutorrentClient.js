@@ -1,5 +1,6 @@
 const axios = require('axios');
 const BaseClient = require('./baseClient');
+const tuning = require('../../../tuning');
 
 // HTTPRPC mode=list COLUMN ORDER - RUTORRENT'S OWN WEBUI CONTRACT
 const COL = {
@@ -28,7 +29,7 @@ class RutorrentClient extends BaseClient {
     this.serviceLabel = 'ruTorrent';
     this.http = axios.create({
       baseURL: this.baseUrl,
-      timeout: 10000,
+      timeout: tuning.value('download_client_http_timeout_seconds') * 1000,
       auth: username || password ? { username: username || '', password: password || '' } : undefined
     });
   }

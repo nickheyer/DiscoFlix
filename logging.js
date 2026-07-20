@@ -21,8 +21,9 @@ devConsoleCallee.getCallee = () => {
 
 const DB_LOG_LEVEL = 'info';
 const DB_METADATA_MAX_CHARS = 4000;
-const DB_PRUNE_EVERY_WRITES = 200;
-const DB_KEEP_NEWEST = 5000;
+// PRUNE CADENCE + RETENTION READ FROM TUNING AT WRITE/PRUNE TIME - LOGGING
+// BOOTS BEFORE THE SNAPSHOT PRIMES, WHICH JUST MEANS DEFAULTS SERVE EARLY
+const tuning = require('./src/core/tuning');
 
 // WINSTON -> EventLog ROWS. FIRE-AND-FORGET WRITES, PERIODIC SIZE PRUNE, AND
 // FAILURES GO TO console SO A DB PROBLEM CAN NEVER LOG-LOOP THROUGH WINSTON
@@ -58,7 +59,7 @@ class PrismaTransport extends Transport {
       }
     }).then(() => {
       this._warned = false;
-      if (++this._writes % DB_PRUNE_EVERY_WRITES === 0) this._prune(prisma);
+      if (++this._writes % tuning.value('log_prune_every_writes') === 0) this._prune(prisma);
     }).catch(err => {
       if (!this._warned) {
         this._warned = true;
@@ -71,7 +72,7 @@ class PrismaTransport extends Transport {
     try {
       const edge = await prisma.eventLog.findFirst({
         orderBy: { timestamp: 'desc' },
-        skip: DB_KEEP_NEWEST,
+        skip: tuning.value('log_keep_newest'),
         select: { timestamp: true }
       });
       if (edge) await prisma.eventLog.deleteMany({ where: { timestamp: { lte: edge.timestamp } } });

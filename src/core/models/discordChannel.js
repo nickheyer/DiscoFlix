@@ -3,8 +3,11 @@ const BaseModel = require('./base');
 class DiscordServerChannel extends BaseModel {
   constructor(core) {
     super(core, 'DiscordServerChannel');
-    // ONE PAGE SIZE FOR THE INITIAL LOAD AND EVERY SCROLL-UP BATCH
-    this.historyPageSize = 100;
+  }
+
+  // ONE PAGE SIZE FOR THE INITIAL LOAD AND EVERY SCROLL-UP BATCH
+  get historyPageSize() {
+    return require('../tuning').value('history_page_size');
   }
 
   async create(data = {}, include = {}) {

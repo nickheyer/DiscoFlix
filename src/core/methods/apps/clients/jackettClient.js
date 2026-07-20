@@ -1,5 +1,6 @@
 const axios = require('axios');
 const BaseClient = require('./baseClient');
+const tuning = require('../../../tuning');
 
 // JACKETT - THE TORZNAB CAPS FEED IS THE AUTHORITATIVE APIKEY-GATED
 // CONNECTIVITY CHECK; THE ADMIN CONFIG ENDPOINT ADDS A VERSION WHEN IT
@@ -11,7 +12,7 @@ class JackettClient extends BaseClient {
     super({ url, logger });
     this.serviceLabel = 'Jackett';
     this.apiKey = apiKey;
-    this.http = axios.create({ baseURL: this.baseUrl, timeout: 30000 });
+    this.http = axios.create({ baseURL: this.baseUrl, timeout: tuning.value('indexer_http_timeout_seconds') * 1000 });
   }
 
   async getStatus() {

@@ -18,7 +18,7 @@ async function toggleSidebarState(ctx) {
     await ctx.compileView('sidebar/sidebarLayout.pug', {
       state, servers, discordBot, apps, activeApp,
       authEnabled: !!config.admin_password,
-      ...(activeApp ? buildSectionNav(ctx.core, activeApp) : {})
+      ...(activeApp ? buildSectionNav(ctx.core, activeApp, config) : {})
     });
   } catch (err) {
     ctx.core.logger.error('TOGGLE_SIDEBAR_FAILED:', err);

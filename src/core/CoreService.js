@@ -38,6 +38,10 @@ class CoreService {
     // DB LOG TRANSPORT FEEDS THE DISCOFLIX TAKEOVER'S LOGS SECTION
     this.logger.attachDbTransport(() => this.prisma);
     this.models = require('./models')(this);
+    // OPERATIONAL TUNABLES - SYNC READS EVERYWHERE, PRIMED FROM THE DB HERE.
+    // UNTIL THE PRIME LANDS, value() SERVES REGISTRY DEFAULTS
+    this.tuning = require('./tuning');
+    this.tuning.init(this.prisma).catch(err => this.logger.warn(`Tuning prime failed: ${err.message}`));
     this.render = require('./methods/rendering')(this);
     this.sockets = require('./methods/websocket')(this);
     this.apps = require('./methods/apps')(this);

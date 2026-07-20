@@ -1,0 +1,127 @@
+//- THE GRID PANEL - THE ONE TARGET FOR SEARCH/SORT/PAGE/FILTER/BULK/SAVE
+//- SWAPS (THE SEARCH BOX LIVES OUTSIDE SO IT NEVER LOSES FOCUS MID-TYPE).
+//- LOCALS: db, message?, closeDrawer?
+- var q = db.grid.query
+- var cols = db.grid.model.columns
+- function qs(o) { var m = Object.assign({ model: db.modelName, search: q.search, sort: q.sort, dir: q.dir, page: q.page, filterField: q.filterField, filterValue: q.filterValue }, o || {}); return Object.keys(m).filter(function(k) { return m[k] !== '' && m[k] != null }).map(function(k) { return k + '=' + encodeURIComponent(m[k]) }).join('&') }
+#adminGrid
+  if closeDrawer
+    //- OOB STUB - EMPTIES THE DRAWER WHEN A SAVE/DELETE LANDS
+    #adminDrawer.adminDrawer(hx-swap-oob="innerHTML")
+  if message
+    .adminToast= message
+  form#adminGridForm.adminGridForm(onsubmit="return false")
+    input(type="hidden" name="model" value=db.modelName)
+    input(type="hidden" name="search" value=q.search)
+    input(type="hidden" name="sort" value=q.sort)
+    input(type="hidden" name="dir" value=q.dir)
+    input(type="hidden" name="page" value=q.page)
+    input(type="hidden" name="filterField" value=q.filterField)
+    input(type="hidden" name="filterValue" value=q.filterValue)
+    .adminPanel
+      .adminPanelHead
+        span.adminCount= `${db.grid.total} row${db.grid.total === 1 ? '' : 's'}`
+        if q.filterField
+          button.adminFilterChip(
+            type="button"
+            title="Clear this filter"
+            hx-get=`/admin/grid?${qs({ filterField: '', filterValue: '', page: 1 })}`
+            hx-target="#adminGrid"
+            hx-swap="outerHTML"
+          )= `${q.filterField} = ${q.filterValue}`
+        if q.search
+          span.adminPanelHint= `matching “${q.search}”`
+      .adminScroll
+        table.adminTable
+          thead
+            tr
+              th.adminCheckCell
+                input(
+                  type="checkbox"
+                  aria-label="Select all rows on this page"
+                  onchange="this.closest('table').querySelectorAll('.adminRowCheck').forEach(c => { c.checked = this.checked })"
+                )
+              th.adminActionCell
+              each col in cols
+                th(class=q.sort === col.name ? 'sorted' : '')
+                  a.adminSort(
+                    role="button"
+                    tabindex="0"
+                    hx-get=`/admin/grid?${qs({ sort: col.name, dir: (q.sort === col.name && q.dir === 'asc') ? 'desc' : 'asc', page: 1 })}`
+                    hx-target="#adminGrid"
+                    hx-swap="outerHTML"
+                  )
+                    = col.name
+                    if q.sort === col.name
+                      span.adminSortDir(class=q.dir)
+          tbody
+            if !db.grid.rows.length
+              tr.adminEmptyRow
+                td(colspan=cols.length + 2)= (q.search || q.filterField) ? 'No rows match' : 'No rows'
+            each row in db.grid.rows
+              tr
+                td.adminCheckCell
+                  input.adminRowCheck(type="checkbox" name="ids" value=row.pk)
+                td.adminActionCell
+                  button.adminRowEdit(
+                    type="button"
+                    title="View / edit row"
+                    aria-label=`View or edit ${db.modelName} row ${row.pk}`
+                    hx-get=`/admin/editor?${qs({})}&pk=${encodeURIComponent(row.pk)}`
+                    hx-target="#adminDrawer"
+                    hx-swap="innerHTML"
+                  )
+                    svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true")
+                      path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5")
+                      path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z")
+                each cell in row.cells
+                  td(class=cell.isNull ? 'isNull' : (cell.bool !== undefined ? `bool-${cell.bool}` : '') title=cell.full)
+                    if cell.jump
+                      a.adminJump(
+                        role="button"
+                        tabindex="0"
+                        title=`${cell.jump.model} where ${cell.jump.field} = ${cell.jump.value}`
+                        hx-get=`/admin/grid?${qs({ model: cell.jump.model, filterField: cell.jump.field, filterValue: cell.jump.value, search: '', sort: '', dir: '', page: 1 })}`
+                        hx-target="#adminGrid"
+                        hx-swap="outerHTML"
+                      )= cell.text
+                    else
+                      = cell.text
+      .adminFoot
+        .adminBulk
+          button.adminBtn.danger(
+            type="button"
+            hx-post="/admin/bulk"
+            hx-vals='{"action":"delete"}'
+            hx-target="#adminGrid"
+            hx-swap="outerHTML"
+            hx-confirm="Delete the targeted rows? Relation cascades apply."
+            hx-disabled-elt="this"
+          ) Delete
+          span.adminFootDivider
+          select.adminInput.adminFieldSelect(name="field" aria-label="Field to set")
+            each col in cols
+              if !col.readonly
+                option(value=col.name)= col.name
+          input.adminInput.adminValueInput(type="text" name="value" placeholder="new value" autocomplete="off")
+          label.adminToggle
+            input(type="checkbox" name="setnull")
+            span null
+          button.adminBtn(
+            type="button"
+            hx-post="/admin/bulk"
+            hx-vals='{"action":"set"}'
+            hx-target="#adminGrid"
+            hx-swap="outerHTML"
+            hx-confirm="Set this field on the targeted rows?"
+            hx-disabled-elt="this"
+          ) Set field
+          label.adminToggle(title="Apply to every row the current search/filter matches instead of the checked rows")
+            input(type="checkbox" name="scope" value="filtered")
+            span= `all ${db.grid.total} matching`
+        .adminPager
+          if q.page > 1
+            button.adminBtn(type="button" hx-get=`/admin/grid?${qs({ page: q.page - 1 })}` hx-target="#adminGrid" hx-swap="outerHTML") Prev
+          span.adminPageInfo= `${q.page} / ${db.grid.pages}`
+          if q.page < db.grid.pages
+            button.adminBtn(type="button" hx-get=`/admin/grid?${qs({ page: q.page + 1 })}` hx-target="#adminGrid" hx-swap="outerHTML") Next

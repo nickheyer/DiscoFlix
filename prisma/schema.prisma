@@ -24,6 +24,13 @@ model Configuration {
   whitelist_role_ids        String   @default("")
   staff_role_ids            String   @default("")
   admin_role_ids            String   @default("")
+  // SPARSE OVERRIDES FOR THE OPERATIONAL TUNABLES DECLARED IN core/tuning.js -
+  // ONLY KEYS THE ADMIN CHANGED ARE STORED, EVERYTHING ELSE RIDES THE DEFAULTS
+  tuning_json               String?
+  // THE BUILT-IN DATABASE ADMIN SECTION (SEEDABLE VIA DF_DB_ADMIN). THE
+  // DISMISS FLAG SILENCES THE NO-PASSWORD WARNING BUBBLE, NOT THE FEATURE
+  db_admin_enabled          Boolean  @default(false)
+  db_admin_warning_dismissed Boolean @default(false)
   created_at                DateTime @default(now())
   updated_at                DateTime @updatedAt @default(now())
 
@@ -211,6 +218,10 @@ model DiscordServerChannel {
   isCategory           Boolean          @default(false)
   parent_id            String           @default("")
   unread_message_count Int              @default(0)
+  // READ HIGH-WATER MARK - LETS DELETIONS RECOUNT UNREADS INSTEAD OF TRUSTING
+  // A BARE COUNTER THAT CAN ONLY DRIFT. ADVANCES WHENEVER THE CHANNEL IS
+  // ZEROED OR A MESSAGE ARRIVES ALREADY-SEEN (VIEWER ON SCREEN / SELF)
+  last_read_at         DateTime         @default(now())
   created_at           DateTime         @default(now())
   updated_at           DateTime         @updatedAt @default(now())
   server               DiscordServer    @relation(fields: [discord_server], references: [server_id], onDelete: Cascade)
@@ -307,6 +318,9 @@ model MediaRequest {
   // THE PIPELINE'S DECISION/IMPORT TIMES GET THEIR OWN COLUMNS
   decided_at        DateTime?
   imported_at       DateTime?
+  // STAMPED WHEN A QUEUE WATCH GIVES UP - THE DURABLE "ALREADY TOLD THEM"
+  // MARKER THAT KEEPS BOOT-TIME RE-ARMS FROM RE-SENDING THE FAILURE NOTICE
+  watch_expired_at  DateTime?
   users             User[]        @relation("UserMediaRequests")
   app               App?          @relation(fields: [appId], references: [id], onDelete: SetNull)
   appId             String?

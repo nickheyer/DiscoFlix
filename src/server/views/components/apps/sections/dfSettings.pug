@@ -23,3 +23,17 @@ form.appSettingsForm(
           .appSettingsFields
             each f in group.fields
               +field(f, f.key, activeApp.id, false)
+          //- UNSECURED-DB WARNING - SAME GATE AS THE HOME BADGE'S "!" BUBBLE
+          //- (ENABLED + NO CONSOLE PASSWORD + NOT DISMISSED). DISMISS IS
+          //- STICKY AND CLEARS THE BUBBLE EVERYWHERE.
+          if group.warning
+            .dfDbWarnCard
+              .dfDbWarnText
+                strong Heads up:
+                |  the database admin is enabled but this console has no password. Anyone who can reach this page can read and edit the entire database. Set an admin password above, or dismiss this if the console never leaves your network.
+              button.modal-button.button-secondary(
+                type="button"
+                hx-post="/discoflix/db-warning/dismiss"
+                hx-target="closest .dfDbWarnCard"
+                hx-swap="outerHTML"
+              ) Dismiss

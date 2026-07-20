@@ -1,5 +1,6 @@
 const axios = require('axios');
 const BaseClient = require('./baseClient');
+const tuning = require('../../../tuning');
 
 // HYDRA'S NEWZNAB JSON WRAPS VALUES IN @attributes BLOCKS - UNWRAP EITHER SHAPE
 function attributesOf(entry) {
@@ -20,7 +21,7 @@ class Nzbhydra2Client extends BaseClient {
     super({ url, logger });
     this.serviceLabel = 'NZBHydra2';
     this.apiKey = apiKey;
-    this.http = axios.create({ baseURL: this.baseUrl, timeout: 30000 });
+    this.http = axios.create({ baseURL: this.baseUrl, timeout: tuning.value('indexer_http_timeout_seconds') * 1000 });
   }
 
   async getStatus() {

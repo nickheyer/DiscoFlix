@@ -259,6 +259,13 @@ function ruleDataFrom(feature, body) {
   const extents = {};
   for (const extent of feature.extents || []) {
     const raw = body[`extent_${extent.key}`];
+    if (extent.type === 'toggle') {
+      // UNCHECKED CHECKBOXES DON'T POST - ABSENT MEANS OFF. SPARSE STORAGE:
+      // ONLY A VALUE THAT DIFFERS FROM THE DESCRIPTOR DEFAULT IS KEPT
+      const on = ['true', 'on', '1'].includes(String(raw ?? '').toLowerCase());
+      if (on !== !!Number(extent.default)) extents[extent.key] = on ? 1 : 0;
+      continue;
+    }
     if (raw === undefined || raw === '') continue;
     let value = Number(raw);
     if (isNaN(value)) continue;

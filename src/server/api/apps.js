@@ -28,8 +28,8 @@ const USER_MUTABLE_FIELDS = [
   // OTHERWISE BLANK NOTES ON ANY OTHER FIELD'S EDIT
   'notes'
 ];
-const USERS_PAGE_SIZE = 20;
-const LOGS_PAGE_SIZE = 50;
+// PAGE SIZES READ FROM core.tuning AT BUILD TIME (users_page_size /
+// logs_page_size) SO ADMIN CHANGES APPLY LIVE
 const LOG_LEVELS = ['error', 'warn', 'info'];
 
 // CACHED IMAGES ARE STORED AS BARE RELATIVE PATHS - SERVE THEM ROOT-RELATIVE
@@ -96,6 +96,7 @@ function lastSeenLabel(timestamp) {
 // FIELD DESCRIPTORS SO THE +field MIXIN RENDERS THE EDITABLE SUBSET. OPEN
 // ACCESS ASKS ALWAYS SORT FIRST - THEY ARE THE THING WAITING ON AN ADMIN.
 async function buildUsersPage(core, search = '', page = 1, filter = 'people') {
+  const pageSize = core.tuning.value('users_page_size');
   const wantFilter = USER_FILTERS[filter] ? filter : 'people';
   // THE EXACT-ID ARM LETS THE PROFILE MODAL'S "OPEN IN USERS SECTION" LINK
   // LAND ON ONE CARD BY SNOWFLAKE - contains WOULD NEVER MATCH IT
@@ -111,8 +112,8 @@ async function buildUsersPage(core, search = '', page = 1, filter = 'people') {
         { is_client: 'desc' },
         { username: 'asc' }
       ],
-      skip: (page - 1) * USERS_PAGE_SIZE,
-      take: USERS_PAGE_SIZE + 1
+      skip: (page - 1) * pageSize,
+      take: pageSize + 1
     }),
     ...Object.keys(USER_FILTERS).map(key =>
       core.prisma.user.count({ where: { ...searchWhere, ...USER_FILTERS[key] } })
@@ -121,7 +122,7 @@ async function buildUsersPage(core, search = '', page = 1, filter = 'people') {
   const counts = Object.fromEntries(Object.keys(USER_FILTERS).map((key, index) => [key, countValues[index]]));
 
   return {
-    rows: raw.slice(0, USERS_PAGE_SIZE).map(row => ({
+    rows: raw.slice(0, pageSize).map(row => ({
       row: {
         ...row,
         avatar_url: rootRelative(row.avatar_url),
@@ -133,7 +134,7 @@ async function buildUsersPage(core, search = '', page = 1, filter = 'people') {
       },
       fields: core.models.user.getFormData(row)
     })),
-    hasMore: raw.length > USERS_PAGE_SIZE,
+    hasMore: raw.length > pageSize,
     page,
     search,
     filter: wantFilter,
@@ -145,6 +146,7 @@ async function buildUsersPage(core, search = '', page = 1, filter = 'people') {
 // OPTIONAL LEVEL + TEXT FILTERS, VIEW-MORE PAGINATION LIKE EVERY OTHER LONG
 // LIST. total RIDES ALONG SO THE TOOLBAR CAN SAY HOW DEEP THE MATCH RUNS.
 async function buildLogsPage(core, level = '', page = 1, search = '') {
+  const pageSize = core.tuning.value('logs_page_size');
   const where = {};
   if (LOG_LEVELS.includes(level)) where.level = level;
   if (search) {
@@ -157,20 +159,20 @@ async function buildLogsPage(core, level = '', page = 1, search = '') {
     core.prisma.eventLog.findMany({
       where,
       orderBy: { timestamp: 'desc' },
-      skip: (page - 1) * LOGS_PAGE_SIZE,
-      take: LOGS_PAGE_SIZE + 1
+      skip: (page - 1) * pageSize,
+      take: pageSize + 1
     }),
     core.prisma.eventLog.count({ where })
   ]);
   return {
-    rows: raw.slice(0, LOGS_PAGE_SIZE).map(row => {
+    rows: raw.slice(0, pageSize).map(row => {
       const stamp = new Date(row.timestamp);
       return {
         ...row,
         when: `${stamp.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} ${stamp.toLocaleTimeString('en-US', { hour12: false })}`
       };
     }),
-    hasMore: raw.length > LOGS_PAGE_SIZE,
+    hasMore: raw.length > pageSize,
     page,
     level: LOG_LEVELS.includes(level) ? level : '',
     search,
@@ -186,6 +188,7 @@ const CONFIG_FIELD_GROUPS = [
   { label: 'General', blurb: 'What your media server goes by.', keys: ['media_server_name'] },
   { label: 'Discord', blurb: 'The bot token that connects DiscoFlix to your Discord servers. How the bot behaves and who may use it lives on the Discord Bot tab.', keys: ['discord_token'] },
   { label: 'Console Security', blurb: 'Password-protect this console.', keys: ['admin_password'] },
+  { label: 'Database Admin', blurb: 'The built-in raw database editor. Enabling it reveals a Database channel in this app.', keys: ['db_admin_enabled'] },
   { label: 'Extras', blurb: 'Nice-to-haves and diagnostics.', keys: ['is_debug'] }
 ];
 
@@ -242,7 +245,19 @@ async function buildSelfSectionData(core, instance, section, opts = {}) {
       break;
     }
     case 'settings': {
-      data.formGroups = buildConfigGroups(await core.models.configuration.getPages());
+      // TUNING PANELS RIDE THE SAME FORM/MIXIN AS THE CONFIG GROUPS - ONE
+      // AUTO-SAVING SETTINGS SURFACE, NO PARALLEL FORM MACHINERY
+      data.formGroups = [
+        ...buildConfigGroups(await core.models.configuration.getPages()),
+        ...core.tuning.settingsGroups()
+      ];
+      // THE UNSECURED-DB WARNING RIDES ITS GROUP - CARD AND RAIL BUBBLE
+      // SHARE ONE GATE (ENABLED + NO PASSWORD + NOT DISMISSED)
+      const config = opts.config || await core.models.configuration.get();
+      if (config.db_admin_enabled && !config.admin_password && !config.db_admin_warning_dismissed) {
+        const dbGroup = data.formGroups.find(group => group.label === 'Database Admin');
+        if (dbGroup) dbGroup.warning = true;
+      }
       break;
     }
     // THE DISCORD BOT TAB - FEATURE MATRIX + THE MOVED IDENTITY/AUDIENCE FIELDS
@@ -560,16 +575,28 @@ async function libraryEscalationFor(core, instance) {
     .map(row => ({ id: row.id, label: row.display_name }));
 }
 
+// CONFIG-GATED SECTIONS: database ONLY SHOWS WHEN THE ADMIN FLIPPED IT ON.
+// NO CONFIG IN HAND = HIDDEN, THE SAFE DEFAULT. NOTE database IS A LAUNCHER
+// ROW (OPENS /admin IN A NEW TAB) - IT IS NEVER A ROUTABLE ACTIVE SECTION.
+function visibleSectionsOf(manifest, config) {
+  return manifest.sections.filter(key => key !== 'database' || !!(config && config.db_admin_enabled));
+}
+
+function routableSectionsOf(manifest, config) {
+  return visibleSectionsOf(manifest, config).filter(key => key !== 'database');
+}
+
 // SECTION-NAV LOCALS - SIDEBAR TOGGLES USE THIS
-function buildSectionNav(core, instance) {
+function buildSectionNav(core, instance, config = null) {
   const manifest = core.apps.getType(instance.app_type);
-  const section = manifest.sections.includes(instance.active_section)
+  const sections = visibleSectionsOf(manifest, config);
+  const section = routableSectionsOf(manifest, config).includes(instance.active_section)
     ? instance.active_section
     : 'overview';
   return {
     activeApp: instance,
     appManifest: manifest,
-    appSections: manifest.sections.map(key => ({
+    appSections: sections.map(key => ({
       key,
       label: core.apps.SECTION_LABELS[key] || key
     })),
@@ -579,9 +606,11 @@ function buildSectionNav(core, instance) {
 }
 
 async function buildTakeoverLocals(core, instance, opts = {}) {
-  const nav = buildSectionNav(core, instance);
+  // GATED SECTIONS (database) NEED THE CONFIG - FETCH ONCE, THREAD THROUGH
+  const config = await core.models.configuration.get();
+  const nav = buildSectionNav(core, instance, config);
   const [sectionData, feed] = await Promise.all([
-    buildSectionData(core, instance, nav.section, opts),
+    buildSectionData(core, instance, nav.section, { ...opts, config }),
     // THE ACTIVITY FEED RAIL RIDES ALONG IN EVERY SECTION (CACHED PAGE 1)
     core.apps.getFeedViewModel(instance)
   ]);
@@ -740,7 +769,8 @@ async function openDiscoFlixSection(ctx) {
   const core = ctx.core;
   const instance = await core.apps.getSelfInstance();
   const manifest = core.apps.getType('discoflix');
-  const section = manifest.sections.includes(ctx.params.section)
+  const config = await core.models.configuration.get();
+  const section = routableSectionsOf(manifest, config).includes(ctx.params.section)
     ? ctx.params.section
     : 'overview';
   await core.models.app.update({ id: instance.id }, { active_section: section });
@@ -871,7 +901,8 @@ async function changeAppSection(ctx) {
   }
 
   const manifest = core.apps.getType(instance.app_type);
-  const section = manifest.sections.includes(ctx.params.section)
+  const config = await core.models.configuration.get();
+  const section = routableSectionsOf(manifest, config).includes(ctx.params.section)
     ? ctx.params.section
     : 'overview';
   await core.models.app.update({ id: instance.id }, { active_section: section });
@@ -1609,6 +1640,11 @@ async function saveApp(ctx) {
       // THE SELF APP'S SETTINGS FORM WRITES THE Configuration SINGLETON
       const config = await core.models.configuration.get();
       await core.models.configuration.safeUpdateOne(config.id, ctx.request.body);
+      // TUNING FIELDS (tuning_<key>) RIDE THE SAME FORM - SPARSE-STORED AND
+      // LIVE IMMEDIATELY (TIMERS RE-READ EACH CYCLE, NO RESTART NEEDED)
+      if (core.tuning.formHasTuning(ctx.request.body)) {
+        await core.tuning.saveOverrides(core, core.tuning.overridesFromForm(ctx.request.body));
+      }
       // PRESENCE SETTINGS TAKE EFFECT IMMEDIATELY WHILE THE BOT IS ONLINE
       if (core.client?.isReady()) core.discord.applyPresence().catch(() => {});
     } else {

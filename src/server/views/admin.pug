@@ -1,0 +1,22 @@
+//- THE STANDALONE DATABASE ADMIN - ITS OWN DOCUMENT AT /admin, NOT PART OF
+//- THE CONSOLE SPA. THE DISCOFLIX APP'S "database" CHANNEL JUST OPENS THIS
+//- IN A NEW TAB. LOCALS: db (SEE api/dbAdmin.buildDbData).
+doctype html
+html(lang="en")
+  head
+    meta(charset="utf-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1")
+    title DiscoFlix · Database
+    link(rel="icon" type="image/png" href="/images/favicon.png")
+    link(href="/vendor/fonts/fonts.css" rel="stylesheet")
+    link(rel="stylesheet" href="/css/variables.css")
+    link(rel="stylesheet" href="/css/dbadmin.css")
+    script(src="/vendor/htmx.min.js")
+  body.adminPage
+    header.adminHeader
+      img.adminBrandIcon(src="/images/favicon.png" alt="")
+      span.adminBrandName DiscoFlix
+      span.adminBrandSep
+      span.adminBrandSection Database
+      a.adminBackLink(href="/") Console
+    include components/admin/adminBody

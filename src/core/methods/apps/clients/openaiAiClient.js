@@ -1,10 +1,10 @@
 const axios = require('axios');
 const AiBaseClient = require('./aiBaseClient');
+const tuning = require('../../../tuning');
 
 // OPENAI CHAT COMPLETIONS API. url IS OPTIONAL - BLANK = api.openai.com,
 // SET = ANY OPENAI-COMPATIBLE ENDPOINT (LM STUDIO, VLLM, OPENROUTER...).
 const DEFAULT_BASE = 'https://api.openai.com';
-const REQUEST_TIMEOUT_MS = 120 * 1000;
 
 class OpenAiAiClient extends AiBaseClient {
   constructor(options) {
@@ -13,7 +13,8 @@ class OpenAiAiClient extends AiBaseClient {
     this.apiKey = options.token;
     this.http = axios.create({
       baseURL: this.baseUrl || DEFAULT_BASE,
-      timeout: REQUEST_TIMEOUT_MS,
+      // CLIENTS ARE BUILT PER-USE, SO THE TUNED DEADLINE APPLIES LIVE
+      timeout: tuning.value('ai_request_timeout_seconds') * 1000,
       headers: { Authorization: `Bearer ${this.apiKey}` }
     });
   }

@@ -1,0 +1,717 @@
+/* THE STANDALONE DATABASE ADMIN (/admin) - ITS OWN DOCUMENT, LOADS ONLY
+   variables.css + THIS FILE. APP-SHELL LAYOUT: FIXED HEADER, MODEL RAIL,
+   AND ONE BORDERED TABLE PANEL THAT OWNS ALL SCROLLING (HEAD STICKY, FOOT
+   ATTACHED) - THE PAGE ITSELF NEVER SCROLLS. */
+
+:root {
+  --adm-hairline: rgba(255, 255, 255, 0.06);
+  --adm-hairline-strong: rgba(0, 0, 0, 0.35);
+  --adm-mono: ui-monospace, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+  --adm-header-h: 48px;
+}
+
+* { box-sizing: border-box; }
+
+html, body.adminPage {
+  height: 100%;
+  margin: 0;
+}
+
+body.adminPage {
+  font-family: var(--font-family);
+  font-size: 14px;
+  color: var(--text-normal);
+  background-color: var(--bg-tertiary);
+  overflow: hidden;
+}
+
+/* ── HEADER ─────────────────────────────────────────────────────────── */
+.adminHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: var(--adm-header-h);
+  padding: 0 16px;
+  background-color: var(--bg-secondary-alt);
+  border-bottom: 1px solid var(--adm-hairline-strong);
+}
+
+.adminBrandIcon {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+}
+
+.adminBrandName {
+  font-weight: 700;
+  color: var(--header-primary);
+}
+
+.adminBrandSep::before {
+  content: '/';
+  color: var(--channel-default);
+}
+
+.adminBrandSection {
+  color: var(--header-secondary);
+  font-weight: 500;
+}
+
+.adminBackLink {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--channel-default);
+  text-decoration: none;
+}
+
+.adminBackLink:hover {
+  color: var(--interactive-hover);
+  text-decoration: underline;
+}
+
+/* ── LAYOUT ─────────────────────────────────────────────────────────── */
+.adminLayout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  /* minmax(0, 1fr) ON THE ROW IS THE LOAD-BEARING CLAMP: WITHOUT IT THE
+     IMPLICIT ROW GROWS WITH A TALL TABLE AND THE WHOLE COLUMN SAILS PAST
+     THE (overflow: hidden) VIEWPORT WITH NO WAY TO SCROLL TO IT */
+  grid-template-rows: minmax(0, 1fr);
+  height: calc(100vh - var(--adm-header-h));
+}
+
+/* MODEL RAIL */
+.adminRail {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background-color: var(--bg-secondary);
+  border-right: 1px solid var(--adm-hairline-strong);
+  overflow-y: auto;
+  padding: 12px 8px;
+}
+
+.adminRailTitle {
+  padding: 0 8px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--channel-default);
+}
+
+.adminRailItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+  color: var(--channel-default);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.adminRailItem:hover {
+  color: var(--interactive-hover);
+  background-color: var(--bg-modifier-hover);
+}
+
+.adminRailItem.active {
+  color: var(--header-primary);
+  background-color: var(--bg-modifier-selected);
+}
+
+.adminRailCount {
+  font-size: 11px;
+  color: var(--header-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* CONTENT COLUMN - FLEX SO THE PANEL TAKES ALL REMAINING HEIGHT */
+.adminContent {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  padding: 14px 16px 16px;
+  gap: 10px;
+}
+
+#adminGrid {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.adminGridForm {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+}
+
+/* ── TOOLBAR ────────────────────────────────────────────────────────── */
+.adminToolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.adminModelTitle {
+  margin: 0 auto 0 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--header-primary);
+}
+
+.adminInput {
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--adm-hairline-strong);
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: var(--font-family);
+  color: var(--text-normal);
+  background-color: var(--bg-tertiary);
+  outline: none;
+}
+
+.adminInput:focus {
+  border-color: var(--blurple);
+}
+
+.adminSearch {
+  width: 260px;
+}
+
+.adminBtn {
+  height: 30px;
+  padding: 0 12px;
+  border: 1px solid var(--adm-hairline-strong);
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: var(--font-family);
+  color: var(--interactive-normal);
+  background-color: var(--bg-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.adminBtn:hover {
+  color: var(--interactive-hover);
+  background-color: var(--bg-modifier-hover);
+}
+
+.adminBtn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.adminBtn.primary {
+  color: #fff;
+  border-color: transparent;
+  background-color: var(--blurple);
+}
+
+.adminBtn.primary:hover {
+  background-color: var(--blurple-dark, #5b6eae);
+}
+
+.adminBtn.danger {
+  color: var(--red);
+  border-color: rgba(240, 71, 71, 0.4);
+  background-color: transparent;
+}
+
+.adminBtn.danger:hover {
+  color: #fff;
+  background-color: var(--red);
+}
+
+/* ── SCHEMA CHIPS ───────────────────────────────────────────────────── */
+.adminChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.adminChip {
+  padding: 2px 7px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  font-family: var(--adm-mono);
+  color: var(--header-secondary);
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--adm-hairline);
+  white-space: nowrap;
+}
+
+.adminChip.pk { color: var(--blurple); }
+.adminChip.unique { color: var(--green); }
+.adminChip.fk { color: var(--yellow); }
+.adminChip.rel { color: var(--green); }
+
+/* ── SQL CONSOLE ────────────────────────────────────────────────────── */
+.adminSqlPanel {
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.adminSqlPanel.open {
+  display: flex;
+}
+
+.adminSqlForm {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+  margin: 0;
+}
+
+.adminSqlInput {
+  flex: 1;
+  height: auto;
+  padding: 8px 10px;
+  font-family: var(--adm-mono);
+  font-size: 12px;
+  resize: vertical;
+}
+
+.adminSqlForm .adminBtn {
+  height: auto;
+}
+
+.adminSqlMeta {
+  font-size: 12px;
+  color: var(--header-secondary);
+}
+
+.adminSqlError {
+  padding: 8px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: var(--adm-mono);
+  color: var(--red);
+  background-color: rgba(240, 71, 71, 0.1);
+  border: 1px solid rgba(240, 71, 71, 0.3);
+}
+
+.adminSqlPanelOut {
+  flex: none;
+}
+
+.adminSqlScroll {
+  max-height: 260px;
+}
+
+/* ── THE TABLE PANEL - HEAD STRIP / SCROLLING TABLE / ATTACHED FOOT ──── */
+.adminPanel {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  border: 1px solid var(--adm-hairline-strong);
+  border-radius: 6px;
+  background-color: var(--bg-primary);
+  overflow: hidden;
+}
+
+.adminPanelHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--adm-hairline-strong);
+  background-color: var(--bg-secondary);
+}
+
+.adminCount {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--header-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.adminPanelHint {
+  font-size: 12px;
+  color: var(--channel-default);
+}
+
+.adminFilterChip {
+  border: none;
+  cursor: pointer;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--adm-mono);
+  color: var(--blurple);
+  background-color: rgba(114, 137, 218, 0.15);
+}
+
+.adminFilterChip::after {
+  content: ' ×';
+  color: var(--header-secondary);
+}
+
+.adminFilterChip:hover::after {
+  color: var(--red);
+}
+
+.adminScroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.adminTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.adminTable th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 7px 10px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--channel-default);
+  background-color: var(--bg-primary);
+  box-shadow: inset 0 -1px 0 var(--adm-hairline-strong);
+  white-space: nowrap;
+}
+
+.adminTable th.sorted .adminSort {
+  color: var(--header-primary);
+}
+
+.adminSort {
+  cursor: pointer;
+  color: inherit;
+  text-decoration: none;
+}
+
+.adminSort:hover {
+  color: var(--interactive-hover);
+}
+
+/* PURE-CSS SORT CARET */
+.adminSortDir {
+  display: inline-block;
+  margin-left: 5px;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  vertical-align: middle;
+}
+
+.adminSortDir.asc { border-bottom: 5px solid var(--header-primary); }
+.adminSortDir.desc { border-top: 5px solid var(--header-primary); }
+
+.adminTable td {
+  padding: 6px 10px;
+  max-width: 340px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--adm-mono);
+  font-size: 12px;
+  border-bottom: 1px solid var(--adm-hairline);
+  color: var(--text-normal);
+}
+
+.adminTable tbody tr:hover td {
+  background-color: var(--bg-modifier-hover);
+}
+
+/* CHECKED ROWS WEAR A BLURPLE TINT SO A BULK TARGET IS UNMISSABLE */
+.adminTable tbody tr:has(.adminRowCheck:checked) td {
+  background-color: rgba(114, 137, 218, 0.1);
+}
+
+.adminTable td.isNull {
+  color: var(--channel-default);
+  font-style: italic;
+}
+
+.adminTable td.bool-true { color: var(--green); }
+.adminTable td.bool-false { color: var(--header-secondary); }
+
+.adminCheckCell {
+  width: 34px;
+  text-align: center;
+}
+
+.adminActionCell {
+  width: 34px;
+  text-align: center;
+}
+
+.adminEmptyRow td {
+  padding: 32px 12px;
+  text-align: center;
+  color: var(--channel-default);
+  font-family: var(--font-family);
+  font-size: 13px;
+  border-bottom: none;
+}
+
+.adminJump {
+  cursor: pointer;
+  color: var(--blurple);
+  text-decoration: none;
+}
+
+.adminJump:hover {
+  text-decoration: underline;
+}
+
+.adminRowEdit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: none;
+  cursor: pointer;
+  border-radius: 3px;
+  color: var(--interactive-normal);
+  background-color: transparent;
+}
+
+.adminRowEdit svg {
+  width: 14px;
+  height: 14px;
+}
+
+.adminRowEdit:hover {
+  color: var(--header-primary);
+  background-color: var(--bg-modifier-selected);
+}
+
+/* FOOT - ATTACHED TO THE PANEL, BULK LEFT / PAGER RIGHT */
+.adminFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 8px 12px;
+  border-top: 1px solid var(--adm-hairline-strong);
+  background-color: var(--bg-secondary);
+}
+
+.adminBulk {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.adminFootDivider {
+  width: 1px;
+  height: 20px;
+  background-color: var(--adm-hairline);
+}
+
+.adminFieldSelect {
+  max-width: 180px;
+}
+
+.adminValueInput {
+  width: 200px;
+}
+
+.adminToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+  font-size: 12px;
+  color: var(--header-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.adminPager {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.adminPageInfo {
+  font-size: 12px;
+  color: var(--header-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── ROW EDITOR DRAWER ──────────────────────────────────────────────── */
+.adminDrawer {
+  position: fixed;
+  top: var(--adm-header-h);
+  right: 0;
+  bottom: 0;
+  width: 420px;
+  max-width: 92vw;
+  z-index: 20;
+  background-color: var(--bg-primary);
+  border-left: 1px solid var(--adm-hairline-strong);
+  box-shadow: -8px 0 24px rgba(0, 0, 0, 0.35);
+  overflow-y: auto;
+}
+
+.adminDrawer:empty {
+  display: none;
+}
+
+.adminEditCard {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  margin: 0;
+}
+
+.adminEditHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--adm-hairline-strong);
+}
+
+.adminEditKicker {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--channel-default);
+}
+
+.adminEditTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--header-primary);
+  font-family: var(--adm-mono);
+}
+
+.adminEditClose {
+  border: none;
+  cursor: pointer;
+  width: 26px;
+  height: 26px;
+  border-radius: 4px;
+  font-size: 16px;
+  line-height: 1;
+  color: var(--interactive-normal);
+  background-color: transparent;
+}
+
+.adminEditClose:hover {
+  color: var(--header-primary);
+  background-color: var(--bg-modifier-hover);
+}
+
+.adminEditError {
+  margin: 12px 16px 0;
+  padding: 8px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--red);
+  background-color: rgba(240, 71, 71, 0.1);
+  border: 1px solid rgba(240, 71, 71, 0.3);
+}
+
+.adminEditFields {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 16px;
+}
+
+.adminEditLabel {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0 0 4px;
+}
+
+.adminEditName {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--interactive-hover);
+  font-family: var(--adm-mono);
+}
+
+.adminEditType {
+  font-size: 11px;
+  color: var(--channel-default);
+  font-family: var(--adm-mono);
+}
+
+.adminEditControl {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.adminEditField .adminInput {
+  width: 100%;
+  font-family: var(--adm-mono);
+  font-size: 12px;
+}
+
+.adminEditInput {
+  flex: 1;
+  min-width: 0;
+}
+
+.adminEditFoot {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--adm-hairline-strong);
+  background-color: var(--bg-primary);
+}
+
+/* ── TOAST ──────────────────────────────────────────────────────────── */
+.adminToast {
+  position: fixed;
+  top: calc(var(--adm-header-h) + 12px);
+  right: 16px;
+  z-index: 30;
+  padding: 8px 14px;
+  border-radius: 4px;
+  font-size: 13px;
+  color: var(--header-primary);
+  background-color: var(--bg-secondary-alt);
+  border: 1px solid var(--adm-hairline-strong);
+  border-left: 3px solid var(--green);
+  animation: adminToastFade 2.6s ease forwards;
+  pointer-events: none;
+}
+
+@keyframes adminToastFade {
+  0% { opacity: 0; transform: translateY(-4px); }
+  8% { opacity: 1; transform: translateY(0); }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}

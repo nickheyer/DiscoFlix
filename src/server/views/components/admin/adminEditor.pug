@@ -1,0 +1,60 @@
+//- ROW EDITOR - LIVES IN THE #adminDrawer RAIL. LOCALS: editor { model,
+//- pk (null = NEW), fields [{col,value,isNull}] }, dbQuery, error. SAVE
+//- SWAPS #adminGrid ON SUCCESS; ERRORS COME BACK HERE VIA HX-Retarget
+//- WITH THE OPERATOR'S INPUT INTACT.
+form.adminEditCard(hx-post="/admin/row/save" hx-target="#adminGrid" hx-swap="outerHTML")
+  input(type="hidden" name="model" value=editor.model.name)
+  if editor.pk !== null
+    input(type="hidden" name="pk" value=editor.pk)
+  each key in ['search', 'sort', 'dir', 'page', 'filterField', 'filterValue']
+    input(type="hidden" name=key value=dbQuery[key])
+  .adminEditHead
+    .adminEditTitleWrap
+      span.adminEditKicker= editor.pk === null ? 'New row' : 'Edit row'
+      span.adminEditTitle= editor.pk === null ? editor.model.name : `${editor.model.name} · ${editor.pk}`
+    button.adminEditClose(
+      type="button"
+      aria-label="Close editor"
+      onclick="document.getElementById('adminDrawer').innerHTML = ''"
+    ) ×
+  if error
+    .adminEditError= error
+  .adminEditFields
+    each f in editor.fields
+      .adminEditField
+        label.adminEditLabel(for=`adm-${f.col.name}`)
+          span.adminEditName= f.col.name
+          span.adminEditType= `${f.col.type}${f.col.required ? '' : '?'}${f.col.readonly ? ' · readonly' : ''}`
+        if f.col.type === 'Boolean' && !f.col.readonly
+          select.adminInput(id=`adm-${f.col.name}` name=`f_${f.col.name}`)
+            option(value='' selected=f.value === '')= f.col.required ? (editor.pk === null ? 'default' : 'unchanged') : 'null'
+            option(value='true' selected=f.value === 'true') true
+            option(value='false' selected=f.value === 'false') false
+        else
+          .adminEditControl
+            input.adminInput.adminEditInput(
+              id=`adm-${f.col.name}`
+              name=`f_${f.col.name}`
+              value=f.value
+              readonly=f.col.readonly
+              disabled=f.col.readonly
+              autocomplete="off"
+              spellcheck="false"
+              placeholder=f.col.readonly ? '' : (editor.pk === null && f.col.hasDefault ? 'default' : (f.isNull ? 'null' : ''))
+            )
+            if !f.col.required && !f.col.readonly
+              label.adminToggle(title="Save null for this field")
+                input(type="checkbox" name=`f_${f.col.name}__null` checked=f.isNull && !f.value)
+                span null
+  .adminEditFoot
+    button.adminBtn.primary(type="submit" hx-disabled-elt="this")= editor.pk === null ? 'Create' : 'Save'
+    if editor.pk !== null
+      button.adminBtn.danger(
+        type="button"
+        hx-post="/admin/bulk"
+        hx-vals=JSON.stringify({ action: 'delete', ids: editor.pk })
+        hx-target="#adminGrid"
+        hx-swap="outerHTML"
+        hx-confirm=`Delete this ${editor.model.name} row? Relation cascades apply.`
+        hx-disabled-elt="this"
+      ) Delete

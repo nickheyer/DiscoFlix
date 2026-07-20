@@ -1,5 +1,6 @@
 const axios = require('axios');
 const BaseClient = require('./baseClient');
+const tuning = require('../../../tuning');
 
 const DETAIL_FIELDS = 'Overview,Genres,MediaSources,ProviderIds,DateCreated,ProductionYear,OfficialRating,CommunityRating,CriticRating,RunTimeTicks,Studios,Path,RecursiveItemCount';
 const TICKS_PER_MS = 10000;
@@ -15,7 +16,7 @@ class EmbyClient extends BaseClient {
     this.instanceId = instanceId || null;
     this.http = axios.create({
       baseURL: this.baseUrl,
-      timeout: 10000,
+      timeout: tuning.value('media_server_http_timeout_seconds') * 1000,
       headers: { 'X-Emby-Token': apiKey }
     });
   }

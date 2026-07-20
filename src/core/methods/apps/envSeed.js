@@ -13,6 +13,7 @@ module.exports = {
   async _runEnvSeed() {
     try {
       await this._seedDiscordToken();
+      await this._seedDbAdmin();
       for (const manifest of this.allTypes()) {
         await this._seedAppType(manifest);
       }
@@ -28,6 +29,20 @@ module.exports = {
     if (config.discord_token) return;
     await this.core.models.configuration.update({ discord_token: token });
     this.logger.info('Seeded Discord bot token from DISCORD_TOKEN');
+  },
+
+  // DF_DB_ADMIN=1 REVEALS THE DATABASE SECTION HEADLESSLY. SEED-ON ONLY -
+  // THE FLAG DEFAULTS false, SO "EMPTY" MEANS "STILL false"; A UI TOGGLE-OFF
+  // STAYS OFF BECAUSE THE SEED NEVER RUNS AGAIN IN-PROCESS AND A TRUTHY ENV
+  // RE-ENABLING ON RESTART IS EXACTLY WHAT DECLARING IT IN THE ENV MEANS
+  async _seedDbAdmin() {
+    const raw = (process.env.DF_DB_ADMIN || '').trim().toLowerCase();
+    if (!raw) return;
+    const wanted = ['1', 'true', 'on', 'yes'].includes(raw);
+    const config = await this.core.models.configuration.get();
+    if (!wanted || config.db_admin_enabled) return;
+    await this.core.models.configuration.update({ db_admin_enabled: true });
+    this.logger.info('Enabled the database admin section from DF_DB_ADMIN');
   },
 
   async _seedAppType(manifest) {

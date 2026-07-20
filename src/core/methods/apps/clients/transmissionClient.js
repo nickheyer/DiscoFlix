@@ -1,5 +1,6 @@
 const axios = require('axios');
 const BaseClient = require('./baseClient');
+const tuning = require('../../../tuning');
 
 // CSRF SESSION IDS KEYED BY APP-INSTANCE ID - THE 409 HANDSHAKE RUNS ONCE,
 // NOT ONCE PER CLIENT BUILD
@@ -31,7 +32,7 @@ class TransmissionClient extends BaseClient {
     this.cacheKey = cacheKey || this.baseUrl;
     this.http = axios.create({
       baseURL: this.baseUrl,
-      timeout: 10000,
+      timeout: tuning.value('download_client_http_timeout_seconds') * 1000,
       auth: username || password ? { username: username || '', password: password || '' } : undefined
     });
   }

@@ -91,6 +91,17 @@ const {
   resetAiDirective
 } = require('../api/aiDirectives');
 
+const {
+  adminPage,
+  adminBody,
+  adminGrid,
+  adminEditor,
+  adminSaveRow,
+  adminBulk,
+  adminSql,
+  dismissDbWarning
+} = require('../api/dbAdmin');
+
 const router = new Router();
 
 // STATE-CHANGING ROUTES ARE POST-ONLY (M3)
@@ -146,6 +157,16 @@ router.get('/apps/:id/users/page/:page', appUsersPage);
 router.get('/apps/:id/requests', appRequestsBody);
 router.get('/apps/:id/requests/page/:page', appRequestsPage);
 router.get('/apps/:id/logs', appLogsPage);
+// THE STANDALONE DATABASE ADMIN (GATED ON db_admin_enabled) - /admin IS
+// ITS OWN PAGE, THE REST ARE ITS htmx FRAGMENT/ACTION ROUTES
+router.get('/admin', adminPage);
+router.get('/admin/body', adminBody);
+router.get('/admin/grid', adminGrid);
+router.get('/admin/editor', adminEditor);
+router.post('/admin/row/save', adminSaveRow);
+router.post('/admin/bulk', adminBulk);
+router.post('/admin/sql', adminSql);
+router.post('/discoflix/db-warning/dismiss', dismissDbWarning);
 router.post('/apps/:id/users/:userId/save', saveAppUser);
 router.post('/apps/:id/add-media', appAddMedia);
 router.post('/apps/:id/queue-action/:verb', appQueueAction);

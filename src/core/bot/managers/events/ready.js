@@ -10,6 +10,9 @@ module.exports = {
     await core.discord.refreshBotInfo(true);
     await core.discord.updateServerSortOrder();
     await core.discord.syncAllGuildMembers();
+    // DELETIONS/CHANNEL DROPS WHILE OFFLINE CAN'T EMIT EVENTS - HEAL THE
+    // SERVER BADGES FROM THE CHANNEL COUNTERS BEFORE MIRRORS RENDER
+    await core.discord.resyncUnreadRollups();
     await core.discord.applyPresence();
     await syncAppEmojis(client, core.logger);
 

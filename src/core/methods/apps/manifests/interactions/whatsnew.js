@@ -13,9 +13,6 @@
 const { AttachmentBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const { appBadge } = require('../../../../bot/interactions/appEmojis');
 
-const POSTER_ROWS = 5;
-const COMPACT_ROWS = 7;
-const PAGE_SIZE = POSTER_ROWS + COMPACT_ROWS;
 const POSTER_TIMEOUT_MS = 2500;
 const PAGER_IDLE_MS = 2 * 60 * 1000;
 const PAGER_TIME_MS = 10 * 60 * 1000; // EPHEMERAL TOKENS DIE AT 15m - STAY UNDER
@@ -203,7 +200,11 @@ module.exports = {
     }
 
     const groups = buildGroups(reachable).sort((a, b) => String(b.at || '').localeCompare(String(a.at || '')));
-    const totalPages = Math.max(1, Math.ceil(groups.length / PAGE_SIZE));
+    // ROW COUNTS READ PER RUN - PAGES STAY CONSISTENT WITHIN ONE REPLY WHILE
+    // TUNING OVERRIDES STILL LAND ON THE NEXT /whatsnew
+    const posterRows = core.tuning.value('whatsnew_poster_rows');
+    const pageSize = posterRows + core.tuning.value('whatsnew_compact_rows');
+    const totalPages = Math.max(1, Math.ceil(groups.length / pageSize));
 
     // THE CONTRIBUTOR STRIP - EVERY SERVER WITH A TITLE IN THE MERGED SET,
     // BADGED ONCE UP TOP (EMPTY SET FALLS BACK TO WHO WAS CHECKED)
@@ -215,10 +216,10 @@ module.exports = {
     const pageCache = new Map();
     const buildPage = async (page) => {
       if (!pageCache.has(page)) {
-        const start = page * PAGE_SIZE;
-        const slice = groups.slice(start, start + PAGE_SIZE);
-        const featured = slice.slice(0, POSTER_ROWS);
-        const compact = slice.slice(POSTER_ROWS);
+        const start = page * pageSize;
+        const slice = groups.slice(start, start + pageSize);
+        const featured = slice.slice(0, posterRows);
+        const compact = slice.slice(posterRows);
         const { posters, files } = await fetchPosters(core, featured, start);
         pageCache.set(page, { featured, compact, posters, files });
       }

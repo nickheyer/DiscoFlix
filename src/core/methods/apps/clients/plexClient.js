@@ -1,5 +1,6 @@
 const axios = require('axios');
 const BaseClient = require('./baseClient');
+const tuning = require('../../../tuning');
 
 // SECTION TYPES THE CONSOLE BROWSES - MUSIC/PHOTO LIBRARIES STAY PLEX-ONLY
 const BROWSABLE_TYPES = new Set(['movie', 'show']);
@@ -15,7 +16,7 @@ class PlexClient extends BaseClient {
     this.instanceId = instanceId || null;
     this.http = axios.create({
       baseURL: this.baseUrl,
-      timeout: 10000,
+      timeout: tuning.value('media_server_http_timeout_seconds') * 1000,
       headers: { 'X-Plex-Token': token, Accept: 'application/json' }
     });
   }

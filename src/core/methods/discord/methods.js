@@ -1,14 +1,6 @@
 const _ = require('lodash');
 const { memberRoleTokens, roleGrantsFor } = require('../../bot/interactions/access');
 
-// ACCENT COLOR ONLY ARRIVES ON A FORCED PROFILE FETCH - CACHE IT SO BUSY
-// CHANNELS DON'T COST ONE DISCORD API CALL PER MESSAGE
-const AUTHOR_PROFILE_TTL_MS = 15 * 60 * 1000;
-const AUTHOR_PROFILE_CACHE_MAX = 500;
-// CONSECUTIVE SAME-AUTHOR MESSAGES INSIDE THIS WINDOW COLLAPSE LIKE DISCORD
-const GROUP_WINDOW_MS = 7 * 60 * 1000;
-// HISTORY PAGES (INITIAL LOAD + SCROLL-UP BATCHES) SHARE ONE SIZE
-const HISTORY_PAGE_SIZE = 100;
 // RAW DISCORD ENTITY TOKENS - <@id> <@!id> <@&id> <#id> (PRE-ESCAPE FORM)
 const MENTION_TOKEN = /<(@[!&]?|#)(\d+)>/g;
 
@@ -18,7 +10,7 @@ module.exports = {
   async fetchAuthorProfile(author) {
     if (!this._authorProfiles) this._authorProfiles = new Map();
     const hit = this._authorProfiles.get(author.id);
-    if (hit && Date.now() - hit.fetchedAt < AUTHOR_PROFILE_TTL_MS) {
+    if (hit && Date.now() - hit.fetchedAt < this.core.tuning.value('author_profile_ttl_minutes') * 60 * 1000) {
       return { author, accent: hit.accent };
     }
 
@@ -26,7 +18,7 @@ module.exports = {
     const accent = (fetched.hexAccentColor || 'ffffff').replace('#', '');
     this._authorProfiles.delete(author.id); // RE-INSERT SO MAP ORDER STAYS LRU-ISH
     this._authorProfiles.set(author.id, { fetchedAt: Date.now(), accent });
-    if (this._authorProfiles.size > AUTHOR_PROFILE_CACHE_MAX) {
+    if (this._authorProfiles.size > this.core.tuning.value('author_profile_cache_max')) {
       this._authorProfiles.delete(this._authorProfiles.keys().next().value);
     }
     return { author: fetched, accent };
@@ -249,7 +241,7 @@ module.exports = {
       });
 
       // UPSERT MESSAGE
-      await tx.discordMessage.upsert({
+      const msgRow = await tx.discordMessage.upsert({
         where: { message_id: rawDiscMsg.id },
         create: {
           message_id: rawDiscMsg.id,
@@ -271,6 +263,17 @@ module.exports = {
           server: { connect: { server_id: server.server_id } }
         }
       });
+
+      // SEEN-ON-ARRIVAL (SELF OR ON-SCREEN) ADVANCES THE READ HIGH-WATER MARK
+      // SO A LATER DELETION RECOUNT CAN'T RESURRECT THIS MESSAGE AS UNREAD.
+      // THE MARK USES THE ROW'S OWN created_at - IT MUST SORT AT-OR-AFTER THE
+      // ROW, AND DISCORD'S createdTimestamp SITS A BEAT BEFORE OUR INSERT
+      if (isSelf || isViewed) {
+        await tx.discordServerChannel.update({
+          where: { channel_id: rawDiscMsg.channelId },
+          data: { last_read_at: msgRow.created_at }
+        });
+      }
       return {
         isViewed,
         isSelf,
@@ -473,7 +476,8 @@ module.exports = {
     const prior = new Date(previous.created_at);
     if (current.toDateString() !== prior.toDateString()) return false;
     const gap = current - prior;
-    return gap >= 0 && gap < GROUP_WINDOW_MS;
+    // SAME-AUTHOR MESSAGES INSIDE THE WINDOW COLLAPSE LIKE DISCORD
+    return gap >= 0 && gap < this.core.tuning.value('group_window_minutes') * 60 * 1000;
   },
 
   formatTimeOnly(timestamp) {
@@ -531,7 +535,7 @@ module.exports = {
     // UPDATE UNREAD MESSAGES FOR CHANNEL
     await this.core.models.discordChannel.update(
       { channel_id: active_channel_id },
-      { unread_message_count: 0 }
+      { unread_message_count: 0, last_read_at: new Date() }
     );
 
     // UPDATE UNREAD MESSAGES FOR SERVER
@@ -568,7 +572,7 @@ module.exports = {
   async markChannelRead(serverId, channelId) {
     await this.core.models.discordChannel.update(
       { channel_id: channelId },
-      { unread_message_count: 0 }
+      { unread_message_count: 0, last_read_at: new Date() }
     );
     const server = await this.core.models.discordServer.getWithChannels(serverId);
     const unreadServerMsgCount = server.channels.reduce(
@@ -579,6 +583,102 @@ module.exports = {
       { server_id: serverId },
       { unread_message_count: unreadServerMsgCount }
     );
+  },
+
+  // RE-DERIVE ONE CHANNEL'S UNREADS FROM THE MIRROR + READ HIGH-WATER MARK,
+  // THEN THE SERVER ROLL-UP - THE RESYNC PATH FOR ANYTHING THAT REMOVES
+  // MESSAGES OUT FROM UNDER THE BARE COUNTER (MOD DELETES, AUTOMOD SWEEPS)
+  async recountChannelUnread(channelId) {
+    const channelRow = await this.core.models.discordChannel.getById(channelId);
+    if (!channelRow) return null;
+
+    const bot = await this.core.models.discordBot.get();
+    const unread = await this.core.prisma.discordMessage.count({
+      where: {
+        channel_id: channelId,
+        created_at: { gt: channelRow.last_read_at },
+        // SELF MESSAGES NEVER INCREMENTED, SO THEY DON'T RECOUNT EITHER
+        ...(bot?.bot_id ? { user_id: { not: bot.bot_id } } : {})
+      }
+    });
+    const updatedChannel = unread === channelRow.unread_message_count
+      ? channelRow
+      : await this.core.models.discordChannel.update(
+        { channel_id: channelId },
+        { unread_message_count: unread }
+      );
+
+    const server = await this.core.models.discordServer.getWithChannels(channelRow.discord_server);
+    if (!server) return { serverRow: null, channelRow: updatedChannel };
+    const rollup = server.channels.reduce(
+      (total, channel) => total + (channel.unread_message_count || 0),
+      0
+    );
+    const updatedServer = rollup === (server.unread_message_count || 0)
+      ? server
+      : await this.core.models.discordServer.update(
+        { server_id: server.server_id },
+        { unread_message_count: rollup }
+      );
+    return { serverRow: updatedServer, channelRow: updatedChannel };
+  },
+
+  // MIRRORS DISCORD DELETIONS (SINGLE + BULK): DROP THE ROWS, PULL THEM OUT
+  // OF ANY OPEN MIRROR, AND RECOUNT UNREADS SO A MOD CLEANUP CAN'T STRAND A
+  // BADGE ON MESSAGES NOBODY CAN EVER READ AGAIN
+  async logMessageDeleteToInterface(guildId, channelId, messageIds = []) {
+    if (!guildId || !channelId || !messageIds.length) return;
+
+    const { count: removed } = await this.core.prisma.discordMessage.deleteMany({
+      where: { message_id: { in: messageIds } }
+    });
+
+    // RECOUNT EVEN WHEN NOTHING WAS MIRRORED - THE COUNTER MAY ALREADY BE
+    // CARRYING GHOSTS FROM BEFORE THE MIRROR PICKED THIS CHANNEL UP
+    const resync = await this.recountChannelUnread(channelId);
+    if (!resync || !resync.serverRow) return;
+
+    if (removed) {
+      // hx-swap-oob="delete" PULLS EACH ROW BY ID - EVERY SESSION SHOWING
+      // THIS CHANNEL RENDERS ROWS (LIVE OR TIME-TRAVELLING), ALL GET STUBS
+      const connectedViews = await this.core.sockets.connectedViews();
+      const sessionIds = connectedViews
+        .filter(view => view.id
+          && !view.active_app_id
+          && view.active_server_id === guildId
+          && (this.core.models.viewSession.channelPickFor(view, resync.serverRow) === channelId
+            || this.core.models.viewSession.anchorOf(view)?.channel_id === channelId))
+        .map(view => view.id);
+      if (sessionIds.length) {
+        const stubs = messageIds
+          .map(id => `<div id="msg-${id}" hx-swap-oob="delete"></div>`)
+          .join('');
+        await this.core.sockets.emitToSessions(sessionIds, stubs);
+      }
+    }
+
+    await this.emitUnreadBadges(resync.serverRow, resync.channelRow);
+  },
+
+  // SUM EVERY SERVER'S CHANNEL COUNTERS BACK INTO ITS ROLL-UP - CHEAP DRIFT
+  // REPAIR RUN AT LOGIN AND AFTER GUILD SYNCS (A DELETED CHANNEL TAKES ITS
+  // MESSAGES WITH IT AND USED TO LEAVE THE SERVER BADGE STRANDED)
+  async resyncUnreadRollups() {
+    const servers = await this.core.prisma.discordServer.findMany({
+      include: { channels: true }
+    });
+    for (const server of servers) {
+      const rollup = server.channels.reduce(
+        (total, channel) => total + (channel.unread_message_count || 0),
+        0
+      );
+      if (rollup !== (server.unread_message_count || 0)) {
+        await this.core.models.discordServer.update(
+          { server_id: server.server_id },
+          { unread_message_count: rollup }
+        );
+      }
+    }
   },
 
   // THE FULL MIRROR CHROME FOR ONE VIEW - SHARED BY refreshUI'S PER-VIEW

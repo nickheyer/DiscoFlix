@@ -1,17 +1,15 @@
 const ui = require('../../bot/interactions/ui');
 
-const POLL_INTERVAL_MS = 15 * 1000;
-const HEARTBEAT_INTERVAL_MS = 60 * 1000;
-const HEARTBEAT_BOOT_DELAY_MS = 5 * 1000;
-
-// TWO TIMERS LIVE HERE:
-// - THE WATCH MONITOR (15s, SELF-CLEARING): TRACKS OPEN MediaRequests THROUGH
-//   AN INSTANCE'S QUEUE UNTIL IMPORT - DISCORD NOTIFY + DASHBOARD ROW PUSH.
-// - THE HEARTBEAT (60s, ALWAYS-ON, unref'D): REFRESHES statusCache/queueCache
-//   FOR EVERY CONFIGURED+ENABLED INSTANCE AND BROADCASTS RAIL DOTS / TICKER /
-//   QUEUE-SECTION FRAGMENTS WHEN SOMETHING ACTUALLY CHANGED.
+// TWO TIMERS LIVE HERE, BOTH setTimeout CHAINS THAT RE-READ THEIR TUNING
+// EACH CYCLE SO ADMIN CHANGES APPLY WITHOUT A RESTART:
+// - THE WATCH MONITOR (monitor_poll_seconds, SELF-CLEARING): TRACKS OPEN
+//   MediaRequests THROUGH AN INSTANCE'S QUEUE UNTIL IMPORT - DISCORD NOTIFY
+//   + DASHBOARD ROW PUSH.
+// - THE HEARTBEAT (heartbeat_seconds, ALWAYS-ON, unref'D): REFRESHES
+//   statusCache/queueCache FOR EVERY CONFIGURED+ENABLED INSTANCE AND
+//   BROADCASTS RAIL DOTS / TICKER / QUEUE-SECTION FRAGMENTS ON CHANGE.
 module.exports = {
-  watchRequest({ requestId, appId, arrId, mediaId, title, channelId, requesterIds, featureId, serverId, rearmed }) {
+  watchRequest({ requestId, appId, arrId, mediaId, title, channelId, requesterIds, featureId, serverId, rearmed, expiredBefore }) {
     this.watches.set(requestId, {
       requestId,
       appId,
@@ -26,6 +24,7 @@ module.exports = {
       serverId: serverId || null,
       stage: 'pending',
       rearmed: !!rearmed, // BOOT RE-ARM - FIRST TICK DECIDES IF THE GRAB NOTIFY WAS ALREADY SENT
+      expiredBefore: !!expiredBefore, // GIVE-UP NOTICE ALREADY SENT ONCE - DON'T REPEAT IT
       startedAt: Date.now()
     });
     this.logger.info(`Watching app queue for request ${requestId} (${title})`);
@@ -46,9 +45,20 @@ module.exports = {
       include: { media: true, users: true }
     });
 
+    const features = require('../../bot/interactions/features');
     let armed = 0;
     for (const request of open) {
       if (this.watches.has(request.id)) continue;
+      const featureId = request.orig_parsed_type ? `request.${request.orig_parsed_type}` : null;
+      // A STAMPED REQUEST ALREADY GAVE UP AND SAID SO. IT STILL RE-ARMS - A
+      // LATE IMPORT MUST FLIP AVAILABILITY AND ANNOUNCE SUCCESS - BUT THE
+      // "STILL PROCESSING" NOTICE STAYS MUTED UNLESS THE FEATURE RULE OPTS
+      // INTO REPEATS (DAILY CONTAINER RESTARTS TURNED IT INTO A DRIP FEED)
+      let expiredBefore = false;
+      if (request.watch_expired_at) {
+        const rule = await features.effectiveRule(this.core, featureId || '', request.madeInId);
+        expiredBefore = !Number(rule.extents.repeat_stall_notice);
+      }
       this.watchRequest({
         requestId: request.id,
         appId: request.appId,
@@ -57,9 +67,10 @@ module.exports = {
         title: request.media.title || request.orig_parsed_title,
         channelId: request.orig_channel_id,
         requesterIds: (request.users || []).map(user => user.id),
-        featureId: request.orig_parsed_type ? `request.${request.orig_parsed_type}` : null,
+        featureId,
         serverId: request.madeInId,
-        rearmed: true
+        rearmed: true,
+        expiredBefore
       });
       armed++;
     }
@@ -83,14 +94,22 @@ module.exports = {
 
   _ensureMonitorTimer() {
     if (this._monitorTimer) return;
-    this._monitorTimer = setInterval(() => {
-      this._monitorTick().catch(err => this.logger.error('App monitor tick failed:', err));
-    }, POLL_INTERVAL_MS);
+    const schedule = () => {
+      this._monitorTimer = setTimeout(() => {
+        this._monitorTick()
+          .catch(err => this.logger.error('App monitor tick failed:', err))
+          .finally(() => {
+            // _monitorTick NULLS THE HANDLE WHEN NO WATCHES REMAIN
+            if (this._monitorTimer) schedule();
+          });
+      }, this.core.tuning.value('monitor_poll_seconds') * 1000);
+    };
+    schedule();
   },
 
   async _monitorTick() {
     if (this.watches.size === 0) {
-      clearInterval(this._monitorTimer);
+      clearTimeout(this._monitorTimer);
       this._monitorTimer = null;
       return;
     }
@@ -156,7 +175,8 @@ module.exports = {
         // ALREADY CARRIES ITS TIMESTAMP
         await this.core.models.mediaRequest.update(
           { id: watch.requestId },
-          { imported_at: new Date() }
+          // A RE-ARMED STALL THAT FINALLY LANDS SHEDS ITS GIVE-UP STAMP
+          { imported_at: new Date(), watch_expired_at: null }
         ).catch(() => {});
         await this._settleProgressMessage(watch, config, true);
         await this._notify(
@@ -183,10 +203,18 @@ module.exports = {
       const maxCheckSeconds = Number(rule.extents.max_check_time) || 600;
       if (Date.now() - watch.startedAt > maxCheckSeconds * 1000) {
         await this._settleProgressMessage(watch, config, false);
-        await this._notify(
-          watch,
-          ui.notice(`${this._mentions(watch)} **${watch.title}** is still processing - I'll stop watching it for now, check back later.`, { accent: 'warn' })
-        );
+        // ONCE PER REQUEST: THE STAMP BELOW IS THE DURABLE "ALREADY SAID SO"
+        // MARKER THAT KEEPS BOOT RE-ARMS FROM RE-SENDING THIS FOREVER
+        if (!watch.expiredBefore) {
+          await this._notify(
+            watch,
+            ui.notice(`${this._mentions(watch)} **${watch.title}** is still processing - I'll stop watching it for now, check back later.`, { accent: 'warn' })
+          );
+        }
+        await this.core.models.mediaRequest.update(
+          { id: watch.requestId },
+          { watch_expired_at: new Date() }
+        ).catch(() => {});
         this.watches.delete(watch.requestId);
         // OPEN CONSOLES MUST HONESTLY DROP FROM "DOWNLOADING" TO "NO LONGER
         // WATCHED" INSTEAD OF FREEZING AT THE LAST PERCENT
@@ -297,15 +325,16 @@ module.exports = {
 
   startHeartbeat() {
     if (this._heartbeatTimer) return;
-    this._heartbeatTimer = setInterval(() => {
-      this._heartbeatTick().catch(err => this.logger.error('App heartbeat tick failed:', err));
-    }, HEARTBEAT_INTERVAL_MS);
     // unref: ONE-OFF SCRIPTS THAT REQUIRE THE CORE MUST STILL BE ABLE TO EXIT
-    this._heartbeatTimer.unref?.();
-    const boot = setTimeout(() => {
-      this._heartbeatTick().catch(err => this.logger.error('App heartbeat boot tick failed:', err));
-    }, HEARTBEAT_BOOT_DELAY_MS);
-    boot.unref?.();
+    const schedule = (delayMs) => {
+      this._heartbeatTimer = setTimeout(() => {
+        this._heartbeatTick()
+          .catch(err => this.logger.error('App heartbeat tick failed:', err))
+          .finally(() => schedule(this.core.tuning.value('heartbeat_seconds') * 1000));
+      }, delayMs);
+      this._heartbeatTimer.unref?.();
+    };
+    schedule(this.core.tuning.value('heartbeat_boot_delay_seconds') * 1000);
   },
 
   async _heartbeatTick() {

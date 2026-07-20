@@ -22,7 +22,6 @@ const TIER_FLAGS = {
 // CHECKBOXES READ AS UNCHECKED. NEVER safeUpdateOne HERE: ITS FULL-FORM
 // RESET WOULD ZERO THE TIER FLAGS THE LADDER OWNS.
 const PROFILE_FORM_FIELDS = ['is_active', 'max_requests_in_day', 'max_results', 'max_seasons_for_non_admin', 'notes'];
-const PROFILE_REQUEST_ROWS = 10;
 
 function tierKeyOf(user) {
   return TIER_ORDER[features.userTier(user)];
@@ -129,14 +128,15 @@ async function buildAccessSummary(core, user, scope) {
 // ONE PAGE OF THE USER'S REQUEST HISTORY - VIEW MORE PAGINATION LIKE EVERY
 // OTHER LONG LIST (THE +1 ROW ONLY PROBES FOR A NEXT PAGE)
 async function buildProfileRequests(core, userId, page = 1) {
+  const pageSize = core.tuning.value('profile_request_rows');
   const raw = await core.models.mediaRequest.getUserRequests(userId, { users: true, app: true }, {
-    skip: (page - 1) * PROFILE_REQUEST_ROWS,
-    take: PROFILE_REQUEST_ROWS + 1
+    skip: (page - 1) * pageSize,
+    take: pageSize + 1
   });
   return {
     total: await core.models.mediaRequest.countUserRequests(userId),
-    rows: raw.slice(0, PROFILE_REQUEST_ROWS).map(request => core.apps.buildRequestView(request)),
-    hasMore: raw.length > PROFILE_REQUEST_ROWS,
+    rows: raw.slice(0, pageSize).map(request => core.apps.buildRequestView(request)),
+    hasMore: raw.length > pageSize,
     page
   };
 }

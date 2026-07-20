@@ -1,0 +1,68 @@
+//- MODEL RAIL + CONTENT COLUMN - SWAPPED WHOLE ON MODEL SWITCH (RAIL
+//- COUNTS AND ACTIVE PICK REFRESH TOGETHER). LOCALS: db.
+#adminBody.adminLayout
+  aside.adminRail
+    .adminRailTitle Models
+    nav.adminRailList
+      each m in db.models
+        a.adminRailItem(
+          class=m.name === db.modelName ? 'active' : ''
+          role="button"
+          tabindex="0"
+          hx-get=`/admin/body?model=${encodeURIComponent(m.name)}`
+          hx-target="#adminBody"
+          hx-swap="outerHTML"
+        )
+          span.adminRailName= m.name
+          if m.count != null
+            span.adminRailCount= m.count
+  main.adminContent
+    .adminToolbar
+      h1.adminModelTitle= db.modelName
+      input#adminSearch.adminInput.adminSearch(
+        type="search"
+        name="search"
+        value=db.grid.query.search
+        placeholder=`Search ${db.modelName}…`
+        autocomplete="off"
+        hx-get="/admin/grid"
+        hx-trigger="input changed delay:400ms, search"
+        hx-target="#adminGrid"
+        hx-swap="outerHTML"
+        hx-include="#adminGridForm input[type=hidden]:not([name='search']):not([name='page'])"
+      )
+      button.adminBtn.primary(
+        type="button"
+        hx-get="/admin/editor"
+        hx-include="#adminGridForm input[type=hidden]"
+        hx-target="#adminDrawer"
+        hx-swap="innerHTML"
+      ) New row
+      button.adminBtn(
+        type="button"
+        onclick="document.getElementById('adminSql').classList.toggle('open')"
+      ) SQL
+    //- SCHEMA FACTS - PK, UNIQUES, FK EDGES (WITH CASCADE), RELATIONS, INDEXES
+    .adminChips
+      span.adminChip.pk= `pk ${db.grid.model.pk}`
+      each u in db.grid.model.uniques
+        span.adminChip.unique= `unique ${u}`
+      each fk in db.info.foreignKeys
+        span.adminChip.fk= `${fk.from} → ${fk.table}.${fk.to} · ${fk.onDelete.toLowerCase()}`
+      each b in db.grid.model.backlinks
+        span.adminChip.rel= `has ${b.label}`
+      each ix in db.info.indexes
+        span.adminChip= `idx ${ix.name}`
+    #adminSql.adminSqlPanel
+      form.adminSqlForm(hx-post="/admin/sql" hx-target="#adminSqlOut" hx-swap="innerHTML")
+        textarea.adminInput.adminSqlInput(
+          name="sql"
+          rows=3
+          spellcheck="false"
+          placeholder=`SELECT * FROM ${db.grid.model.dbName} LIMIT 50`
+        )
+        button.adminBtn.primary(type="submit" hx-disabled-elt="this") Run
+      #adminSqlOut
+    include adminGrid
+  //- ROW EDITOR DRAWER - :empty HIDES IT; MODEL SWITCHES RESET IT WITH THE BODY
+  aside#adminDrawer.adminDrawer

@@ -12,6 +12,8 @@ async function renderHome(ctx) {
   // THE LOGOUT BUTTON ONLY RENDERS WHEN A PASSWORD GUARDS THE CONSOLE
   const config = await core.models.configuration.get();
   const authEnabled = !!config.admin_password;
+  // CLIENT-SIDE UPLOAD PRE-FLIGHT CAP - INJECTED AS window.DF_UPLOAD_CAP
+  const uploadCapBytes = core.tuning.value('upload_max_mb') * 1024 * 1024;
 
   // APP TAKEOVER SURVIVES RELOAD - THE MIRROR LOCALS ARE SKIPPED ENTIRELY,
   // BACK-OUT RE-RENDERS THEM THROUGH changeActiveServers
@@ -30,6 +32,7 @@ async function renderHome(ctx) {
       apps,
       ticker,
       authEnabled,
+      uploadCapBytes,
       ...takeover
     });
   }
@@ -50,7 +53,8 @@ async function renderHome(ctx) {
     apps,
     ticker,
     history,
-    authEnabled
+    authEnabled,
+    uploadCapBytes
   });
 }
 

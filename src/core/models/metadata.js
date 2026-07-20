@@ -44,6 +44,13 @@ const MODELS_META = {
             whitelist_role_ids: { type: FIELD_TYPES.STRING, computed: true, size: "full", label: "Whitelist Roles", description: "Comma-separated role names or ids that grant the whitelisted tier - grants only, revoke in Users" },
             staff_role_ids: { type: FIELD_TYPES.STRING, computed: true, size: "full", label: "Staff Roles", description: "Comma-separated role names or ids that grant staff - grants only, revoke in Users" },
             admin_role_ids: { type: FIELD_TYPES.STRING, computed: true, size: "full", label: "Admin Roles", description: "Comma-separated role names or ids that grant admin - grants only, revoke in Users" },
+            // SPARSE OVERRIDES FOR core/tuning.js - EDITED THROUGH THE
+            // SETTINGS PAGE'S TUNING PANELS, NEVER AS A RAW JSON FIELD
+            tuning_json: { type: FIELD_TYPES.JSON, computed: true, hidden: true, readonly: true, label: "Tuning Overrides", description: "Sparse overrides for the operational tunables" },
+            db_admin_enabled: { type: FIELD_TYPES.BOOLEAN, label: "Database Admin", description: "Reveal the Database channel in the DiscoFlix app - a raw editor for every table. Powerful and sharp; combine with a console password" },
+            // DISMISS STATE FOR THE NO-PASSWORD WARNING BUBBLE - WRITTEN BY
+            // ITS OWN ROUTE, NEVER BY THE SETTINGS FORM
+            db_admin_warning_dismissed: { type: FIELD_TYPES.BOOLEAN, computed: true, hidden: true, readonly: true, label: "DB Warning Dismissed", description: "Whether the unsecured database admin warning was dismissed" },
             created_at: { type: FIELD_TYPES.TIMESTAMP, label: "Created At", description: "Timestamp when configuration was created", computed: true, readonly: true },
             updated_at: { type: FIELD_TYPES.TIMESTAMP, label: "Updated At", description: "Timestamp when configuration was last updated", computed: true, readonly: true }
         }

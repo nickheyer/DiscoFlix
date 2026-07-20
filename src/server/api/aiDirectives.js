@@ -127,7 +127,7 @@ async function saveAiDirective(ctx) {
 
   const text = String(ctx.request.body?.text ?? '')
     .replace(/\r\n/g, '\n')
-    .slice(0, directives.MAX_DIRECTIVE_CHARS);
+    .slice(0, directives.maxDirectiveChars());
   const isStock = !text.trim() || text === entry.defaultText;
 
   try {

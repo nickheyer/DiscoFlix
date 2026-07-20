@@ -1,5 +1,6 @@
 const axios = require('axios');
 const BaseClient = require('./baseClient');
+const tuning = require('../../../tuning');
 
 // SID SESSION CACHE, KEYED BY APP-INSTANCE ID. CLIENTS ARE BUILT PER-USE
 // (SETTINGS APPLY IMMEDIATELY) BUT THE LOGIN SESSION SURVIVES ACROSS BUILDS;
@@ -40,7 +41,7 @@ class QbittorrentClient extends BaseClient {
     this.cacheKey = cacheKey || this.baseUrl;
     this.http = axios.create({
       baseURL: this.baseUrl,
-      timeout: 10000,
+      timeout: tuning.value('download_client_http_timeout_seconds') * 1000,
       // QBIT REJECTS LOGINS WITHOUT A MATCHING Referer (CSRF PROTECTION)
       headers: { Referer: this.baseUrl }
     });

@@ -160,6 +160,12 @@ Data lands next to the binary in `discoflix-data/` (override with `DF_DATA_DIR`)
 
 Then open `http://localhost:5001`, paste your Discord bot token, and flip the power switch. Everything is configured in the console - or seed first-boot settings from the environment with [.env.example](.env.example).
 
+### Inspect the database
+
+DiscoFlix ships its own admin panel - no external tools. Enable **Database Admin** in the DiscoFlix app's Settings (or set `DF_DB_ADMIN=1` before first boot) and it serves a standalone editor at `http://localhost:5001/admin` (a Database shortcut also appears in the DiscoFlix app and opens it in a new tab). It reads the schema straight from the Prisma models, so every table, column, relation, and index shows up automatically: search, sort, filter by clicking any foreign key, edit or create rows in the side editor, bulk-edit or bulk-delete the checked rows (or everything matching the current filter), and drop to raw SQL when you want it.
+
+It edits the live database with no guardrails - that's the point - so if the console is reachable by anyone but you, set an admin password. DiscoFlix will nag you about exactly that (dismissable) if you enable it on a password-less console.
+
 <br>
 
 ---

@@ -1,16 +1,18 @@
 const axios = require('axios');
 const AiBaseClient = require('./aiBaseClient');
+const tuning = require('../../../tuning');
 
 // OLLAMA - THE LOCAL/SELF-HOSTED PROVIDER. NO API KEY, JUST A URL. TOOL
 // CALLING RIDES /api/chat (MODERN OLLAMA + A TOOL-CAPABLE MODEL); MODELS
 // WITHOUT TOOL SUPPORT STILL CHAT - OLLAMA JUST NEVER EMITS tool_calls.
-const REQUEST_TIMEOUT_MS = 300 * 1000; // LOCAL MODELS CAN BE SLOW - BE PATIENT
 
 class OllamaAiClient extends AiBaseClient {
   constructor(options) {
     super(options);
     this.serviceLabel = 'Ollama';
-    this.http = axios.create({ baseURL: this.baseUrl, timeout: REQUEST_TIMEOUT_MS });
+    // LOCAL MODELS CAN BE SLOW - OLLAMA GETS ITS OWN TUNED DEADLINE, READ
+    // PER-BUILD (CLIENTS ARE BUILT PER-USE) SO ADMIN CHANGES APPLY LIVE
+    this.http = axios.create({ baseURL: this.baseUrl, timeout: tuning.value('ollama_request_timeout_seconds') * 1000 });
   }
 
   get defaultModel() { return String(this.instanceSettings.model || '').trim(); }

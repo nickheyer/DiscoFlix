@@ -1,9 +1,7 @@
 const multer = require('@koa/multer');
 
-// DISCORD'S UNBOOSTED BOT UPLOAD CAP - BOOSTED GUILDS TAKE MORE, BUT 8MB
-// NEVER BOUNCES; DISCORD'S OWN REJECTION COVERS ANYTHING PAST IT
-const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
-const uploadParser = multer({ limits: { fileSize: MAX_UPLOAD_BYTES, files: 1 } }).single('file');
+// UPLOAD CAP COMES FROM TUNING (upload_max_mb, DEFAULT 8MB - DISCORD'S
+// UNBOOSTED BOT CAP); THE PARSER IS BUILT PER REQUEST SO CHANGES APPLY LIVE
 
 // OG-DISCORD ATTACH: THE + STAGES A FILE, ENTER POSTS IT HERE AS MULTIPART;
 // THE BOT SENDS IT AND THE MESSAGE MIRRORS BACK VIA MessageCreate. EVERY
@@ -11,12 +9,14 @@ const uploadParser = multer({ limits: { fileSize: MAX_UPLOAD_BYTES, files: 1 } }
 async function uploadChatMedia(ctx) {
   const core = ctx.core;
   const toast = (message) => ctx.compileView(['extra/notification.pug'], { message });
+  const uploadMb = core.tuning.value('upload_max_mb');
+  const uploadParser = multer({ limits: { fileSize: uploadMb * 1024 * 1024, files: 1 } }).single('file');
 
   try {
     await uploadParser(ctx, () => {});
   } catch (err) {
     return toast(err.code === 'LIMIT_FILE_SIZE'
-      ? 'That file is over the 8MB upload cap'
+      ? `That file is over the ${uploadMb}MB upload cap`
       : `Upload failed: ${err.message}`);
   }
 

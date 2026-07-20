@@ -1,6 +1,9 @@
 // THE DIRECTIVE CATALOG - EVERY BLOCK OF TEXT THE APP SAYS TO AN LLM
 
-const MAX_DIRECTIVE_CHARS = 4000;
+const tuning = require('../../tuning');
+
+// READ AT USE TIME SO ADMIN CHANGES APPLY LIVE
+const maxDirectiveChars = () => tuning.value('ai_directive_max_chars');
 
 // whenLabel/whenDetail/outcome FEED THE DIRECTIVES TAB'S LIFECYCLE PIPELINE
 // (DIRECTIVE -> WHERE IT LANDS -> WHEN IT FIRES -> TASK PERFORMED)
@@ -199,7 +202,7 @@ function directiveText(instance, key, vars = {}) {
 }
 
 module.exports = {
-  MAX_DIRECTIVE_CHARS,
+  maxDirectiveChars,
   PLACEHOLDER_DOCS,
   directiveCatalog,
   getDirective,

@@ -2,12 +2,11 @@ const fs = require('fs').promises;
 const path = require('path');
 const axios = require('axios');
 const { CACHE_DIR } = require('../paths');
+const tuning = require('../tuning');
 
-// CACHE CONFIG
+// CACHE CONFIG - RETRIES/TIMEOUT/AGE RIDE THE TUNING REGISTRY, READ AT USE TIME
 const DEFAULT_CONFIG = {
     cacheRoot: CACHE_DIR,
-    maxRetries: 3,
-    timeout: 5000,
     maxSize: 5 * 1024 * 1024,
     allowedExtensions: ['.jpg', '.jpeg', '.png', '.gif', '.webp'],
     defaultExtension: '.png'
@@ -34,9 +33,10 @@ const cacheImage = async (imageUrl, id, cacheFolder, logger) => {
     if (!imageUrl || !cacheFolder) return null;
 
     const cacheDir = path.join(DEFAULT_CONFIG.cacheRoot, cacheFolder);
+    const maxRetries = tuning.value('image_cache_retries');
     let retries = 0;
 
-    while (retries < DEFAULT_CONFIG.maxRetries) {
+    while (retries < maxRetries) {
         try {
             if (!await ensureCacheDirectory(cacheDir, logger)) {
                 return null;
@@ -44,7 +44,7 @@ const cacheImage = async (imageUrl, id, cacheFolder, logger) => {
 
             const response = await axios.get(imageUrl, {
                 responseType: 'arraybuffer',
-                timeout: DEFAULT_CONFIG.timeout
+                timeout: tuning.value('image_cache_timeout_seconds') * 1000
             });
 
             if (!await validateImage(response.data, DEFAULT_CONFIG.maxSize)) {
@@ -67,12 +67,12 @@ const cacheImage = async (imageUrl, id, cacheFolder, logger) => {
 
         } catch (error) {
             retries++;
-            logger.warn(`Cache attempt ${retries}/${DEFAULT_CONFIG.maxRetries} failed:`, {
+            logger.warn(`Cache attempt ${retries}/${maxRetries} failed:`, {
                 url: imageUrl,
                 error: error.message
             });
 
-            if (retries === DEFAULT_CONFIG.maxRetries) {
+            if (retries === maxRetries) {
                 logger.error('Max retries reached:', { url: imageUrl });
                 return null;
             }
@@ -84,8 +84,8 @@ const cacheImage = async (imageUrl, id, cacheFolder, logger) => {
     return null;
 };
 
-// CLEAN OLD CACHE
-const cleanOldCache = async (logger, maxAge = 7 * 24 * 60 * 60 * 1000) => {
+// CLEAN OLD CACHE - DEFAULT PARAMS EVALUATE PER CALL, SO THE READ STAYS LIVE
+const cleanOldCache = async (logger, maxAge = tuning.value('image_cache_prune_days') * 24 * 60 * 60 * 1000) => {
     try {
         const files = await fs.readdir(DEFAULT_CONFIG.cacheRoot);
         const now = Date.now();

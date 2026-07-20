@@ -1,5 +1,6 @@
 const axios = require('axios');
 const BaseClient = require('./baseClient');
+const tuning = require('../../../tuning');
 
 // ARR /history eventType -> NORMALIZED FEED KIND (SEE baseClient CONTRACT)
 const HISTORY_EVENT_KINDS = {
@@ -27,7 +28,8 @@ class ArrClient extends BaseClient {
     this.instanceSettings = settings || {};
     this.http = axios.create({
       baseURL: `${this.baseUrl}/api/${this.apiVersion}`,
-      timeout: 10000,
+      // CLIENTS ARE BUILT FRESH PER USE - A CONSTRUCTION-TIME READ STAYS LIVE
+      timeout: tuning.value('arr_http_timeout_seconds') * 1000,
       headers: { 'X-Api-Key': token }
     });
   }
@@ -241,7 +243,7 @@ class ArrClient extends BaseClient {
   // INTERACTIVE SEARCH - THE ARR SWEEPS ITS INDEXERS LIVE AND RETURNS EVERY
   // CANDIDATE RELEASE. SLOW BY NATURE, SO THIS CALL GETS ITS OWN LONG TIMEOUT.
   async getInteractiveReleases(scope = {}) {
-    const releases = await this._get('/release', this.releaseParamsFor(scope), { timeout: 90000 });
+    const releases = await this._get('/release', this.releaseParamsFor(scope), { timeout: tuning.value('indexer_search_timeout_seconds') * 1000 });
     return (releases || [])
       .map(raw => this._normalizeInteractiveRelease(raw))
       .sort((a, b) => (a.rejected ? 1 : 0) - (b.rejected ? 1 : 0) || (b.seeders || 0) - (a.seeders || 0));

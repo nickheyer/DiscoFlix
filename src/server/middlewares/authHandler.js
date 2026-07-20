@@ -1,8 +1,10 @@
 const crypto = require('crypto');
+const tuning = require('../../core/tuning');
 
 // SESSION-COOKIE AUTH FOR THE WEB CONSOLE
 const SESSION_COOKIE = 'df_session';
-const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+// READ AT MINT/VALIDATE TIME SO ADMIN CHANGES APPLY TO LIVE SESSIONS TOO
+const sessionTtlMs = () => tuning.value('login_session_ttl_days') * 24 * 60 * 60 * 1000;
 const PUBLIC_PATHS = new Set(['/login']);
 
 const sessions = new Map();
@@ -17,7 +19,7 @@ function isValidSession(token) {
   if (!token) return false;
   const entry = sessions.get(token);
   if (!entry) return false;
-  if (Date.now() - entry.createdAt > SESSION_TTL_MS) {
+  if (Date.now() - entry.createdAt > sessionTtlMs()) {
     sessions.delete(token);
     return false;
   }
@@ -56,5 +58,5 @@ module.exports = {
   isValidSession,
   destroySession,
   SESSION_COOKIE,
-  SESSION_TTL_MS
+  sessionTtlMs
 };

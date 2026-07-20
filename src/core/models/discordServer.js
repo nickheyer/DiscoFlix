@@ -2,8 +2,8 @@ const BaseModel = require('./base');
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
-const TOP_REQUESTER_COUNT = 5;
-const QUOTA_ROW_CAP = 10;
+// LIST LENGTHS READ FROM core.tuning AT BUILD TIME (top_requester_count /
+// quota_row_cap) SO ADMIN CHANGES APPLY LIVE
 
 class DiscordServer extends BaseModel {
     constructor(core) {
@@ -64,7 +64,7 @@ class DiscordServer extends BaseModel {
             .map(user => ({ name: user.display_name || user.username, count: user._count.requests }))
             .filter(row => row.count > 0)
             .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
-            .slice(0, TOP_REQUESTER_COUNT)
+            .slice(0, this.core.tuning.value('top_requester_count'))
             .map(row => ({ name: row.name, detail: `${row.count} request${row.count === 1 ? '' : 's'}` }));
 
         const quotaRows = quotaUsers
@@ -79,6 +79,7 @@ class DiscordServer extends BaseModel {
             })
             .sort((a, b) => b.percent - a.percent || a.name.localeCompare(b.name));
 
+        const quotaRowCap = this.core.tuning.value('quota_row_cap');
         return {
             heading: 'Request Activity',
             stats: [
@@ -95,8 +96,8 @@ class DiscordServer extends BaseModel {
                 {
                     label: 'Daily Quota Usage',
                     empty: 'No members carry a daily request limit',
-                    rows: quotaRows.slice(0, QUOTA_ROW_CAP),
-                    moreCount: Math.max(0, quotaRows.length - QUOTA_ROW_CAP)
+                    rows: quotaRows.slice(0, quotaRowCap),
+                    moreCount: Math.max(0, quotaRows.length - quotaRowCap)
                 }
             ]
         };
