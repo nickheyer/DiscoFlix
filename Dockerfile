@@ -47,7 +47,7 @@ USER discoflix
 EXPOSE 5001
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-  CMD node -e 'fetch("http://127.0.0.1:"+(process.env.PORT||5001)+"/").then(r=>process.exit(r.status<500?0:1)).catch(()=>process.exit(1))'
+  CMD node -e 'fetch("http://127.0.0.1:"+(process.env.PORT||5001)+"/health").then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))'
 
 # MIGRATIONS RUN IN-PROCESS AT BOOT (src/core/migrate.js) - NO ENTRYPOINT NEEDED
 CMD ["node", "src/server/server.js"]

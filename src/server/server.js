@@ -17,6 +17,16 @@ const { runMigrations } = require('../core/migrate');
   const { viewSessionHandler } = require('./middlewares/viewSessionHandler');
   const routes = require('./routes');
 
+  // LIVENESS PROBE - ANSWERED BEFORE AUTH AND SESSIONS SO HEALTH CHECKS
+  // NEVER MINT view_sessions ROWS OR TOUCH THE DB
+  app.use(async (ctx, next) => {
+    if (ctx.path === '/health') {
+      ctx.body = { status: 'ok' };
+      return;
+    }
+    await next();
+  });
+
   // Middlewares - Incoming Requests
   app.use(bodyParser());
   app.use(errorHandler());
