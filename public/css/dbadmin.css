@@ -692,6 +692,67 @@ body.adminPage {
   background-color: var(--bg-primary);
 }
 
+/* ── PHONES - RAIL BECOMES A TOP CHIP STRIP, TOOLBAR WRAPS, THE PANEL
+   KEEPS OWNING ALL SCROLLING (BOTH AXES) ─────────────────────────────── */
+@media (max-width: 768px) {
+  .adminLayout {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    height: calc(100dvh - var(--adm-header-h));
+  }
+
+  .adminRail {
+    flex-direction: row;
+    align-items: center;
+    gap: 2px;
+    padding: 8px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border-right: none;
+    border-bottom: 1px solid var(--adm-hairline-strong);
+  }
+
+  .adminRailTitle {
+    display: none;
+  }
+
+  /* THE ITEMS LIVE IN nav.adminRailList - IT IS THE ELEMENT THAT HAS TO
+     GO HORIZONTAL FOR THE CHIP STRIP */
+  .adminRailList {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .adminRailItem {
+    flex: 0 0 auto;
+    gap: 6px;
+  }
+
+  .adminContent {
+    padding: 10px;
+  }
+
+  .adminToolbar {
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+
+  /* THE SEARCH DROPS TO ITS OWN FULL-WIDTH LINE UNDER THE BUTTONS */
+  .adminSearch {
+    order: 9;
+    width: 100%;
+  }
+
+  .adminValueInput {
+    width: 140px;
+  }
+
+  .adminFieldSelect {
+    max-width: 140px;
+  }
+}
+
 /* ── TOAST ──────────────────────────────────────────────────────────── */
 .adminToast {
   position: fixed;

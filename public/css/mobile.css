@@ -1,7 +1,56 @@
-/* MOBILE LAYOUT PASS (M16) - PHONES AND SMALL TABLETS. THE SIDEBAR TOGGLE
-   BECOMES A DRAWER: EXPANDED = THE GUILD RAIL + CHANNEL COLUMN OWN THE
-   SCREEN, COLLAPSED = A SLIM STRIP BESIDE FULL-BLEED CONTENT. IMPORTED LAST
-   FROM style.css SO EQUAL-SPECIFICITY OVERRIDES WIN THE CASCADE. */
+/* MOBILE LAYOUT PASS - PHONES AND SMALL TABLETS. THE SIDEBAR IS A DRAWER:
+   EXPANDED = THE GUILD RAIL + CHANNEL COLUMN OWN THE SCREEN, COLLAPSED =
+   FULLY HIDDEN BEHIND THE HEADER HAMBURGER SO CONTENT IS FULL-BLEED.
+   IMPORTED LAST FROM style.css SO EQUAL-SPECIFICITY OVERRIDES WIN THE
+   CASCADE. */
+
+/* ---- HEADER NAV CONTROLS - BASE (HIDDEN) STATE FIRST: THE 768 BLOCK
+   BELOW REVEALS THEM AT EQUAL SPECIFICITY, SO SOURCE ORDER IS THE SWITCH */
+
+.mobileNavToggle,
+.mobileRailToggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  background: transparent;
+  border-radius: 4px;
+  color: var(--interactive-normal);
+  cursor: pointer;
+}
+
+.mobileNavToggle:active,
+.mobileRailToggle:active {
+  background-color: var(--bg-modifier-selected);
+  color: var(--interactive-active);
+}
+
+.mobileNavToggle {
+  margin-right: 6px;
+}
+
+.mobileNavToggle svg,
+.mobileRailToggle svg {
+  width: 22px;
+  height: 22px;
+}
+
+.railScrim {
+  display: none;
+}
+
+/* DRAWER SLIDES RESPECT THE OS MOTION PREFERENCE */
+@media (prefers-reduced-motion: reduce) {
+  .servers,
+  #serverSideBar,
+  .memberContainer,
+  .railScrim {
+    transition: none !important;
+  }
+}
 
 @media (max-width: 768px) {
   /* MOBILE BROWSER CHROME EATS 100vh - dvh TRACKS THE REAL VIEWPORT */
@@ -10,28 +59,96 @@
     height: 100dvh;
   }
 
-  /* ---- NAVIGATION DRAWER ---- */
-  #serverSideBar.expanded {
-    flex: 1 1 auto;
-    width: auto;
+  /* ---- NAVIGATION DRAWER ----
+     THE WHOLE NAV (GUILD RAIL + CHANNEL COLUMN) IS ONE FIXED DRAWER THAT
+     SLIDES OVER ALWAYS-FULL-BLEED CONTENT. IT STAYS MOUNTED AND MOVES BY
+     transform SO THE OPEN/CLOSE ACTUALLY ANIMATES - display:none CANNOT
+     TRANSITION, AND A 60px STRIP IS 15% OF A PHONE. CLASS FLIPS HAPPEN
+     CLIENT-SIDE (source.js dfSetDrawer / THE LEAF-PICK COLLAPSE); THE
+     ELEMENT IS NEVER SWAPPED ON MOBILE, SO TRANSITIONS SURVIVE. */
+  .servers {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 70;
+    height: auto;
+    transition: transform 0.25s ease, visibility 0s;
   }
 
-  #serverSideBar.expanded ~ .chatContainer {
-    flex: 0 0 0;
-    width: 0;
-    min-width: 0;
-    visibility: collapse;
-    overflow: hidden;
-  }
-
-  /* COLLAPSED = CONTENT MODE - THE GUILD RAIL YIELDS ITS 72px TO THE CONTENT */
   .rootDiv:has(#serverSideBar:not(.expanded)) .servers {
-    display: none;
+    transform: translateX(-100%);
+    visibility: hidden;
+    transition: transform 0.25s ease, visibility 0s 0.25s;
   }
 
-  /* MEMBERS/ACTIVITY RAIL CANNOT SHARE A PHONE WITH THE CONTENT COLUMN */
+  #serverSideBar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 72px;
+    z-index: 70;
+    height: auto;
+    transition: transform 0.25s ease, visibility 0s;
+  }
+
+  #serverSideBar.expanded,
+  #serverSideBar:not(.expanded) {
+    width: calc(100vw - 72px);
+  }
+
+  #serverSideBar:not(.expanded) {
+    transform: translateX(calc(-100% - 72px));
+    visibility: hidden;
+    transition: transform 0.25s ease, visibility 0s 0.25s;
+  }
+
+  /* HEADER NAV CONTROLS - HIDDEN ON DESKTOP (BELOW, OUTSIDE THE QUERY) */
+  .mobileNavToggle {
+    display: flex;
+  }
+
+  .rootDiv:not(:has(.memberContainer:empty)) .mobileRailToggle {
+    display: flex;
+  }
+
+  /* MEMBERS/ACTIVITY RAIL CANNOT SHARE A PHONE WITH THE CONTENT COLUMN -
+     THE HEADER TOGGLE SLIDES IT IN AS AN OVERLAY DRAWER. SAME DEAL AS THE
+     NAV: ALWAYS MOUNTED, transform-DRIVEN, SO IT SLIDES INSTEAD OF POPS. */
   .memberContainer {
-    display: none;
+    display: flex;
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(320px, 85vw);
+    z-index: 60;
+    box-shadow: -8px 0 24px rgba(0, 0, 0, 0.45);
+    transform: translateX(105%);
+    visibility: hidden;
+    transition: transform 0.25s ease, visibility 0s 0.25s;
+  }
+
+  .rootDiv.railOpen .memberContainer {
+    transform: translateX(0);
+    visibility: visible;
+    transition: transform 0.25s ease, visibility 0s;
+  }
+
+  .railScrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 55;
+    background: rgba(0, 0, 0, 0.55);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+
+  .rootDiv.railOpen .railScrim {
+    opacity: 1;
+    pointer-events: auto;
   }
 
   .userMenuBtnGroup {
@@ -48,6 +165,18 @@
   /* CHANNEL ROWS GET REAL TOUCH TARGETS */
   .channelViewOption {
     padding: 10px 8px;
+  }
+
+  /* TAB CHIP ROWS (REQUEST STATES, USER AUDIENCES, LIBRARY KINDS) WRAP
+     INSTEAD OF CLIPPING THE LAST CHIP AT THE VIEWPORT EDGE */
+  .appInstanceTabs {
+    flex-wrap: wrap;
+  }
+
+  /* STAT TILES STRETCH TO FILL THE ROW - THE DESKTOP 150px CAP LEAVES A
+     DEAD RIGHT HALF ON A PHONE */
+  .appStatsGrid {
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
   }
 
   /* ---- CHAT DENSITY ---- */
@@ -145,6 +274,32 @@
 
   .appEpisodeRow .appEpisodeAir {
     display: none;
+  }
+}
+
+/* THE NO-CHANNEL PLACEHOLDER STILL NEEDS THE HAMBURGER OR A PHONE IS
+   STRANDED WITH NO WAY BACK INTO THE NAV */
+.messageChannelHeaderPlaceholder {
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+}
+
+.messageChannelHeaderPlaceholder .mobileRailToggle {
+  margin-left: auto;
+}
+
+/* ---- TOUCH AFFORDANCES - HOVER-REVEALED CONTROLS HAVE NO HOVER ---- */
+
+@media (hover: none) {
+  /* SERVER INFO (i) IN THE GUILD BANNER */
+  .serverInfoButton {
+    opacity: 0.7;
+  }
+
+  /* CHANNEL GEAR - THE ONLY DOOR TO CHANNEL SETTINGS */
+  .channelViewOption .channelViewOptionConfig {
+    visibility: visible !important;
   }
 }
 

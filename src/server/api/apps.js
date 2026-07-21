@@ -909,6 +909,11 @@ async function changeAppSection(ctx) {
   instance.active_section = section;
 
   let state = ctx.viewState;
+  // ON PHONES A SECTION PICK ALSO CLOSES THE NAV DRAWER (SAME CONTRACT AS
+  // changeActiveChannel) - PERSIST BEFORE ANY FRAGMENT COMPILES
+  if (ctx.get('DF-Mobile') === '1' && state.sidebar_exp_state) {
+    state = await ctx.updateView({ sidebar_exp_state: false });
+  }
   if (state.active_app_id !== instance.id) {
     state = await ctx.updateView({ active_app_id: instance.id });
     return respondWithTakeover(ctx, instance, state);

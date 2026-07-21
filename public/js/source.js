@@ -35,6 +35,64 @@ function closeModal() {
 
 // THIS SCRIPT LOADS IN <HEAD>
 
+// ---- PHONE NAV ----
+
+const DF_MOBILE_QUERY = window.matchMedia('(max-width: 768px)');
+const DF_TOUCH_QUERY = window.matchMedia('(hover: none)');
+
+// THE DRAWER ANIMATES BY CLASS FLIP IN PLACE - ON MOBILE #serverSideBar IS
+// NEVER SWAPPED (A REPLACED ELEMENT ARRIVES IN ITS FINAL STATE AND NOTHING
+// SLIDES). persist POSTS THE FLIP; THE DF-Mobile HEADER MAKES THE SERVER
+// SKIP RENDERING THE SIDEBAR NOBODY READS (204).
+function dfSetDrawer(open, persist) {
+  const sidebar = document.getElementById('serverSideBar');
+  if (!sidebar || sidebar.classList.contains('expanded') === open) return;
+  sidebar.classList.toggle('expanded', open);
+  sidebar.classList.toggle('collapsed', !open);
+  if (persist) fetch('/toggle-sidebar', { method: 'POST', headers: { 'DF-Mobile': '1' } });
+}
+
+// THE HAMBURGER IS MOBILE-ONLY AND PURE CLIENT-SIDE - NO HTMX ROUND TRIP
+// BEFORE THE SLIDE STARTS
+document.addEventListener('click', function (evt) {
+  if (evt.target.closest && evt.target.closest('.mobileNavToggle')) dfSetDrawer(true, true);
+});
+
+// EVERY HTMX REQUEST FROM A PHONE SAYS SO - LEAF-PICK HANDLERS (CHANNEL /
+// SECTION) COLLAPSE THE NAV DRAWER SERVER-SIDE BEFORE THEY EMIT, SO THE
+// PERSISTED STATE AND EVERY PUSHED FRAGMENT AGREE
+document.addEventListener('htmx:configRequest', function (evt) {
+  if (DF_MOBILE_QUERY.matches) evt.detail.headers['DF-Mobile'] = '1';
+});
+
+// MOBILE DRAWER MOVES FLIP CLASSES THE MOMENT THE TAP LANDS:
+// - THE BANNER CHEVRON'S SWAP IS CANCELLED (A SWAPPED-IN SIDEBAR CANNOT
+//   ANIMATE); dfSetDrawer PERSISTS INSTEAD
+// - CHANNEL/SECTION ROWS COLLAPSE WITHOUT persist - THEIR OWN HANDLERS
+//   PERSIST OFF THE DF-Mobile HEADER
+// (beforeRequest, NOT afterRequest: THE WS CHROME PUSH CAN REPLACE THE ROW
+// BEFORE ITS HTTP RESPONSE SETTLES, AND EVENTS ON DETACHED ROWS NEVER
+// BUBBLE HERE.)
+document.addEventListener('htmx:beforeRequest', function (evt) {
+  if (!DF_MOBILE_QUERY.matches) return;
+  const elt = evt.detail && evt.detail.elt;
+  if (!elt || !elt.closest) return;
+  if (elt.id === 'sidebarToggle') {
+    evt.preventDefault();
+    dfSetDrawer(false, true);
+    return;
+  }
+  if (elt.closest('.channelViewOption')) dfSetDrawer(false, false);
+});
+
+// LEAVING PHONE WIDTHS DROPS THE RAIL OVERLAY SO IT CAN'T LINGER INVISIBLY
+DF_MOBILE_QUERY.addEventListener('change', function (evt) {
+  if (!evt.matches) {
+    const root = document.querySelector('.rootDiv');
+    if (root) root.classList.remove('railOpen');
+  }
+});
+
 // CLEAR CHAT INPUT ONCE ITS MESSAGE HAS GONE OVER THE SOCKET
 document.addEventListener('htmx:wsAfterSend', function (evt) {
   const elt = (evt.detail && evt.detail.elt) || evt.target;
@@ -126,7 +184,10 @@ function hideTooltip() {
   if (tooltipLayer) tooltipLayer.classList.remove('visible');
 }
 
+// NO TOOLTIPS ON TOUCH DEVICES - THERE IS NO HOVER, SO A TAP WOULD PIN THE
+// TIP OVER THE CONTENT UNTIL THE NEXT TAP SOMEWHERE ELSE
 document.addEventListener('mouseover', function (evt) {
+  if (DF_TOUCH_QUERY.matches) return;
   const anchor = evt.target.closest ? evt.target.closest('[data-tooltip-dir]') : null;
   if (anchor === tooltipAnchor) return;
   hideTooltip();
@@ -135,6 +196,7 @@ document.addEventListener('mouseover', function (evt) {
 
 // KEYBOARD PARITY - FOCUS SHOWS THE SAME TOOLTIP HOVER WOULD
 document.addEventListener('focusin', function (evt) {
+  if (DF_TOUCH_QUERY.matches) return;
   const anchor = evt.target.closest ? evt.target.closest('[data-tooltip-dir]') : null;
   if (anchor === tooltipAnchor) return;
   hideTooltip();

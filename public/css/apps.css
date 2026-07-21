@@ -16,6 +16,14 @@
   width: 100%;
 }
 
+/* RIGHT-EDGE HEADER CLUSTER - THE PHONE RAIL TOGGLE + THE LINK-OUT */
+.appHeaderActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
 /* "OPEN <APP>" LINK-OUT ON THE TAKEOVER HEADER'S RIGHT EDGE */
 .appHeaderLink {
   display: flex;
@@ -412,6 +420,13 @@
   display: flex;
   align-items: center;
   gap: 6px;
+  min-width: 0;
+}
+
+/* SCENE NAMES ARE ONE UNBREAKABLE DOT-CHAINED WORD - WITHOUT A BREAK
+   OPPORTUNITY THE TEXT PAINTS PAST THE CARD ON NARROW VIEWS */
+.queueRowTitle span {
+  overflow-wrap: anywhere;
   min-width: 0;
 }
 
@@ -1315,6 +1330,9 @@
 .unifiedCardIcons {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  min-width: 0;
   gap: 4px;
   margin-left: auto;
 }
@@ -1814,10 +1832,12 @@
 
 /* ---- DISCOFLIX USER CARDS ---- */
 
-/* CARDS SHARE THE DOCUMENT MEASURE AND FILL IT TWO-UP WHEN IT FITS */
+/* CARDS SHARE THE DOCUMENT MEASURE AND FILL IT TWO-UP WHEN IT FITS - min()
+   LETS THE TRACK FLOOR COLLAPSE TO THE CONTAINER ON PHONES INSTEAD OF
+   FORCING A 400px CARD PAST A 366px SURFACE */
 #dfUserList {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(400px, 100%), 1fr));
   gap: 12px;
   align-items: start;
 }

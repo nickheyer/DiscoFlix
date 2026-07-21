@@ -1,0 +1,24 @@
+//- PHONE-ONLY HEADER CONTROLS (CSS HIDES THEM ON DESKTOP): THE HAMBURGER
+//- REOPENS THE NAV DRAWER (COLLAPSED = FULLY HIDDEN ON PHONES), THE PEOPLE
+//- TOGGLE SLIDES THE MEMBERS/ACTIVITY RAIL IN AS AN OVERLAY DRAWER.
+//- PURE CLIENT-SIDE (source.js dfSetDrawer): THE DRAWER MUST START SLIDING
+//- ON THE TAP, NOT AFTER A ROUND TRIP - AND A SWAPPED-IN SIDEBAR CANNOT
+//- ANIMATE. THE FLIP IS PERSISTED WITH A BACKGROUND POST.
+mixin mobileNavToggle
+  button.mobileNavToggle(
+    type="button"
+    aria-label="Open navigation"
+  )
+    svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true")
+      path(stroke-linecap="round" stroke-width="2" d="M3 6h18M3 12h18M3 18h18")
+
+mixin mobileRailToggle
+  button.mobileRailToggle(
+    type="button"
+    aria-label="Toggle member list"
+    _="on click toggle .railOpen on .rootDiv"
+  )
+    svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true")
+      path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2")
+      circle(cx="9" cy="7" r="4" stroke-width="2")
+      path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75")

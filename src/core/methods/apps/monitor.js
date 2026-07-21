@@ -377,6 +377,29 @@ module.exports = {
       }
     }
 
+    // LIBRARY WORK HAPPENS UP FRONT: A COLD CACHE (EVERY RESTART) MADE THE
+    // FIRST BROWSE AWAIT THE WHOLE LISTING FETCH - SECONDS ON A BIG ARR.
+    // THE HEARTBEAT KEEPS LIBRARY-CAPABLE INSTANCES WARM INSTEAD: FRESH
+    // ENTRIES RETURN FROM CACHE INSTANTLY, STALE ONES REFRESH VIA THE SWR
+    // PATH, COLD ONES START THE (DEDUPED) REAL FETCH. THE CHAIN IS
+    // SEQUENTIAL AND REENTRY-GUARDED SO SERVICES ARE NEVER SWEPT IN
+    // PARALLEL AND A SLOW SWEEP NEVER STACKS ON ITSELF.
+    if (!this._libraryWarmRun) {
+      const libraryRows = rows.filter(row =>
+        this.statusCache.get(row.id)?.ok &&
+        typeof this.getClientForInstance(row)?.getLibrary === 'function'
+      );
+      this._libraryWarmRun = (async () => {
+        for (const row of libraryRows) {
+          try {
+            await this._getFullLibrary(row, this.getClientForInstance(row));
+          } catch (err) {
+            this.logger.debug(`Library warm failed for ${row.display_name}: ${err.message}`);
+          }
+        }
+      })().finally(() => { this._libraryWarmRun = null; });
+    }
+
     await this._broadcastHeartbeat();
   },
 

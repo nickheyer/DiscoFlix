@@ -21,6 +21,8 @@ module.exports = (core) => {
   apps.sessionsCache = new Map(); // appId -> normalized session rows (NOW PLAYING)
   apps.feedCache = new Map();     // appId -> { feed, fetchedAt } (ACTIVITY FEED PAGE 1)
   apps.libraryCache = new Map();  // appId -> { items, fetchedAt } (FULL NORMALIZED LISTING)
+  apps.libraryWarming = new Map(); // appId -> IN-FLIGHT COLD FETCH (DEDUPES WARM PASS VS USER CLICK)
+  apps._libraryWarmRun = null;    // SEQUENTIAL HEARTBEAT WARM CHAIN, ONE AT A TIME
   apps.browseViews = new Map();   // `appId:mode` -> 'covers' | 'detailed' (LIBRARY VIEW TOGGLE)
   apps.searchTerms = new Map();   // appId -> LAST SERVICE-SEARCH TERM (BACK-TO-RESULTS)
   apps._lastRailKey = null;

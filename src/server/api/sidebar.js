@@ -7,6 +7,13 @@ async function toggleSidebarState(ctx) {
       sidebar_exp_state: !ctx.viewState.sidebar_exp_state
     });
 
+    // MOBILE FLIPS THE DRAWER CLASS CLIENT-SIDE SO THE SLIDE CAN ANIMATE -
+    // THIS POST ONLY PERSISTS THE STATE, NOBODY READS THE SIDEBAR RENDER
+    if (ctx.get('DF-Mobile') === '1') {
+      ctx.status = 204;
+      return;
+    }
+
     const [servers, discordBot, apps, activeApp, config] = await Promise.all([
       ctx.core.render.getServerTemplateObj(null, state),
       ctx.core.models.discordBot.get(),
@@ -75,6 +82,11 @@ async function changeServerSortOrder(ctx) {
 async function changeActiveChannel(ctx) {
   const core = ctx.core;
   const active_channel_id = `${ctx.params.id}`;
+  // ON PHONES A CHANNEL PICK ALSO CLOSES THE NAV DRAWER - PERSIST BEFORE
+  // ANY FRAGMENT COMPILES SO EVERY EMIT RENDERS THE COLLAPSED STATE
+  if (ctx.get('DF-Mobile') === '1' && ctx.viewState.sidebar_exp_state) {
+    await ctx.updateView({ sidebar_exp_state: false });
+  }
   const messages = await core.discord.updateMessages(active_channel_id, ctx.viewState);
 
   // THE PICK JUST PERSISTED - RE-MERGE SO THE CHROME COMPILE SEES IT

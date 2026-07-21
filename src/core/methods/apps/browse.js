@@ -142,9 +142,17 @@ module.exports = {
 
     // COLD CACHE - NOTHING TO SERVE, THE CALLER WAITS FOR THE REAL FETCH
     if (!cached) {
-      const items = await client.getLibrary();
-      this.libraryCache.set(instance.id, { items, fetchedAt: Date.now() });
-      return items;
+      let fetch = this.libraryWarming.get(instance.id);
+      if (!fetch) {
+        fetch = client.getLibrary()
+          .then((items) => {
+            this.libraryCache.set(instance.id, { items, fetchedAt: Date.now() });
+            return items;
+          })
+          .finally(() => this.libraryWarming.delete(instance.id));
+        this.libraryWarming.set(instance.id, fetch);
+      }
+      return fetch;
     }
 
     if (!cached.refreshing) {
