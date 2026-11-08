@@ -10,11 +10,13 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/channel"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/membership"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/message"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/predicate"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/schema"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/space"
 )
 
@@ -112,6 +114,38 @@ func (_u *SpaceUpdate) SetNillablePosition(v *int32) *SpaceUpdate {
 // AddPosition adds value to the "position" field.
 func (_u *SpaceUpdate) AddPosition(v int32) *SpaceUpdate {
 	_u.mutation.AddPosition(v)
+	return _u
+}
+
+// SetApprovalsChannelID sets the "approvals_channel_id" field.
+func (_u *SpaceUpdate) SetApprovalsChannelID(v string) *SpaceUpdate {
+	_u.mutation.SetApprovalsChannelID(v)
+	return _u
+}
+
+// SetNillableApprovalsChannelID sets the "approvals_channel_id" field if the given value is not nil.
+func (_u *SpaceUpdate) SetNillableApprovalsChannelID(v *string) *SpaceUpdate {
+	if v != nil {
+		_u.SetApprovalsChannelID(*v)
+	}
+	return _u
+}
+
+// SetRoles sets the "roles" field.
+func (_u *SpaceUpdate) SetRoles(v []schema.Role) *SpaceUpdate {
+	_u.mutation.SetRoles(v)
+	return _u
+}
+
+// AppendRoles appends value to the "roles" field.
+func (_u *SpaceUpdate) AppendRoles(v []schema.Role) *SpaceUpdate {
+	_u.mutation.AppendRoles(v)
+	return _u
+}
+
+// ClearRoles clears the value of the "roles" field.
+func (_u *SpaceUpdate) ClearRoles() *SpaceUpdate {
+	_u.mutation.ClearRoles()
 	return _u
 }
 
@@ -317,6 +351,20 @@ func (_u *SpaceUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.AddedPosition(); ok {
 		_spec.AddField(space.FieldPosition, field.TypeInt32, value)
+	}
+	if value, ok := _u.mutation.ApprovalsChannelID(); ok {
+		_spec.SetField(space.FieldApprovalsChannelID, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Roles(); ok {
+		_spec.SetField(space.FieldRoles, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedRoles(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, space.FieldRoles, value)
+		})
+	}
+	if _u.mutation.RolesCleared() {
+		_spec.ClearField(space.FieldRoles, field.TypeJSON)
 	}
 	if _u.mutation.ChannelsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -558,6 +606,38 @@ func (_u *SpaceUpdateOne) AddPosition(v int32) *SpaceUpdateOne {
 	return _u
 }
 
+// SetApprovalsChannelID sets the "approvals_channel_id" field.
+func (_u *SpaceUpdateOne) SetApprovalsChannelID(v string) *SpaceUpdateOne {
+	_u.mutation.SetApprovalsChannelID(v)
+	return _u
+}
+
+// SetNillableApprovalsChannelID sets the "approvals_channel_id" field if the given value is not nil.
+func (_u *SpaceUpdateOne) SetNillableApprovalsChannelID(v *string) *SpaceUpdateOne {
+	if v != nil {
+		_u.SetApprovalsChannelID(*v)
+	}
+	return _u
+}
+
+// SetRoles sets the "roles" field.
+func (_u *SpaceUpdateOne) SetRoles(v []schema.Role) *SpaceUpdateOne {
+	_u.mutation.SetRoles(v)
+	return _u
+}
+
+// AppendRoles appends value to the "roles" field.
+func (_u *SpaceUpdateOne) AppendRoles(v []schema.Role) *SpaceUpdateOne {
+	_u.mutation.AppendRoles(v)
+	return _u
+}
+
+// ClearRoles clears the value of the "roles" field.
+func (_u *SpaceUpdateOne) ClearRoles() *SpaceUpdateOne {
+	_u.mutation.ClearRoles()
+	return _u
+}
+
 // AddChannelIDs adds the "channels" edge to the Channel entity by IDs.
 func (_u *SpaceUpdateOne) AddChannelIDs(ids ...string) *SpaceUpdateOne {
 	_u.mutation.AddChannelIDs(ids...)
@@ -790,6 +870,20 @@ func (_u *SpaceUpdateOne) sqlSave(ctx context.Context) (_node *Space, err error)
 	}
 	if value, ok := _u.mutation.AddedPosition(); ok {
 		_spec.AddField(space.FieldPosition, field.TypeInt32, value)
+	}
+	if value, ok := _u.mutation.ApprovalsChannelID(); ok {
+		_spec.SetField(space.FieldApprovalsChannelID, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Roles(); ok {
+		_spec.SetField(space.FieldRoles, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedRoles(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, space.FieldRoles, value)
+		})
+	}
+	if _u.mutation.RolesCleared() {
+		_spec.ClearField(space.FieldRoles, field.TypeJSON)
 	}
 	if _u.mutation.ChannelsCleared() {
 		edge := &sqlgraph.EdgeSpec{

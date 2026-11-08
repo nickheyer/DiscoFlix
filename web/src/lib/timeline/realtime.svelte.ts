@@ -32,6 +32,10 @@ export function userTopic(userId: string): string {
 	return `user:${userId}`;
 }
 
+export function spaceTopic(spaceId: string): string {
+	return `space:${spaceId}`;
+}
+
 class Realtime {
 	state = $state<LinkState>('disconnected');
 	error = $state('');

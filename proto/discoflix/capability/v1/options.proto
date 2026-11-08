@@ -24,16 +24,17 @@ message ObjectRef {
 
 // Declares how one RPC is exposed through every transport
 message Capability {
+  reserved 4;
   // Relation checked on the object, or on the system object when no object is named
   string scope = 1;
   Effect effect = 2;
   ObjectRef object = 3;
-  // Safe to expose as a Discord slash command
-  bool slash = 4;
   // Callable without a principal
   bool public = 5;
   string title = 6;
   string description = 7;
+  // Discord slash command name this entry is registered as, empty keeps it off Discord
+  string command = 8;
 }
 
 extend google.protobuf.MethodOptions {

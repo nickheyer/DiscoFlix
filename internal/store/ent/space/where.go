@@ -95,6 +95,11 @@ func Position(v int32) predicate.Space {
 	return predicate.Space(sql.FieldEQ(FieldPosition, v))
 }
 
+// ApprovalsChannelID applies equality check predicate on the "approvals_channel_id" field. It's identical to ApprovalsChannelIDEQ.
+func ApprovalsChannelID(v string) predicate.Space {
+	return predicate.Space(sql.FieldEQ(FieldApprovalsChannelID, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Space {
 	return predicate.Space(sql.FieldEQ(FieldCreatedAt, v))
@@ -428,6 +433,81 @@ func PositionLT(v int32) predicate.Space {
 // PositionLTE applies the LTE predicate on the "position" field.
 func PositionLTE(v int32) predicate.Space {
 	return predicate.Space(sql.FieldLTE(FieldPosition, v))
+}
+
+// ApprovalsChannelIDEQ applies the EQ predicate on the "approvals_channel_id" field.
+func ApprovalsChannelIDEQ(v string) predicate.Space {
+	return predicate.Space(sql.FieldEQ(FieldApprovalsChannelID, v))
+}
+
+// ApprovalsChannelIDNEQ applies the NEQ predicate on the "approvals_channel_id" field.
+func ApprovalsChannelIDNEQ(v string) predicate.Space {
+	return predicate.Space(sql.FieldNEQ(FieldApprovalsChannelID, v))
+}
+
+// ApprovalsChannelIDIn applies the In predicate on the "approvals_channel_id" field.
+func ApprovalsChannelIDIn(vs ...string) predicate.Space {
+	return predicate.Space(sql.FieldIn(FieldApprovalsChannelID, vs...))
+}
+
+// ApprovalsChannelIDNotIn applies the NotIn predicate on the "approvals_channel_id" field.
+func ApprovalsChannelIDNotIn(vs ...string) predicate.Space {
+	return predicate.Space(sql.FieldNotIn(FieldApprovalsChannelID, vs...))
+}
+
+// ApprovalsChannelIDGT applies the GT predicate on the "approvals_channel_id" field.
+func ApprovalsChannelIDGT(v string) predicate.Space {
+	return predicate.Space(sql.FieldGT(FieldApprovalsChannelID, v))
+}
+
+// ApprovalsChannelIDGTE applies the GTE predicate on the "approvals_channel_id" field.
+func ApprovalsChannelIDGTE(v string) predicate.Space {
+	return predicate.Space(sql.FieldGTE(FieldApprovalsChannelID, v))
+}
+
+// ApprovalsChannelIDLT applies the LT predicate on the "approvals_channel_id" field.
+func ApprovalsChannelIDLT(v string) predicate.Space {
+	return predicate.Space(sql.FieldLT(FieldApprovalsChannelID, v))
+}
+
+// ApprovalsChannelIDLTE applies the LTE predicate on the "approvals_channel_id" field.
+func ApprovalsChannelIDLTE(v string) predicate.Space {
+	return predicate.Space(sql.FieldLTE(FieldApprovalsChannelID, v))
+}
+
+// ApprovalsChannelIDContains applies the Contains predicate on the "approvals_channel_id" field.
+func ApprovalsChannelIDContains(v string) predicate.Space {
+	return predicate.Space(sql.FieldContains(FieldApprovalsChannelID, v))
+}
+
+// ApprovalsChannelIDHasPrefix applies the HasPrefix predicate on the "approvals_channel_id" field.
+func ApprovalsChannelIDHasPrefix(v string) predicate.Space {
+	return predicate.Space(sql.FieldHasPrefix(FieldApprovalsChannelID, v))
+}
+
+// ApprovalsChannelIDHasSuffix applies the HasSuffix predicate on the "approvals_channel_id" field.
+func ApprovalsChannelIDHasSuffix(v string) predicate.Space {
+	return predicate.Space(sql.FieldHasSuffix(FieldApprovalsChannelID, v))
+}
+
+// ApprovalsChannelIDEqualFold applies the EqualFold predicate on the "approvals_channel_id" field.
+func ApprovalsChannelIDEqualFold(v string) predicate.Space {
+	return predicate.Space(sql.FieldEqualFold(FieldApprovalsChannelID, v))
+}
+
+// ApprovalsChannelIDContainsFold applies the ContainsFold predicate on the "approvals_channel_id" field.
+func ApprovalsChannelIDContainsFold(v string) predicate.Space {
+	return predicate.Space(sql.FieldContainsFold(FieldApprovalsChannelID, v))
+}
+
+// RolesIsNil applies the IsNil predicate on the "roles" field.
+func RolesIsNil() predicate.Space {
+	return predicate.Space(sql.FieldIsNull(FieldRoles))
+}
+
+// RolesNotNil applies the NotNil predicate on the "roles" field.
+func RolesNotNil() predicate.Space {
+	return predicate.Space(sql.FieldNotNull(FieldRoles))
 }
 
 // HasChannels applies the HasEdge predicate on the "channels" edge.

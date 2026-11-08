@@ -1,0 +1,14 @@
+{
+  "$defs": {
+    "discoflix.discord.v1.GetDiscordStatusRequest.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {},
+      "title": "Get Discord Status Request",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.discord.v1.GetDiscordStatusRequest.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.discord.v1.GetDiscordStatusRequest.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

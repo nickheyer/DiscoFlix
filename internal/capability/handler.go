@@ -25,7 +25,7 @@ func (h *Handler) ListCapabilities(ctx context.Context, _ *capabilityv1.ListCapa
 			Scope:            e.Scope,
 			Effect:           e.Effect,
 			Object:           e.Object,
-			Slash:            e.Slash,
+			Command:          e.Command,
 			Public:           e.Public,
 			Title:            e.Title,
 			Description:      e.Description,

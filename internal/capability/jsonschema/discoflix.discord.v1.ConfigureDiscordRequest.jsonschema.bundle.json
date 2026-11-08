@@ -1,0 +1,41 @@
+{
+  "$defs": {
+    "discoflix.discord.v1.ConfigureDiscordRequest.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(bot_token)$": {
+          "default": "",
+          "description": "Empty keeps the stored token",
+          "maxLength": 128,
+          "type": "string"
+        },
+        "^(client_secret)$": {
+          "default": "",
+          "description": "Empty keeps the stored secret",
+          "maxLength": 128,
+          "type": "string"
+        }
+      },
+      "properties": {
+        "botToken": {
+          "default": "",
+          "description": "Empty keeps the stored token",
+          "maxLength": 128,
+          "type": "string"
+        },
+        "clientSecret": {
+          "default": "",
+          "description": "Empty keeps the stored secret",
+          "maxLength": 128,
+          "type": "string"
+        }
+      },
+      "title": "Configure Discord Request",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.discord.v1.ConfigureDiscordRequest.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.discord.v1.ConfigureDiscordRequest.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

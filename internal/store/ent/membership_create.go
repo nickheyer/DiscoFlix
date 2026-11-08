@@ -43,6 +43,34 @@ func (_c *MembershipCreate) SetRoles(v []string) *MembershipCreate {
 	return _c
 }
 
+// SetNickname sets the "nickname" field.
+func (_c *MembershipCreate) SetNickname(v string) *MembershipCreate {
+	_c.mutation.SetNickname(v)
+	return _c
+}
+
+// SetNillableNickname sets the "nickname" field if the given value is not nil.
+func (_c *MembershipCreate) SetNillableNickname(v *string) *MembershipCreate {
+	if v != nil {
+		_c.SetNickname(*v)
+	}
+	return _c
+}
+
+// SetAdmin sets the "admin" field.
+func (_c *MembershipCreate) SetAdmin(v bool) *MembershipCreate {
+	_c.mutation.SetAdmin(v)
+	return _c
+}
+
+// SetNillableAdmin sets the "admin" field if the given value is not nil.
+func (_c *MembershipCreate) SetNillableAdmin(v *bool) *MembershipCreate {
+	if v != nil {
+		_c.SetAdmin(*v)
+	}
+	return _c
+}
+
 // SetJoinedAt sets the "joined_at" field.
 func (_c *MembershipCreate) SetJoinedAt(v time.Time) *MembershipCreate {
 	_c.mutation.SetJoinedAt(v)
@@ -120,6 +148,14 @@ func (_c *MembershipCreate) defaults() {
 		v := membership.DefaultRoles
 		_c.mutation.SetRoles(v)
 	}
+	if _, ok := _c.mutation.Nickname(); !ok {
+		v := membership.DefaultNickname
+		_c.mutation.SetNickname(v)
+	}
+	if _, ok := _c.mutation.Admin(); !ok {
+		v := membership.DefaultAdmin
+		_c.mutation.SetAdmin(v)
+	}
 	if _, ok := _c.mutation.JoinedAt(); !ok {
 		v := membership.DefaultJoinedAt()
 		_c.mutation.SetJoinedAt(v)
@@ -150,6 +186,12 @@ func (_c *MembershipCreate) check() error {
 	}
 	if _, ok := _c.mutation.Roles(); !ok {
 		return &ValidationError{Name: "roles", err: errors.New(`ent: missing required field "Membership.roles"`)}
+	}
+	if _, ok := _c.mutation.Nickname(); !ok {
+		return &ValidationError{Name: "nickname", err: errors.New(`ent: missing required field "Membership.nickname"`)}
+	}
+	if _, ok := _c.mutation.Admin(); !ok {
+		return &ValidationError{Name: "admin", err: errors.New(`ent: missing required field "Membership.admin"`)}
 	}
 	if _, ok := _c.mutation.JoinedAt(); !ok {
 		return &ValidationError{Name: "joined_at", err: errors.New(`ent: missing required field "Membership.joined_at"`)}
@@ -204,6 +246,14 @@ func (_c *MembershipCreate) createSpec() (*Membership, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Roles(); ok {
 		_spec.SetField(membership.FieldRoles, field.TypeJSON, value)
 		_node.Roles = value
+	}
+	if value, ok := _c.mutation.Nickname(); ok {
+		_spec.SetField(membership.FieldNickname, field.TypeString, value)
+		_node.Nickname = value
+	}
+	if value, ok := _c.mutation.Admin(); ok {
+		_spec.SetField(membership.FieldAdmin, field.TypeBool, value)
+		_node.Admin = value
 	}
 	if value, ok := _c.mutation.JoinedAt(); ok {
 		_spec.SetField(membership.FieldJoinedAt, field.TypeTime, value)
@@ -331,6 +381,30 @@ func (u *MembershipUpsert) UpdateRoles() *MembershipUpsert {
 	return u
 }
 
+// SetNickname sets the "nickname" field.
+func (u *MembershipUpsert) SetNickname(v string) *MembershipUpsert {
+	u.Set(membership.FieldNickname, v)
+	return u
+}
+
+// UpdateNickname sets the "nickname" field to the value that was provided on create.
+func (u *MembershipUpsert) UpdateNickname() *MembershipUpsert {
+	u.SetExcluded(membership.FieldNickname)
+	return u
+}
+
+// SetAdmin sets the "admin" field.
+func (u *MembershipUpsert) SetAdmin(v bool) *MembershipUpsert {
+	u.Set(membership.FieldAdmin, v)
+	return u
+}
+
+// UpdateAdmin sets the "admin" field to the value that was provided on create.
+func (u *MembershipUpsert) UpdateAdmin() *MembershipUpsert {
+	u.SetExcluded(membership.FieldAdmin)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -421,6 +495,34 @@ func (u *MembershipUpsertOne) SetRoles(v []string) *MembershipUpsertOne {
 func (u *MembershipUpsertOne) UpdateRoles() *MembershipUpsertOne {
 	return u.Update(func(s *MembershipUpsert) {
 		s.UpdateRoles()
+	})
+}
+
+// SetNickname sets the "nickname" field.
+func (u *MembershipUpsertOne) SetNickname(v string) *MembershipUpsertOne {
+	return u.Update(func(s *MembershipUpsert) {
+		s.SetNickname(v)
+	})
+}
+
+// UpdateNickname sets the "nickname" field to the value that was provided on create.
+func (u *MembershipUpsertOne) UpdateNickname() *MembershipUpsertOne {
+	return u.Update(func(s *MembershipUpsert) {
+		s.UpdateNickname()
+	})
+}
+
+// SetAdmin sets the "admin" field.
+func (u *MembershipUpsertOne) SetAdmin(v bool) *MembershipUpsertOne {
+	return u.Update(func(s *MembershipUpsert) {
+		s.SetAdmin(v)
+	})
+}
+
+// UpdateAdmin sets the "admin" field to the value that was provided on create.
+func (u *MembershipUpsertOne) UpdateAdmin() *MembershipUpsertOne {
+	return u.Update(func(s *MembershipUpsert) {
+		s.UpdateAdmin()
 	})
 }
 
@@ -681,6 +783,34 @@ func (u *MembershipUpsertBulk) SetRoles(v []string) *MembershipUpsertBulk {
 func (u *MembershipUpsertBulk) UpdateRoles() *MembershipUpsertBulk {
 	return u.Update(func(s *MembershipUpsert) {
 		s.UpdateRoles()
+	})
+}
+
+// SetNickname sets the "nickname" field.
+func (u *MembershipUpsertBulk) SetNickname(v string) *MembershipUpsertBulk {
+	return u.Update(func(s *MembershipUpsert) {
+		s.SetNickname(v)
+	})
+}
+
+// UpdateNickname sets the "nickname" field to the value that was provided on create.
+func (u *MembershipUpsertBulk) UpdateNickname() *MembershipUpsertBulk {
+	return u.Update(func(s *MembershipUpsert) {
+		s.UpdateNickname()
+	})
+}
+
+// SetAdmin sets the "admin" field.
+func (u *MembershipUpsertBulk) SetAdmin(v bool) *MembershipUpsertBulk {
+	return u.Update(func(s *MembershipUpsert) {
+		s.SetAdmin(v)
+	})
+}
+
+// UpdateAdmin sets the "admin" field to the value that was provided on create.
+func (u *MembershipUpsertBulk) UpdateAdmin() *MembershipUpsertBulk {
+	return u.Update(func(s *MembershipUpsert) {
+		s.UpdateAdmin()
 	})
 }
 

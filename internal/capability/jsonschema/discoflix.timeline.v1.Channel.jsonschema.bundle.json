@@ -32,6 +32,21 @@
           ],
           "default": 0
         },
+        "^(max_content)$": {
+          "anyOf": [
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0,
+          "description": "Longest message content this channel accepts, lower on channels mirrored to Discord"
+        },
         "^(parent_id)$": {
           "default": "",
           "type": "string"
@@ -97,6 +112,21 @@
             }
           ],
           "default": 0
+        },
+        "maxContent": {
+          "anyOf": [
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0,
+          "description": "Longest message content this channel accepts, lower on channels mirrored to Discord"
         },
         "name": {
           "default": "",

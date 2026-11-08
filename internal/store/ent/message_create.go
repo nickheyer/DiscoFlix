@@ -13,6 +13,8 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/channel"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/message"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/reaction"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/schema"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/space"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/user"
 )
@@ -119,6 +121,26 @@ func (_c *MessageCreate) SetNillableExternalID(v *string) *MessageCreate {
 	return _c
 }
 
+// SetOrigin sets the "origin" field.
+func (_c *MessageCreate) SetOrigin(v string) *MessageCreate {
+	_c.mutation.SetOrigin(v)
+	return _c
+}
+
+// SetNillableOrigin sets the "origin" field if the given value is not nil.
+func (_c *MessageCreate) SetNillableOrigin(v *string) *MessageCreate {
+	if v != nil {
+		_c.SetOrigin(*v)
+	}
+	return _c
+}
+
+// SetAttachments sets the "attachments" field.
+func (_c *MessageCreate) SetAttachments(v []schema.Attachment) *MessageCreate {
+	_c.mutation.SetAttachments(v)
+	return _c
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (_c *MessageCreate) SetCreatedAt(v time.Time) *MessageCreate {
 	_c.mutation.SetCreatedAt(v)
@@ -129,6 +151,20 @@ func (_c *MessageCreate) SetCreatedAt(v time.Time) *MessageCreate {
 func (_c *MessageCreate) SetNillableCreatedAt(v *time.Time) *MessageCreate {
 	if v != nil {
 		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (_c *MessageCreate) SetUpdatedAt(v time.Time) *MessageCreate {
+	_c.mutation.SetUpdatedAt(v)
+	return _c
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (_c *MessageCreate) SetNillableUpdatedAt(v *time.Time) *MessageCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
 	}
 	return _c
 }
@@ -161,6 +197,20 @@ func (_c *MessageCreate) SetNillableDeletedAt(v *time.Time) *MessageCreate {
 	return _c
 }
 
+// SetSyncedAt sets the "synced_at" field.
+func (_c *MessageCreate) SetSyncedAt(v time.Time) *MessageCreate {
+	_c.mutation.SetSyncedAt(v)
+	return _c
+}
+
+// SetNillableSyncedAt sets the "synced_at" field if the given value is not nil.
+func (_c *MessageCreate) SetNillableSyncedAt(v *time.Time) *MessageCreate {
+	if v != nil {
+		_c.SetSyncedAt(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *MessageCreate) SetID(v int64) *MessageCreate {
 	_c.mutation.SetID(v)
@@ -180,6 +230,21 @@ func (_c *MessageCreate) SetChannel(v *Channel) *MessageCreate {
 // SetAuthor sets the "author" edge to the User entity.
 func (_c *MessageCreate) SetAuthor(v *User) *MessageCreate {
 	return _c.SetAuthorID(v.ID)
+}
+
+// AddReactionIDs adds the "reactions" edge to the Reaction entity by IDs.
+func (_c *MessageCreate) AddReactionIDs(ids ...string) *MessageCreate {
+	_c.mutation.AddReactionIDs(ids...)
+	return _c
+}
+
+// AddReactions adds the "reactions" edges to the Reaction entity.
+func (_c *MessageCreate) AddReactions(v ...*Reaction) *MessageCreate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddReactionIDs(ids...)
 }
 
 // Mutation returns the MessageMutation object of the builder.
@@ -237,9 +302,17 @@ func (_c *MessageCreate) defaults() {
 		v := message.DefaultExternalID
 		_c.mutation.SetExternalID(v)
 	}
+	if _, ok := _c.mutation.Origin(); !ok {
+		v := message.DefaultOrigin
+		_c.mutation.SetOrigin(v)
+	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		v := message.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		v := message.DefaultUpdatedAt()
+		_c.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -289,8 +362,14 @@ func (_c *MessageCreate) check() error {
 	if _, ok := _c.mutation.ExternalID(); !ok {
 		return &ValidationError{Name: "external_id", err: errors.New(`ent: missing required field "Message.external_id"`)}
 	}
+	if _, ok := _c.mutation.Origin(); !ok {
+		return &ValidationError{Name: "origin", err: errors.New(`ent: missing required field "Message.origin"`)}
+	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Message.created_at"`)}
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Message.updated_at"`)}
 	}
 	if len(_c.mutation.SpaceIDs()) == 0 {
 		return &ValidationError{Name: "space", err: errors.New(`ent: missing required edge "Message.space"`)}
@@ -358,9 +437,21 @@ func (_c *MessageCreate) createSpec() (*Message, *sqlgraph.CreateSpec) {
 		_spec.SetField(message.FieldExternalID, field.TypeString, value)
 		_node.ExternalID = value
 	}
+	if value, ok := _c.mutation.Origin(); ok {
+		_spec.SetField(message.FieldOrigin, field.TypeString, value)
+		_node.Origin = value
+	}
+	if value, ok := _c.mutation.Attachments(); ok {
+		_spec.SetField(message.FieldAttachments, field.TypeJSON, value)
+		_node.Attachments = value
+	}
 	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(message.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
+	}
+	if value, ok := _c.mutation.UpdatedAt(); ok {
+		_spec.SetField(message.FieldUpdatedAt, field.TypeTime, value)
+		_node.UpdatedAt = value
 	}
 	if value, ok := _c.mutation.EditedAt(); ok {
 		_spec.SetField(message.FieldEditedAt, field.TypeTime, value)
@@ -369,6 +460,10 @@ func (_c *MessageCreate) createSpec() (*Message, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.DeletedAt(); ok {
 		_spec.SetField(message.FieldDeletedAt, field.TypeTime, value)
 		_node.DeletedAt = &value
+	}
+	if value, ok := _c.mutation.SyncedAt(); ok {
+		_spec.SetField(message.FieldSyncedAt, field.TypeTime, value)
+		_node.SyncedAt = &value
 	}
 	if nodes := _c.mutation.SpaceIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -419,6 +514,22 @@ func (_c *MessageCreate) createSpec() (*Message, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.AuthorID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ReactionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   message.ReactionsTable,
+			Columns: []string{message.ReactionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reaction.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
@@ -593,6 +704,48 @@ func (u *MessageUpsert) UpdateExternalID() *MessageUpsert {
 	return u
 }
 
+// SetOrigin sets the "origin" field.
+func (u *MessageUpsert) SetOrigin(v string) *MessageUpsert {
+	u.Set(message.FieldOrigin, v)
+	return u
+}
+
+// UpdateOrigin sets the "origin" field to the value that was provided on create.
+func (u *MessageUpsert) UpdateOrigin() *MessageUpsert {
+	u.SetExcluded(message.FieldOrigin)
+	return u
+}
+
+// SetAttachments sets the "attachments" field.
+func (u *MessageUpsert) SetAttachments(v []schema.Attachment) *MessageUpsert {
+	u.Set(message.FieldAttachments, v)
+	return u
+}
+
+// UpdateAttachments sets the "attachments" field to the value that was provided on create.
+func (u *MessageUpsert) UpdateAttachments() *MessageUpsert {
+	u.SetExcluded(message.FieldAttachments)
+	return u
+}
+
+// ClearAttachments clears the value of the "attachments" field.
+func (u *MessageUpsert) ClearAttachments() *MessageUpsert {
+	u.SetNull(message.FieldAttachments)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *MessageUpsert) SetUpdatedAt(v time.Time) *MessageUpsert {
+	u.Set(message.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *MessageUpsert) UpdateUpdatedAt() *MessageUpsert {
+	u.SetExcluded(message.FieldUpdatedAt)
+	return u
+}
+
 // SetEditedAt sets the "edited_at" field.
 func (u *MessageUpsert) SetEditedAt(v time.Time) *MessageUpsert {
 	u.Set(message.FieldEditedAt, v)
@@ -626,6 +779,24 @@ func (u *MessageUpsert) UpdateDeletedAt() *MessageUpsert {
 // ClearDeletedAt clears the value of the "deleted_at" field.
 func (u *MessageUpsert) ClearDeletedAt() *MessageUpsert {
 	u.SetNull(message.FieldDeletedAt)
+	return u
+}
+
+// SetSyncedAt sets the "synced_at" field.
+func (u *MessageUpsert) SetSyncedAt(v time.Time) *MessageUpsert {
+	u.Set(message.FieldSyncedAt, v)
+	return u
+}
+
+// UpdateSyncedAt sets the "synced_at" field to the value that was provided on create.
+func (u *MessageUpsert) UpdateSyncedAt() *MessageUpsert {
+	u.SetExcluded(message.FieldSyncedAt)
+	return u
+}
+
+// ClearSyncedAt clears the value of the "synced_at" field.
+func (u *MessageUpsert) ClearSyncedAt() *MessageUpsert {
+	u.SetNull(message.FieldSyncedAt)
 	return u
 }
 
@@ -820,6 +991,55 @@ func (u *MessageUpsertOne) UpdateExternalID() *MessageUpsertOne {
 	})
 }
 
+// SetOrigin sets the "origin" field.
+func (u *MessageUpsertOne) SetOrigin(v string) *MessageUpsertOne {
+	return u.Update(func(s *MessageUpsert) {
+		s.SetOrigin(v)
+	})
+}
+
+// UpdateOrigin sets the "origin" field to the value that was provided on create.
+func (u *MessageUpsertOne) UpdateOrigin() *MessageUpsertOne {
+	return u.Update(func(s *MessageUpsert) {
+		s.UpdateOrigin()
+	})
+}
+
+// SetAttachments sets the "attachments" field.
+func (u *MessageUpsertOne) SetAttachments(v []schema.Attachment) *MessageUpsertOne {
+	return u.Update(func(s *MessageUpsert) {
+		s.SetAttachments(v)
+	})
+}
+
+// UpdateAttachments sets the "attachments" field to the value that was provided on create.
+func (u *MessageUpsertOne) UpdateAttachments() *MessageUpsertOne {
+	return u.Update(func(s *MessageUpsert) {
+		s.UpdateAttachments()
+	})
+}
+
+// ClearAttachments clears the value of the "attachments" field.
+func (u *MessageUpsertOne) ClearAttachments() *MessageUpsertOne {
+	return u.Update(func(s *MessageUpsert) {
+		s.ClearAttachments()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *MessageUpsertOne) SetUpdatedAt(v time.Time) *MessageUpsertOne {
+	return u.Update(func(s *MessageUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *MessageUpsertOne) UpdateUpdatedAt() *MessageUpsertOne {
+	return u.Update(func(s *MessageUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
 // SetEditedAt sets the "edited_at" field.
 func (u *MessageUpsertOne) SetEditedAt(v time.Time) *MessageUpsertOne {
 	return u.Update(func(s *MessageUpsert) {
@@ -859,6 +1079,27 @@ func (u *MessageUpsertOne) UpdateDeletedAt() *MessageUpsertOne {
 func (u *MessageUpsertOne) ClearDeletedAt() *MessageUpsertOne {
 	return u.Update(func(s *MessageUpsert) {
 		s.ClearDeletedAt()
+	})
+}
+
+// SetSyncedAt sets the "synced_at" field.
+func (u *MessageUpsertOne) SetSyncedAt(v time.Time) *MessageUpsertOne {
+	return u.Update(func(s *MessageUpsert) {
+		s.SetSyncedAt(v)
+	})
+}
+
+// UpdateSyncedAt sets the "synced_at" field to the value that was provided on create.
+func (u *MessageUpsertOne) UpdateSyncedAt() *MessageUpsertOne {
+	return u.Update(func(s *MessageUpsert) {
+		s.UpdateSyncedAt()
+	})
+}
+
+// ClearSyncedAt clears the value of the "synced_at" field.
+func (u *MessageUpsertOne) ClearSyncedAt() *MessageUpsertOne {
+	return u.Update(func(s *MessageUpsert) {
+		s.ClearSyncedAt()
 	})
 }
 
@@ -1219,6 +1460,55 @@ func (u *MessageUpsertBulk) UpdateExternalID() *MessageUpsertBulk {
 	})
 }
 
+// SetOrigin sets the "origin" field.
+func (u *MessageUpsertBulk) SetOrigin(v string) *MessageUpsertBulk {
+	return u.Update(func(s *MessageUpsert) {
+		s.SetOrigin(v)
+	})
+}
+
+// UpdateOrigin sets the "origin" field to the value that was provided on create.
+func (u *MessageUpsertBulk) UpdateOrigin() *MessageUpsertBulk {
+	return u.Update(func(s *MessageUpsert) {
+		s.UpdateOrigin()
+	})
+}
+
+// SetAttachments sets the "attachments" field.
+func (u *MessageUpsertBulk) SetAttachments(v []schema.Attachment) *MessageUpsertBulk {
+	return u.Update(func(s *MessageUpsert) {
+		s.SetAttachments(v)
+	})
+}
+
+// UpdateAttachments sets the "attachments" field to the value that was provided on create.
+func (u *MessageUpsertBulk) UpdateAttachments() *MessageUpsertBulk {
+	return u.Update(func(s *MessageUpsert) {
+		s.UpdateAttachments()
+	})
+}
+
+// ClearAttachments clears the value of the "attachments" field.
+func (u *MessageUpsertBulk) ClearAttachments() *MessageUpsertBulk {
+	return u.Update(func(s *MessageUpsert) {
+		s.ClearAttachments()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *MessageUpsertBulk) SetUpdatedAt(v time.Time) *MessageUpsertBulk {
+	return u.Update(func(s *MessageUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *MessageUpsertBulk) UpdateUpdatedAt() *MessageUpsertBulk {
+	return u.Update(func(s *MessageUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
 // SetEditedAt sets the "edited_at" field.
 func (u *MessageUpsertBulk) SetEditedAt(v time.Time) *MessageUpsertBulk {
 	return u.Update(func(s *MessageUpsert) {
@@ -1258,6 +1548,27 @@ func (u *MessageUpsertBulk) UpdateDeletedAt() *MessageUpsertBulk {
 func (u *MessageUpsertBulk) ClearDeletedAt() *MessageUpsertBulk {
 	return u.Update(func(s *MessageUpsert) {
 		s.ClearDeletedAt()
+	})
+}
+
+// SetSyncedAt sets the "synced_at" field.
+func (u *MessageUpsertBulk) SetSyncedAt(v time.Time) *MessageUpsertBulk {
+	return u.Update(func(s *MessageUpsert) {
+		s.SetSyncedAt(v)
+	})
+}
+
+// UpdateSyncedAt sets the "synced_at" field to the value that was provided on create.
+func (u *MessageUpsertBulk) UpdateSyncedAt() *MessageUpsertBulk {
+	return u.Update(func(s *MessageUpsert) {
+		s.UpdateSyncedAt()
+	})
+}
+
+// ClearSyncedAt clears the value of the "synced_at" field.
+func (u *MessageUpsertBulk) ClearSyncedAt() *MessageUpsertBulk {
+	return u.Update(func(s *MessageUpsert) {
+		s.ClearSyncedAt()
 	})
 }
 

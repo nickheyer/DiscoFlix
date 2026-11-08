@@ -21,3 +21,15 @@ export function channelsKey(spaceId?: string) {
 		...(spaceId === undefined ? {} : { input: { spaceId } })
 	});
 }
+
+export function membersQuery(spaceId: string) {
+	return createQueryOptions(TimelineService.method.listMembers, { spaceId }, { transport });
+}
+
+export function membersKey(spaceId?: string) {
+	return createConnectQueryKey({
+		schema: TimelineService.method.listMembers,
+		cardinality: 'finite',
+		...(spaceId === undefined ? {} : { input: { spaceId } })
+	});
+}

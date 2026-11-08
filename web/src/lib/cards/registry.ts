@@ -7,11 +7,21 @@ import { typeRegistry } from '#lib/api/types';
 
 export type Accent = 'info' | 'success' | 'warning' | 'danger' | 'neutral';
 
+export type ActionStyle = 'primary' | 'success' | 'danger' | 'secondary';
+
+// One control a card offers in its current state, sent back as an InteractCard action
+export interface CardAction {
+	id: string;
+	label: string;
+	style: ActionStyle;
+}
+
 export interface CardRenderer<Desc extends DescMessage = DescMessage> {
 	schema: Desc;
 	component: Component<{ card: MessageShape<Desc> }>;
 	summary: (card: MessageShape<Desc>) => string;
 	accent: (card: MessageShape<Desc>) => Accent;
+	actions?: (card: MessageShape<Desc>) => CardAction[];
 }
 
 export type ResolvedCard =
@@ -89,4 +99,8 @@ export function cardSummary(card: ResolvedCard): string {
 
 export function cardAccent(card: ResolvedCard): Accent {
 	return card.kind === 'known' ? card.renderer.accent(card.message) : 'neutral';
+}
+
+export function cardActions(card: ResolvedCard): CardAction[] {
+	return card.kind === 'known' ? (card.renderer.actions?.(card.message) ?? []) : [];
 }

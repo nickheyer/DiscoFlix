@@ -1,0 +1,14 @@
+{
+  "$defs": {
+    "discoflix.discord.v1.DisconnectDiscordRequest.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {},
+      "title": "Disconnect Discord Request",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.discord.v1.DisconnectDiscordRequest.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.discord.v1.DisconnectDiscordRequest.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

@@ -13,7 +13,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file discoflix/capability/v1/capability.proto.
  */
 export const file_discoflix_capability_v1_capability: GenFile = /*@__PURE__*/
-  fileDesc("CihkaXNjb2ZsaXgvY2FwYWJpbGl0eS92MS9jYXBhYmlsaXR5LnByb3RvEhdkaXNjb2ZsaXguY2FwYWJpbGl0eS52MSLjAgoPQ2FwYWJpbGl0eUVudHJ5EhEKCXByb2NlZHVyZRgBIAEoCRIMCgRuYW1lGAIgASgJEg0KBXNjb3BlGAMgASgJEi8KBmVmZmVjdBgEIAEoDjIfLmRpc2NvZmxpeC5jYXBhYmlsaXR5LnYxLkVmZmVjdBIyCgZvYmplY3QYBSABKAsyIi5kaXNjb2ZsaXguY2FwYWJpbGl0eS52MS5PYmplY3RSZWYSDQoFc2xhc2gYBiABKAgSDgoGcHVibGljGAcgASgIEg0KBXRpdGxlGAggASgJEhMKC2Rlc2NyaXB0aW9uGAkgASgJEhIKCmlucHV0X3R5cGUYCiABKAkSEwoLb3V0cHV0X3R5cGUYCyABKAkSGQoRaW5wdXRfc2NoZW1hX2pzb24YDCABKAkSGgoSb3V0cHV0X3NjaGVtYV9qc29uGA0gASgJEhgKEHNlcnZlcl9zdHJlYW1pbmcYDiABKAgiGQoXTGlzdENhcGFiaWxpdGllc1JlcXVlc3QiWgoYTGlzdENhcGFiaWxpdGllc1Jlc3BvbnNlEj4KDGNhcGFiaWxpdGllcxgBIAMoCzIoLmRpc2NvZmxpeC5jYXBhYmlsaXR5LnYxLkNhcGFiaWxpdHlFbnRyeTKGAgoRQ2FwYWJpbGl0eVNlcnZpY2US8AEKEExpc3RDYXBhYmlsaXRpZXMSMC5kaXNjb2ZsaXguY2FwYWJpbGl0eS52MS5MaXN0Q2FwYWJpbGl0aWVzUmVxdWVzdBoxLmRpc2NvZmxpeC5jYXBhYmlsaXR5LnYxLkxpc3RDYXBhYmlsaXRpZXNSZXNwb25zZSJ3orsYcwoRY2FwYWJpbGl0aWVzLnJlYWQQATIRTGlzdCBjYXBhYmlsaXRpZXM6SUV2ZXJ5IGFjdGlvbiB0aGlzIHNlcnZlciBleHBvc2VzLCB3aXRoIGl0cyBzY2hlbWEgYW5kIGF1dGhvcml6YXRpb24gc2NvcGVCgAIKG2NvbS5kaXNjb2ZsaXguY2FwYWJpbGl0eS52MUIPQ2FwYWJpbGl0eVByb3RvUAFaTWdpdGh1Yi5jb20vbmlja2hleWVyL0Rpc2NvRmxpeC9zZGsvZ28vcGIvZGlzY29mbGl4L2NhcGFiaWxpdHkvdjE7Y2FwYWJpbGl0eXYxogIDRENYqgIXRGlzY29mbGl4LkNhcGFiaWxpdHkuVjHKAhdEaXNjb2ZsaXhcQ2FwYWJpbGl0eVxWMeICI0Rpc2NvZmxpeFxDYXBhYmlsaXR5XFYxXEdQQk1ldGFkYXRh6gIZRGlzY29mbGl4OjpDYXBhYmlsaXR5OjpWMZIDAggCYghlZGl0aW9uc3DoBw", [file_discoflix_capability_v1_options]);
+  fileDesc("CihkaXNjb2ZsaXgvY2FwYWJpbGl0eS92MS9jYXBhYmlsaXR5LnByb3RvEhdkaXNjb2ZsaXguY2FwYWJpbGl0eS52MSLrAgoPQ2FwYWJpbGl0eUVudHJ5EhEKCXByb2NlZHVyZRgBIAEoCRIMCgRuYW1lGAIgASgJEg0KBXNjb3BlGAMgASgJEi8KBmVmZmVjdBgEIAEoDjIfLmRpc2NvZmxpeC5jYXBhYmlsaXR5LnYxLkVmZmVjdBIyCgZvYmplY3QYBSABKAsyIi5kaXNjb2ZsaXguY2FwYWJpbGl0eS52MS5PYmplY3RSZWYSDgoGcHVibGljGAcgASgIEg0KBXRpdGxlGAggASgJEhMKC2Rlc2NyaXB0aW9uGAkgASgJEhIKCmlucHV0X3R5cGUYCiABKAkSEwoLb3V0cHV0X3R5cGUYCyABKAkSGQoRaW5wdXRfc2NoZW1hX2pzb24YDCABKAkSGgoSb3V0cHV0X3NjaGVtYV9qc29uGA0gASgJEhgKEHNlcnZlcl9zdHJlYW1pbmcYDiABKAgSDwoHY29tbWFuZBgPIAEoCUoECAYQByIZChdMaXN0Q2FwYWJpbGl0aWVzUmVxdWVzdCJaChhMaXN0Q2FwYWJpbGl0aWVzUmVzcG9uc2USPgoMY2FwYWJpbGl0aWVzGAEgAygLMiguZGlzY29mbGl4LmNhcGFiaWxpdHkudjEuQ2FwYWJpbGl0eUVudHJ5MoYCChFDYXBhYmlsaXR5U2VydmljZRLwAQoQTGlzdENhcGFiaWxpdGllcxIwLmRpc2NvZmxpeC5jYXBhYmlsaXR5LnYxLkxpc3RDYXBhYmlsaXRpZXNSZXF1ZXN0GjEuZGlzY29mbGl4LmNhcGFiaWxpdHkudjEuTGlzdENhcGFiaWxpdGllc1Jlc3BvbnNlIneiuxhzChFjYXBhYmlsaXRpZXMucmVhZBABMhFMaXN0IGNhcGFiaWxpdGllczpJRXZlcnkgYWN0aW9uIHRoaXMgc2VydmVyIGV4cG9zZXMsIHdpdGggaXRzIHNjaGVtYSBhbmQgYXV0aG9yaXphdGlvbiBzY29wZUKAAgobY29tLmRpc2NvZmxpeC5jYXBhYmlsaXR5LnYxQg9DYXBhYmlsaXR5UHJvdG9QAVpNZ2l0aHViLmNvbS9uaWNraGV5ZXIvRGlzY29GbGl4L3Nkay9nby9wYi9kaXNjb2ZsaXgvY2FwYWJpbGl0eS92MTtjYXBhYmlsaXR5djGiAgNEQ1iqAhdEaXNjb2ZsaXguQ2FwYWJpbGl0eS5WMcoCF0Rpc2NvZmxpeFxDYXBhYmlsaXR5XFYx4gIjRGlzY29mbGl4XENhcGFiaWxpdHlcVjFcR1BCTWV0YWRhdGHqAhlEaXNjb2ZsaXg6OkNhcGFiaWxpdHk6OlYxkgMCCAJiCGVkaXRpb25zcOgH", [file_discoflix_capability_v1_options]);
 
 /**
  * @generated from message discoflix.capability.v1.CapabilityEntry
@@ -45,11 +45,6 @@ export type CapabilityEntry = Message<"discoflix.capability.v1.CapabilityEntry">
    * @generated from field: discoflix.capability.v1.ObjectRef object = 5;
    */
   object?: ObjectRef | undefined;
-
-  /**
-   * @generated from field: bool slash = 6;
-   */
-  slash: boolean;
 
   /**
    * @generated from field: bool public = 7;
@@ -90,6 +85,13 @@ export type CapabilityEntry = Message<"discoflix.capability.v1.CapabilityEntry">
    * @generated from field: bool server_streaming = 14;
    */
   serverStreaming: boolean;
+
+  /**
+   * Discord slash command name, empty when the entry is not a command
+   *
+   * @generated from field: string command = 15;
+   */
+  command: string;
 };
 
 /**
@@ -122,11 +124,6 @@ export type CapabilityEntryJson = {
    * @generated from field: discoflix.capability.v1.ObjectRef object = 5;
    */
   object?: ObjectRefJson;
-
-  /**
-   * @generated from field: bool slash = 6;
-   */
-  slash?: boolean;
 
   /**
    * @generated from field: bool public = 7;
@@ -167,6 +164,13 @@ export type CapabilityEntryJson = {
    * @generated from field: bool server_streaming = 14;
    */
   serverStreaming?: boolean;
+
+  /**
+   * Discord slash command name, empty when the entry is not a command
+   *
+   * @generated from field: string command = 15;
+   */
+  command?: string;
 };
 
 /**

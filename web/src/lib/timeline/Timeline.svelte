@@ -16,13 +16,23 @@
 	import OlderMarker from './OlderMarker.svelte';
 	import { buildRows, type Row } from './rows';
 	import { timeline } from './store.svelte';
+	import ThreadDialog from './ThreadDialog.svelte';
 
 	let {
+		spaceId,
 		channelId,
 		channelName,
 		topic,
+		canThread,
 		onreply
-	}: { channelId: string; channelName: string; topic: string; onreply: (message: Message) => void } = $props();
+	}: {
+		spaceId: string;
+		channelId: string;
+		channelName: string;
+		topic: string;
+		canThread: boolean;
+		onreply: (message: Message) => void;
+	} = $props();
 
 	const entry = $derived(timeline.state.messages.get(channelId));
 	const items = $derived(entry?.items ?? []);
@@ -40,6 +50,8 @@
 	let atBottom = $state(true);
 	let editingSeq = $state<bigint | null>(null);
 	let pendingDelete = $state<Message | null>(null);
+	let threadFrom = $state<Message | null>(null);
+	let threadOpen = $state(false);
 	let deleteError = $state('');
 	let readError = $state('');
 	let pinned = true;
@@ -170,6 +182,7 @@
 							grouped={row.grouped}
 							own={message.author?.id === selfId}
 							canDelete={message.author?.id === selfId || session.isAdmin}
+							{canThread}
 							editing={editingSeq === message.seq}
 							replied={message.replyTo !== 0n ? find(message.replyTo) : undefined}
 							onreply={() => onreply(message)}
@@ -177,6 +190,10 @@
 							ondelete={() => {
 								deleteError = '';
 								pendingDelete = message;
+							}}
+							onthread={() => {
+								threadFrom = message;
+								threadOpen = true;
 							}}
 							oneditdone={() => (editingSeq = null)}
 							onjump={jumpTo}
@@ -211,6 +228,8 @@
 		</button>
 	{/if}
 </div>
+
+<ThreadDialog bind:open={threadOpen} {channelId} {spaceId} from={threadFrom} />
 
 <AlertDialog.Root
 	open={pendingDelete !== null}

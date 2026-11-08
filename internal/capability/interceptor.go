@@ -25,6 +25,11 @@ type Authorizer interface {
 	Authorize(ctx context.Context, p Principal, e *Entry, objectID string) (bool, error)
 }
 
+// Approver turns a destructive call by automation into an approval card and reports its seq
+type Approver interface {
+	Request(ctx context.Context, p Principal, e *Entry, input proto.Message) (int64, error)
+}
+
 // CheckFunc answers one relationship check against the authorization store
 type CheckFunc func(ctx context.Context, subject, relation, object string) (bool, error)
 
@@ -72,11 +77,27 @@ type Interceptor struct {
 	auth  Authenticator
 	authz Authorizer
 	log   *slog.Logger
+
+	mu       sync.RWMutex
+	approver Approver
 }
 
 // NewInterceptor wires the registry to the authentication and authorization backends
 func NewInterceptor(reg *Registry, auth Authenticator, authz Authorizer, log *slog.Logger) *Interceptor {
 	return &Interceptor{reg: reg, auth: auth, authz: authz, log: log}
+}
+
+// SetApprover routes destructive automation calls to approval cards instead of refusing them
+func (i *Interceptor) SetApprover(a Approver) {
+	i.mu.Lock()
+	defer i.mu.Unlock()
+	i.approver = a
+}
+
+func (i *Interceptor) approverFor() Approver {
+	i.mu.RLock()
+	defer i.mu.RUnlock()
+	return i.approver
 }
 
 // Server returns the Connect v2 server interceptor
@@ -87,8 +108,7 @@ func (i *Interceptor) Server() connect.ServerInterceptor {
 			if !ok {
 				return connect.NewError(connect.CodeInternal, "capability not registered: "+spec.Procedure)
 			}
-			info, _ := connect.CallInfoForServerContext(ctx)
-			p, err := i.auth.Authenticate(ctx, info)
+			p, err := i.authenticate(ctx)
 			switch {
 			case err == nil:
 				ctx = WithPrincipal(ctx, p)
@@ -102,7 +122,8 @@ func (i *Interceptor) Server() connect.ServerInterceptor {
 			if e.Public {
 				return next(ctx, spec, stream)
 			}
-			if e.Effect == capabilityv1.Effect_EFFECT_DESTRUCTIVE && (p.Kind == "agent" || p.Kind == "plugin") {
+			needsApproval := e.Effect == capabilityv1.Effect_EFFECT_DESTRUCTIVE && p.Automation() && !approvedFrom(ctx)
+			if needsApproval && i.approverFor() == nil {
 				return connect.NewError(connect.CodePermissionDenied, "destructive capabilities require an approval card")
 			}
 			if e.Object == nil {
@@ -114,21 +135,50 @@ func (i *Interceptor) Server() connect.ServerInterceptor {
 				if !allowed {
 					return connect.NewError(connect.CodePermissionDenied, "not allowed: "+e.Scope)
 				}
-				return next(ctx, spec, stream)
+				if !needsApproval {
+					return next(ctx, spec, stream)
+				}
 			}
 			return next(ctx, spec, &gatedStream{ServerStream: stream, check: func(msg any) error {
-				return i.checkObject(ctx, p, e, msg)
+				pm, ok := msg.(proto.Message)
+				if !ok {
+					return connect.NewError(connect.CodeInternal, "request is not a proto message")
+				}
+				if e.Object != nil {
+					if err := i.checkObject(ctx, p, e, pm); err != nil {
+						return err
+					}
+				}
+				if needsApproval {
+					return i.requestApproval(ctx, p, e, pm)
+				}
+				return nil
 			}})
 		}
 	}
 }
 
-// checkObject pulls the object id out of the request message and authorizes it
-func (i *Interceptor) checkObject(ctx context.Context, p Principal, e *Entry, msg any) error {
-	pm, ok := msg.(proto.Message)
-	if !ok {
-		return connect.NewError(connect.CodeInternal, "request is not a proto message")
+// authenticate prefers a trusted in-process principal and otherwise asks the transport authenticator
+func (i *Interceptor) authenticate(ctx context.Context) (Principal, error) {
+	if p, ok := trustedFrom(ctx); ok {
+		return p, nil
 	}
+	info, _ := connect.CallInfoForServerContext(ctx)
+	return i.auth.Authenticate(ctx, info)
+}
+
+// requestApproval posts the approval card and tells the caller where to watch for the decision
+func (i *Interceptor) requestApproval(ctx context.Context, p Principal, e *Entry, msg proto.Message) error {
+	seq, err := i.approverFor().Request(ctx, p, e, proto.Clone(msg))
+	if err != nil {
+		i.log.Error("approval request failed", "procedure", e.Procedure, "error", err)
+		return connect.NewError(connect.CodeInternal, "approval request failed: "+err.Error())
+	}
+	return connect.NewError(connect.CodeFailedPrecondition, fmt.Sprintf("approval required: card %d awaits a decision", seq))
+}
+
+// checkObject pulls the object id out of the request message and authorizes it
+func (i *Interceptor) checkObject(ctx context.Context, p Principal, e *Entry, pm proto.Message) error {
 	id, err := ObjectID(pm, e.Object.GetField())
 	if err != nil {
 		return connect.NewError(connect.CodeInvalidArgument, err.Error())

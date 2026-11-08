@@ -18,6 +18,7 @@ import (
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/membership"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/message"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/predicate"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/reaction"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/readstate"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/user"
 )
@@ -34,6 +35,9 @@ type UserQuery struct {
 	withMemberships *MembershipQuery
 	withMessages    *MessageQuery
 	withReadStates  *ReadStateQuery
+	withReactions   *ReactionQuery
+	withMergedInto  *UserQuery
+	withAbsorbed    *UserQuery
 	modifiers       []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -174,6 +178,72 @@ func (_q *UserQuery) QueryReadStates() *ReadStateQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(readstate.Table, readstate.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.ReadStatesTable, user.ReadStatesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryReactions chains the current query on the "reactions" edge.
+func (_q *UserQuery) QueryReactions() *ReactionQuery {
+	query := (&ReactionClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(reaction.Table, reaction.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.ReactionsTable, user.ReactionsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryMergedInto chains the current query on the "merged_into" edge.
+func (_q *UserQuery) QueryMergedInto() *UserQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, user.MergedIntoTable, user.MergedIntoColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAbsorbed chains the current query on the "absorbed" edge.
+func (_q *UserQuery) QueryAbsorbed() *UserQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.AbsorbedTable, user.AbsorbedColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -378,6 +448,9 @@ func (_q *UserQuery) Clone() *UserQuery {
 		withMemberships: _q.withMemberships.Clone(),
 		withMessages:    _q.withMessages.Clone(),
 		withReadStates:  _q.withReadStates.Clone(),
+		withReactions:   _q.withReactions.Clone(),
+		withMergedInto:  _q.withMergedInto.Clone(),
+		withAbsorbed:    _q.withAbsorbed.Clone(),
 		// clone intermediate query.
 		sql:       _q.sql.Clone(),
 		path:      _q.path,
@@ -437,6 +510,39 @@ func (_q *UserQuery) WithReadStates(opts ...func(*ReadStateQuery)) *UserQuery {
 		opt(query)
 	}
 	_q.withReadStates = query
+	return _q
+}
+
+// WithReactions tells the query-builder to eager-load the nodes that are connected to
+// the "reactions" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithReactions(opts ...func(*ReactionQuery)) *UserQuery {
+	query := (&ReactionClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withReactions = query
+	return _q
+}
+
+// WithMergedInto tells the query-builder to eager-load the nodes that are connected to
+// the "merged_into" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithMergedInto(opts ...func(*UserQuery)) *UserQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withMergedInto = query
+	return _q
+}
+
+// WithAbsorbed tells the query-builder to eager-load the nodes that are connected to
+// the "absorbed" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithAbsorbed(opts ...func(*UserQuery)) *UserQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withAbsorbed = query
 	return _q
 }
 
@@ -518,12 +624,15 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = _q.querySpec()
-		loadedTypes = [5]bool{
+		loadedTypes = [8]bool{
 			_q.withIdentities != nil,
 			_q.withCredentials != nil,
 			_q.withMemberships != nil,
 			_q.withMessages != nil,
 			_q.withReadStates != nil,
+			_q.withReactions != nil,
+			_q.withMergedInto != nil,
+			_q.withAbsorbed != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -579,6 +688,26 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		if err := _q.loadReadStates(ctx, query, nodes,
 			func(n *User) { n.Edges.ReadStates = []*ReadState{} },
 			func(n *User, e *ReadState) { n.Edges.ReadStates = append(n.Edges.ReadStates, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withReactions; query != nil {
+		if err := _q.loadReactions(ctx, query, nodes,
+			func(n *User) { n.Edges.Reactions = []*Reaction{} },
+			func(n *User, e *Reaction) { n.Edges.Reactions = append(n.Edges.Reactions, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withMergedInto; query != nil {
+		if err := _q.loadMergedInto(ctx, query, nodes, nil,
+			func(n *User, e *User) { n.Edges.MergedInto = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withAbsorbed; query != nil {
+		if err := _q.loadAbsorbed(ctx, query, nodes,
+			func(n *User) { n.Edges.Absorbed = []*User{} },
+			func(n *User, e *User) { n.Edges.Absorbed = append(n.Edges.Absorbed, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -735,6 +864,95 @@ func (_q *UserQuery) loadReadStates(ctx context.Context, query *ReadStateQuery, 
 	}
 	return nil
 }
+func (_q *UserQuery) loadReactions(ctx context.Context, query *ReactionQuery, nodes []*User, init func(*User), assign func(*User, *Reaction)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[string]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(reaction.FieldUserID)
+	}
+	query.Where(predicate.Reaction(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.ReactionsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadMergedInto(ctx context.Context, query *UserQuery, nodes []*User, init func(*User), assign func(*User, *User)) error {
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*User)
+	for i := range nodes {
+		fk := nodes[i].MergedIntoID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(user.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "merged_into_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (_q *UserQuery) loadAbsorbed(ctx context.Context, query *UserQuery, nodes []*User, init func(*User), assign func(*User, *User)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[string]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(user.FieldMergedIntoID)
+	}
+	query.Where(predicate.User(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.AbsorbedColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.MergedIntoID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "merged_into_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
 
 func (_q *UserQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
@@ -763,6 +981,9 @@ func (_q *UserQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != user.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if _q.withMergedInto != nil {
+			_spec.Node.AddColumnOnce(user.FieldMergedIntoID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

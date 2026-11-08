@@ -1,15 +1,21 @@
 <script lang="ts">
+	import MessageSquarePlus from '@lucide/svelte/icons/message-square-plus';
 	import Pencil from '@lucide/svelte/icons/pencil';
 	import Reply from '@lucide/svelte/icons/reply';
+	import SmilePlus from '@lucide/svelte/icons/smile-plus';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import CardView from '#lib/cards/CardView.svelte';
 	import type { Message } from '#lib/gen/discoflix/timeline/v1/timeline_pb';
 	import UserAvatar from '#lib/identity/UserAvatar.svelte';
 	import { formatFull, formatStamp, formatTime, toDate } from '#lib/theme/format';
 	import * as Tooltip from '#lib/ui/tooltip';
+	import Attachments from './Attachments.svelte';
+	import EmojiPicker from './EmojiPicker.svelte';
 	import MessageEditor from './MessageEditor.svelte';
 	import MessageText from './MessageText.svelte';
+	import Reactions from './Reactions.svelte';
 	import ReplyQuote from './ReplyQuote.svelte';
+	import { timeline } from './store.svelte';
 
 	let {
 		message,
@@ -17,11 +23,13 @@
 		grouped,
 		own,
 		canDelete,
+		canThread,
 		editing,
 		replied,
 		onreply,
 		onedit,
 		ondelete,
+		onthread,
 		oneditdone,
 		onjump
 	}: {
@@ -30,11 +38,13 @@
 		grouped: boolean;
 		own: boolean;
 		canDelete: boolean;
+		canThread: boolean;
 		editing: boolean;
 		replied: Message | undefined;
 		onreply: () => void;
 		onedit: () => void;
 		ondelete: () => void;
+		onthread: () => void;
 		oneditdone: () => void;
 		onjump: (seq: bigint) => void;
 	} = $props();
@@ -44,6 +54,16 @@
 	const automated = $derived(author !== undefined && author.kind !== '' && author.kind !== 'person');
 	const edited = $derived(toDate(message.editedAt));
 	const deleted = $derived(message.deletedAt !== undefined);
+	const mirrored = $derived(message.origin === 'discord');
+	const canEdit = $derived(own && !mirrored);
+
+	let picking = $state(false);
+
+	function pick(emoji: string): void {
+		picking = false;
+		const existing = message.reactions.find((r) => r.emoji === emoji);
+		void timeline.react(message, emoji, !(existing?.me ?? false)).catch(() => undefined);
+	}
 </script>
 
 {#snippet action(label: string, onclick: () => void, Icon: typeof Reply, danger = false)}
@@ -91,6 +111,12 @@
 						>{author?.kind}</span
 					>
 				{/if}
+				{#if mirrored}
+					<span
+						class="rounded bg-hover/60 px-1 text-[10px] leading-4 font-semibold text-interactive uppercase"
+						title="Written in Discord">Discord</span
+					>
+				{/if}
 				<time class="shrink-0 text-xs text-faint" datetime={date.toISOString()} title={formatFull(date)}
 					>{formatStamp(date)}</time
 				>
@@ -102,29 +128,44 @@
 			<MessageEditor {message} ondone={oneditdone} />
 		{:else}
 			{#if message.content}
-				<p class="leading-[22px] text-normal">
+				<div class="leading-[22px] text-normal">
 					<MessageText text={message.content} />
 					{#if edited}
 						<span class="text-[10px] text-faint" title="Edited {formatFull(edited)}">(edited)</span>
 					{/if}
-				</p>
+				</div>
+			{/if}
+			{#if message.attachments.length > 0}
+				<Attachments attachments={message.attachments} />
 			{/if}
 			{#if message.card}
-				<CardView card={message.card} />
+				<CardView card={message.card} seq={message.seq} />
 			{/if}
+			<Reactions {message} />
 		{/if}
 	</div>
 	{#if !deleted && !editing}
 		<div
-			class="absolute -top-4 right-4 hidden overflow-hidden rounded border border-tertiary bg-chat shadow-md group-hover:flex group-focus-within:flex"
+			class="absolute -top-4 right-4 z-10 hidden overflow-hidden rounded border border-tertiary bg-chat shadow-md group-hover:flex group-focus-within:flex {picking
+				? '!flex'
+				: ''}"
 		>
+			{@render action('Add reaction', () => (picking = !picking), SmilePlus)}
 			{@render action('Reply', onreply, Reply)}
-			{#if own}
+			{#if canThread}
+				{@render action('Create thread', onthread, MessageSquarePlus)}
+			{/if}
+			{#if canEdit}
 				{@render action('Edit', onedit, Pencil)}
 			{/if}
 			{#if canDelete}
 				{@render action('Delete', ondelete, Trash2, true)}
 			{/if}
 		</div>
+		{#if picking}
+			<div class="absolute top-5 right-4 z-20">
+				<EmojiPicker onpick={pick} onclose={() => (picking = false)} />
+			</div>
+		{/if}
 	{/if}
 </article>

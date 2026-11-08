@@ -1,0 +1,27 @@
+{
+  "$defs": {
+    "discoflix.timeline.v1.ListMembersRequest.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(space_id)$": {
+          "default": "",
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "properties": {
+        "spaceId": {
+          "default": "",
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "title": "List Members Request",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.timeline.v1.ListMembersRequest.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.timeline.v1.ListMembersRequest.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

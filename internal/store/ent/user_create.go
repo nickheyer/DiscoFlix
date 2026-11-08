@@ -16,6 +16,7 @@ import (
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/identity"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/membership"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/message"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/reaction"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/readstate"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/user"
 )
@@ -146,6 +147,20 @@ func (_c *UserCreate) SetNillableLastSeenAt(v *time.Time) *UserCreate {
 	return _c
 }
 
+// SetMergedIntoID sets the "merged_into_id" field.
+func (_c *UserCreate) SetMergedIntoID(v string) *UserCreate {
+	_c.mutation.SetMergedIntoID(v)
+	return _c
+}
+
+// SetNillableMergedIntoID sets the "merged_into_id" field if the given value is not nil.
+func (_c *UserCreate) SetNillableMergedIntoID(v *string) *UserCreate {
+	if v != nil {
+		_c.SetMergedIntoID(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *UserCreate) SetID(v string) *UserCreate {
 	_c.mutation.SetID(v)
@@ -233,6 +248,41 @@ func (_c *UserCreate) AddReadStates(v ...*ReadState) *UserCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddReadStateIDs(ids...)
+}
+
+// AddReactionIDs adds the "reactions" edge to the Reaction entity by IDs.
+func (_c *UserCreate) AddReactionIDs(ids ...string) *UserCreate {
+	_c.mutation.AddReactionIDs(ids...)
+	return _c
+}
+
+// AddReactions adds the "reactions" edges to the Reaction entity.
+func (_c *UserCreate) AddReactions(v ...*Reaction) *UserCreate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddReactionIDs(ids...)
+}
+
+// SetMergedInto sets the "merged_into" edge to the User entity.
+func (_c *UserCreate) SetMergedInto(v *User) *UserCreate {
+	return _c.SetMergedIntoID(v.ID)
+}
+
+// AddAbsorbedIDs adds the "absorbed" edge to the User entity by IDs.
+func (_c *UserCreate) AddAbsorbedIDs(ids ...string) *UserCreate {
+	_c.mutation.AddAbsorbedIDs(ids...)
+	return _c
+}
+
+// AddAbsorbed adds the "absorbed" edges to the User entity.
+func (_c *UserCreate) AddAbsorbed(v ...*User) *UserCreate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddAbsorbedIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -502,6 +552,55 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
+	if nodes := _c.mutation.ReactionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ReactionsTable,
+			Columns: []string{user.ReactionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reaction.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.MergedIntoIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   user.MergedIntoTable,
+			Columns: []string{user.MergedIntoColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.MergedIntoID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.AbsorbedIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.AbsorbedTable,
+			Columns: []string{user.AbsorbedColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	return _node, _spec
 }
 
@@ -653,6 +752,24 @@ func (u *UserUpsert) UpdateLastSeenAt() *UserUpsert {
 // ClearLastSeenAt clears the value of the "last_seen_at" field.
 func (u *UserUpsert) ClearLastSeenAt() *UserUpsert {
 	u.SetNull(user.FieldLastSeenAt)
+	return u
+}
+
+// SetMergedIntoID sets the "merged_into_id" field.
+func (u *UserUpsert) SetMergedIntoID(v string) *UserUpsert {
+	u.Set(user.FieldMergedIntoID, v)
+	return u
+}
+
+// UpdateMergedIntoID sets the "merged_into_id" field to the value that was provided on create.
+func (u *UserUpsert) UpdateMergedIntoID() *UserUpsert {
+	u.SetExcluded(user.FieldMergedIntoID)
+	return u
+}
+
+// ClearMergedIntoID clears the value of the "merged_into_id" field.
+func (u *UserUpsert) ClearMergedIntoID() *UserUpsert {
+	u.SetNull(user.FieldMergedIntoID)
 	return u
 }
 
@@ -823,6 +940,27 @@ func (u *UserUpsertOne) UpdateLastSeenAt() *UserUpsertOne {
 func (u *UserUpsertOne) ClearLastSeenAt() *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
 		s.ClearLastSeenAt()
+	})
+}
+
+// SetMergedIntoID sets the "merged_into_id" field.
+func (u *UserUpsertOne) SetMergedIntoID(v string) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetMergedIntoID(v)
+	})
+}
+
+// UpdateMergedIntoID sets the "merged_into_id" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateMergedIntoID() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateMergedIntoID()
+	})
+}
+
+// ClearMergedIntoID clears the value of the "merged_into_id" field.
+func (u *UserUpsertOne) ClearMergedIntoID() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearMergedIntoID()
 	})
 }
 
@@ -1160,6 +1298,27 @@ func (u *UserUpsertBulk) UpdateLastSeenAt() *UserUpsertBulk {
 func (u *UserUpsertBulk) ClearLastSeenAt() *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
 		s.ClearLastSeenAt()
+	})
+}
+
+// SetMergedIntoID sets the "merged_into_id" field.
+func (u *UserUpsertBulk) SetMergedIntoID(v string) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetMergedIntoID(v)
+	})
+}
+
+// UpdateMergedIntoID sets the "merged_into_id" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateMergedIntoID() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateMergedIntoID()
+	})
+}
+
+// ClearMergedIntoID clears the value of the "merged_into_id" field.
+func (u *UserUpsertBulk) ClearMergedIntoID() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearMergedIntoID()
 	})
 }
 

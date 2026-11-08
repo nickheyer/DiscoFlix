@@ -4,6 +4,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 )
 
 // User is the single representation of a person, bot, plugin, or agent
@@ -20,6 +21,7 @@ func (User) Fields() []ent.Field {
 		field.Enum("status").Values("active", "disabled").Default("active"),
 		field.Bool("system_admin").Default(false),
 		field.Time("last_seen_at").Optional().Nillable(),
+		field.String("merged_into_id").Optional(),
 	}
 }
 
@@ -30,5 +32,13 @@ func (User) Edges() []ent.Edge {
 		edge.To("memberships", Membership.Type),
 		edge.To("messages", Message.Type),
 		edge.To("read_states", ReadState.Type),
+		edge.To("reactions", Reaction.Type),
+		edge.To("absorbed", User.Type).From("merged_into").Field("merged_into_id").Unique(),
+	}
+}
+
+func (User) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("merged_into_id"),
 	}
 }

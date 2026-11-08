@@ -1,5 +1,75 @@
 {
   "$defs": {
+    "discoflix.timeline.v1.Attachment.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(content_type)$": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "properties": {
+        "contentType": {
+          "default": "",
+          "type": "string"
+        },
+        "height": {
+          "anyOf": [
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "id": {
+          "default": "",
+          "type": "string"
+        },
+        "name": {
+          "default": "",
+          "type": "string"
+        },
+        "size": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "url": {
+          "default": "",
+          "type": "string"
+        },
+        "width": {
+          "anyOf": [
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        }
+      },
+      "title": "Attachment",
+      "type": "object"
+    },
     "discoflix.timeline.v1.Author.jsonschema.json": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "additionalProperties": false,
@@ -106,6 +176,12 @@
         }
       },
       "properties": {
+        "attachments": {
+          "items": {
+            "$ref": "#/$defs/discoflix.timeline.v1.Attachment.jsonschema.json"
+          },
+          "type": "array"
+        },
         "author": {
           "$ref": "#/$defs/discoflix.timeline.v1.Author.jsonschema.json"
         },
@@ -156,6 +232,17 @@
           "default": 0,
           "title": "Message Kind"
         },
+        "origin": {
+          "default": "",
+          "description": "Transport that wrote the message such as web, discord, system, api",
+          "type": "string"
+        },
+        "reactions": {
+          "items": {
+            "$ref": "#/$defs/discoflix.timeline.v1.Reaction.jsonschema.json"
+          },
+          "type": "array"
+        },
         "replyTo": {
           "anyOf": [
             {
@@ -186,6 +273,37 @@
         }
       },
       "title": "Message",
+      "type": "object"
+    },
+    "discoflix.timeline.v1.Reaction.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "description": "One emoji on a message with how many users added it",
+      "properties": {
+        "count": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "emoji": {
+          "default": "",
+          "description": "Unicode emoji, or name:id for a custom Discord emoji",
+          "type": "string"
+        },
+        "me": {
+          "default": false,
+          "description": "True when the caller is among the reactors",
+          "type": "boolean"
+        }
+      },
+      "title": "Reaction",
       "type": "object"
     },
     "google.protobuf.Any.jsonschema.json": {

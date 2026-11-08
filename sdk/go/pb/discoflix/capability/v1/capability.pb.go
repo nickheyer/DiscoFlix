@@ -29,7 +29,6 @@ type CapabilityEntry struct {
 	Scope            string     `protobuf:"bytes,3,opt,name=scope" json:"scope,omitempty"`
 	Effect           Effect     `protobuf:"varint,4,opt,name=effect,enum=discoflix.capability.v1.Effect" json:"effect,omitempty"`
 	Object           *ObjectRef `protobuf:"bytes,5,opt,name=object" json:"object,omitempty"`
-	Slash            bool       `protobuf:"varint,6,opt,name=slash" json:"slash,omitempty"`
 	Public           bool       `protobuf:"varint,7,opt,name=public" json:"public,omitempty"`
 	Title            string     `protobuf:"bytes,8,opt,name=title" json:"title,omitempty"`
 	Description      string     `protobuf:"bytes,9,opt,name=description" json:"description,omitempty"`
@@ -38,8 +37,10 @@ type CapabilityEntry struct {
 	InputSchemaJson  string     `protobuf:"bytes,12,opt,name=input_schema_json,json=inputSchemaJson" json:"input_schema_json,omitempty"`
 	OutputSchemaJson string     `protobuf:"bytes,13,opt,name=output_schema_json,json=outputSchemaJson" json:"output_schema_json,omitempty"`
 	ServerStreaming  bool       `protobuf:"varint,14,opt,name=server_streaming,json=serverStreaming" json:"server_streaming,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	// Discord slash command name, empty when the entry is not a command
+	Command       string `protobuf:"bytes,15,opt,name=command" json:"command,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CapabilityEntry) Reset() {
@@ -107,13 +108,6 @@ func (x *CapabilityEntry) GetObject() *ObjectRef {
 	return nil
 }
 
-func (x *CapabilityEntry) GetSlash() bool {
-	if x != nil {
-		return x.Slash
-	}
-	return false
-}
-
 func (x *CapabilityEntry) GetPublic() bool {
 	if x != nil {
 		return x.Public
@@ -168,6 +162,13 @@ func (x *CapabilityEntry) GetServerStreaming() bool {
 		return x.ServerStreaming
 	}
 	return false
+}
+
+func (x *CapabilityEntry) GetCommand() string {
+	if x != nil {
+		return x.Command
+	}
+	return ""
 }
 
 type ListCapabilitiesRequest struct {
@@ -254,14 +255,13 @@ var File_discoflix_capability_v1_capability_proto protoreflect.FileDescriptor
 
 const file_discoflix_capability_v1_capability_proto_rawDesc = "" +
 	"\n" +
-	"(discoflix/capability/v1/capability.proto\x12\x17discoflix.capability.v1\x1a%discoflix/capability/v1/options.proto\"\xf9\x03\n" +
+	"(discoflix/capability/v1/capability.proto\x12\x17discoflix.capability.v1\x1a%discoflix/capability/v1/options.proto\"\x83\x04\n" +
 	"\x0fCapabilityEntry\x12\x1c\n" +
 	"\tprocedure\x18\x01 \x01(\tR\tprocedure\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x14\n" +
 	"\x05scope\x18\x03 \x01(\tR\x05scope\x127\n" +
 	"\x06effect\x18\x04 \x01(\x0e2\x1f.discoflix.capability.v1.EffectR\x06effect\x12:\n" +
-	"\x06object\x18\x05 \x01(\v2\".discoflix.capability.v1.ObjectRefR\x06object\x12\x14\n" +
-	"\x05slash\x18\x06 \x01(\bR\x05slash\x12\x16\n" +
+	"\x06object\x18\x05 \x01(\v2\".discoflix.capability.v1.ObjectRefR\x06object\x12\x16\n" +
 	"\x06public\x18\a \x01(\bR\x06public\x12\x14\n" +
 	"\x05title\x18\b \x01(\tR\x05title\x12 \n" +
 	"\vdescription\x18\t \x01(\tR\vdescription\x12\x1d\n" +
@@ -272,7 +272,8 @@ const file_discoflix_capability_v1_capability_proto_rawDesc = "" +
 	"outputType\x12*\n" +
 	"\x11input_schema_json\x18\f \x01(\tR\x0finputSchemaJson\x12,\n" +
 	"\x12output_schema_json\x18\r \x01(\tR\x10outputSchemaJson\x12)\n" +
-	"\x10server_streaming\x18\x0e \x01(\bR\x0fserverStreaming\"\x19\n" +
+	"\x10server_streaming\x18\x0e \x01(\bR\x0fserverStreaming\x12\x18\n" +
+	"\acommand\x18\x0f \x01(\tR\acommandJ\x04\b\x06\x10\a\"\x19\n" +
 	"\x17ListCapabilitiesRequest\"h\n" +
 	"\x18ListCapabilitiesResponse\x12L\n" +
 	"\fcapabilities\x18\x01 \x03(\v2(.discoflix.capability.v1.CapabilityEntryR\fcapabilities2\x86\x02\n" +

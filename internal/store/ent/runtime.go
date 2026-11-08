@@ -11,11 +11,14 @@ import (
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/identity"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/membership"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/message"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/pendingaction"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/reaction"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/readstate"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/schema"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/setting"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/space"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/user"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/usermerge"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -111,6 +114,10 @@ func init() {
 	channelDescLastSeq := channelFields[7].Descriptor()
 	// channel.DefaultLastSeq holds the default value on creation for the last_seq field.
 	channel.DefaultLastSeq = channelDescLastSeq.Default.(int64)
+	// channelDescArchived is the schema descriptor for archived field.
+	channelDescArchived := channelFields[8].Descriptor()
+	// channel.DefaultArchived holds the default value on creation for the archived field.
+	channel.DefaultArchived = channelDescArchived.Default.(bool)
 	// channelDescID is the schema descriptor for id field.
 	channelDescID := channelMixinFields0[0].Descriptor()
 	// channel.DefaultID holds the default value on creation for the id field.
@@ -224,8 +231,16 @@ func init() {
 	membershipDescRoles := membershipFields[2].Descriptor()
 	// membership.DefaultRoles holds the default value on creation for the roles field.
 	membership.DefaultRoles = membershipDescRoles.Default.([]string)
+	// membershipDescNickname is the schema descriptor for nickname field.
+	membershipDescNickname := membershipFields[3].Descriptor()
+	// membership.DefaultNickname holds the default value on creation for the nickname field.
+	membership.DefaultNickname = membershipDescNickname.Default.(string)
+	// membershipDescAdmin is the schema descriptor for admin field.
+	membershipDescAdmin := membershipFields[4].Descriptor()
+	// membership.DefaultAdmin holds the default value on creation for the admin field.
+	membership.DefaultAdmin = membershipDescAdmin.Default.(bool)
 	// membershipDescJoinedAt is the schema descriptor for joined_at field.
-	membershipDescJoinedAt := membershipFields[3].Descriptor()
+	membershipDescJoinedAt := membershipFields[5].Descriptor()
 	// membership.DefaultJoinedAt holds the default value on creation for the joined_at field.
 	membership.DefaultJoinedAt = membershipDescJoinedAt.Default.(func() time.Time)
 	// membershipDescID is the schema descriptor for id field.
@@ -264,10 +279,104 @@ func init() {
 	messageDescExternalID := messageFields[9].Descriptor()
 	// message.DefaultExternalID holds the default value on creation for the external_id field.
 	message.DefaultExternalID = messageDescExternalID.Default.(string)
+	// messageDescOrigin is the schema descriptor for origin field.
+	messageDescOrigin := messageFields[10].Descriptor()
+	// message.DefaultOrigin holds the default value on creation for the origin field.
+	message.DefaultOrigin = messageDescOrigin.Default.(string)
 	// messageDescCreatedAt is the schema descriptor for created_at field.
-	messageDescCreatedAt := messageFields[10].Descriptor()
+	messageDescCreatedAt := messageFields[12].Descriptor()
 	// message.DefaultCreatedAt holds the default value on creation for the created_at field.
 	message.DefaultCreatedAt = messageDescCreatedAt.Default.(func() time.Time)
+	// messageDescUpdatedAt is the schema descriptor for updated_at field.
+	messageDescUpdatedAt := messageFields[13].Descriptor()
+	// message.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	message.DefaultUpdatedAt = messageDescUpdatedAt.Default.(func() time.Time)
+	// message.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	message.UpdateDefaultUpdatedAt = messageDescUpdatedAt.UpdateDefault.(func() time.Time)
+	pendingactionMixin := schema.PendingAction{}.Mixin()
+	pendingactionMixinFields0 := pendingactionMixin[0].Fields()
+	_ = pendingactionMixinFields0
+	pendingactionFields := schema.PendingAction{}.Fields()
+	_ = pendingactionFields
+	// pendingactionDescProcedure is the schema descriptor for procedure field.
+	pendingactionDescProcedure := pendingactionFields[0].Descriptor()
+	// pendingaction.ProcedureValidator is a validator for the "procedure" field. It is called by the builders before save.
+	pendingaction.ProcedureValidator = pendingactionDescProcedure.Validators[0].(func(string) error)
+	// pendingactionDescPrincipalUserID is the schema descriptor for principal_user_id field.
+	pendingactionDescPrincipalUserID := pendingactionFields[2].Descriptor()
+	// pendingaction.PrincipalUserIDValidator is a validator for the "principal_user_id" field. It is called by the builders before save.
+	pendingaction.PrincipalUserIDValidator = pendingactionDescPrincipalUserID.Validators[0].(func(string) error)
+	// pendingactionDescPrincipalKind is the schema descriptor for principal_kind field.
+	pendingactionDescPrincipalKind := pendingactionFields[3].Descriptor()
+	// pendingaction.PrincipalKindValidator is a validator for the "principal_kind" field. It is called by the builders before save.
+	pendingaction.PrincipalKindValidator = pendingactionDescPrincipalKind.Validators[0].(func(string) error)
+	// pendingactionDescPrincipalVia is the schema descriptor for principal_via field.
+	pendingactionDescPrincipalVia := pendingactionFields[4].Descriptor()
+	// pendingaction.DefaultPrincipalVia holds the default value on creation for the principal_via field.
+	pendingaction.DefaultPrincipalVia = pendingactionDescPrincipalVia.Default.(string)
+	// pendingactionDescMessageSeq is the schema descriptor for message_seq field.
+	pendingactionDescMessageSeq := pendingactionFields[5].Descriptor()
+	// pendingaction.DefaultMessageSeq holds the default value on creation for the message_seq field.
+	pendingaction.DefaultMessageSeq = pendingactionDescMessageSeq.Default.(int64)
+	// pendingactionDescDecidedBy is the schema descriptor for decided_by field.
+	pendingactionDescDecidedBy := pendingactionFields[7].Descriptor()
+	// pendingaction.DefaultDecidedBy holds the default value on creation for the decided_by field.
+	pendingaction.DefaultDecidedBy = pendingactionDescDecidedBy.Default.(string)
+	// pendingactionDescResult is the schema descriptor for result field.
+	pendingactionDescResult := pendingactionFields[9].Descriptor()
+	// pendingaction.DefaultResult holds the default value on creation for the result field.
+	pendingaction.DefaultResult = pendingactionDescResult.Default.(string)
+	// pendingactionDescCreatedAt is the schema descriptor for created_at field.
+	pendingactionDescCreatedAt := pendingactionFields[10].Descriptor()
+	// pendingaction.DefaultCreatedAt holds the default value on creation for the created_at field.
+	pendingaction.DefaultCreatedAt = pendingactionDescCreatedAt.Default.(func() time.Time)
+	// pendingactionDescID is the schema descriptor for id field.
+	pendingactionDescID := pendingactionMixinFields0[0].Descriptor()
+	// pendingaction.DefaultID holds the default value on creation for the id field.
+	pendingaction.DefaultID = pendingactionDescID.Default.(func() string)
+	// pendingaction.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	pendingaction.IDValidator = pendingactionDescID.Validators[0].(func(string) error)
+	reactionMixin := schema.Reaction{}.Mixin()
+	reactionMixinFields0 := reactionMixin[0].Fields()
+	_ = reactionMixinFields0
+	reactionFields := schema.Reaction{}.Fields()
+	_ = reactionFields
+	// reactionDescUserID is the schema descriptor for user_id field.
+	reactionDescUserID := reactionFields[1].Descriptor()
+	// reaction.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
+	reaction.UserIDValidator = reactionDescUserID.Validators[0].(func(string) error)
+	// reactionDescEmoji is the schema descriptor for emoji field.
+	reactionDescEmoji := reactionFields[2].Descriptor()
+	// reaction.EmojiValidator is a validator for the "emoji" field. It is called by the builders before save.
+	reaction.EmojiValidator = func() func(string) error {
+		validators := reactionDescEmoji.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(emoji string) error {
+			for _, fn := range fns {
+				if err := fn(emoji); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// reactionDescOrigin is the schema descriptor for origin field.
+	reactionDescOrigin := reactionFields[3].Descriptor()
+	// reaction.DefaultOrigin holds the default value on creation for the origin field.
+	reaction.DefaultOrigin = reactionDescOrigin.Default.(string)
+	// reactionDescCreatedAt is the schema descriptor for created_at field.
+	reactionDescCreatedAt := reactionFields[4].Descriptor()
+	// reaction.DefaultCreatedAt holds the default value on creation for the created_at field.
+	reaction.DefaultCreatedAt = reactionDescCreatedAt.Default.(func() time.Time)
+	// reactionDescID is the schema descriptor for id field.
+	reactionDescID := reactionMixinFields0[0].Descriptor()
+	// reaction.DefaultID holds the default value on creation for the id field.
+	reaction.DefaultID = reactionDescID.Default.(func() string)
+	// reaction.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	reaction.IDValidator = reactionDescID.Validators[0].(func(string) error)
 	readstateMixin := schema.ReadState{}.Mixin()
 	readstateMixinFields0 := readstateMixin[0].Fields()
 	_ = readstateMixinFields0
@@ -360,6 +469,10 @@ func init() {
 	spaceDescPosition := spaceFields[4].Descriptor()
 	// space.DefaultPosition holds the default value on creation for the position field.
 	space.DefaultPosition = spaceDescPosition.Default.(int32)
+	// spaceDescApprovalsChannelID is the schema descriptor for approvals_channel_id field.
+	spaceDescApprovalsChannelID := spaceFields[5].Descriptor()
+	// space.DefaultApprovalsChannelID holds the default value on creation for the approvals_channel_id field.
+	space.DefaultApprovalsChannelID = spaceDescApprovalsChannelID.Default.(string)
 	// spaceDescID is the schema descriptor for id field.
 	spaceDescID := spaceMixinFields0[0].Descriptor()
 	// space.DefaultID holds the default value on creation for the id field.
@@ -419,4 +532,43 @@ func init() {
 	user.DefaultID = userDescID.Default.(func() string)
 	// user.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	user.IDValidator = userDescID.Validators[0].(func(string) error)
+	usermergeMixin := schema.UserMerge{}.Mixin()
+	usermergeMixinFields0 := usermergeMixin[0].Fields()
+	_ = usermergeMixinFields0
+	usermergeFields := schema.UserMerge{}.Fields()
+	_ = usermergeFields
+	// usermergeDescFromUserID is the schema descriptor for from_user_id field.
+	usermergeDescFromUserID := usermergeFields[0].Descriptor()
+	// usermerge.FromUserIDValidator is a validator for the "from_user_id" field. It is called by the builders before save.
+	usermerge.FromUserIDValidator = usermergeDescFromUserID.Validators[0].(func(string) error)
+	// usermergeDescIntoUserID is the schema descriptor for into_user_id field.
+	usermergeDescIntoUserID := usermergeFields[1].Descriptor()
+	// usermerge.IntoUserIDValidator is a validator for the "into_user_id" field. It is called by the builders before save.
+	usermerge.IntoUserIDValidator = usermergeDescIntoUserID.Validators[0].(func(string) error)
+	// usermergeDescIdentityIds is the schema descriptor for identity_ids field.
+	usermergeDescIdentityIds := usermergeFields[2].Descriptor()
+	// usermerge.DefaultIdentityIds holds the default value on creation for the identity_ids field.
+	usermerge.DefaultIdentityIds = usermergeDescIdentityIds.Default.([]string)
+	// usermergeDescCredentialIds is the schema descriptor for credential_ids field.
+	usermergeDescCredentialIds := usermergeFields[3].Descriptor()
+	// usermerge.DefaultCredentialIds holds the default value on creation for the credential_ids field.
+	usermerge.DefaultCredentialIds = usermergeDescCredentialIds.Default.([]string)
+	// usermergeDescAddedSpaceIds is the schema descriptor for added_space_ids field.
+	usermergeDescAddedSpaceIds := usermergeFields[4].Descriptor()
+	// usermerge.DefaultAddedSpaceIds holds the default value on creation for the added_space_ids field.
+	usermerge.DefaultAddedSpaceIds = usermergeDescAddedSpaceIds.Default.([]string)
+	// usermergeDescGrantedSystemMember is the schema descriptor for granted_system_member field.
+	usermergeDescGrantedSystemMember := usermergeFields[5].Descriptor()
+	// usermerge.DefaultGrantedSystemMember holds the default value on creation for the granted_system_member field.
+	usermerge.DefaultGrantedSystemMember = usermergeDescGrantedSystemMember.Default.(bool)
+	// usermergeDescCreatedAt is the schema descriptor for created_at field.
+	usermergeDescCreatedAt := usermergeFields[6].Descriptor()
+	// usermerge.DefaultCreatedAt holds the default value on creation for the created_at field.
+	usermerge.DefaultCreatedAt = usermergeDescCreatedAt.Default.(func() time.Time)
+	// usermergeDescID is the schema descriptor for id field.
+	usermergeDescID := usermergeMixinFields0[0].Descriptor()
+	// usermerge.DefaultID holds the default value on creation for the id field.
+	usermerge.DefaultID = usermergeDescID.Default.(func() string)
+	// usermerge.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	usermerge.IDValidator = usermergeDescID.Validators[0].(func(string) error)
 }

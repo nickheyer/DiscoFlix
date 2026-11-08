@@ -15,6 +15,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	connect "connectrpc.com/connect/v2"
@@ -76,7 +77,12 @@ type Service struct {
 	log          *slog.Logger
 	loginLimit   limiter.Store
 	ceremonies   *ceremonyStore
+	links        *linkCodes
 	publicURL    string
+	linkBase     string
+
+	mu           sync.RWMutex
+	discordLogin bool
 }
 
 // Open prepares the session store, pepper, and limiter
@@ -116,11 +122,33 @@ func Open(ctx context.Context, dataDir string, secrets *config.Secrets, entc *en
 		log:          log,
 		loginLimit:   lim,
 		ceremonies:   newCeremonyStore(),
+		links:        newLinkCodes(),
 	}, nil
 }
 
-// SetPublicURL fixes the origin used for passkeys when the server sits behind a proxy
+// SetPublicURL fixes the origin used for passkeys and links when the server sits behind a proxy
 func (s *Service) SetPublicURL(u string) { s.publicURL = strings.TrimRight(u, "/") }
+
+// SetLinkBase sets the address used for links when no public URL is configured
+func (s *Service) SetLinkBase(u string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.linkBase = strings.TrimRight(u, "/")
+}
+
+// SetDiscordLogin toggles whether server info advertises Discord sign-in
+func (s *Service) SetDiscordLogin(enabled bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.discordLogin = enabled
+}
+
+// DiscordLogin reports whether Discord sign-in is configured
+func (s *Service) DiscordLogin() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.discordLogin
+}
 
 // Close releases the session database and the limiter
 func (s *Service) Close() error {
@@ -201,8 +229,8 @@ func (s *Service) authenticateSession(ctx context.Context) (capability.Principal
 	if uid == "" {
 		return capability.Principal{}, capability.ErrNoCredentials
 	}
-	u, err := s.ent.User.Get(ctx, uid)
-	if ent.IsNotFound(err) {
+	u, err := s.resolve(ctx, uid)
+	if errors.Is(err, ErrNotFound) {
 		_ = s.sessions.Destroy(ctx)
 		return capability.Principal{}, capability.ErrNoCredentials
 	}
@@ -221,7 +249,7 @@ func (s *Service) authenticateAPIKey(ctx context.Context, key string) (capabilit
 	if !ok {
 		return capability.Principal{}, ErrInvalidCredentials
 	}
-	cred, err := s.ent.Credential.Query().Where(credential.KindEQ(credential.KindApikey), credential.Prefix(kid)).WithUser().Only(ctx)
+	cred, err := s.ent.Credential.Query().Where(credential.KindEQ(credential.KindApikey), credential.Prefix(kid)).Only(ctx)
 	if ent.IsNotFound(err) {
 		return capability.Principal{}, ErrInvalidCredentials
 	}
@@ -234,7 +262,10 @@ func (s *Service) authenticateAPIKey(ctx context.Context, key string) (capabilit
 	if cred.ExpiresAt != nil && cred.ExpiresAt.Before(time.Now()) {
 		return capability.Principal{}, ErrInvalidCredentials
 	}
-	u := cred.Edges.User
+	u, err := s.resolve(ctx, cred.UserID)
+	if err != nil {
+		return capability.Principal{}, err
+	}
 	if u.Status != user.StatusActive {
 		return capability.Principal{}, ErrDisabled
 	}
@@ -398,13 +429,9 @@ func (s *Service) Logout(ctx context.Context, p capability.Principal, meta Meta)
 	return nil
 }
 
-// GetUser loads one user
+// GetUser loads one user, following merges to the survivor
 func (s *Service) GetUser(ctx context.Context, id string) (*ent.User, error) {
-	u, err := s.ent.User.Get(ctx, id)
-	if ent.IsNotFound(err) {
-		return nil, ErrNotFound
-	}
-	return u, err
+	return s.resolve(ctx, id)
 }
 
 // Identities lists the linked identities of a user
@@ -558,9 +585,9 @@ func (s *Service) RevokeAPIKey(ctx context.Context, p capability.Principal, id s
 	return nil
 }
 
-// ListUsers returns every user ordered by creation
+// ListUsers returns every user that is not hidden behind a merge, ordered by creation
 func (s *Service) ListUsers(ctx context.Context) ([]*ent.User, error) {
-	return s.ent.User.Query().Order(ent.Asc(user.FieldCreatedAt)).All(ctx)
+	return s.ent.User.Query().Where(user.MergedIntoIDIsNil()).Order(ent.Asc(user.FieldCreatedAt)).All(ctx)
 }
 
 // UserUpdate carries administrator edits

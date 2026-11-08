@@ -19,6 +19,12 @@ type Authorizer func(ctx context.Context, userID, channel string) (bool, error)
 // Authenticator resolves the user behind an HTTP upgrade request, empty when anonymous
 type Authenticator func(r *http.Request) (userID string, err error)
 
+// Hooks observe connections so presence can count who is online
+type Hooks struct {
+	OnConnect    func(userID string)
+	OnDisconnect func(userID string)
+}
+
 // Node wraps the Centrifuge node with DiscoFlix channel rules
 type Node struct {
 	node *centrifuge.Node
@@ -31,7 +37,7 @@ const (
 )
 
 // New builds a node whose subscriptions are gated by authorize
-func New(log *slog.Logger, version string, authorize Authorizer) (*Node, error) {
+func New(log *slog.Logger, version string, authorize Authorizer, hooks Hooks) (*Node, error) {
 	node, err := centrifuge.New(centrifuge.Config{
 		Name:           "discoflix",
 		Version:        version,
@@ -49,6 +55,14 @@ func New(log *slog.Logger, version string, authorize Authorizer) (*Node, error) 
 		return centrifuge.ConnectReply{}, nil
 	})
 	node.OnConnect(func(client *centrifuge.Client) {
+		if hooks.OnConnect != nil {
+			hooks.OnConnect(client.UserID())
+		}
+		client.OnDisconnect(func(centrifuge.DisconnectEvent) {
+			if hooks.OnDisconnect != nil {
+				hooks.OnDisconnect(client.UserID())
+			}
+		})
 		client.OnSubscribe(func(e centrifuge.SubscribeEvent, cb centrifuge.SubscribeCallback) {
 			allowed, err := authorize(client.Context(), client.UserID(), e.Channel)
 			if err != nil {

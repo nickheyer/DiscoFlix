@@ -15,7 +15,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file discoflix/identity/v1/identity.proto.
  */
 export const file_discoflix_identity_v1_identity: GenFile = /*@__PURE__*/
-  fileDesc("CiRkaXNjb2ZsaXgvaWRlbnRpdHkvdjEvaWRlbnRpdHkucHJvdG8SFWRpc2NvZmxpeC5pZGVudGl0eS52MSKsAgoEVXNlchIKCgJpZBgBIAEoCRIUCgxkaXNwbGF5X25hbWUYAiABKAkSEgoKYXZhdGFyX3VybBgDIAEoCRIUCgxhY2NlbnRfY29sb3IYBCABKAkSLQoEa2luZBgFIAEoDjIfLmRpc2NvZmxpeC5pZGVudGl0eS52MS5Vc2VyS2luZBIxCgZzdGF0dXMYBiABKA4yIS5kaXNjb2ZsaXguaWRlbnRpdHkudjEuVXNlclN0YXR1cxIUCgxzeXN0ZW1fYWRtaW4YByABKAgSLgoKY3JlYXRlZF9hdBgIIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASMAoMbGFzdF9zZWVuX2F0GAkgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCKqAQoISWRlbnRpdHkSCgoCaWQYASABKAkSEAoIcHJvdmlkZXIYAiABKAkSDwoHc3ViamVjdBgDIAEoCRIPCgdkaXNwbGF5GAQgASgJEi8KC3ZlcmlmaWVkX2F0GAUgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBItCglsaW5rZWRfYXQYBiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wIi0KCk1lbWJlcnNoaXASEAoIc3BhY2VfaWQYASABKAkSDQoFcm9sZXMYAiADKAkingEKB1Bhc3NrZXkSCgoCaWQYASABKAkSDAoEbmFtZRgCIAEoCRIuCgpjcmVhdGVkX2F0GAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIwCgxsYXN0X3VzZWRfYXQYBCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEhcKD2JhY2t1cF9lbGlnaWJsZRgFIAEoCCLEAQoGQXBpS2V5EgoKAmlkGAEgASgJEgwKBG5hbWUYAiABKAkSDgoGcHJlZml4GAMgASgJEi4KCmNyZWF0ZWRfYXQYBCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEjAKDGxhc3RfdXNlZF9hdBgFIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLgoKZXhwaXJlc19hdBgGIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAirwEKB1Nlc3Npb24SCgoCaWQYASABKAkSEgoKdXNlcl9hZ2VudBgCIAEoCRITCgtyZW1vdGVfYWRkchgDIAEoCRIuCgpjcmVhdGVkX2F0GAQgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIuCgpleHBpcmVzX2F0GAUgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIPCgdjdXJyZW50GAYgASgIIhYKFEdldFNlcnZlckluZm9SZXF1ZXN0IpYBChVHZXRTZXJ2ZXJJbmZvUmVzcG9uc2USDwoHdmVyc2lvbhgBIAEoCRIOCgZjb21taXQYAiABKAkSFgoOc2V0dXBfcmVxdWlyZWQYAyABKAgSFgoOcGFzc3dvcmRfbG9naW4YBCABKAgSFQoNcGFzc2tleV9sb2dpbhgFIAEoCBIVCg1pbnN0YW5jZV9uYW1lGAYgASgJIp4BChBCb290c3RyYXBSZXF1ZXN0EisKCHVzZXJuYW1lGAEgASgJQhm6SBZyFBACGCAyDl5bYS16MC05Ll8tXSskEh8KDGRpc3BsYXlfbmFtZRgCIAEoCUIJukgGcgQQARhAEhwKCHBhc3N3b3JkGAMgASgJQgq6SAdyBRAMGIACEh4KDWluc3RhbmNlX25hbWUYBCABKAlCB7pIBHICGEAiPgoRQm9vdHN0cmFwUmVzcG9uc2USKQoEdXNlchgBIAEoCzIbLmRpc2NvZmxpeC5pZGVudGl0eS52MS5Vc2VyIlUKGExvZ2luV2l0aFBhc3N3b3JkUmVxdWVzdBIbCgh1c2VybmFtZRgBIAEoCUIJukgGcgQQARggEhwKCHBhc3N3b3JkGAIgASgJQgq6SAdyBRABGIACIkYKGUxvZ2luV2l0aFBhc3N3b3JkUmVzcG9uc2USKQoEdXNlchgBIAEoCzIbLmRpc2NvZmxpeC5pZGVudGl0eS52MS5Vc2VyIg8KDUxvZ291dFJlcXVlc3QiEAoOTG9nb3V0UmVzcG9uc2UiDgoMR2V0TWVSZXF1ZXN0IqcBCg1HZXRNZVJlc3BvbnNlEikKBHVzZXIYASABKAsyGy5kaXNjb2ZsaXguaWRlbnRpdHkudjEuVXNlchIzCgppZGVudGl0aWVzGAIgAygLMh8uZGlzY29mbGl4LmlkZW50aXR5LnYxLklkZW50aXR5EjYKC21lbWJlcnNoaXBzGAMgAygLMiEuZGlzY29mbGl4LmlkZW50aXR5LnYxLk1lbWJlcnNoaXAiXwoVQ2hhbmdlUGFzc3dvcmRSZXF1ZXN0EiQKEGN1cnJlbnRfcGFzc3dvcmQYASABKAlCCrpIB3IFEAEYgAISIAoMbmV3X3Bhc3N3b3JkGAIgASgJQgq6SAdyBRAMGIACIhgKFkNoYW5nZVBhc3N3b3JkUmVzcG9uc2UiIQofQmVnaW5QYXNza2V5UmVnaXN0cmF0aW9uUmVxdWVzdCI4CiBCZWdpblBhc3NrZXlSZWdpc3RyYXRpb25SZXNwb25zZRIUCgxvcHRpb25zX2pzb24YASABKAwiXQogRmluaXNoUGFzc2tleVJlZ2lzdHJhdGlvblJlcXVlc3QSFwoEbmFtZRgBIAEoCUIJukgGcgQQARhAEiAKD2NyZWRlbnRpYWxfanNvbhgCIAEoDEIHukgEegIQASJUCiFGaW5pc2hQYXNza2V5UmVnaXN0cmF0aW9uUmVzcG9uc2USLwoHcGFzc2tleRgBIAEoCzIeLmRpc2NvZmxpeC5pZGVudGl0eS52MS5QYXNza2V5IhoKGEJlZ2luUGFzc2tleUxvZ2luUmVxdWVzdCJDChlCZWdpblBhc3NrZXlMb2dpblJlc3BvbnNlEhQKDG9wdGlvbnNfanNvbhgBIAEoDBIQCghjZXJlbW9ueRgCIAEoCSJYChlGaW5pc2hQYXNza2V5TG9naW5SZXF1ZXN0EhkKCGNlcmVtb255GAEgASgJQge6SARyAhABEiAKD2NyZWRlbnRpYWxfanNvbhgCIAEoDEIHukgEegIQASJHChpGaW5pc2hQYXNza2V5TG9naW5SZXNwb25zZRIpCgR1c2VyGAEgASgLMhsuZGlzY29mbGl4LmlkZW50aXR5LnYxLlVzZXIiFQoTTGlzdFBhc3NrZXlzUmVxdWVzdCJIChRMaXN0UGFzc2tleXNSZXNwb25zZRIwCghwYXNza2V5cxgBIAMoCzIeLmRpc2NvZmxpeC5pZGVudGl0eS52MS5QYXNza2V5IisKFERlbGV0ZVBhc3NrZXlSZXF1ZXN0EhMKAmlkGAEgASgJQge6SARyAhABIhcKFURlbGV0ZVBhc3NrZXlSZXNwb25zZSIUChJMaXN0QXBpS2V5c1JlcXVlc3QiRgoTTGlzdEFwaUtleXNSZXNwb25zZRIvCghhcGlfa2V5cxgBIAMoCzIdLmRpc2NvZmxpeC5pZGVudGl0eS52MS5BcGlLZXkiXgoTQ3JlYXRlQXBpS2V5UmVxdWVzdBIXCgRuYW1lGAEgASgJQgm6SAZyBBABGEASLgoKZXhwaXJlc19hdBgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAiVgoUQ3JlYXRlQXBpS2V5UmVzcG9uc2USLgoHYXBpX2tleRgBIAEoCzIdLmRpc2NvZmxpeC5pZGVudGl0eS52MS5BcGlLZXkSDgoGc2VjcmV0GAIgASgJIioKE1Jldm9rZUFwaUtleVJlcXVlc3QSEwoCaWQYASABKAlCB7pIBHICEAEiFgoUUmV2b2tlQXBpS2V5UmVzcG9uc2UiFQoTTGlzdFNlc3Npb25zUmVxdWVzdCJIChRMaXN0U2Vzc2lvbnNSZXNwb25zZRIwCghzZXNzaW9ucxgBIAMoCzIeLmRpc2NvZmxpeC5pZGVudGl0eS52MS5TZXNzaW9uIisKFFJldm9rZVNlc3Npb25SZXF1ZXN0EhMKAmlkGAEgASgJQge6SARyAhABIhcKFVJldm9rZVNlc3Npb25SZXNwb25zZSISChBMaXN0VXNlcnNSZXF1ZXN0Ij8KEUxpc3RVc2Vyc1Jlc3BvbnNlEioKBXVzZXJzGAEgAygLMhsuZGlzY29mbGl4LmlkZW50aXR5LnYxLlVzZXIikAEKEVVwZGF0ZVVzZXJSZXF1ZXN0EhMKAmlkGAEgASgJQge6SARyAhABEh0KDGRpc3BsYXlfbmFtZRgCIAEoCUIHukgEcgIYQBIxCgZzdGF0dXMYAyABKA4yIS5kaXNjb2ZsaXguaWRlbnRpdHkudjEuVXNlclN0YXR1cxIUCgxzeXN0ZW1fYWRtaW4YBCABKAgiPwoSVXBkYXRlVXNlclJlc3BvbnNlEikKBHVzZXIYASABKAsyGy5kaXNjb2ZsaXguaWRlbnRpdHkudjEuVXNlcip5CghVc2VyS2luZBIZChVVU0VSX0tJTkRfVU5TUEVDSUZJRUQQABIUChBVU0VSX0tJTkRfUEVSU09OEAESEQoNVVNFUl9LSU5EX0JPVBACEhQKEFVTRVJfS0lORF9QTFVHSU4QAxITCg9VU0VSX0tJTkRfQUdFTlQQBCpbCgpVc2VyU3RhdHVzEhsKF1VTRVJfU1RBVFVTX1VOU1BFQ0lGSUVEEAASFgoSVVNFUl9TVEFUVVNfQUNUSVZFEAESGAoUVVNFUl9TVEFUVVNfRElTQUJMRUQQAjL2FwoPSWRlbnRpdHlTZXJ2aWNlEscBCg1HZXRTZXJ2ZXJJbmZvEisuZGlzY29mbGl4LmlkZW50aXR5LnYxLkdldFNlcnZlckluZm9SZXF1ZXN0GiwuZGlzY29mbGl4LmlkZW50aXR5LnYxLkdldFNlcnZlckluZm9SZXNwb25zZSJborsYVwoLc2VydmVyLmluZm8QASgBMgtTZXJ2ZXIgaW5mbzo3VmVyc2lvbiBhbmQgc2lnbi1pbiBtZXRob2RzLCByZWFkYWJsZSBiZWZvcmUgc2lnbmluZyBpbhLIAQoJQm9vdHN0cmFwEicuZGlzY29mbGl4LmlkZW50aXR5LnYxLkJvb3RzdHJhcFJlcXVlc3QaKC5kaXNjb2ZsaXguaWRlbnRpdHkudjEuQm9vdHN0cmFwUmVzcG9uc2UiaKK7GGQKEHNlcnZlci5ib290c3RyYXAQAigBMglCb290c3RyYXA6QUNyZWF0ZSB0aGUgZmlyc3QgYWRtaW5pc3RyYXRvciwgYWxsb3dlZCBvbmx5IHdoaWxlIG5vIHVzZXIgZXhpc3RzEqcBChFMb2dpbldpdGhQYXNzd29yZBIvLmRpc2NvZmxpeC5pZGVudGl0eS52MS5Mb2dpbldpdGhQYXNzd29yZFJlcXVlc3QaMC5kaXNjb2ZsaXguaWRlbnRpdHkudjEuTG9naW5XaXRoUGFzc3dvcmRSZXNwb25zZSIvorsYKwoOc2Vzc2lvbi5jcmVhdGUQAigBMhVTaWduIGluIHdpdGggcGFzc3dvcmQSpwEKEUJlZ2luUGFzc2tleUxvZ2luEi8uZGlzY29mbGl4LmlkZW50aXR5LnYxLkJlZ2luUGFzc2tleUxvZ2luUmVxdWVzdBowLmRpc2NvZmxpeC5pZGVudGl0eS52MS5CZWdpblBhc3NrZXlMb2dpblJlc3BvbnNlIi+iuxgrCg5zZXNzaW9uLmNyZWF0ZRABKAEyFUJlZ2luIHBhc3NrZXkgc2lnbi1pbhKrAQoSRmluaXNoUGFzc2tleUxvZ2luEjAuZGlzY29mbGl4LmlkZW50aXR5LnYxLkZpbmlzaFBhc3NrZXlMb2dpblJlcXVlc3QaMS5kaXNjb2ZsaXguaWRlbnRpdHkudjEuRmluaXNoUGFzc2tleUxvZ2luUmVzcG9uc2UiMKK7GCwKDnNlc3Npb24uY3JlYXRlEAIoATIWRmluaXNoIHBhc3NrZXkgc2lnbi1pbhJ1CgZMb2dvdXQSJC5kaXNjb2ZsaXguaWRlbnRpdHkudjEuTG9nb3V0UmVxdWVzdBolLmRpc2NvZmxpeC5pZGVudGl0eS52MS5Mb2dvdXRSZXNwb25zZSIeorsYGgoMc2Vzc2lvbi5zZWxmEAIyCFNpZ24gb3V0EqIBCgVHZXRNZRIjLmRpc2NvZmxpeC5pZGVudGl0eS52MS5HZXRNZVJlcXVlc3QaJC5kaXNjb2ZsaXguaWRlbnRpdHkudjEuR2V0TWVSZXNwb25zZSJOorsYSgoMc2Vzc2lvbi5zZWxmEAEyCFdobyBhbSBJOi5UaGUgY2FsbGVyJ3MgdXNlciwgaWRlbnRpdGllcywgYW5kIG1lbWJlcnNoaXBzEpgBCg5DaGFuZ2VQYXNzd29yZBIsLmRpc2NvZmxpeC5pZGVudGl0eS52MS5DaGFuZ2VQYXNzd29yZFJlcXVlc3QaLS5kaXNjb2ZsaXguaWRlbnRpdHkudjEuQ2hhbmdlUGFzc3dvcmRSZXNwb25zZSIporsYJQoQY3JlZGVudGlhbHMuc2VsZhACMg9DaGFuZ2UgcGFzc3dvcmQSwQEKGEJlZ2luUGFzc2tleVJlZ2lzdHJhdGlvbhI2LmRpc2NvZmxpeC5pZGVudGl0eS52MS5CZWdpblBhc3NrZXlSZWdpc3RyYXRpb25SZXF1ZXN0GjcuZGlzY29mbGl4LmlkZW50aXR5LnYxLkJlZ2luUGFzc2tleVJlZ2lzdHJhdGlvblJlc3BvbnNlIjSiuxgwChBjcmVkZW50aWFscy5zZWxmEAEyGkJlZ2luIHBhc3NrZXkgcmVnaXN0cmF0aW9uEsUBChlGaW5pc2hQYXNza2V5UmVnaXN0cmF0aW9uEjcuZGlzY29mbGl4LmlkZW50aXR5LnYxLkZpbmlzaFBhc3NrZXlSZWdpc3RyYXRpb25SZXF1ZXN0GjguZGlzY29mbGl4LmlkZW50aXR5LnYxLkZpbmlzaFBhc3NrZXlSZWdpc3RyYXRpb25SZXNwb25zZSI1orsYMQoQY3JlZGVudGlhbHMuc2VsZhACMhtGaW5pc2ggcGFzc2tleSByZWdpc3RyYXRpb24SkAEKDExpc3RQYXNza2V5cxIqLmRpc2NvZmxpeC5pZGVudGl0eS52MS5MaXN0UGFzc2tleXNSZXF1ZXN0GisuZGlzY29mbGl4LmlkZW50aXR5LnYxLkxpc3RQYXNza2V5c1Jlc3BvbnNlIieiuxgjChBjcmVkZW50aWFscy5zZWxmEAEyDUxpc3QgcGFzc2tleXMSlAEKDURlbGV0ZVBhc3NrZXkSKy5kaXNjb2ZsaXguaWRlbnRpdHkudjEuRGVsZXRlUGFzc2tleVJlcXVlc3QaLC5kaXNjb2ZsaXguaWRlbnRpdHkudjEuRGVsZXRlUGFzc2tleVJlc3BvbnNlIiiiuxgkChBjcmVkZW50aWFscy5zZWxmEAMyDkRlbGV0ZSBwYXNza2V5Eo0BCgtMaXN0QXBpS2V5cxIpLmRpc2NvZmxpeC5pZGVudGl0eS52MS5MaXN0QXBpS2V5c1JlcXVlc3QaKi5kaXNjb2ZsaXguaWRlbnRpdHkudjEuTGlzdEFwaUtleXNSZXNwb25zZSInorsYIwoQY3JlZGVudGlhbHMuc2VsZhABMg1MaXN0IEFQSSBrZXlzEpEBCgxDcmVhdGVBcGlLZXkSKi5kaXNjb2ZsaXguaWRlbnRpdHkudjEuQ3JlYXRlQXBpS2V5UmVxdWVzdBorLmRpc2NvZmxpeC5pZGVudGl0eS52MS5DcmVhdGVBcGlLZXlSZXNwb25zZSIoorsYJAoQY3JlZGVudGlhbHMuc2VsZhACMg5DcmVhdGUgQVBJIGtleRKRAQoMUmV2b2tlQXBpS2V5EiouZGlzY29mbGl4LmlkZW50aXR5LnYxLlJldm9rZUFwaUtleVJlcXVlc3QaKy5kaXNjb2ZsaXguaWRlbnRpdHkudjEuUmV2b2tlQXBpS2V5UmVzcG9uc2UiKKK7GCQKEGNyZWRlbnRpYWxzLnNlbGYQAzIOUmV2b2tlIEFQSSBrZXkSjAEKDExpc3RTZXNzaW9ucxIqLmRpc2NvZmxpeC5pZGVudGl0eS52MS5MaXN0U2Vzc2lvbnNSZXF1ZXN0GisuZGlzY29mbGl4LmlkZW50aXR5LnYxLkxpc3RTZXNzaW9uc1Jlc3BvbnNlIiOiuxgfCgxzZXNzaW9uLnNlbGYQATINTGlzdCBzZXNzaW9ucxKQAQoNUmV2b2tlU2Vzc2lvbhIrLmRpc2NvZmxpeC5pZGVudGl0eS52MS5SZXZva2VTZXNzaW9uUmVxdWVzdBosLmRpc2NvZmxpeC5pZGVudGl0eS52MS5SZXZva2VTZXNzaW9uUmVzcG9uc2UiJKK7GCAKDHNlc3Npb24uc2VsZhADMg5SZXZva2Ugc2Vzc2lvbhJ/CglMaXN0VXNlcnMSJy5kaXNjb2ZsaXguaWRlbnRpdHkudjEuTGlzdFVzZXJzUmVxdWVzdBooLmRpc2NvZmxpeC5pZGVudGl0eS52MS5MaXN0VXNlcnNSZXNwb25zZSIforsYGwoLdXNlcnMuYWRtaW4QATIKTGlzdCB1c2VycxKDAQoKVXBkYXRlVXNlchIoLmRpc2NvZmxpeC5pZGVudGl0eS52MS5VcGRhdGVVc2VyUmVxdWVzdBopLmRpc2NvZmxpeC5pZGVudGl0eS52MS5VcGRhdGVVc2VyUmVzcG9uc2UiIKK7GBwKC3VzZXJzLmFkbWluEAIyC1VwZGF0ZSB1c2VyQvABChljb20uZGlzY29mbGl4LmlkZW50aXR5LnYxQg1JZGVudGl0eVByb3RvUAFaSWdpdGh1Yi5jb20vbmlja2hleWVyL0Rpc2NvRmxpeC9zZGsvZ28vcGIvZGlzY29mbGl4L2lkZW50aXR5L3YxO2lkZW50aXR5djGiAgNESViqAhVEaXNjb2ZsaXguSWRlbnRpdHkuVjHKAhVEaXNjb2ZsaXhcSWRlbnRpdHlcVjHiAiFEaXNjb2ZsaXhcSWRlbnRpdHlcVjFcR1BCTWV0YWRhdGHqAhdEaXNjb2ZsaXg6OklkZW50aXR5OjpWMZIDAggCYghlZGl0aW9uc3DoBw", [file_buf_validate_validate, file_discoflix_capability_v1_options, file_google_protobuf_timestamp]);
+  fileDesc("CiRkaXNjb2ZsaXgvaWRlbnRpdHkvdjEvaWRlbnRpdHkucHJvdG8SFWRpc2NvZmxpeC5pZGVudGl0eS52MSKsAgoEVXNlchIKCgJpZBgBIAEoCRIUCgxkaXNwbGF5X25hbWUYAiABKAkSEgoKYXZhdGFyX3VybBgDIAEoCRIUCgxhY2NlbnRfY29sb3IYBCABKAkSLQoEa2luZBgFIAEoDjIfLmRpc2NvZmxpeC5pZGVudGl0eS52MS5Vc2VyS2luZBIxCgZzdGF0dXMYBiABKA4yIS5kaXNjb2ZsaXguaWRlbnRpdHkudjEuVXNlclN0YXR1cxIUCgxzeXN0ZW1fYWRtaW4YByABKAgSLgoKY3JlYXRlZF9hdBgIIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASMAoMbGFzdF9zZWVuX2F0GAkgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCKqAQoISWRlbnRpdHkSCgoCaWQYASABKAkSEAoIcHJvdmlkZXIYAiABKAkSDwoHc3ViamVjdBgDIAEoCRIPCgdkaXNwbGF5GAQgASgJEi8KC3ZlcmlmaWVkX2F0GAUgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBItCglsaW5rZWRfYXQYBiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wIi0KCk1lbWJlcnNoaXASEAoIc3BhY2VfaWQYASABKAkSDQoFcm9sZXMYAiADKAkingEKB1Bhc3NrZXkSCgoCaWQYASABKAkSDAoEbmFtZRgCIAEoCRIuCgpjcmVhdGVkX2F0GAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIwCgxsYXN0X3VzZWRfYXQYBCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEhcKD2JhY2t1cF9lbGlnaWJsZRgFIAEoCCLEAQoGQXBpS2V5EgoKAmlkGAEgASgJEgwKBG5hbWUYAiABKAkSDgoGcHJlZml4GAMgASgJEi4KCmNyZWF0ZWRfYXQYBCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEjAKDGxhc3RfdXNlZF9hdBgFIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLgoKZXhwaXJlc19hdBgGIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAirwEKB1Nlc3Npb24SCgoCaWQYASABKAkSEgoKdXNlcl9hZ2VudBgCIAEoCRITCgtyZW1vdGVfYWRkchgDIAEoCRIuCgpjcmVhdGVkX2F0GAQgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIuCgpleHBpcmVzX2F0GAUgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIPCgdjdXJyZW50GAYgASgIIhYKFEdldFNlcnZlckluZm9SZXF1ZXN0Iq0BChVHZXRTZXJ2ZXJJbmZvUmVzcG9uc2USDwoHdmVyc2lvbhgBIAEoCRIOCgZjb21taXQYAiABKAkSFgoOc2V0dXBfcmVxdWlyZWQYAyABKAgSFgoOcGFzc3dvcmRfbG9naW4YBCABKAgSFQoNcGFzc2tleV9sb2dpbhgFIAEoCBIVCg1pbnN0YW5jZV9uYW1lGAYgASgJEhUKDWRpc2NvcmRfbG9naW4YByABKAgingEKEEJvb3RzdHJhcFJlcXVlc3QSKwoIdXNlcm5hbWUYASABKAlCGbpIFnIUEAIYIDIOXlthLXowLTkuXy1dKyQSHwoMZGlzcGxheV9uYW1lGAIgASgJQgm6SAZyBBABGEASHAoIcGFzc3dvcmQYAyABKAlCCrpIB3IFEAwYgAISHgoNaW5zdGFuY2VfbmFtZRgEIAEoCUIHukgEcgIYQCI+ChFCb290c3RyYXBSZXNwb25zZRIpCgR1c2VyGAEgASgLMhsuZGlzY29mbGl4LmlkZW50aXR5LnYxLlVzZXIiVQoYTG9naW5XaXRoUGFzc3dvcmRSZXF1ZXN0EhsKCHVzZXJuYW1lGAEgASgJQgm6SAZyBBABGCASHAoIcGFzc3dvcmQYAiABKAlCCrpIB3IFEAEYgAIiRgoZTG9naW5XaXRoUGFzc3dvcmRSZXNwb25zZRIpCgR1c2VyGAEgASgLMhsuZGlzY29mbGl4LmlkZW50aXR5LnYxLlVzZXIiDwoNTG9nb3V0UmVxdWVzdCIQCg5Mb2dvdXRSZXNwb25zZSIOCgxHZXRNZVJlcXVlc3QipwEKDUdldE1lUmVzcG9uc2USKQoEdXNlchgBIAEoCzIbLmRpc2NvZmxpeC5pZGVudGl0eS52MS5Vc2VyEjMKCmlkZW50aXRpZXMYAiADKAsyHy5kaXNjb2ZsaXguaWRlbnRpdHkudjEuSWRlbnRpdHkSNgoLbWVtYmVyc2hpcHMYAyADKAsyIS5kaXNjb2ZsaXguaWRlbnRpdHkudjEuTWVtYmVyc2hpcCJfChVDaGFuZ2VQYXNzd29yZFJlcXVlc3QSJAoQY3VycmVudF9wYXNzd29yZBgBIAEoCUIKukgHcgUQARiAAhIgCgxuZXdfcGFzc3dvcmQYAiABKAlCCrpIB3IFEAwYgAIiGAoWQ2hhbmdlUGFzc3dvcmRSZXNwb25zZSIhCh9CZWdpblBhc3NrZXlSZWdpc3RyYXRpb25SZXF1ZXN0IjgKIEJlZ2luUGFzc2tleVJlZ2lzdHJhdGlvblJlc3BvbnNlEhQKDG9wdGlvbnNfanNvbhgBIAEoDCJdCiBGaW5pc2hQYXNza2V5UmVnaXN0cmF0aW9uUmVxdWVzdBIXCgRuYW1lGAEgASgJQgm6SAZyBBABGEASIAoPY3JlZGVudGlhbF9qc29uGAIgASgMQge6SAR6AhABIlQKIUZpbmlzaFBhc3NrZXlSZWdpc3RyYXRpb25SZXNwb25zZRIvCgdwYXNza2V5GAEgASgLMh4uZGlzY29mbGl4LmlkZW50aXR5LnYxLlBhc3NrZXkiGgoYQmVnaW5QYXNza2V5TG9naW5SZXF1ZXN0IkMKGUJlZ2luUGFzc2tleUxvZ2luUmVzcG9uc2USFAoMb3B0aW9uc19qc29uGAEgASgMEhAKCGNlcmVtb255GAIgASgJIlgKGUZpbmlzaFBhc3NrZXlMb2dpblJlcXVlc3QSGQoIY2VyZW1vbnkYASABKAlCB7pIBHICEAESIAoPY3JlZGVudGlhbF9qc29uGAIgASgMQge6SAR6AhABIkcKGkZpbmlzaFBhc3NrZXlMb2dpblJlc3BvbnNlEikKBHVzZXIYASABKAsyGy5kaXNjb2ZsaXguaWRlbnRpdHkudjEuVXNlciIVChNMaXN0UGFzc2tleXNSZXF1ZXN0IkgKFExpc3RQYXNza2V5c1Jlc3BvbnNlEjAKCHBhc3NrZXlzGAEgAygLMh4uZGlzY29mbGl4LmlkZW50aXR5LnYxLlBhc3NrZXkiKwoURGVsZXRlUGFzc2tleVJlcXVlc3QSEwoCaWQYASABKAlCB7pIBHICEAEiFwoVRGVsZXRlUGFzc2tleVJlc3BvbnNlIhQKEkxpc3RBcGlLZXlzUmVxdWVzdCJGChNMaXN0QXBpS2V5c1Jlc3BvbnNlEi8KCGFwaV9rZXlzGAEgAygLMh0uZGlzY29mbGl4LmlkZW50aXR5LnYxLkFwaUtleSJeChNDcmVhdGVBcGlLZXlSZXF1ZXN0EhcKBG5hbWUYASABKAlCCbpIBnIEEAEYQBIuCgpleHBpcmVzX2F0GAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCJWChRDcmVhdGVBcGlLZXlSZXNwb25zZRIuCgdhcGlfa2V5GAEgASgLMh0uZGlzY29mbGl4LmlkZW50aXR5LnYxLkFwaUtleRIOCgZzZWNyZXQYAiABKAkiKgoTUmV2b2tlQXBpS2V5UmVxdWVzdBITCgJpZBgBIAEoCUIHukgEcgIQASIWChRSZXZva2VBcGlLZXlSZXNwb25zZSIVChNMaXN0U2Vzc2lvbnNSZXF1ZXN0IkgKFExpc3RTZXNzaW9uc1Jlc3BvbnNlEjAKCHNlc3Npb25zGAEgAygLMh4uZGlzY29mbGl4LmlkZW50aXR5LnYxLlNlc3Npb24iKwoUUmV2b2tlU2Vzc2lvblJlcXVlc3QSEwoCaWQYASABKAlCB7pIBHICEAEiFwoVUmV2b2tlU2Vzc2lvblJlc3BvbnNlIhIKEExpc3RVc2Vyc1JlcXVlc3QiPwoRTGlzdFVzZXJzUmVzcG9uc2USKgoFdXNlcnMYASADKAsyGy5kaXNjb2ZsaXguaWRlbnRpdHkudjEuVXNlciKQAQoRVXBkYXRlVXNlclJlcXVlc3QSEwoCaWQYASABKAlCB7pIBHICEAESHQoMZGlzcGxheV9uYW1lGAIgASgJQge6SARyAhhAEjEKBnN0YXR1cxgDIAEoDjIhLmRpc2NvZmxpeC5pZGVudGl0eS52MS5Vc2VyU3RhdHVzEhQKDHN5c3RlbV9hZG1pbhgEIAEoCCI/ChJVcGRhdGVVc2VyUmVzcG9uc2USKQoEdXNlchgBIAEoCzIbLmRpc2NvZmxpeC5pZGVudGl0eS52MS5Vc2VyIiwKFVVubGlua0lkZW50aXR5UmVxdWVzdBITCgJpZBgBIAEoCUIHukgEcgIQASIYChZVbmxpbmtJZGVudGl0eVJlc3BvbnNlIhcKFUNyZWF0ZUxpbmtDb2RlUmVxdWVzdCJVChZDcmVhdGVMaW5rQ29kZVJlc3BvbnNlEgsKA3VybBgBIAEoCRIuCgpleHBpcmVzX2F0GAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCIxChVGaW5pc2hMaW5rQ29kZVJlcXVlc3QSGAoEY29kZRgBIAEoCUIKukgHcgUQARiAASJbChZGaW5pc2hMaW5rQ29kZVJlc3BvbnNlEjEKCGlkZW50aXR5GAEgASgLMh8uZGlzY29mbGl4LmlkZW50aXR5LnYxLklkZW50aXR5Eg4KBm1lcmdlZBgCIAEoCCLGAQobQ3JlYXRlU2VydmljZUFjY291bnRSZXF1ZXN0Eh8KDGRpc3BsYXlfbmFtZRgBIAEoCUIJukgGcgQQARhAEjkKBGtpbmQYAiABKA4yHy5kaXNjb2ZsaXguaWRlbnRpdHkudjEuVXNlcktpbmRCCrpIB4IBBBgCGAQSGwoIa2V5X25hbWUYAyABKAlCCbpIBnIEEAEYQBIuCgpleHBpcmVzX2F0GAQgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCKJAQocQ3JlYXRlU2VydmljZUFjY291bnRSZXNwb25zZRIpCgR1c2VyGAEgASgLMhsuZGlzY29mbGl4LmlkZW50aXR5LnYxLlVzZXISLgoHYXBpX2tleRgCIAEoCzIdLmRpc2NvZmxpeC5pZGVudGl0eS52MS5BcGlLZXkSDgoGc2VjcmV0GAMgASgJItgBCglVc2VyTWVyZ2USCgoCaWQYASABKAkSLgoJZnJvbV91c2VyGAIgASgLMhsuZGlzY29mbGl4LmlkZW50aXR5LnYxLlVzZXISLgoJaW50b191c2VyGAMgASgLMhsuZGlzY29mbGl4LmlkZW50aXR5LnYxLlVzZXISLgoKY3JlYXRlZF9hdBgEIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLwoLcmV2ZXJ0ZWRfYXQYBSABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wIhcKFUxpc3RVc2VyTWVyZ2VzUmVxdWVzdCJKChZMaXN0VXNlck1lcmdlc1Jlc3BvbnNlEjAKBm1lcmdlcxgBIAMoCzIgLmRpc2NvZmxpeC5pZGVudGl0eS52MS5Vc2VyTWVyZ2UiLQoWUmV2ZXJ0VXNlck1lcmdlUmVxdWVzdBITCgJpZBgBIAEoCUIHukgEcgIQASIZChdSZXZlcnRVc2VyTWVyZ2VSZXNwb25zZSp5CghVc2VyS2luZBIZChVVU0VSX0tJTkRfVU5TUEVDSUZJRUQQABIUChBVU0VSX0tJTkRfUEVSU09OEAESEQoNVVNFUl9LSU5EX0JPVBACEhQKEFVTRVJfS0lORF9QTFVHSU4QAxITCg9VU0VSX0tJTkRfQUdFTlQQBCpbCgpVc2VyU3RhdHVzEhsKF1VTRVJfU1RBVFVTX1VOU1BFQ0lGSUVEEAASFgoSVVNFUl9TVEFUVVNfQUNUSVZFEAESGAoUVVNFUl9TVEFUVVNfRElTQUJMRUQQAjK5IgoPSWRlbnRpdHlTZXJ2aWNlEs8BCg1HZXRTZXJ2ZXJJbmZvEisuZGlzY29mbGl4LmlkZW50aXR5LnYxLkdldFNlcnZlckluZm9SZXF1ZXN0GiwuZGlzY29mbGl4LmlkZW50aXR5LnYxLkdldFNlcnZlckluZm9SZXNwb25zZSJjorsYXwoLc2VydmVyLmluZm8QASgBMgtTZXJ2ZXIgaW5mbzo3VmVyc2lvbiBhbmQgc2lnbi1pbiBtZXRob2RzLCByZWFkYWJsZSBiZWZvcmUgc2lnbmluZyBpbkIGc3RhdHVzEsgBCglCb290c3RyYXASJy5kaXNjb2ZsaXguaWRlbnRpdHkudjEuQm9vdHN0cmFwUmVxdWVzdBooLmRpc2NvZmxpeC5pZGVudGl0eS52MS5Cb290c3RyYXBSZXNwb25zZSJoorsYZAoQc2VydmVyLmJvb3RzdHJhcBACKAEyCUJvb3RzdHJhcDpBQ3JlYXRlIHRoZSBmaXJzdCBhZG1pbmlzdHJhdG9yLCBhbGxvd2VkIG9ubHkgd2hpbGUgbm8gdXNlciBleGlzdHMSpwEKEUxvZ2luV2l0aFBhc3N3b3JkEi8uZGlzY29mbGl4LmlkZW50aXR5LnYxLkxvZ2luV2l0aFBhc3N3b3JkUmVxdWVzdBowLmRpc2NvZmxpeC5pZGVudGl0eS52MS5Mb2dpbldpdGhQYXNzd29yZFJlc3BvbnNlIi+iuxgrCg5zZXNzaW9uLmNyZWF0ZRACKAEyFVNpZ24gaW4gd2l0aCBwYXNzd29yZBKnAQoRQmVnaW5QYXNza2V5TG9naW4SLy5kaXNjb2ZsaXguaWRlbnRpdHkudjEuQmVnaW5QYXNza2V5TG9naW5SZXF1ZXN0GjAuZGlzY29mbGl4LmlkZW50aXR5LnYxLkJlZ2luUGFzc2tleUxvZ2luUmVzcG9uc2UiL6K7GCsKDnNlc3Npb24uY3JlYXRlEAEoATIVQmVnaW4gcGFzc2tleSBzaWduLWluEqsBChJGaW5pc2hQYXNza2V5TG9naW4SMC5kaXNjb2ZsaXguaWRlbnRpdHkudjEuRmluaXNoUGFzc2tleUxvZ2luUmVxdWVzdBoxLmRpc2NvZmxpeC5pZGVudGl0eS52MS5GaW5pc2hQYXNza2V5TG9naW5SZXNwb25zZSIworsYLAoOc2Vzc2lvbi5jcmVhdGUQAigBMhZGaW5pc2ggcGFzc2tleSBzaWduLWluEnUKBkxvZ291dBIkLmRpc2NvZmxpeC5pZGVudGl0eS52MS5Mb2dvdXRSZXF1ZXN0GiUuZGlzY29mbGl4LmlkZW50aXR5LnYxLkxvZ291dFJlc3BvbnNlIh6iuxgaCgxzZXNzaW9uLnNlbGYQAjIIU2lnbiBvdXQSqgEKBUdldE1lEiMuZGlzY29mbGl4LmlkZW50aXR5LnYxLkdldE1lUmVxdWVzdBokLmRpc2NvZmxpeC5pZGVudGl0eS52MS5HZXRNZVJlc3BvbnNlIlaiuxhSCgxzZXNzaW9uLnNlbGYQATIIV2hvIGFtIEk6LlRoZSBjYWxsZXIncyB1c2VyLCBpZGVudGl0aWVzLCBhbmQgbWVtYmVyc2hpcHNCBndob2FtaRKYAQoOQ2hhbmdlUGFzc3dvcmQSLC5kaXNjb2ZsaXguaWRlbnRpdHkudjEuQ2hhbmdlUGFzc3dvcmRSZXF1ZXN0Gi0uZGlzY29mbGl4LmlkZW50aXR5LnYxLkNoYW5nZVBhc3N3b3JkUmVzcG9uc2UiKaK7GCUKEGNyZWRlbnRpYWxzLnNlbGYQAjIPQ2hhbmdlIHBhc3N3b3JkEsEBChhCZWdpblBhc3NrZXlSZWdpc3RyYXRpb24SNi5kaXNjb2ZsaXguaWRlbnRpdHkudjEuQmVnaW5QYXNza2V5UmVnaXN0cmF0aW9uUmVxdWVzdBo3LmRpc2NvZmxpeC5pZGVudGl0eS52MS5CZWdpblBhc3NrZXlSZWdpc3RyYXRpb25SZXNwb25zZSI0orsYMAoQY3JlZGVudGlhbHMuc2VsZhABMhpCZWdpbiBwYXNza2V5IHJlZ2lzdHJhdGlvbhLFAQoZRmluaXNoUGFzc2tleVJlZ2lzdHJhdGlvbhI3LmRpc2NvZmxpeC5pZGVudGl0eS52MS5GaW5pc2hQYXNza2V5UmVnaXN0cmF0aW9uUmVxdWVzdBo4LmRpc2NvZmxpeC5pZGVudGl0eS52MS5GaW5pc2hQYXNza2V5UmVnaXN0cmF0aW9uUmVzcG9uc2UiNaK7GDEKEGNyZWRlbnRpYWxzLnNlbGYQAjIbRmluaXNoIHBhc3NrZXkgcmVnaXN0cmF0aW9uEpABCgxMaXN0UGFzc2tleXMSKi5kaXNjb2ZsaXguaWRlbnRpdHkudjEuTGlzdFBhc3NrZXlzUmVxdWVzdBorLmRpc2NvZmxpeC5pZGVudGl0eS52MS5MaXN0UGFzc2tleXNSZXNwb25zZSInorsYIwoQY3JlZGVudGlhbHMuc2VsZhABMg1MaXN0IHBhc3NrZXlzEpQBCg1EZWxldGVQYXNza2V5EisuZGlzY29mbGl4LmlkZW50aXR5LnYxLkRlbGV0ZVBhc3NrZXlSZXF1ZXN0GiwuZGlzY29mbGl4LmlkZW50aXR5LnYxLkRlbGV0ZVBhc3NrZXlSZXNwb25zZSIoorsYJAoQY3JlZGVudGlhbHMuc2VsZhADMg5EZWxldGUgcGFzc2tleRKNAQoLTGlzdEFwaUtleXMSKS5kaXNjb2ZsaXguaWRlbnRpdHkudjEuTGlzdEFwaUtleXNSZXF1ZXN0GiouZGlzY29mbGl4LmlkZW50aXR5LnYxLkxpc3RBcGlLZXlzUmVzcG9uc2UiJ6K7GCMKEGNyZWRlbnRpYWxzLnNlbGYQATINTGlzdCBBUEkga2V5cxKRAQoMQ3JlYXRlQXBpS2V5EiouZGlzY29mbGl4LmlkZW50aXR5LnYxLkNyZWF0ZUFwaUtleVJlcXVlc3QaKy5kaXNjb2ZsaXguaWRlbnRpdHkudjEuQ3JlYXRlQXBpS2V5UmVzcG9uc2UiKKK7GCQKEGNyZWRlbnRpYWxzLnNlbGYQAjIOQ3JlYXRlIEFQSSBrZXkSkQEKDFJldm9rZUFwaUtleRIqLmRpc2NvZmxpeC5pZGVudGl0eS52MS5SZXZva2VBcGlLZXlSZXF1ZXN0GisuZGlzY29mbGl4LmlkZW50aXR5LnYxLlJldm9rZUFwaUtleVJlc3BvbnNlIiiiuxgkChBjcmVkZW50aWFscy5zZWxmEAMyDlJldm9rZSBBUEkga2V5EowBCgxMaXN0U2Vzc2lvbnMSKi5kaXNjb2ZsaXguaWRlbnRpdHkudjEuTGlzdFNlc3Npb25zUmVxdWVzdBorLmRpc2NvZmxpeC5pZGVudGl0eS52MS5MaXN0U2Vzc2lvbnNSZXNwb25zZSIjorsYHwoMc2Vzc2lvbi5zZWxmEAEyDUxpc3Qgc2Vzc2lvbnMSkAEKDVJldm9rZVNlc3Npb24SKy5kaXNjb2ZsaXguaWRlbnRpdHkudjEuUmV2b2tlU2Vzc2lvblJlcXVlc3QaLC5kaXNjb2ZsaXguaWRlbnRpdHkudjEuUmV2b2tlU2Vzc2lvblJlc3BvbnNlIiSiuxggCgxzZXNzaW9uLnNlbGYQAzIOUmV2b2tlIHNlc3Npb24SfwoJTGlzdFVzZXJzEicuZGlzY29mbGl4LmlkZW50aXR5LnYxLkxpc3RVc2Vyc1JlcXVlc3QaKC5kaXNjb2ZsaXguaWRlbnRpdHkudjEuTGlzdFVzZXJzUmVzcG9uc2UiH6K7GBsKC3VzZXJzLmFkbWluEAEyCkxpc3QgdXNlcnMSgwEKClVwZGF0ZVVzZXISKC5kaXNjb2ZsaXguaWRlbnRpdHkudjEuVXBkYXRlVXNlclJlcXVlc3QaKS5kaXNjb2ZsaXguaWRlbnRpdHkudjEuVXBkYXRlVXNlclJlc3BvbnNlIiCiuxgcCgt1c2Vycy5hZG1pbhACMgtVcGRhdGUgdXNlchLWAQoOVW5saW5rSWRlbnRpdHkSLC5kaXNjb2ZsaXguaWRlbnRpdHkudjEuVW5saW5rSWRlbnRpdHlSZXF1ZXN0Gi0uZGlzY29mbGl4LmlkZW50aXR5LnYxLlVubGlua0lkZW50aXR5UmVzcG9uc2UiZ6K7GGMKEGNyZWRlbnRpYWxzLnNlbGYQAzIPVW5saW5rIGlkZW50aXR5OjxEZXRhY2ggYSBsaW5rZWQgYWNjb3VudCwga2VlcGluZyBhdCBsZWFzdCBvbmUgd2F5IHRvIHNpZ24gaW4ShAIKDkNyZWF0ZUxpbmtDb2RlEiwuZGlzY29mbGl4LmlkZW50aXR5LnYxLkNyZWF0ZUxpbmtDb2RlUmVxdWVzdBotLmRpc2NvZmxpeC5pZGVudGl0eS52MS5DcmVhdGVMaW5rQ29kZVJlc3BvbnNlIpQBorsYjwEKDWlkZW50aXR5LmxpbmsQAjIZTGluayB0aGlzIERpc2NvcmQgYWNjb3VudDpbR2V0IGEgb25lLXRpbWUgbGluayB0aGF0IGF0dGFjaGVzIHlvdXIgRGlzY29yZCBhY2NvdW50IHRvIHRoZSBEaXNjb0ZsaXggdXNlciB5b3Ugc2lnbiBpbiBhc0IEbGluaxLlAQoORmluaXNoTGlua0NvZGUSLC5kaXNjb2ZsaXguaWRlbnRpdHkudjEuRmluaXNoTGlua0NvZGVSZXF1ZXN0Gi0uZGlzY29mbGl4LmlkZW50aXR5LnYxLkZpbmlzaExpbmtDb2RlUmVzcG9uc2UidqK7GHIKEGNyZWRlbnRpYWxzLnNlbGYQAjILRmluaXNoIGxpbms6T1JlZGVlbSBhIGxpbmsgY29kZSBzbyB0aGUgRGlzY29yZCBhY2NvdW50IHRoYXQgY3JlYXRlZCBpdCBiZWxvbmdzIHRvIHRoZSBjYWxsZXISiAIKFENyZWF0ZVNlcnZpY2VBY2NvdW50EjIuZGlzY29mbGl4LmlkZW50aXR5LnYxLkNyZWF0ZVNlcnZpY2VBY2NvdW50UmVxdWVzdBozLmRpc2NvZmxpeC5pZGVudGl0eS52MS5DcmVhdGVTZXJ2aWNlQWNjb3VudFJlc3BvbnNlIoYBorsYgQEKC3VzZXJzLmFkbWluEAIyFkNyZWF0ZSBzZXJ2aWNlIGFjY291bnQ6WENyZWF0ZSBhIGJvdCBvciBhZ2VudCB1c2VyIHdpdGggYW4gQVBJIGtleSwgZGVzdHJ1Y3RpdmUgY2FsbHMgaXQgbWFrZXMgd2FpdCBmb3IgYXBwcm92YWwSlAEKDkxpc3RVc2VyTWVyZ2VzEiwuZGlzY29mbGl4LmlkZW50aXR5LnYxLkxpc3RVc2VyTWVyZ2VzUmVxdWVzdBotLmRpc2NvZmxpeC5pZGVudGl0eS52MS5MaXN0VXNlck1lcmdlc1Jlc3BvbnNlIiWiuxghCgt1c2Vycy5hZG1pbhABMhBMaXN0IHVzZXIgbWVyZ2VzEsYBCg9SZXZlcnRVc2VyTWVyZ2USLS5kaXNjb2ZsaXguaWRlbnRpdHkudjEuUmV2ZXJ0VXNlck1lcmdlUmVxdWVzdBouLmRpc2NvZmxpeC5pZGVudGl0eS52MS5SZXZlcnRVc2VyTWVyZ2VSZXNwb25zZSJUorsYUAoLdXNlcnMuYWRtaW4QAjIRUmV2ZXJ0IHVzZXIgbWVyZ2U6LFNwbGl0IHR3byB1c2VycyB0aGF0IGlkZW50aXR5IGxpbmtpbmcgbWVyZ2VkQvABChljb20uZGlzY29mbGl4LmlkZW50aXR5LnYxQg1JZGVudGl0eVByb3RvUAFaSWdpdGh1Yi5jb20vbmlja2hleWVyL0Rpc2NvRmxpeC9zZGsvZ28vcGIvZGlzY29mbGl4L2lkZW50aXR5L3YxO2lkZW50aXR5djGiAgNESViqAhVEaXNjb2ZsaXguSWRlbnRpdHkuVjHKAhVEaXNjb2ZsaXhcSWRlbnRpdHlcVjHiAiFEaXNjb2ZsaXhcSWRlbnRpdHlcVjFcR1BCTWV0YWRhdGHqAhdEaXNjb2ZsaXg6OklkZW50aXR5OjpWMZIDAggCYghlZGl0aW9uc3DoBw", [file_buf_validate_validate, file_discoflix_capability_v1_options, file_google_protobuf_timestamp]);
 
 /**
  * @generated from message discoflix.identity.v1.User
@@ -521,6 +521,13 @@ export type GetServerInfoResponse = Message<"discoflix.identity.v1.GetServerInfo
    * @generated from field: string instance_name = 6;
    */
   instanceName: string;
+
+  /**
+   * Discord sign-in is configured, the browser starts it at /auth/discord/start
+   *
+   * @generated from field: bool discord_login = 7;
+   */
+  discordLogin: boolean;
 };
 
 /**
@@ -558,6 +565,13 @@ export type GetServerInfoResponseJson = {
    * @generated from field: string instance_name = 6;
    */
   instanceName?: string;
+
+  /**
+   * Discord sign-in is configured, the browser starts it at /auth/discord/start
+   *
+   * @generated from field: bool discord_login = 7;
+   */
+  discordLogin?: boolean;
 };
 
 /**
@@ -1610,6 +1624,451 @@ export const UpdateUserResponseSchema: GenMessage<UpdateUserResponse, {jsonType:
   messageDesc(file_discoflix_identity_v1_identity, 43);
 
 /**
+ * @generated from message discoflix.identity.v1.UnlinkIdentityRequest
+ */
+export type UnlinkIdentityRequest = Message<"discoflix.identity.v1.UnlinkIdentityRequest"> & {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id: string;
+};
+
+/**
+ * @generated from message discoflix.identity.v1.UnlinkIdentityRequest
+ */
+export type UnlinkIdentityRequestJson = {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id?: string;
+};
+
+/**
+ * Describes the message discoflix.identity.v1.UnlinkIdentityRequest.
+ * Use `create(UnlinkIdentityRequestSchema)` to create a new message.
+ */
+export const UnlinkIdentityRequestSchema: GenMessage<UnlinkIdentityRequest, {jsonType: UnlinkIdentityRequestJson}> = /*@__PURE__*/
+  messageDesc(file_discoflix_identity_v1_identity, 44);
+
+/**
+ * @generated from message discoflix.identity.v1.UnlinkIdentityResponse
+ */
+export type UnlinkIdentityResponse = Message<"discoflix.identity.v1.UnlinkIdentityResponse"> & {
+};
+
+/**
+ * @generated from message discoflix.identity.v1.UnlinkIdentityResponse
+ */
+export type UnlinkIdentityResponseJson = {
+};
+
+/**
+ * Describes the message discoflix.identity.v1.UnlinkIdentityResponse.
+ * Use `create(UnlinkIdentityResponseSchema)` to create a new message.
+ */
+export const UnlinkIdentityResponseSchema: GenMessage<UnlinkIdentityResponse, {jsonType: UnlinkIdentityResponseJson}> = /*@__PURE__*/
+  messageDesc(file_discoflix_identity_v1_identity, 45);
+
+/**
+ * @generated from message discoflix.identity.v1.CreateLinkCodeRequest
+ */
+export type CreateLinkCodeRequest = Message<"discoflix.identity.v1.CreateLinkCodeRequest"> & {
+};
+
+/**
+ * @generated from message discoflix.identity.v1.CreateLinkCodeRequest
+ */
+export type CreateLinkCodeRequestJson = {
+};
+
+/**
+ * Describes the message discoflix.identity.v1.CreateLinkCodeRequest.
+ * Use `create(CreateLinkCodeRequestSchema)` to create a new message.
+ */
+export const CreateLinkCodeRequestSchema: GenMessage<CreateLinkCodeRequest, {jsonType: CreateLinkCodeRequestJson}> = /*@__PURE__*/
+  messageDesc(file_discoflix_identity_v1_identity, 46);
+
+/**
+ * @generated from message discoflix.identity.v1.CreateLinkCodeResponse
+ */
+export type CreateLinkCodeResponse = Message<"discoflix.identity.v1.CreateLinkCodeResponse"> & {
+  /**
+   * Open this in a browser while signed in to attach the caller's Discord account to that user
+   *
+   * @generated from field: string url = 1;
+   */
+  url: string;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp expires_at = 2;
+   */
+  expiresAt?: Timestamp | undefined;
+};
+
+/**
+ * @generated from message discoflix.identity.v1.CreateLinkCodeResponse
+ */
+export type CreateLinkCodeResponseJson = {
+  /**
+   * Open this in a browser while signed in to attach the caller's Discord account to that user
+   *
+   * @generated from field: string url = 1;
+   */
+  url?: string;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp expires_at = 2;
+   */
+  expiresAt?: TimestampJson;
+};
+
+/**
+ * Describes the message discoflix.identity.v1.CreateLinkCodeResponse.
+ * Use `create(CreateLinkCodeResponseSchema)` to create a new message.
+ */
+export const CreateLinkCodeResponseSchema: GenMessage<CreateLinkCodeResponse, {jsonType: CreateLinkCodeResponseJson}> = /*@__PURE__*/
+  messageDesc(file_discoflix_identity_v1_identity, 47);
+
+/**
+ * @generated from message discoflix.identity.v1.FinishLinkCodeRequest
+ */
+export type FinishLinkCodeRequest = Message<"discoflix.identity.v1.FinishLinkCodeRequest"> & {
+  /**
+   * @generated from field: string code = 1;
+   */
+  code: string;
+};
+
+/**
+ * @generated from message discoflix.identity.v1.FinishLinkCodeRequest
+ */
+export type FinishLinkCodeRequestJson = {
+  /**
+   * @generated from field: string code = 1;
+   */
+  code?: string;
+};
+
+/**
+ * Describes the message discoflix.identity.v1.FinishLinkCodeRequest.
+ * Use `create(FinishLinkCodeRequestSchema)` to create a new message.
+ */
+export const FinishLinkCodeRequestSchema: GenMessage<FinishLinkCodeRequest, {jsonType: FinishLinkCodeRequestJson}> = /*@__PURE__*/
+  messageDesc(file_discoflix_identity_v1_identity, 48);
+
+/**
+ * @generated from message discoflix.identity.v1.FinishLinkCodeResponse
+ */
+export type FinishLinkCodeResponse = Message<"discoflix.identity.v1.FinishLinkCodeResponse"> & {
+  /**
+   * @generated from field: discoflix.identity.v1.Identity identity = 1;
+   */
+  identity?: Identity | undefined;
+
+  /**
+   * True when the Discord user already had a row that was merged into the caller
+   *
+   * @generated from field: bool merged = 2;
+   */
+  merged: boolean;
+};
+
+/**
+ * @generated from message discoflix.identity.v1.FinishLinkCodeResponse
+ */
+export type FinishLinkCodeResponseJson = {
+  /**
+   * @generated from field: discoflix.identity.v1.Identity identity = 1;
+   */
+  identity?: IdentityJson;
+
+  /**
+   * True when the Discord user already had a row that was merged into the caller
+   *
+   * @generated from field: bool merged = 2;
+   */
+  merged?: boolean;
+};
+
+/**
+ * Describes the message discoflix.identity.v1.FinishLinkCodeResponse.
+ * Use `create(FinishLinkCodeResponseSchema)` to create a new message.
+ */
+export const FinishLinkCodeResponseSchema: GenMessage<FinishLinkCodeResponse, {jsonType: FinishLinkCodeResponseJson}> = /*@__PURE__*/
+  messageDesc(file_discoflix_identity_v1_identity, 49);
+
+/**
+ * @generated from message discoflix.identity.v1.CreateServiceAccountRequest
+ */
+export type CreateServiceAccountRequest = Message<"discoflix.identity.v1.CreateServiceAccountRequest"> & {
+  /**
+   * @generated from field: string display_name = 1;
+   */
+  displayName: string;
+
+  /**
+   * USER_KIND_BOT or USER_KIND_AGENT
+   *
+   * @generated from field: discoflix.identity.v1.UserKind kind = 2;
+   */
+  kind: UserKind;
+
+  /**
+   * @generated from field: string key_name = 3;
+   */
+  keyName: string;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp expires_at = 4;
+   */
+  expiresAt?: Timestamp | undefined;
+};
+
+/**
+ * @generated from message discoflix.identity.v1.CreateServiceAccountRequest
+ */
+export type CreateServiceAccountRequestJson = {
+  /**
+   * @generated from field: string display_name = 1;
+   */
+  displayName?: string;
+
+  /**
+   * USER_KIND_BOT or USER_KIND_AGENT
+   *
+   * @generated from field: discoflix.identity.v1.UserKind kind = 2;
+   */
+  kind?: UserKindJson;
+
+  /**
+   * @generated from field: string key_name = 3;
+   */
+  keyName?: string;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp expires_at = 4;
+   */
+  expiresAt?: TimestampJson;
+};
+
+/**
+ * Describes the message discoflix.identity.v1.CreateServiceAccountRequest.
+ * Use `create(CreateServiceAccountRequestSchema)` to create a new message.
+ */
+export const CreateServiceAccountRequestSchema: GenMessage<CreateServiceAccountRequest, {jsonType: CreateServiceAccountRequestJson}> = /*@__PURE__*/
+  messageDesc(file_discoflix_identity_v1_identity, 50);
+
+/**
+ * @generated from message discoflix.identity.v1.CreateServiceAccountResponse
+ */
+export type CreateServiceAccountResponse = Message<"discoflix.identity.v1.CreateServiceAccountResponse"> & {
+  /**
+   * @generated from field: discoflix.identity.v1.User user = 1;
+   */
+  user?: User | undefined;
+
+  /**
+   * @generated from field: discoflix.identity.v1.ApiKey api_key = 2;
+   */
+  apiKey?: ApiKey | undefined;
+
+  /**
+   * Shown once
+   *
+   * @generated from field: string secret = 3;
+   */
+  secret: string;
+};
+
+/**
+ * @generated from message discoflix.identity.v1.CreateServiceAccountResponse
+ */
+export type CreateServiceAccountResponseJson = {
+  /**
+   * @generated from field: discoflix.identity.v1.User user = 1;
+   */
+  user?: UserJson;
+
+  /**
+   * @generated from field: discoflix.identity.v1.ApiKey api_key = 2;
+   */
+  apiKey?: ApiKeyJson;
+
+  /**
+   * Shown once
+   *
+   * @generated from field: string secret = 3;
+   */
+  secret?: string;
+};
+
+/**
+ * Describes the message discoflix.identity.v1.CreateServiceAccountResponse.
+ * Use `create(CreateServiceAccountResponseSchema)` to create a new message.
+ */
+export const CreateServiceAccountResponseSchema: GenMessage<CreateServiceAccountResponse, {jsonType: CreateServiceAccountResponseJson}> = /*@__PURE__*/
+  messageDesc(file_discoflix_identity_v1_identity, 51);
+
+/**
+ * @generated from message discoflix.identity.v1.UserMerge
+ */
+export type UserMerge = Message<"discoflix.identity.v1.UserMerge"> & {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id: string;
+
+  /**
+   * @generated from field: discoflix.identity.v1.User from_user = 2;
+   */
+  fromUser?: User | undefined;
+
+  /**
+   * @generated from field: discoflix.identity.v1.User into_user = 3;
+   */
+  intoUser?: User | undefined;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp created_at = 4;
+   */
+  createdAt?: Timestamp | undefined;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp reverted_at = 5;
+   */
+  revertedAt?: Timestamp | undefined;
+};
+
+/**
+ * @generated from message discoflix.identity.v1.UserMerge
+ */
+export type UserMergeJson = {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id?: string;
+
+  /**
+   * @generated from field: discoflix.identity.v1.User from_user = 2;
+   */
+  fromUser?: UserJson;
+
+  /**
+   * @generated from field: discoflix.identity.v1.User into_user = 3;
+   */
+  intoUser?: UserJson;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp created_at = 4;
+   */
+  createdAt?: TimestampJson;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp reverted_at = 5;
+   */
+  revertedAt?: TimestampJson;
+};
+
+/**
+ * Describes the message discoflix.identity.v1.UserMerge.
+ * Use `create(UserMergeSchema)` to create a new message.
+ */
+export const UserMergeSchema: GenMessage<UserMerge, {jsonType: UserMergeJson}> = /*@__PURE__*/
+  messageDesc(file_discoflix_identity_v1_identity, 52);
+
+/**
+ * @generated from message discoflix.identity.v1.ListUserMergesRequest
+ */
+export type ListUserMergesRequest = Message<"discoflix.identity.v1.ListUserMergesRequest"> & {
+};
+
+/**
+ * @generated from message discoflix.identity.v1.ListUserMergesRequest
+ */
+export type ListUserMergesRequestJson = {
+};
+
+/**
+ * Describes the message discoflix.identity.v1.ListUserMergesRequest.
+ * Use `create(ListUserMergesRequestSchema)` to create a new message.
+ */
+export const ListUserMergesRequestSchema: GenMessage<ListUserMergesRequest, {jsonType: ListUserMergesRequestJson}> = /*@__PURE__*/
+  messageDesc(file_discoflix_identity_v1_identity, 53);
+
+/**
+ * @generated from message discoflix.identity.v1.ListUserMergesResponse
+ */
+export type ListUserMergesResponse = Message<"discoflix.identity.v1.ListUserMergesResponse"> & {
+  /**
+   * @generated from field: repeated discoflix.identity.v1.UserMerge merges = 1;
+   */
+  merges: UserMerge[];
+};
+
+/**
+ * @generated from message discoflix.identity.v1.ListUserMergesResponse
+ */
+export type ListUserMergesResponseJson = {
+  /**
+   * @generated from field: repeated discoflix.identity.v1.UserMerge merges = 1;
+   */
+  merges?: UserMergeJson[];
+};
+
+/**
+ * Describes the message discoflix.identity.v1.ListUserMergesResponse.
+ * Use `create(ListUserMergesResponseSchema)` to create a new message.
+ */
+export const ListUserMergesResponseSchema: GenMessage<ListUserMergesResponse, {jsonType: ListUserMergesResponseJson}> = /*@__PURE__*/
+  messageDesc(file_discoflix_identity_v1_identity, 54);
+
+/**
+ * @generated from message discoflix.identity.v1.RevertUserMergeRequest
+ */
+export type RevertUserMergeRequest = Message<"discoflix.identity.v1.RevertUserMergeRequest"> & {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id: string;
+};
+
+/**
+ * @generated from message discoflix.identity.v1.RevertUserMergeRequest
+ */
+export type RevertUserMergeRequestJson = {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id?: string;
+};
+
+/**
+ * Describes the message discoflix.identity.v1.RevertUserMergeRequest.
+ * Use `create(RevertUserMergeRequestSchema)` to create a new message.
+ */
+export const RevertUserMergeRequestSchema: GenMessage<RevertUserMergeRequest, {jsonType: RevertUserMergeRequestJson}> = /*@__PURE__*/
+  messageDesc(file_discoflix_identity_v1_identity, 55);
+
+/**
+ * @generated from message discoflix.identity.v1.RevertUserMergeResponse
+ */
+export type RevertUserMergeResponse = Message<"discoflix.identity.v1.RevertUserMergeResponse"> & {
+};
+
+/**
+ * @generated from message discoflix.identity.v1.RevertUserMergeResponse
+ */
+export type RevertUserMergeResponseJson = {
+};
+
+/**
+ * Describes the message discoflix.identity.v1.RevertUserMergeResponse.
+ * Use `create(RevertUserMergeResponseSchema)` to create a new message.
+ */
+export const RevertUserMergeResponseSchema: GenMessage<RevertUserMergeResponse, {jsonType: RevertUserMergeResponseJson}> = /*@__PURE__*/
+  messageDesc(file_discoflix_identity_v1_identity, 56);
+
+/**
  * @generated from enum discoflix.identity.v1.UserKind
  */
 export enum UserKind {
@@ -1836,6 +2295,54 @@ export const IdentityService: GenService<{
     methodKind: "unary";
     input: typeof UpdateUserRequestSchema;
     output: typeof UpdateUserResponseSchema;
+  },
+  /**
+   * @generated from rpc discoflix.identity.v1.IdentityService.UnlinkIdentity
+   */
+  unlinkIdentity: {
+    methodKind: "unary";
+    input: typeof UnlinkIdentityRequestSchema;
+    output: typeof UnlinkIdentityResponseSchema;
+  },
+  /**
+   * @generated from rpc discoflix.identity.v1.IdentityService.CreateLinkCode
+   */
+  createLinkCode: {
+    methodKind: "unary";
+    input: typeof CreateLinkCodeRequestSchema;
+    output: typeof CreateLinkCodeResponseSchema;
+  },
+  /**
+   * @generated from rpc discoflix.identity.v1.IdentityService.FinishLinkCode
+   */
+  finishLinkCode: {
+    methodKind: "unary";
+    input: typeof FinishLinkCodeRequestSchema;
+    output: typeof FinishLinkCodeResponseSchema;
+  },
+  /**
+   * @generated from rpc discoflix.identity.v1.IdentityService.CreateServiceAccount
+   */
+  createServiceAccount: {
+    methodKind: "unary";
+    input: typeof CreateServiceAccountRequestSchema;
+    output: typeof CreateServiceAccountResponseSchema;
+  },
+  /**
+   * @generated from rpc discoflix.identity.v1.IdentityService.ListUserMerges
+   */
+  listUserMerges: {
+    methodKind: "unary";
+    input: typeof ListUserMergesRequestSchema;
+    output: typeof ListUserMergesResponseSchema;
+  },
+  /**
+   * @generated from rpc discoflix.identity.v1.IdentityService.RevertUserMerge
+   */
+  revertUserMerge: {
+    methodKind: "unary";
+    input: typeof RevertUserMergeRequestSchema;
+    output: typeof RevertUserMergeResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_discoflix_identity_v1_identity, 0);

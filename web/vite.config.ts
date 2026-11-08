@@ -37,7 +37,7 @@ export default defineConfig({
 				},
 				generateSW: {
 					navigateFallback: '200.html',
-					navigateFallbackAllowlist: [/^\/$/, /^\/s\//, /^\/login/, /^\/setup/, /^\/settings/],
+					navigateFallbackAllowlist: [/^\/$/, /^\/s\//, /^\/login/, /^\/setup/, /^\/settings/, /^\/link\//],
 					globPatterns: [
 						'client/**/*.{js,css,ico,png,svg,webp,webmanifest}',
 						'client/**/noto-sans-latin-wght-normal*.woff2'
@@ -59,7 +59,8 @@ export default defineConfig({
 		strictPort: true,
 		proxy: {
 			'/discoflix.': { target: backend },
-			'/connection': { target: backend, ws: true }
+			'/connection': { target: backend, ws: true },
+			'/auth': { target: backend }
 		}
 	}
 });

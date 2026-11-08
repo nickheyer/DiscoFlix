@@ -1,0 +1,20 @@
+{
+  "$defs": {
+    "discoflix.identity.v1.UnlinkIdentityRequest.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "default": "",
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "title": "Unlink Identity Request",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.identity.v1.UnlinkIdentityRequest.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.identity.v1.UnlinkIdentityRequest.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

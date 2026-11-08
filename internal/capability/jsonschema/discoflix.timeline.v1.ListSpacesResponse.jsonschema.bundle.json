@@ -18,6 +18,11 @@
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "additionalProperties": false,
       "patternProperties": {
+        "^(approvals_channel_id)$": {
+          "default": "",
+          "description": "Channel that receives approval cards for actions inside this space",
+          "type": "string"
+        },
         "^(created_at)$": {
           "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
         },
@@ -31,6 +36,11 @@
         }
       },
       "properties": {
+        "approvalsChannelId": {
+          "default": "",
+          "description": "Channel that receives approval cards for actions inside this space",
+          "type": "string"
+        },
         "createdAt": {
           "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
         },

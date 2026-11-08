@@ -1,5 +1,75 @@
 {
   "$defs": {
+    "discoflix.timeline.v1.Attachment.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(content_type)$": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "properties": {
+        "contentType": {
+          "default": "",
+          "type": "string"
+        },
+        "height": {
+          "anyOf": [
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "id": {
+          "default": "",
+          "type": "string"
+        },
+        "name": {
+          "default": "",
+          "type": "string"
+        },
+        "size": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "url": {
+          "default": "",
+          "type": "string"
+        },
+        "width": {
+          "anyOf": [
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        }
+      },
+      "title": "Attachment",
+      "type": "object"
+    },
     "discoflix.timeline.v1.Author.jsonschema.json": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "additionalProperties": false,
@@ -76,7 +146,14 @@
                 "EVENT_KIND_MESSAGE_EDITED",
                 "EVENT_KIND_MESSAGE_DELETED",
                 "EVENT_KIND_CARD_UPDATED",
-                "EVENT_KIND_CHANNEL_READ"
+                "EVENT_KIND_CHANNEL_READ",
+                "EVENT_KIND_REACTION_ADDED",
+                "EVENT_KIND_REACTION_REMOVED",
+                "EVENT_KIND_TYPING",
+                "EVENT_KIND_PRESENCE_CHANGED",
+                "EVENT_KIND_CHANNELS_CHANGED",
+                "EVENT_KIND_SPACES_CHANGED",
+                "EVENT_KIND_MEMBERS_CHANGED"
               ],
               "type": "string"
             },
@@ -91,6 +168,17 @@
         },
         "message": {
           "$ref": "#/$defs/discoflix.timeline.v1.Message.jsonschema.json"
+        },
+        "origin": {
+          "default": "",
+          "description": "Transport that produced the event",
+          "type": "string"
+        },
+        "presence": {
+          "$ref": "#/$defs/discoflix.timeline.v1.PresenceChange.jsonschema.json"
+        },
+        "reaction": {
+          "$ref": "#/$defs/discoflix.timeline.v1.ReactionChange.jsonschema.json"
         },
         "seq": {
           "anyOf": [
@@ -107,6 +195,9 @@
         "spaceId": {
           "default": "",
           "type": "string"
+        },
+        "typing": {
+          "$ref": "#/$defs/discoflix.timeline.v1.Typing.jsonschema.json"
         }
       },
       "title": "Event",
@@ -151,6 +242,12 @@
         }
       },
       "properties": {
+        "attachments": {
+          "items": {
+            "$ref": "#/$defs/discoflix.timeline.v1.Attachment.jsonschema.json"
+          },
+          "type": "array"
+        },
         "author": {
           "$ref": "#/$defs/discoflix.timeline.v1.Author.jsonschema.json"
         },
@@ -201,6 +298,17 @@
           "default": 0,
           "title": "Message Kind"
         },
+        "origin": {
+          "default": "",
+          "description": "Transport that wrote the message such as web, discord, system, api",
+          "type": "string"
+        },
+        "reactions": {
+          "items": {
+            "$ref": "#/$defs/discoflix.timeline.v1.Reaction.jsonschema.json"
+          },
+          "type": "array"
+        },
         "replyTo": {
           "anyOf": [
             {
@@ -231,6 +339,141 @@
         }
       },
       "title": "Message",
+      "type": "object"
+    },
+    "discoflix.timeline.v1.PresenceChange.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(user_id)$": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "properties": {
+        "status": {
+          "default": "",
+          "description": "online, idle, dnd, offline",
+          "type": "string"
+        },
+        "userId": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "title": "Presence Change",
+      "type": "object"
+    },
+    "discoflix.timeline.v1.Reaction.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "description": "One emoji on a message with how many users added it",
+      "properties": {
+        "count": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "emoji": {
+          "default": "",
+          "description": "Unicode emoji, or name:id for a custom Discord emoji",
+          "type": "string"
+        },
+        "me": {
+          "default": false,
+          "description": "True when the caller is among the reactors",
+          "type": "boolean"
+        }
+      },
+      "title": "Reaction",
+      "type": "object"
+    },
+    "discoflix.timeline.v1.ReactionChange.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(user_id)$": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "properties": {
+        "count": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0,
+          "description": "Reactors with this emoji after the change"
+        },
+        "emoji": {
+          "default": "",
+          "type": "string"
+        },
+        "seq": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "userId": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "title": "Reaction Change",
+      "type": "object"
+    },
+    "discoflix.timeline.v1.Typing.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(channel_id)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(display_name)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(user_id)$": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "properties": {
+        "channelId": {
+          "default": "",
+          "type": "string"
+        },
+        "displayName": {
+          "default": "",
+          "type": "string"
+        },
+        "userId": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "title": "Typing",
       "type": "object"
     },
     "google.protobuf.Any.jsonschema.json": {

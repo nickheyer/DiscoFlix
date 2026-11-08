@@ -16,6 +16,7 @@ import (
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/membership"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/message"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/predicate"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/reaction"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/readstate"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/user"
 )
@@ -144,6 +145,26 @@ func (_u *UserUpdate) ClearLastSeenAt() *UserUpdate {
 	return _u
 }
 
+// SetMergedIntoID sets the "merged_into_id" field.
+func (_u *UserUpdate) SetMergedIntoID(v string) *UserUpdate {
+	_u.mutation.SetMergedIntoID(v)
+	return _u
+}
+
+// SetNillableMergedIntoID sets the "merged_into_id" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableMergedIntoID(v *string) *UserUpdate {
+	if v != nil {
+		_u.SetMergedIntoID(*v)
+	}
+	return _u
+}
+
+// ClearMergedIntoID clears the value of the "merged_into_id" field.
+func (_u *UserUpdate) ClearMergedIntoID() *UserUpdate {
+	_u.mutation.ClearMergedIntoID()
+	return _u
+}
+
 // AddIdentityIDs adds the "identities" edge to the Identity entity by IDs.
 func (_u *UserUpdate) AddIdentityIDs(ids ...string) *UserUpdate {
 	_u.mutation.AddIdentityIDs(ids...)
@@ -217,6 +238,41 @@ func (_u *UserUpdate) AddReadStates(v ...*ReadState) *UserUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.AddReadStateIDs(ids...)
+}
+
+// AddReactionIDs adds the "reactions" edge to the Reaction entity by IDs.
+func (_u *UserUpdate) AddReactionIDs(ids ...string) *UserUpdate {
+	_u.mutation.AddReactionIDs(ids...)
+	return _u
+}
+
+// AddReactions adds the "reactions" edges to the Reaction entity.
+func (_u *UserUpdate) AddReactions(v ...*Reaction) *UserUpdate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddReactionIDs(ids...)
+}
+
+// SetMergedInto sets the "merged_into" edge to the User entity.
+func (_u *UserUpdate) SetMergedInto(v *User) *UserUpdate {
+	return _u.SetMergedIntoID(v.ID)
+}
+
+// AddAbsorbedIDs adds the "absorbed" edge to the User entity by IDs.
+func (_u *UserUpdate) AddAbsorbedIDs(ids ...string) *UserUpdate {
+	_u.mutation.AddAbsorbedIDs(ids...)
+	return _u
+}
+
+// AddAbsorbed adds the "absorbed" edges to the User entity.
+func (_u *UserUpdate) AddAbsorbed(v ...*User) *UserUpdate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAbsorbedIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -327,6 +383,54 @@ func (_u *UserUpdate) RemoveReadStates(v ...*ReadState) *UserUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveReadStateIDs(ids...)
+}
+
+// ClearReactions clears all "reactions" edges to the Reaction entity.
+func (_u *UserUpdate) ClearReactions() *UserUpdate {
+	_u.mutation.ClearReactions()
+	return _u
+}
+
+// RemoveReactionIDs removes the "reactions" edge to Reaction entities by IDs.
+func (_u *UserUpdate) RemoveReactionIDs(ids ...string) *UserUpdate {
+	_u.mutation.RemoveReactionIDs(ids...)
+	return _u
+}
+
+// RemoveReactions removes "reactions" edges to Reaction entities.
+func (_u *UserUpdate) RemoveReactions(v ...*Reaction) *UserUpdate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveReactionIDs(ids...)
+}
+
+// ClearMergedInto clears the "merged_into" edge to the User entity.
+func (_u *UserUpdate) ClearMergedInto() *UserUpdate {
+	_u.mutation.ClearMergedInto()
+	return _u
+}
+
+// ClearAbsorbed clears all "absorbed" edges to the User entity.
+func (_u *UserUpdate) ClearAbsorbed() *UserUpdate {
+	_u.mutation.ClearAbsorbed()
+	return _u
+}
+
+// RemoveAbsorbedIDs removes the "absorbed" edge to User entities by IDs.
+func (_u *UserUpdate) RemoveAbsorbedIDs(ids ...string) *UserUpdate {
+	_u.mutation.RemoveAbsorbedIDs(ids...)
+	return _u
+}
+
+// RemoveAbsorbed removes "absorbed" edges to User entities.
+func (_u *UserUpdate) RemoveAbsorbed(v ...*User) *UserUpdate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAbsorbedIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -655,6 +759,125 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.ReactionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ReactionsTable,
+			Columns: []string{user.ReactionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reaction.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedReactionsIDs(); len(nodes) > 0 && !_u.mutation.ReactionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ReactionsTable,
+			Columns: []string{user.ReactionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reaction.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ReactionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ReactionsTable,
+			Columns: []string{user.ReactionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reaction.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.MergedIntoCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   user.MergedIntoTable,
+			Columns: []string{user.MergedIntoColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.MergedIntoIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   user.MergedIntoTable,
+			Columns: []string{user.MergedIntoColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.AbsorbedCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.AbsorbedTable,
+			Columns: []string{user.AbsorbedColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAbsorbedIDs(); len(nodes) > 0 && !_u.mutation.AbsorbedCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.AbsorbedTable,
+			Columns: []string{user.AbsorbedColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AbsorbedIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.AbsorbedTable,
+			Columns: []string{user.AbsorbedColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.AddModifiers(_u.modifiers...)
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -787,6 +1010,26 @@ func (_u *UserUpdateOne) ClearLastSeenAt() *UserUpdateOne {
 	return _u
 }
 
+// SetMergedIntoID sets the "merged_into_id" field.
+func (_u *UserUpdateOne) SetMergedIntoID(v string) *UserUpdateOne {
+	_u.mutation.SetMergedIntoID(v)
+	return _u
+}
+
+// SetNillableMergedIntoID sets the "merged_into_id" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableMergedIntoID(v *string) *UserUpdateOne {
+	if v != nil {
+		_u.SetMergedIntoID(*v)
+	}
+	return _u
+}
+
+// ClearMergedIntoID clears the value of the "merged_into_id" field.
+func (_u *UserUpdateOne) ClearMergedIntoID() *UserUpdateOne {
+	_u.mutation.ClearMergedIntoID()
+	return _u
+}
+
 // AddIdentityIDs adds the "identities" edge to the Identity entity by IDs.
 func (_u *UserUpdateOne) AddIdentityIDs(ids ...string) *UserUpdateOne {
 	_u.mutation.AddIdentityIDs(ids...)
@@ -860,6 +1103,41 @@ func (_u *UserUpdateOne) AddReadStates(v ...*ReadState) *UserUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return _u.AddReadStateIDs(ids...)
+}
+
+// AddReactionIDs adds the "reactions" edge to the Reaction entity by IDs.
+func (_u *UserUpdateOne) AddReactionIDs(ids ...string) *UserUpdateOne {
+	_u.mutation.AddReactionIDs(ids...)
+	return _u
+}
+
+// AddReactions adds the "reactions" edges to the Reaction entity.
+func (_u *UserUpdateOne) AddReactions(v ...*Reaction) *UserUpdateOne {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddReactionIDs(ids...)
+}
+
+// SetMergedInto sets the "merged_into" edge to the User entity.
+func (_u *UserUpdateOne) SetMergedInto(v *User) *UserUpdateOne {
+	return _u.SetMergedIntoID(v.ID)
+}
+
+// AddAbsorbedIDs adds the "absorbed" edge to the User entity by IDs.
+func (_u *UserUpdateOne) AddAbsorbedIDs(ids ...string) *UserUpdateOne {
+	_u.mutation.AddAbsorbedIDs(ids...)
+	return _u
+}
+
+// AddAbsorbed adds the "absorbed" edges to the User entity.
+func (_u *UserUpdateOne) AddAbsorbed(v ...*User) *UserUpdateOne {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAbsorbedIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -970,6 +1248,54 @@ func (_u *UserUpdateOne) RemoveReadStates(v ...*ReadState) *UserUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveReadStateIDs(ids...)
+}
+
+// ClearReactions clears all "reactions" edges to the Reaction entity.
+func (_u *UserUpdateOne) ClearReactions() *UserUpdateOne {
+	_u.mutation.ClearReactions()
+	return _u
+}
+
+// RemoveReactionIDs removes the "reactions" edge to Reaction entities by IDs.
+func (_u *UserUpdateOne) RemoveReactionIDs(ids ...string) *UserUpdateOne {
+	_u.mutation.RemoveReactionIDs(ids...)
+	return _u
+}
+
+// RemoveReactions removes "reactions" edges to Reaction entities.
+func (_u *UserUpdateOne) RemoveReactions(v ...*Reaction) *UserUpdateOne {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveReactionIDs(ids...)
+}
+
+// ClearMergedInto clears the "merged_into" edge to the User entity.
+func (_u *UserUpdateOne) ClearMergedInto() *UserUpdateOne {
+	_u.mutation.ClearMergedInto()
+	return _u
+}
+
+// ClearAbsorbed clears all "absorbed" edges to the User entity.
+func (_u *UserUpdateOne) ClearAbsorbed() *UserUpdateOne {
+	_u.mutation.ClearAbsorbed()
+	return _u
+}
+
+// RemoveAbsorbedIDs removes the "absorbed" edge to User entities by IDs.
+func (_u *UserUpdateOne) RemoveAbsorbedIDs(ids ...string) *UserUpdateOne {
+	_u.mutation.RemoveAbsorbedIDs(ids...)
+	return _u
+}
+
+// RemoveAbsorbed removes "absorbed" edges to User entities.
+func (_u *UserUpdateOne) RemoveAbsorbed(v ...*User) *UserUpdateOne {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAbsorbedIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -1321,6 +1647,125 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(readstate.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ReactionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ReactionsTable,
+			Columns: []string{user.ReactionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reaction.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedReactionsIDs(); len(nodes) > 0 && !_u.mutation.ReactionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ReactionsTable,
+			Columns: []string{user.ReactionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reaction.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ReactionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ReactionsTable,
+			Columns: []string{user.ReactionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reaction.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.MergedIntoCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   user.MergedIntoTable,
+			Columns: []string{user.MergedIntoColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.MergedIntoIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   user.MergedIntoTable,
+			Columns: []string{user.MergedIntoColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.AbsorbedCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.AbsorbedTable,
+			Columns: []string{user.AbsorbedColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAbsorbedIDs(); len(nodes) > 0 && !_u.mutation.AbsorbedCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.AbsorbedTable,
+			Columns: []string{user.AbsorbedColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AbsorbedIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.AbsorbedTable,
+			Columns: []string{user.AbsorbedColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

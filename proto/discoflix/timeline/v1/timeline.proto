@@ -41,6 +41,13 @@ enum EventKind {
   EVENT_KIND_MESSAGE_DELETED = 3;
   EVENT_KIND_CARD_UPDATED = 4;
   EVENT_KIND_CHANNEL_READ = 5;
+  EVENT_KIND_REACTION_ADDED = 6;
+  EVENT_KIND_REACTION_REMOVED = 7;
+  EVENT_KIND_TYPING = 8;
+  EVENT_KIND_PRESENCE_CHANGED = 9;
+  EVENT_KIND_CHANNELS_CHANGED = 10;
+  EVENT_KIND_SPACES_CHANGED = 11;
+  EVENT_KIND_MEMBERS_CHANGED = 12;
 }
 
 message Space {
@@ -52,6 +59,8 @@ message Space {
   int32 position = 6;
   google.protobuf.Timestamp created_at = 7;
   int64 unread = 8;
+  // Channel that receives approval cards for actions inside this space
+  string approvals_channel_id = 9;
 }
 
 message Channel {
@@ -66,6 +75,8 @@ message Channel {
   int64 last_seq = 9;
   int64 last_read_seq = 10;
   int64 unread = 11;
+  // Longest message content this channel accepts, lower on channels mirrored to Discord
+  int32 max_content = 12;
 }
 
 message Author {
@@ -75,6 +86,25 @@ message Author {
   string accent_color = 4;
   // person, bot, plugin, agent
   string kind = 5;
+}
+
+message Attachment {
+  string id = 1;
+  string name = 2;
+  string url = 3;
+  string content_type = 4;
+  int64 size = 5;
+  int32 width = 6;
+  int32 height = 7;
+}
+
+// One emoji on a message with how many users added it
+message Reaction {
+  // Unicode emoji, or name:id for a custom Discord emoji
+  string emoji = 1;
+  int64 count = 2;
+  // True when the caller is among the reactors
+  bool me = 3;
 }
 
 message Message {
@@ -90,6 +120,30 @@ message Message {
   google.protobuf.Timestamp created_at = 10;
   google.protobuf.Timestamp edited_at = 11;
   google.protobuf.Timestamp deleted_at = 12;
+  // Transport that wrote the message such as web, discord, system, api
+  string origin = 13;
+  repeated Attachment attachments = 14;
+  repeated Reaction reactions = 15;
+}
+
+message ReactionChange {
+  int64 seq = 1;
+  string emoji = 2;
+  string user_id = 3;
+  // Reactors with this emoji after the change
+  int64 count = 4;
+}
+
+message Typing {
+  string channel_id = 1;
+  string user_id = 2;
+  string display_name = 3;
+}
+
+message PresenceChange {
+  string user_id = 1;
+  // online, idle, dnd, offline
+  string status = 2;
 }
 
 message Event {
@@ -99,6 +153,32 @@ message Event {
   string channel_id = 4;
   string space_id = 5;
   google.protobuf.Timestamp at = 6;
+  // Transport that produced the event
+  string origin = 7;
+  ReactionChange reaction = 8;
+  Typing typing = 9;
+  PresenceChange presence = 10;
+}
+
+message Role {
+  string id = 1;
+  string name = 2;
+  string color = 3;
+  int32 position = 4;
+  // Shown as its own group in the member list
+  bool hoist = 5;
+}
+
+message Member {
+  Author user = 1;
+  repeated string roles = 2;
+  string nickname = 3;
+  // online, idle, dnd, offline
+  string presence = 4;
+  // Discord user id when the member came from a guild
+  string external_id = 5;
+  google.protobuf.Timestamp joined_at = 6;
+  bool admin = 7;
 }
 
 message ListSpacesRequest {}
@@ -113,6 +193,15 @@ message ListChannelsRequest {
 
 message ListChannelsResponse {
   repeated Channel channels = 1;
+}
+
+message ListMembersRequest {
+  string space_id = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+message ListMembersResponse {
+  repeated Member members = 1;
+  repeated Role roles = 2;
 }
 
 message ListMessagesRequest {
@@ -153,6 +242,52 @@ message DeleteMessageRequest {
 
 message DeleteMessageResponse {}
 
+message AddReactionRequest {
+  int64 seq = 1 [(buf.validate.field).int64.gt = 0];
+  string emoji = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+}
+
+message AddReactionResponse {
+  Message message = 1;
+}
+
+message RemoveReactionRequest {
+  int64 seq = 1 [(buf.validate.field).int64.gt = 0];
+  string emoji = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+}
+
+message RemoveReactionResponse {
+  Message message = 1;
+}
+
+message InteractCardRequest {
+  int64 seq = 1 [(buf.validate.field).int64.gt = 0];
+  // Component the caller used, such as approve or deny
+  string action = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  string value = 3 [(buf.validate.field).string.max_len = 4000];
+}
+
+message InteractCardResponse {
+  Message message = 1;
+}
+
+message CreateThreadRequest {
+  string channel_id = 1 [(buf.validate.field).string.min_len = 1];
+  string name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 100}];
+  // Message the thread starts from, 0 starts an empty thread
+  int64 from_seq = 3;
+}
+
+message CreateThreadResponse {
+  Channel channel = 1;
+}
+
+message SendTypingRequest {
+  string channel_id = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+message SendTypingResponse {}
+
 message MarkReadRequest {
   string channel_id = 1 [(buf.validate.field).string.min_len = 1];
   int64 seq = 2;
@@ -191,6 +326,15 @@ service TimelineService {
       description: "Channels of one space with unread counts for the caller"
     };
   }
+  rpc ListMembers(ListMembersRequest) returns (ListMembersResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "reader"
+      effect: EFFECT_READ
+      object: {type: "space", field: "space_id"}
+      title: "List members"
+      description: "Members of one space with roles and presence"
+    };
+  }
   rpc ListMessages(ListMessagesRequest) returns (ListMessagesResponse) {
     option (discoflix.capability.v1.capability) = {
       scope: "reader"
@@ -205,7 +349,6 @@ service TimelineService {
       scope: "writer"
       effect: EFFECT_WRITE
       object: {type: "channel", field: "channel_id"}
-      slash: true
       title: "Post message"
       description: "Post a message or a card to one channel"
     };
@@ -226,6 +369,51 @@ service TimelineService {
       object: {type: "message", field: "seq"}
       title: "Delete message"
       description: "Delete a message the caller authored or moderates"
+    };
+  }
+  rpc AddReaction(AddReactionRequest) returns (AddReactionResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "reader"
+      effect: EFFECT_WRITE
+      object: {type: "message", field: "seq"}
+      title: "Add reaction"
+      description: "React to a message with an emoji"
+    };
+  }
+  rpc RemoveReaction(RemoveReactionRequest) returns (RemoveReactionResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "reader"
+      effect: EFFECT_WRITE
+      object: {type: "message", field: "seq"}
+      title: "Remove reaction"
+      description: "Take back the caller's reaction on a message"
+    };
+  }
+  rpc InteractCard(InteractCardRequest) returns (InteractCardResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "reader"
+      effect: EFFECT_WRITE
+      object: {type: "message", field: "seq"}
+      title: "Interact with card"
+      description: "Press a button or pick an option on a card, the same transition every transport uses"
+    };
+  }
+  rpc CreateThread(CreateThreadRequest) returns (CreateThreadResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "writer"
+      effect: EFFECT_WRITE
+      object: {type: "channel", field: "channel_id"}
+      title: "Create thread"
+      description: "Start a thread in a channel, from a message or empty"
+    };
+  }
+  rpc SendTyping(SendTypingRequest) returns (SendTypingResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "writer"
+      effect: EFFECT_WRITE
+      object: {type: "channel", field: "channel_id"}
+      title: "Send typing"
+      description: "Tell the channel the caller is typing"
     };
   }
   rpc MarkRead(MarkReadRequest) returns (MarkReadResponse) {

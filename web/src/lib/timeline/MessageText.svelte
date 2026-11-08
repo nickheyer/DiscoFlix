@@ -1,7 +1,10 @@
 <script lang="ts">
-	import { linkify } from './linkify';
+	import { useMentions } from './mentions.svelte';
+	import { renderMarkdown } from './render';
 
 	let { text }: { text: string } = $props();
+
+	const mentions = useMentions();
 </script>
 
-<span class="break-words whitespace-pre-wrap" {@attach linkify(text)}></span>
+<span class="break-words" {@attach renderMarkdown(text, mentions())}></span>

@@ -1,0 +1,106 @@
+edition = "2023";
+
+package discoflix.discord.v1;
+
+import "buf/validate/validate.proto";
+import "discoflix/capability/v1/options.proto";
+import "google/protobuf/timestamp.proto";
+
+option features.field_presence = IMPLICIT;
+
+message DiscordGuild {
+  string id = 1;
+  string name = 2;
+  string icon_url = 3;
+  string space_id = 4;
+  int32 member_count = 5;
+  string approvals_channel_id = 6;
+  // False while Discord reports the guild unavailable
+  bool available = 7;
+}
+
+message DiscordStatus {
+  // A bot token is stored
+  bool configured = 1;
+  // disconnected, connecting, connected, failed
+  string state = 2;
+  string error = 3;
+  string application_id = 4;
+  string bot_username = 5;
+  string bot_avatar_url = 6;
+  // OAuth2 URL that adds the bot to a guild with the permissions the mirror needs
+  string invite_url = 7;
+  // Redirect URI to register in the Discord developer portal for sign-in and linking
+  string redirect_url = 8;
+  // A client secret is stored so Discord sign-in and linking work
+  bool login_enabled = 9;
+  repeated DiscordGuild guilds = 10;
+  // Slash commands registered from the capability registry
+  repeated string commands = 11;
+  google.protobuf.Timestamp connected_at = 12;
+}
+
+message GetDiscordStatusRequest {}
+
+message GetDiscordStatusResponse {
+  DiscordStatus status = 1;
+}
+
+message ConfigureDiscordRequest {
+  // Empty keeps the stored token
+  string bot_token = 1 [(buf.validate.field).string.max_len = 128];
+  // Empty keeps the stored secret
+  string client_secret = 2 [(buf.validate.field).string.max_len = 128];
+}
+
+message ConfigureDiscordResponse {
+  DiscordStatus status = 1;
+}
+
+message DisconnectDiscordRequest {}
+
+message DisconnectDiscordResponse {}
+
+message SetApprovalsChannelRequest {
+  string space_id = 1 [(buf.validate.field).string.min_len = 1];
+  // Empty sends approvals for this space to the system audit channel
+  string channel_id = 2;
+}
+
+message SetApprovalsChannelResponse {}
+
+service DiscordService {
+  rpc GetDiscordStatus(GetDiscordStatusRequest) returns (GetDiscordStatusResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "discord.admin"
+      effect: EFFECT_READ
+      title: "Discord status"
+      description: "Connection state, bot identity, guilds, and registered commands"
+    };
+  }
+  rpc ConfigureDiscord(ConfigureDiscordRequest) returns (ConfigureDiscordResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "discord.admin"
+      effect: EFFECT_WRITE
+      title: "Configure Discord"
+      description: "Store the bot token and client secret, then connect the gateway"
+    };
+  }
+  rpc DisconnectDiscord(DisconnectDiscordRequest) returns (DisconnectDiscordResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "discord.admin"
+      effect: EFFECT_DESTRUCTIVE
+      title: "Disconnect Discord"
+      description: "Forget the bot token and close the gateway, keeping mirrored history"
+    };
+  }
+  rpc SetApprovalsChannel(SetApprovalsChannelRequest) returns (SetApprovalsChannelResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "admin"
+      effect: EFFECT_WRITE
+      object: {type: "space", field: "space_id"}
+      title: "Set approvals channel"
+      description: "Choose which channel of a space receives approval cards"
+    };
+  }
+}

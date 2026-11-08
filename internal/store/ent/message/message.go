@@ -33,18 +33,28 @@ const (
 	FieldReplyTo = "reply_to"
 	// FieldExternalID holds the string denoting the external_id field in the database.
 	FieldExternalID = "external_id"
+	// FieldOrigin holds the string denoting the origin field in the database.
+	FieldOrigin = "origin"
+	// FieldAttachments holds the string denoting the attachments field in the database.
+	FieldAttachments = "attachments"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
+	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
+	FieldUpdatedAt = "updated_at"
 	// FieldEditedAt holds the string denoting the edited_at field in the database.
 	FieldEditedAt = "edited_at"
 	// FieldDeletedAt holds the string denoting the deleted_at field in the database.
 	FieldDeletedAt = "deleted_at"
+	// FieldSyncedAt holds the string denoting the synced_at field in the database.
+	FieldSyncedAt = "synced_at"
 	// EdgeSpace holds the string denoting the space edge name in mutations.
 	EdgeSpace = "space"
 	// EdgeChannel holds the string denoting the channel edge name in mutations.
 	EdgeChannel = "channel"
 	// EdgeAuthor holds the string denoting the author edge name in mutations.
 	EdgeAuthor = "author"
+	// EdgeReactions holds the string denoting the reactions edge name in mutations.
+	EdgeReactions = "reactions"
 	// Table holds the table name of the message in the database.
 	Table = "messages"
 	// SpaceTable is the table that holds the space relation/edge.
@@ -68,6 +78,13 @@ const (
 	AuthorInverseTable = "users"
 	// AuthorColumn is the table column denoting the author relation/edge.
 	AuthorColumn = "author_id"
+	// ReactionsTable is the table that holds the reactions relation/edge.
+	ReactionsTable = "reactions"
+	// ReactionsInverseTable is the table name for the Reaction entity.
+	// It exists in this package in order to avoid circular dependency with the "reaction" package.
+	ReactionsInverseTable = "reactions"
+	// ReactionsColumn is the table column denoting the reactions relation/edge.
+	ReactionsColumn = "message_id"
 )
 
 // Columns holds all SQL columns for message fields.
@@ -82,9 +99,13 @@ var Columns = []string{
 	FieldCard,
 	FieldReplyTo,
 	FieldExternalID,
+	FieldOrigin,
+	FieldAttachments,
 	FieldCreatedAt,
+	FieldUpdatedAt,
 	FieldEditedAt,
 	FieldDeletedAt,
+	FieldSyncedAt,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -112,8 +133,14 @@ var (
 	DefaultReplyTo int64
 	// DefaultExternalID holds the default value on creation for the "external_id" field.
 	DefaultExternalID string
+	// DefaultOrigin holds the default value on creation for the "origin" field.
+	DefaultOrigin string
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
+	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
+	DefaultUpdatedAt func() time.Time
+	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
+	UpdateDefaultUpdatedAt func() time.Time
 )
 
 // Kind defines the type for the "kind" enum field.
@@ -191,9 +218,19 @@ func ByExternalID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldExternalID, opts...).ToFunc()
 }
 
+// ByOrigin orders the results by the origin field.
+func ByOrigin(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldOrigin, opts...).ToFunc()
+}
+
 // ByCreatedAt orders the results by the created_at field.
 func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
+}
+
+// ByUpdatedAt orders the results by the updated_at field.
+func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
 }
 
 // ByEditedAt orders the results by the edited_at field.
@@ -204,6 +241,11 @@ func ByEditedAt(opts ...sql.OrderTermOption) OrderOption {
 // ByDeletedAt orders the results by the deleted_at field.
 func ByDeletedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDeletedAt, opts...).ToFunc()
+}
+
+// BySyncedAt orders the results by the synced_at field.
+func BySyncedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSyncedAt, opts...).ToFunc()
 }
 
 // BySpaceField orders the results by space field.
@@ -226,6 +268,20 @@ func ByAuthorField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newAuthorStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByReactionsCount orders the results by reactions count.
+func ByReactionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newReactionsStep(), opts...)
+	}
+}
+
+// ByReactions orders the results by reactions terms.
+func ByReactions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newReactionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newSpaceStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -245,5 +301,12 @@ func newAuthorStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(AuthorInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, AuthorTable, AuthorColumn),
+	)
+}
+func newReactionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ReactionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ReactionsTable, ReactionsColumn),
 	)
 }

@@ -1,13 +1,19 @@
 <script lang="ts">
 	import Hash from '@lucide/svelte/icons/hash';
 	import Menu from '@lucide/svelte/icons/menu';
+	import MessagesSquare from '@lucide/svelte/icons/messages-square';
 	import PanelRight from '@lucide/svelte/icons/panel-right';
 	import { shell } from '#lib/spaces/shell.svelte';
 	import { mobile } from '#lib/theme/viewport.svelte';
 	import * as Tooltip from '#lib/ui/tooltip';
 	import { realtime } from './realtime.svelte';
 
-	let { name, topic }: { name: string; topic: string } = $props();
+	let {
+		name,
+		topic,
+		mirrored = false,
+		parent = null
+	}: { name: string; topic: string; mirrored?: boolean; parent?: { name: string; href: string } | null } = $props();
 
 	const railLabel = $derived(mobile.current ? 'Show activity' : shell.rightDocked ? 'Hide activity' : 'Show activity');
 </script>
@@ -24,8 +30,22 @@
 			<Menu class="size-6" />
 		</button>
 	{/if}
-	<Hash class="size-6 shrink-0 text-faint" />
+	{#if parent}
+		<MessagesSquare class="size-6 shrink-0 text-faint" />
+	{:else}
+		<Hash class="size-6 shrink-0 text-faint" />
+	{/if}
 	<h1 class="truncate font-semibold text-header">{name}</h1>
+	{#if parent}
+		<a href={parent.href} class="hidden shrink-0 text-sm text-interactive hover:underline sm:block">in #{parent.name}</a
+		>
+	{/if}
+	{#if mirrored}
+		<span
+			class="hidden shrink-0 rounded bg-hover/60 px-1.5 text-[10px] leading-4 font-semibold text-interactive uppercase sm:block"
+			title="Messages here are mirrored to and from Discord">Discord</span
+		>
+	{/if}
 	{#if topic}
 		<span class="mx-2 hidden h-6 w-px shrink-0 bg-divider md:block"></span>
 		<p class="hidden min-w-0 flex-1 truncate text-sm text-interactive md:block" title={topic}>{topic}</p>

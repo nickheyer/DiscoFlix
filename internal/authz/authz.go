@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log/slog"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -58,6 +59,25 @@ type Service struct {
 	ent     *ent.Client
 	log     *slog.Logger
 	mu      sync.Mutex
+
+	hooksMu sync.RWMutex
+	hooks   []func()
+}
+
+// OnChange registers a callback run after tuples are applied, so visibility caches can drop stale answers
+func (s *Service) OnChange(fn func()) {
+	s.hooksMu.Lock()
+	defer s.hooksMu.Unlock()
+	s.hooks = append(s.hooks, fn)
+}
+
+func (s *Service) changed() {
+	s.hooksMu.RLock()
+	hooks := append([]func(){}, s.hooks...)
+	s.hooksMu.RUnlock()
+	for _, fn := range hooks {
+		fn()
+	}
 }
 
 // Open migrates and opens the authorization store, then ensures the model matches Model
@@ -182,6 +202,48 @@ func (s *Service) ListObjects(ctx context.Context, subject, relation, objectType
 	return res.GetObjects(), nil
 }
 
+// ListUsers returns the user ids holding relation on object, and whether the wildcard user grants it to everyone
+func (s *Service) ListUsers(ctx context.Context, object, relation string) ([]string, bool, error) {
+	typ, id, ok := strings.Cut(object, ":")
+	if !ok {
+		return nil, false, fmt.Errorf("authz: object %q needs a type", object)
+	}
+	res, err := s.srv.ListUsers(ctx, &openfgav1.ListUsersRequest{
+		StoreId:              s.storeID,
+		AuthorizationModelId: s.modelID,
+		Object:               &openfgav1.Object{Type: typ, Id: id},
+		Relation:             relation,
+		UserFilters:          []*openfgav1.UserTypeFilter{{Type: "user"}},
+	})
+	if err != nil {
+		return nil, false, fmt.Errorf("authz: list users: %w", err)
+	}
+	var ids []string
+	everyone := false
+	for _, u := range res.GetUsers() {
+		switch v := u.GetUser().(type) {
+		case *openfgav1.User_Object:
+			ids = append(ids, v.Object.GetId())
+		case *openfgav1.User_Wildcard:
+			everyone = true
+		}
+	}
+	return ids, everyone, nil
+}
+
+// Has reports whether the exact tuple is stored, without evaluating the model
+func (s *Service) Has(ctx context.Context, object, relation, subject string) (bool, error) {
+	res, err := s.srv.Read(ctx, &openfgav1.ReadRequest{
+		StoreId:  s.storeID,
+		TupleKey: &openfgav1.ReadRequestTupleKey{User: subject, Relation: relation, Object: object},
+		PageSize: wrapperspb.Int32(1),
+	})
+	if err != nil {
+		return false, fmt.Errorf("authz: read %s#%s@%s: %w", object, relation, subject, err)
+	}
+	return len(res.GetTuples()) > 0, nil
+}
+
 // Stage records tuple changes in the outbox inside the caller's transaction
 func Stage(ctx context.Context, tx *ent.Tx, ops ...Op) error {
 	for _, op := range ops {
@@ -278,6 +340,7 @@ func (s *Service) apply(ctx context.Context, rows []*ent.AuthzOutbox) error {
 	if err := s.ent.AuthzOutbox.Update().Where(authzoutbox.IDIn(ids...)).SetAppliedAt(now).Exec(ctx); err != nil {
 		return fmt.Errorf("authz: mark applied: %w", err)
 	}
+	s.changed()
 	return nil
 }
 

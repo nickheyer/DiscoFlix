@@ -18,10 +18,13 @@ import (
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/identity"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/membership"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/message"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/pendingaction"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/reaction"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/readstate"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/setting"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/space"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/user"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/usermerge"
 )
 
 // ent aliases to avoid import conflicts in user's code.
@@ -82,16 +85,19 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			authzoutbox.Table: authzoutbox.ValidColumn,
-			channel.Table:     channel.ValidColumn,
-			credential.Table:  credential.ValidColumn,
-			identity.Table:    identity.ValidColumn,
-			membership.Table:  membership.ValidColumn,
-			message.Table:     message.ValidColumn,
-			readstate.Table:   readstate.ValidColumn,
-			setting.Table:     setting.ValidColumn,
-			space.Table:       space.ValidColumn,
-			user.Table:        user.ValidColumn,
+			authzoutbox.Table:   authzoutbox.ValidColumn,
+			channel.Table:       channel.ValidColumn,
+			credential.Table:    credential.ValidColumn,
+			identity.Table:      identity.ValidColumn,
+			membership.Table:    membership.ValidColumn,
+			message.Table:       message.ValidColumn,
+			pendingaction.Table: pendingaction.ValidColumn,
+			reaction.Table:      reaction.ValidColumn,
+			readstate.Table:     readstate.ValidColumn,
+			setting.Table:       setting.ValidColumn,
+			space.Table:         space.ValidColumn,
+			user.Table:          user.ValidColumn,
+			usermerge.Table:     usermerge.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

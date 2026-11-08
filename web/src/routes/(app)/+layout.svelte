@@ -6,12 +6,18 @@
 	import { shell } from '#lib/spaces/shell.svelte';
 	import SpaceRail from '#lib/spaces/SpaceRail.svelte';
 	import { mobile } from '#lib/theme/viewport.svelte';
+	import { timeline } from '#lib/timeline/store.svelte';
 	import * as Sheet from '#lib/ui/sheet';
 
 	let { children } = $props();
 
 	const spaceId = $derived(page.params.spaceId ?? '');
 	const channelId = $derived(page.params.channelId ?? '');
+
+	$effect(() => {
+		if (spaceId === '') return;
+		return timeline.openSpace(spaceId);
+	});
 
 	afterNavigate(() => {
 		shell.navOpen = false;
@@ -41,7 +47,7 @@
 		<Sheet.Root bind:open={shell.rightOpen}>
 			<Sheet.Content side="right" showCloseButton={false} class="w-auto max-w-none gap-0 border-0 p-0 sm:max-w-none">
 				<Sheet.Title class="sr-only">Activity and members</Sheet.Title>
-				<RightRail />
+				<RightRail {spaceId} />
 			</Sheet.Content>
 		</Sheet.Root>
 	{:else}
@@ -51,6 +57,6 @@
 		{@render children()}
 	</div>
 	{#if !mobile.current && shell.rightDocked}
-		<RightRail />
+		<RightRail {spaceId} />
 	{/if}
 </div>

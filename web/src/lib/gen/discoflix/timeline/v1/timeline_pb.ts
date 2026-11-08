@@ -15,7 +15,7 @@ import type { Message as Message$1 } from "@bufbuild/protobuf";
  * Describes the file discoflix/timeline/v1/timeline.proto.
  */
 export const file_discoflix_timeline_v1_timeline: GenFile = /*@__PURE__*/
-  fileDesc("CiRkaXNjb2ZsaXgvdGltZWxpbmUvdjEvdGltZWxpbmUucHJvdG8SFWRpc2NvZmxpeC50aW1lbGluZS52MSLKAQoFU3BhY2USCgoCaWQYASABKAkSLgoEa2luZBgCIAEoDjIgLmRpc2NvZmxpeC50aW1lbGluZS52MS5TcGFjZUtpbmQSDAoEbmFtZRgDIAEoCRIQCghpY29uX3VybBgEIAEoCRITCgtleHRlcm5hbF9pZBgFIAEoCRIQCghwb3NpdGlvbhgGIAEoBRIuCgpjcmVhdGVkX2F0GAcgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIOCgZ1bnJlYWQYCCABKAMi6QEKB0NoYW5uZWwSCgoCaWQYASABKAkSEAoIc3BhY2VfaWQYAiABKAkSMAoEa2luZBgDIAEoDjIiLmRpc2NvZmxpeC50aW1lbGluZS52MS5DaGFubmVsS2luZBIMCgRuYW1lGAQgASgJEg0KBXRvcGljGAUgASgJEhEKCXBhcmVudF9pZBgGIAEoCRIQCghwb3NpdGlvbhgHIAEoBRITCgtleHRlcm5hbF9pZBgIIAEoCRIQCghsYXN0X3NlcRgJIAEoAxIVCg1sYXN0X3JlYWRfc2VxGAogASgDEg4KBnVucmVhZBgLIAEoAyJiCgZBdXRob3ISCgoCaWQYASABKAkSFAoMZGlzcGxheV9uYW1lGAIgASgJEhIKCmF2YXRhcl91cmwYAyABKAkSFAoMYWNjZW50X2NvbG9yGAQgASgJEgwKBGtpbmQYBSABKAkiiAMKB01lc3NhZ2USCwoDc2VxGAEgASgDEhAKCHNwYWNlX2lkGAIgASgJEhIKCmNoYW5uZWxfaWQYAyABKAkSLQoGYXV0aG9yGAQgASgLMh0uZGlzY29mbGl4LnRpbWVsaW5lLnYxLkF1dGhvchIwCgRraW5kGAUgASgOMiIuZGlzY29mbGl4LnRpbWVsaW5lLnYxLk1lc3NhZ2VLaW5kEg8KB2NvbnRlbnQYBiABKAkSIgoEY2FyZBgHIAEoCzIULmdvb2dsZS5wcm90b2J1Zi5BbnkSEAoIcmVwbHlfdG8YCCABKAMSEwoLZXh0ZXJuYWxfaWQYCSABKAkSLgoKY3JlYXRlZF9hdBgKIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLQoJZWRpdGVkX2F0GAsgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIuCgpkZWxldGVkX2F0GAwgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCLDAQoFRXZlbnQSCwoDc2VxGAEgASgDEi4KBGtpbmQYAiABKA4yIC5kaXNjb2ZsaXgudGltZWxpbmUudjEuRXZlbnRLaW5kEi8KB21lc3NhZ2UYAyABKAsyHi5kaXNjb2ZsaXgudGltZWxpbmUudjEuTWVzc2FnZRISCgpjaGFubmVsX2lkGAQgASgJEhAKCHNwYWNlX2lkGAUgASgJEiYKAmF0GAYgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCITChFMaXN0U3BhY2VzUmVxdWVzdCJCChJMaXN0U3BhY2VzUmVzcG9uc2USLAoGc3BhY2VzGAEgAygLMhwuZGlzY29mbGl4LnRpbWVsaW5lLnYxLlNwYWNlIjAKE0xpc3RDaGFubmVsc1JlcXVlc3QSGQoIc3BhY2VfaWQYASABKAlCB7pIBHICEAEiSAoUTGlzdENoYW5uZWxzUmVzcG9uc2USMAoIY2hhbm5lbHMYASADKAsyHi5kaXNjb2ZsaXgudGltZWxpbmUudjEuQ2hhbm5lbCJhChNMaXN0TWVzc2FnZXNSZXF1ZXN0EhsKCmNoYW5uZWxfaWQYASABKAlCB7pIBHICEAESEgoKYmVmb3JlX3NlcRgCIAEoAxIZCgVsaW1pdBgDIAEoBUIKukgHGgUYyAEoACJaChRMaXN0TWVzc2FnZXNSZXNwb25zZRIwCghtZXNzYWdlcxgBIAMoCzIeLmRpc2NvZmxpeC50aW1lbGluZS52MS5NZXNzYWdlEhAKCGhhc19tb3JlGAIgASgIIoIBChJQb3N0TWVzc2FnZVJlcXVlc3QSGwoKY2hhbm5lbF9pZBgBIAEoCUIHukgEcgIQARIZCgdjb250ZW50GAIgASgJQgi6SAVyAxigHxIiCgRjYXJkGAMgASgLMhQuZ29vZ2xlLnByb3RvYnVmLkFueRIQCghyZXBseV90bxgEIAEoAyJGChNQb3N0TWVzc2FnZVJlc3BvbnNlEi8KB21lc3NhZ2UYASABKAsyHi5kaXNjb2ZsaXgudGltZWxpbmUudjEuTWVzc2FnZSJFChJFZGl0TWVzc2FnZVJlcXVlc3QSFAoDc2VxGAEgASgDQge6SAQiAiAAEhkKB2NvbnRlbnQYAiABKAlCCLpIBXIDGKAfIkYKE0VkaXRNZXNzYWdlUmVzcG9uc2USLwoHbWVzc2FnZRgBIAEoCzIeLmRpc2NvZmxpeC50aW1lbGluZS52MS5NZXNzYWdlIiwKFERlbGV0ZU1lc3NhZ2VSZXF1ZXN0EhQKA3NlcRgBIAEoA0IHukgEIgIgACIXChVEZWxldGVNZXNzYWdlUmVzcG9uc2UiOwoPTWFya1JlYWRSZXF1ZXN0EhsKCmNoYW5uZWxfaWQYASABKAlCB7pIBHICEAESCwoDc2VxGAIgASgDIkMKEE1hcmtSZWFkUmVzcG9uc2USLwoHY2hhbm5lbBgBIAEoCzIeLmRpc2NvZmxpeC50aW1lbGluZS52MS5DaGFubmVsIjkKEldhdGNoRXZlbnRzUmVxdWVzdBIRCglhZnRlcl9zZXEYASABKAMSEAoIc3BhY2VfaWQYAiABKAkiQgoTV2F0Y2hFdmVudHNSZXNwb25zZRIrCgVldmVudBgBIAEoCzIcLmRpc2NvZmxpeC50aW1lbGluZS52MS5FdmVudCqzAQoJU3BhY2VLaW5kEhoKFlNQQUNFX0tJTkRfVU5TUEVDSUZJRUQQABIVChFTUEFDRV9LSU5EX1NZU1RFTRABEhQKEFNQQUNFX0tJTkRfR1VJTEQQAhIWChJTUEFDRV9LSU5EX0xJQlJBUlkQAxIVChFTUEFDRV9LSU5EX1BMVUdJThAEEhcKE1NQQUNFX0tJTkRfUFJPVklERVIQBRIVChFTUEFDRV9LSU5EX1NFUlZFUhAGKo4BCgtDaGFubmVsS2luZBIcChhDSEFOTkVMX0tJTkRfVU5TUEVDSUZJRUQQABIVChFDSEFOTkVMX0tJTkRfVEVYVBABEhkKFUNIQU5ORUxfS0lORF9DQVRFR09SWRACEhYKEkNIQU5ORUxfS0lORF9WT0lDRRADEhcKE0NIQU5ORUxfS0lORF9USFJFQUQQBCpyCgtNZXNzYWdlS2luZBIcChhNRVNTQUdFX0tJTkRfVU5TUEVDSUZJRUQQABIVChFNRVNTQUdFX0tJTkRfVVNFUhABEhcKE01FU1NBR0VfS0lORF9TWVNURU0QAhIVChFNRVNTQUdFX0tJTkRfQ0FSRBADKsABCglFdmVudEtpbmQSGgoWRVZFTlRfS0lORF9VTlNQRUNJRklFRBAAEh4KGkVWRU5UX0tJTkRfTUVTU0FHRV9DUkVBVEVEEAESHQoZRVZFTlRfS0lORF9NRVNTQUdFX0VESVRFRBACEh4KGkVWRU5UX0tJTkRfTUVTU0FHRV9ERUxFVEVEEAMSGwoXRVZFTlRfS0lORF9DQVJEX1VQREFURUQQBBIbChdFVkVOVF9LSU5EX0NIQU5ORUxfUkVBRBAFMs8MCg9UaW1lbGluZVNlcnZpY2USpwEKCkxpc3RTcGFjZXMSKC5kaXNjb2ZsaXgudGltZWxpbmUudjEuTGlzdFNwYWNlc1JlcXVlc3QaKS5kaXNjb2ZsaXgudGltZWxpbmUudjEuTGlzdFNwYWNlc1Jlc3BvbnNlIkSiuxhACg10aW1lbGluZS5yZWFkEAEyC0xpc3Qgc3BhY2VzOiBTcGFjZXMgdGhlIGNhbGxlciBpcyBhIG1lbWJlciBvZhLSAQoMTGlzdENoYW5uZWxzEiouZGlzY29mbGl4LnRpbWVsaW5lLnYxLkxpc3RDaGFubmVsc1JlcXVlc3QaKy5kaXNjb2ZsaXgudGltZWxpbmUudjEuTGlzdENoYW5uZWxzUmVzcG9uc2UiaaK7GGUKBnJlYWRlchABGhEKBXNwYWNlEghzcGFjZV9pZDINTGlzdCBjaGFubmVsczo3Q2hhbm5lbHMgb2Ygb25lIHNwYWNlIHdpdGggdW5yZWFkIGNvdW50cyBmb3IgdGhlIGNhbGxlchLQAQoMTGlzdE1lc3NhZ2VzEiouZGlzY29mbGl4LnRpbWVsaW5lLnYxLkxpc3RNZXNzYWdlc1JlcXVlc3QaKy5kaXNjb2ZsaXgudGltZWxpbmUudjEuTGlzdE1lc3NhZ2VzUmVzcG9uc2UiZ6K7GGMKBnJlYWRlchABGhUKB2NoYW5uZWwSCmNoYW5uZWxfaWQyDUxpc3QgbWVzc2FnZXM6MUEgcGFnZSBvZiBtZXNzYWdlcyBmcm9tIG9uZSBjaGFubmVsLCBuZXdlc3QgZmlyc3QSxAEKC1Bvc3RNZXNzYWdlEikuZGlzY29mbGl4LnRpbWVsaW5lLnYxLlBvc3RNZXNzYWdlUmVxdWVzdBoqLmRpc2NvZmxpeC50aW1lbGluZS52MS5Qb3N0TWVzc2FnZVJlc3BvbnNlIl6iuxhaCgZ3cml0ZXIQAhoVCgdjaGFubmVsEgpjaGFubmVsX2lkIAEyDFBvc3QgbWVzc2FnZTonUG9zdCBhIG1lc3NhZ2Ugb3IgYSBjYXJkIHRvIG9uZSBjaGFubmVsEsUBCgtFZGl0TWVzc2FnZRIpLmRpc2NvZmxpeC50aW1lbGluZS52MS5FZGl0TWVzc2FnZVJlcXVlc3QaKi5kaXNjb2ZsaXgudGltZWxpbmUudjEuRWRpdE1lc3NhZ2VSZXNwb25zZSJforsYWwoGd3JpdGVyEAIaDgoHbWVzc2FnZRIDc2VxMgxFZGl0IG1lc3NhZ2U6MUVkaXQgdGhlIGNvbnRlbnQgb2YgYSBtZXNzYWdlIHRoZSBjYWxsZXIgYXV0aG9yZWQSzQEKDURlbGV0ZU1lc3NhZ2USKy5kaXNjb2ZsaXgudGltZWxpbmUudjEuRGVsZXRlTWVzc2FnZVJlcXVlc3QaLC5kaXNjb2ZsaXgudGltZWxpbmUudjEuRGVsZXRlTWVzc2FnZVJlc3BvbnNlImGiuxhdCgZ3cml0ZXIQAxoOCgdtZXNzYWdlEgNzZXEyDkRlbGV0ZSBtZXNzYWdlOjFEZWxldGUgYSBtZXNzYWdlIHRoZSBjYWxsZXIgYXV0aG9yZWQgb3IgbW9kZXJhdGVzEr4BCghNYXJrUmVhZBImLmRpc2NvZmxpeC50aW1lbGluZS52MS5NYXJrUmVhZFJlcXVlc3QaJy5kaXNjb2ZsaXgudGltZWxpbmUudjEuTWFya1JlYWRSZXNwb25zZSJhorsYXQoGcmVhZGVyEAIaFQoHY2hhbm5lbBIKY2hhbm5lbF9pZDIJTWFyayByZWFkOi9BZHZhbmNlIHRoZSBjYWxsZXIncyByZWFkIGN1cnNvciBvbiBvbmUgY2hhbm5lbBLJAQoLV2F0Y2hFdmVudHMSKS5kaXNjb2ZsaXgudGltZWxpbmUudjEuV2F0Y2hFdmVudHNSZXF1ZXN0GiouZGlzY29mbGl4LnRpbWVsaW5lLnYxLldhdGNoRXZlbnRzUmVzcG9uc2UiYaK7GF0KDXRpbWVsaW5lLnJlYWQQATIMV2F0Y2ggZXZlbnRzOjxTdHJlYW0gdGltZWxpbmUgZXZlbnRzIHRoZSBjYWxsZXIgY2FuIHJlYWQsIHJlc3VtYWJsZSBieSBzZXEwAULwAQoZY29tLmRpc2NvZmxpeC50aW1lbGluZS52MUINVGltZWxpbmVQcm90b1ABWklnaXRodWIuY29tL25pY2toZXllci9EaXNjb0ZsaXgvc2RrL2dvL3BiL2Rpc2NvZmxpeC90aW1lbGluZS92MTt0aW1lbGluZXYxogIDRFRYqgIVRGlzY29mbGl4LlRpbWVsaW5lLlYxygIVRGlzY29mbGl4XFRpbWVsaW5lXFYx4gIhRGlzY29mbGl4XFRpbWVsaW5lXFYxXEdQQk1ldGFkYXRh6gIXRGlzY29mbGl4OjpUaW1lbGluZTo6VjGSAwIIAmIIZWRpdGlvbnNw6Ac", [file_buf_validate_validate, file_discoflix_capability_v1_options, file_google_protobuf_any, file_google_protobuf_timestamp]);
+  fileDesc("CiRkaXNjb2ZsaXgvdGltZWxpbmUvdjEvdGltZWxpbmUucHJvdG8SFWRpc2NvZmxpeC50aW1lbGluZS52MSLoAQoFU3BhY2USCgoCaWQYASABKAkSLgoEa2luZBgCIAEoDjIgLmRpc2NvZmxpeC50aW1lbGluZS52MS5TcGFjZUtpbmQSDAoEbmFtZRgDIAEoCRIQCghpY29uX3VybBgEIAEoCRITCgtleHRlcm5hbF9pZBgFIAEoCRIQCghwb3NpdGlvbhgGIAEoBRIuCgpjcmVhdGVkX2F0GAcgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIOCgZ1bnJlYWQYCCABKAMSHAoUYXBwcm92YWxzX2NoYW5uZWxfaWQYCSABKAki/gEKB0NoYW5uZWwSCgoCaWQYASABKAkSEAoIc3BhY2VfaWQYAiABKAkSMAoEa2luZBgDIAEoDjIiLmRpc2NvZmxpeC50aW1lbGluZS52MS5DaGFubmVsS2luZBIMCgRuYW1lGAQgASgJEg0KBXRvcGljGAUgASgJEhEKCXBhcmVudF9pZBgGIAEoCRIQCghwb3NpdGlvbhgHIAEoBRITCgtleHRlcm5hbF9pZBgIIAEoCRIQCghsYXN0X3NlcRgJIAEoAxIVCg1sYXN0X3JlYWRfc2VxGAogASgDEg4KBnVucmVhZBgLIAEoAxITCgttYXhfY29udGVudBgMIAEoBSJiCgZBdXRob3ISCgoCaWQYASABKAkSFAoMZGlzcGxheV9uYW1lGAIgASgJEhIKCmF2YXRhcl91cmwYAyABKAkSFAoMYWNjZW50X2NvbG9yGAQgASgJEgwKBGtpbmQYBSABKAkidgoKQXR0YWNobWVudBIKCgJpZBgBIAEoCRIMCgRuYW1lGAIgASgJEgsKA3VybBgDIAEoCRIUCgxjb250ZW50X3R5cGUYBCABKAkSDAoEc2l6ZRgFIAEoAxINCgV3aWR0aBgGIAEoBRIOCgZoZWlnaHQYByABKAUiNAoIUmVhY3Rpb24SDQoFZW1vamkYASABKAkSDQoFY291bnQYAiABKAMSCgoCbWUYAyABKAgihAQKB01lc3NhZ2USCwoDc2VxGAEgASgDEhAKCHNwYWNlX2lkGAIgASgJEhIKCmNoYW5uZWxfaWQYAyABKAkSLQoGYXV0aG9yGAQgASgLMh0uZGlzY29mbGl4LnRpbWVsaW5lLnYxLkF1dGhvchIwCgRraW5kGAUgASgOMiIuZGlzY29mbGl4LnRpbWVsaW5lLnYxLk1lc3NhZ2VLaW5kEg8KB2NvbnRlbnQYBiABKAkSIgoEY2FyZBgHIAEoCzIULmdvb2dsZS5wcm90b2J1Zi5BbnkSEAoIcmVwbHlfdG8YCCABKAMSEwoLZXh0ZXJuYWxfaWQYCSABKAkSLgoKY3JlYXRlZF9hdBgKIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLQoJZWRpdGVkX2F0GAsgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIuCgpkZWxldGVkX2F0GAwgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIOCgZvcmlnaW4YDSABKAkSNgoLYXR0YWNobWVudHMYDiADKAsyIS5kaXNjb2ZsaXgudGltZWxpbmUudjEuQXR0YWNobWVudBIyCglyZWFjdGlvbnMYDyADKAsyHy5kaXNjb2ZsaXgudGltZWxpbmUudjEuUmVhY3Rpb24iTAoOUmVhY3Rpb25DaGFuZ2USCwoDc2VxGAEgASgDEg0KBWVtb2ppGAIgASgJEg8KB3VzZXJfaWQYAyABKAkSDQoFY291bnQYBCABKAMiQwoGVHlwaW5nEhIKCmNoYW5uZWxfaWQYASABKAkSDwoHdXNlcl9pZBgCIAEoCRIUCgxkaXNwbGF5X25hbWUYAyABKAkiMQoOUHJlc2VuY2VDaGFuZ2USDwoHdXNlcl9pZBgBIAEoCRIOCgZzdGF0dXMYAiABKAki9AIKBUV2ZW50EgsKA3NlcRgBIAEoAxIuCgRraW5kGAIgASgOMiAuZGlzY29mbGl4LnRpbWVsaW5lLnYxLkV2ZW50S2luZBIvCgdtZXNzYWdlGAMgASgLMh4uZGlzY29mbGl4LnRpbWVsaW5lLnYxLk1lc3NhZ2USEgoKY2hhbm5lbF9pZBgEIAEoCRIQCghzcGFjZV9pZBgFIAEoCRImCgJhdBgGIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASDgoGb3JpZ2luGAcgASgJEjcKCHJlYWN0aW9uGAggASgLMiUuZGlzY29mbGl4LnRpbWVsaW5lLnYxLlJlYWN0aW9uQ2hhbmdlEi0KBnR5cGluZxgJIAEoCzIdLmRpc2NvZmxpeC50aW1lbGluZS52MS5UeXBpbmcSNwoIcHJlc2VuY2UYCiABKAsyJS5kaXNjb2ZsaXgudGltZWxpbmUudjEuUHJlc2VuY2VDaGFuZ2UiUAoEUm9sZRIKCgJpZBgBIAEoCRIMCgRuYW1lGAIgASgJEg0KBWNvbG9yGAMgASgJEhAKCHBvc2l0aW9uGAQgASgFEg0KBWhvaXN0GAUgASgIIrsBCgZNZW1iZXISKwoEdXNlchgBIAEoCzIdLmRpc2NvZmxpeC50aW1lbGluZS52MS5BdXRob3ISDQoFcm9sZXMYAiADKAkSEAoIbmlja25hbWUYAyABKAkSEAoIcHJlc2VuY2UYBCABKAkSEwoLZXh0ZXJuYWxfaWQYBSABKAkSLQoJam9pbmVkX2F0GAYgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBINCgVhZG1pbhgHIAEoCCITChFMaXN0U3BhY2VzUmVxdWVzdCJCChJMaXN0U3BhY2VzUmVzcG9uc2USLAoGc3BhY2VzGAEgAygLMhwuZGlzY29mbGl4LnRpbWVsaW5lLnYxLlNwYWNlIjAKE0xpc3RDaGFubmVsc1JlcXVlc3QSGQoIc3BhY2VfaWQYASABKAlCB7pIBHICEAEiSAoUTGlzdENoYW5uZWxzUmVzcG9uc2USMAoIY2hhbm5lbHMYASADKAsyHi5kaXNjb2ZsaXgudGltZWxpbmUudjEuQ2hhbm5lbCIvChJMaXN0TWVtYmVyc1JlcXVlc3QSGQoIc3BhY2VfaWQYASABKAlCB7pIBHICEAEicQoTTGlzdE1lbWJlcnNSZXNwb25zZRIuCgdtZW1iZXJzGAEgAygLMh0uZGlzY29mbGl4LnRpbWVsaW5lLnYxLk1lbWJlchIqCgVyb2xlcxgCIAMoCzIbLmRpc2NvZmxpeC50aW1lbGluZS52MS5Sb2xlImEKE0xpc3RNZXNzYWdlc1JlcXVlc3QSGwoKY2hhbm5lbF9pZBgBIAEoCUIHukgEcgIQARISCgpiZWZvcmVfc2VxGAIgASgDEhkKBWxpbWl0GAMgASgFQgq6SAcaBRjIASgAIloKFExpc3RNZXNzYWdlc1Jlc3BvbnNlEjAKCG1lc3NhZ2VzGAEgAygLMh4uZGlzY29mbGl4LnRpbWVsaW5lLnYxLk1lc3NhZ2USEAoIaGFzX21vcmUYAiABKAgiggEKElBvc3RNZXNzYWdlUmVxdWVzdBIbCgpjaGFubmVsX2lkGAEgASgJQge6SARyAhABEhkKB2NvbnRlbnQYAiABKAlCCLpIBXIDGKAfEiIKBGNhcmQYAyABKAsyFC5nb29nbGUucHJvdG9idWYuQW55EhAKCHJlcGx5X3RvGAQgASgDIkYKE1Bvc3RNZXNzYWdlUmVzcG9uc2USLwoHbWVzc2FnZRgBIAEoCzIeLmRpc2NvZmxpeC50aW1lbGluZS52MS5NZXNzYWdlIkUKEkVkaXRNZXNzYWdlUmVxdWVzdBIUCgNzZXEYASABKANCB7pIBCICIAASGQoHY29udGVudBgCIAEoCUIIukgFcgMYoB8iRgoTRWRpdE1lc3NhZ2VSZXNwb25zZRIvCgdtZXNzYWdlGAEgASgLMh4uZGlzY29mbGl4LnRpbWVsaW5lLnYxLk1lc3NhZ2UiLAoURGVsZXRlTWVzc2FnZVJlcXVlc3QSFAoDc2VxGAEgASgDQge6SAQiAiAAIhcKFURlbGV0ZU1lc3NhZ2VSZXNwb25zZSJEChJBZGRSZWFjdGlvblJlcXVlc3QSFAoDc2VxGAEgASgDQge6SAQiAiAAEhgKBWVtb2ppGAIgASgJQgm6SAZyBBABGEAiRgoTQWRkUmVhY3Rpb25SZXNwb25zZRIvCgdtZXNzYWdlGAEgASgLMh4uZGlzY29mbGl4LnRpbWVsaW5lLnYxLk1lc3NhZ2UiRwoVUmVtb3ZlUmVhY3Rpb25SZXF1ZXN0EhQKA3NlcRgBIAEoA0IHukgEIgIgABIYCgVlbW9qaRgCIAEoCUIJukgGcgQQARhAIkkKFlJlbW92ZVJlYWN0aW9uUmVzcG9uc2USLwoHbWVzc2FnZRgBIAEoCzIeLmRpc2NvZmxpeC50aW1lbGluZS52MS5NZXNzYWdlIl8KE0ludGVyYWN0Q2FyZFJlcXVlc3QSFAoDc2VxGAEgASgDQge6SAQiAiAAEhkKBmFjdGlvbhgCIAEoCUIJukgGcgQQARhAEhcKBXZhbHVlGAMgASgJQgi6SAVyAxigHyJHChRJbnRlcmFjdENhcmRSZXNwb25zZRIvCgdtZXNzYWdlGAEgASgLMh4uZGlzY29mbGl4LnRpbWVsaW5lLnYxLk1lc3NhZ2UiXQoTQ3JlYXRlVGhyZWFkUmVxdWVzdBIbCgpjaGFubmVsX2lkGAEgASgJQge6SARyAhABEhcKBG5hbWUYAiABKAlCCbpIBnIEEAEYZBIQCghmcm9tX3NlcRgDIAEoAyJHChRDcmVhdGVUaHJlYWRSZXNwb25zZRIvCgdjaGFubmVsGAEgASgLMh4uZGlzY29mbGl4LnRpbWVsaW5lLnYxLkNoYW5uZWwiMAoRU2VuZFR5cGluZ1JlcXVlc3QSGwoKY2hhbm5lbF9pZBgBIAEoCUIHukgEcgIQASIUChJTZW5kVHlwaW5nUmVzcG9uc2UiOwoPTWFya1JlYWRSZXF1ZXN0EhsKCmNoYW5uZWxfaWQYASABKAlCB7pIBHICEAESCwoDc2VxGAIgASgDIkMKEE1hcmtSZWFkUmVzcG9uc2USLwoHY2hhbm5lbBgBIAEoCzIeLmRpc2NvZmxpeC50aW1lbGluZS52MS5DaGFubmVsIjkKEldhdGNoRXZlbnRzUmVxdWVzdBIRCglhZnRlcl9zZXEYASABKAMSEAoIc3BhY2VfaWQYAiABKAkiQgoTV2F0Y2hFdmVudHNSZXNwb25zZRIrCgVldmVudBgBIAEoCzIcLmRpc2NvZmxpeC50aW1lbGluZS52MS5FdmVudCqzAQoJU3BhY2VLaW5kEhoKFlNQQUNFX0tJTkRfVU5TUEVDSUZJRUQQABIVChFTUEFDRV9LSU5EX1NZU1RFTRABEhQKEFNQQUNFX0tJTkRfR1VJTEQQAhIWChJTUEFDRV9LSU5EX0xJQlJBUlkQAxIVChFTUEFDRV9LSU5EX1BMVUdJThAEEhcKE1NQQUNFX0tJTkRfUFJPVklERVIQBRIVChFTUEFDRV9LSU5EX1NFUlZFUhAGKo4BCgtDaGFubmVsS2luZBIcChhDSEFOTkVMX0tJTkRfVU5TUEVDSUZJRUQQABIVChFDSEFOTkVMX0tJTkRfVEVYVBABEhkKFUNIQU5ORUxfS0lORF9DQVRFR09SWRACEhYKEkNIQU5ORUxfS0lORF9WT0lDRRADEhcKE0NIQU5ORUxfS0lORF9USFJFQUQQBCpyCgtNZXNzYWdlS2luZBIcChhNRVNTQUdFX0tJTkRfVU5TUEVDSUZJRUQQABIVChFNRVNTQUdFX0tJTkRfVVNFUhABEhcKE01FU1NBR0VfS0lORF9TWVNURU0QAhIVChFNRVNTQUdFX0tJTkRfQ0FSRBADKpgDCglFdmVudEtpbmQSGgoWRVZFTlRfS0lORF9VTlNQRUNJRklFRBAAEh4KGkVWRU5UX0tJTkRfTUVTU0FHRV9DUkVBVEVEEAESHQoZRVZFTlRfS0lORF9NRVNTQUdFX0VESVRFRBACEh4KGkVWRU5UX0tJTkRfTUVTU0FHRV9ERUxFVEVEEAMSGwoXRVZFTlRfS0lORF9DQVJEX1VQREFURUQQBBIbChdFVkVOVF9LSU5EX0NIQU5ORUxfUkVBRBAFEh0KGUVWRU5UX0tJTkRfUkVBQ1RJT05fQURERUQQBhIfChtFVkVOVF9LSU5EX1JFQUNUSU9OX1JFTU9WRUQQBxIVChFFVkVOVF9LSU5EX1RZUElORxAIEh8KG0VWRU5UX0tJTkRfUFJFU0VOQ0VfQ0hBTkdFRBAJEh8KG0VWRU5UX0tJTkRfQ0hBTk5FTFNfQ0hBTkdFRBAKEh0KGUVWRU5UX0tJTkRfU1BBQ0VTX0NIQU5HRUQQCxIeChpFVkVOVF9LSU5EX01FTUJFUlNfQ0hBTkdFRBAMMqQWCg9UaW1lbGluZVNlcnZpY2USpwEKCkxpc3RTcGFjZXMSKC5kaXNjb2ZsaXgudGltZWxpbmUudjEuTGlzdFNwYWNlc1JlcXVlc3QaKS5kaXNjb2ZsaXgudGltZWxpbmUudjEuTGlzdFNwYWNlc1Jlc3BvbnNlIkSiuxhACg10aW1lbGluZS5yZWFkEAEyC0xpc3Qgc3BhY2VzOiBTcGFjZXMgdGhlIGNhbGxlciBpcyBhIG1lbWJlciBvZhLSAQoMTGlzdENoYW5uZWxzEiouZGlzY29mbGl4LnRpbWVsaW5lLnYxLkxpc3RDaGFubmVsc1JlcXVlc3QaKy5kaXNjb2ZsaXgudGltZWxpbmUudjEuTGlzdENoYW5uZWxzUmVzcG9uc2UiaaK7GGUKBnJlYWRlchABGhEKBXNwYWNlEghzcGFjZV9pZDINTGlzdCBjaGFubmVsczo3Q2hhbm5lbHMgb2Ygb25lIHNwYWNlIHdpdGggdW5yZWFkIGNvdW50cyBmb3IgdGhlIGNhbGxlchLDAQoLTGlzdE1lbWJlcnMSKS5kaXNjb2ZsaXgudGltZWxpbmUudjEuTGlzdE1lbWJlcnNSZXF1ZXN0GiouZGlzY29mbGl4LnRpbWVsaW5lLnYxLkxpc3RNZW1iZXJzUmVzcG9uc2UiXaK7GFkKBnJlYWRlchABGhEKBXNwYWNlEghzcGFjZV9pZDIMTGlzdCBtZW1iZXJzOixNZW1iZXJzIG9mIG9uZSBzcGFjZSB3aXRoIHJvbGVzIGFuZCBwcmVzZW5jZRLQAQoMTGlzdE1lc3NhZ2VzEiouZGlzY29mbGl4LnRpbWVsaW5lLnYxLkxpc3RNZXNzYWdlc1JlcXVlc3QaKy5kaXNjb2ZsaXgudGltZWxpbmUudjEuTGlzdE1lc3NhZ2VzUmVzcG9uc2UiZ6K7GGMKBnJlYWRlchABGhUKB2NoYW5uZWwSCmNoYW5uZWxfaWQyDUxpc3QgbWVzc2FnZXM6MUEgcGFnZSBvZiBtZXNzYWdlcyBmcm9tIG9uZSBjaGFubmVsLCBuZXdlc3QgZmlyc3QSwgEKC1Bvc3RNZXNzYWdlEikuZGlzY29mbGl4LnRpbWVsaW5lLnYxLlBvc3RNZXNzYWdlUmVxdWVzdBoqLmRpc2NvZmxpeC50aW1lbGluZS52MS5Qb3N0TWVzc2FnZVJlc3BvbnNlIlyiuxhYCgZ3cml0ZXIQAhoVCgdjaGFubmVsEgpjaGFubmVsX2lkMgxQb3N0IG1lc3NhZ2U6J1Bvc3QgYSBtZXNzYWdlIG9yIGEgY2FyZCB0byBvbmUgY2hhbm5lbBLFAQoLRWRpdE1lc3NhZ2USKS5kaXNjb2ZsaXgudGltZWxpbmUudjEuRWRpdE1lc3NhZ2VSZXF1ZXN0GiouZGlzY29mbGl4LnRpbWVsaW5lLnYxLkVkaXRNZXNzYWdlUmVzcG9uc2UiX6K7GFsKBndyaXRlchACGg4KB21lc3NhZ2USA3NlcTIMRWRpdCBtZXNzYWdlOjFFZGl0IHRoZSBjb250ZW50IG9mIGEgbWVzc2FnZSB0aGUgY2FsbGVyIGF1dGhvcmVkEs0BCg1EZWxldGVNZXNzYWdlEisuZGlzY29mbGl4LnRpbWVsaW5lLnYxLkRlbGV0ZU1lc3NhZ2VSZXF1ZXN0GiwuZGlzY29mbGl4LnRpbWVsaW5lLnYxLkRlbGV0ZU1lc3NhZ2VSZXNwb25zZSJhorsYXQoGd3JpdGVyEAMaDgoHbWVzc2FnZRIDc2VxMg5EZWxldGUgbWVzc2FnZToxRGVsZXRlIGEgbWVzc2FnZSB0aGUgY2FsbGVyIGF1dGhvcmVkIG9yIG1vZGVyYXRlcxK0AQoLQWRkUmVhY3Rpb24SKS5kaXNjb2ZsaXgudGltZWxpbmUudjEuQWRkUmVhY3Rpb25SZXF1ZXN0GiouZGlzY29mbGl4LnRpbWVsaW5lLnYxLkFkZFJlYWN0aW9uUmVzcG9uc2UiTqK7GEoKBnJlYWRlchACGg4KB21lc3NhZ2USA3NlcTIMQWRkIHJlYWN0aW9uOiBSZWFjdCB0byBhIG1lc3NhZ2Ugd2l0aCBhbiBlbW9qaRLMAQoOUmVtb3ZlUmVhY3Rpb24SLC5kaXNjb2ZsaXgudGltZWxpbmUudjEuUmVtb3ZlUmVhY3Rpb25SZXF1ZXN0Gi0uZGlzY29mbGl4LnRpbWVsaW5lLnYxLlJlbW92ZVJlYWN0aW9uUmVzcG9uc2UiXaK7GFkKBnJlYWRlchACGg4KB21lc3NhZ2USA3NlcTIPUmVtb3ZlIHJlYWN0aW9uOixUYWtlIGJhY2sgdGhlIGNhbGxlcidzIHJlYWN0aW9uIG9uIGEgbWVzc2FnZRLzAQoMSW50ZXJhY3RDYXJkEiouZGlzY29mbGl4LnRpbWVsaW5lLnYxLkludGVyYWN0Q2FyZFJlcXVlc3QaKy5kaXNjb2ZsaXgudGltZWxpbmUudjEuSW50ZXJhY3RDYXJkUmVzcG9uc2UiiQGiuxiEAQoGcmVhZGVyEAIaDgoHbWVzc2FnZRIDc2VxMhJJbnRlcmFjdCB3aXRoIGNhcmQ6VFByZXNzIGEgYnV0dG9uIG9yIHBpY2sgYW4gb3B0aW9uIG9uIGEgY2FyZCwgdGhlIHNhbWUgdHJhbnNpdGlvbiBldmVyeSB0cmFuc3BvcnQgdXNlcxLTAQoMQ3JlYXRlVGhyZWFkEiouZGlzY29mbGl4LnRpbWVsaW5lLnYxLkNyZWF0ZVRocmVhZFJlcXVlc3QaKy5kaXNjb2ZsaXgudGltZWxpbmUudjEuQ3JlYXRlVGhyZWFkUmVzcG9uc2UiaqK7GGYKBndyaXRlchACGhUKB2NoYW5uZWwSCmNoYW5uZWxfaWQyDUNyZWF0ZSB0aHJlYWQ6NFN0YXJ0IGEgdGhyZWFkIGluIGEgY2hhbm5lbCwgZnJvbSBhIG1lc3NhZ2Ugb3IgZW1wdHkSvAEKClNlbmRUeXBpbmcSKC5kaXNjb2ZsaXgudGltZWxpbmUudjEuU2VuZFR5cGluZ1JlcXVlc3QaKS5kaXNjb2ZsaXgudGltZWxpbmUudjEuU2VuZFR5cGluZ1Jlc3BvbnNlIlmiuxhVCgZ3cml0ZXIQAhoVCgdjaGFubmVsEgpjaGFubmVsX2lkMgtTZW5kIHR5cGluZzolVGVsbCB0aGUgY2hhbm5lbCB0aGUgY2FsbGVyIGlzIHR5cGluZxK+AQoITWFya1JlYWQSJi5kaXNjb2ZsaXgudGltZWxpbmUudjEuTWFya1JlYWRSZXF1ZXN0GicuZGlzY29mbGl4LnRpbWVsaW5lLnYxLk1hcmtSZWFkUmVzcG9uc2UiYaK7GF0KBnJlYWRlchACGhUKB2NoYW5uZWwSCmNoYW5uZWxfaWQyCU1hcmsgcmVhZDovQWR2YW5jZSB0aGUgY2FsbGVyJ3MgcmVhZCBjdXJzb3Igb24gb25lIGNoYW5uZWwSyQEKC1dhdGNoRXZlbnRzEikuZGlzY29mbGl4LnRpbWVsaW5lLnYxLldhdGNoRXZlbnRzUmVxdWVzdBoqLmRpc2NvZmxpeC50aW1lbGluZS52MS5XYXRjaEV2ZW50c1Jlc3BvbnNlImGiuxhdCg10aW1lbGluZS5yZWFkEAEyDFdhdGNoIGV2ZW50czo8U3RyZWFtIHRpbWVsaW5lIGV2ZW50cyB0aGUgY2FsbGVyIGNhbiByZWFkLCByZXN1bWFibGUgYnkgc2VxMAFC8AEKGWNvbS5kaXNjb2ZsaXgudGltZWxpbmUudjFCDVRpbWVsaW5lUHJvdG9QAVpJZ2l0aHViLmNvbS9uaWNraGV5ZXIvRGlzY29GbGl4L3Nkay9nby9wYi9kaXNjb2ZsaXgvdGltZWxpbmUvdjE7dGltZWxpbmV2MaICA0RUWKoCFURpc2NvZmxpeC5UaW1lbGluZS5WMcoCFURpc2NvZmxpeFxUaW1lbGluZVxWMeICIURpc2NvZmxpeFxUaW1lbGluZVxWMVxHUEJNZXRhZGF0YeoCF0Rpc2NvZmxpeDo6VGltZWxpbmU6OlYxkgMCCAJiCGVkaXRpb25zcOgH", [file_buf_validate_validate, file_discoflix_capability_v1_options, file_google_protobuf_any, file_google_protobuf_timestamp]);
 
 /**
  * @generated from message discoflix.timeline.v1.Space
@@ -60,6 +60,13 @@ export type Space = Message$1<"discoflix.timeline.v1.Space"> & {
    * @generated from field: int64 unread = 8;
    */
   unread: bigint;
+
+  /**
+   * Channel that receives approval cards for actions inside this space
+   *
+   * @generated from field: string approvals_channel_id = 9;
+   */
+  approvalsChannelId: string;
 };
 
 /**
@@ -105,6 +112,13 @@ export type SpaceJson = {
    * @generated from field: int64 unread = 8;
    */
   unread?: string;
+
+  /**
+   * Channel that receives approval cards for actions inside this space
+   *
+   * @generated from field: string approvals_channel_id = 9;
+   */
+  approvalsChannelId?: string;
 };
 
 /**
@@ -172,6 +186,13 @@ export type Channel = Message$1<"discoflix.timeline.v1.Channel"> & {
    * @generated from field: int64 unread = 11;
    */
   unread: bigint;
+
+  /**
+   * Longest message content this channel accepts, lower on channels mirrored to Discord
+   *
+   * @generated from field: int32 max_content = 12;
+   */
+  maxContent: number;
 };
 
 /**
@@ -232,6 +253,13 @@ export type ChannelJson = {
    * @generated from field: int64 unread = 11;
    */
   unread?: string;
+
+  /**
+   * Longest message content this channel accepts, lower on channels mirrored to Discord
+   *
+   * @generated from field: int32 max_content = 12;
+   */
+  maxContent?: number;
 };
 
 /**
@@ -313,6 +341,152 @@ export const AuthorSchema: GenMessage<Author, {jsonType: AuthorJson}> = /*@__PUR
   messageDesc(file_discoflix_timeline_v1_timeline, 2);
 
 /**
+ * @generated from message discoflix.timeline.v1.Attachment
+ */
+export type Attachment = Message$1<"discoflix.timeline.v1.Attachment"> & {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id: string;
+
+  /**
+   * @generated from field: string name = 2;
+   */
+  name: string;
+
+  /**
+   * @generated from field: string url = 3;
+   */
+  url: string;
+
+  /**
+   * @generated from field: string content_type = 4;
+   */
+  contentType: string;
+
+  /**
+   * @generated from field: int64 size = 5;
+   */
+  size: bigint;
+
+  /**
+   * @generated from field: int32 width = 6;
+   */
+  width: number;
+
+  /**
+   * @generated from field: int32 height = 7;
+   */
+  height: number;
+};
+
+/**
+ * @generated from message discoflix.timeline.v1.Attachment
+ */
+export type AttachmentJson = {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id?: string;
+
+  /**
+   * @generated from field: string name = 2;
+   */
+  name?: string;
+
+  /**
+   * @generated from field: string url = 3;
+   */
+  url?: string;
+
+  /**
+   * @generated from field: string content_type = 4;
+   */
+  contentType?: string;
+
+  /**
+   * @generated from field: int64 size = 5;
+   */
+  size?: string;
+
+  /**
+   * @generated from field: int32 width = 6;
+   */
+  width?: number;
+
+  /**
+   * @generated from field: int32 height = 7;
+   */
+  height?: number;
+};
+
+/**
+ * Describes the message discoflix.timeline.v1.Attachment.
+ * Use `create(AttachmentSchema)` to create a new message.
+ */
+export const AttachmentSchema: GenMessage<Attachment, {jsonType: AttachmentJson}> = /*@__PURE__*/
+  messageDesc(file_discoflix_timeline_v1_timeline, 3);
+
+/**
+ * One emoji on a message with how many users added it
+ *
+ * @generated from message discoflix.timeline.v1.Reaction
+ */
+export type Reaction = Message$1<"discoflix.timeline.v1.Reaction"> & {
+  /**
+   * Unicode emoji, or name:id for a custom Discord emoji
+   *
+   * @generated from field: string emoji = 1;
+   */
+  emoji: string;
+
+  /**
+   * @generated from field: int64 count = 2;
+   */
+  count: bigint;
+
+  /**
+   * True when the caller is among the reactors
+   *
+   * @generated from field: bool me = 3;
+   */
+  me: boolean;
+};
+
+/**
+ * One emoji on a message with how many users added it
+ *
+ * @generated from message discoflix.timeline.v1.Reaction
+ */
+export type ReactionJson = {
+  /**
+   * Unicode emoji, or name:id for a custom Discord emoji
+   *
+   * @generated from field: string emoji = 1;
+   */
+  emoji?: string;
+
+  /**
+   * @generated from field: int64 count = 2;
+   */
+  count?: string;
+
+  /**
+   * True when the caller is among the reactors
+   *
+   * @generated from field: bool me = 3;
+   */
+  me?: boolean;
+};
+
+/**
+ * Describes the message discoflix.timeline.v1.Reaction.
+ * Use `create(ReactionSchema)` to create a new message.
+ */
+export const ReactionSchema: GenMessage<Reaction, {jsonType: ReactionJson}> = /*@__PURE__*/
+  messageDesc(file_discoflix_timeline_v1_timeline, 4);
+
+/**
  * @generated from message discoflix.timeline.v1.Message
  */
 export type Message = Message$1<"discoflix.timeline.v1.Message"> & {
@@ -375,6 +549,23 @@ export type Message = Message$1<"discoflix.timeline.v1.Message"> & {
    * @generated from field: google.protobuf.Timestamp deleted_at = 12;
    */
   deletedAt?: Timestamp | undefined;
+
+  /**
+   * Transport that wrote the message such as web, discord, system, api
+   *
+   * @generated from field: string origin = 13;
+   */
+  origin: string;
+
+  /**
+   * @generated from field: repeated discoflix.timeline.v1.Attachment attachments = 14;
+   */
+  attachments: Attachment[];
+
+  /**
+   * @generated from field: repeated discoflix.timeline.v1.Reaction reactions = 15;
+   */
+  reactions: Reaction[];
 };
 
 /**
@@ -440,6 +631,23 @@ export type MessageJson = {
    * @generated from field: google.protobuf.Timestamp deleted_at = 12;
    */
   deletedAt?: TimestampJson;
+
+  /**
+   * Transport that wrote the message such as web, discord, system, api
+   *
+   * @generated from field: string origin = 13;
+   */
+  origin?: string;
+
+  /**
+   * @generated from field: repeated discoflix.timeline.v1.Attachment attachments = 14;
+   */
+  attachments?: AttachmentJson[];
+
+  /**
+   * @generated from field: repeated discoflix.timeline.v1.Reaction reactions = 15;
+   */
+  reactions?: ReactionJson[];
 };
 
 /**
@@ -447,7 +655,156 @@ export type MessageJson = {
  * Use `create(MessageSchema)` to create a new message.
  */
 export const MessageSchema: GenMessage<Message, {jsonType: MessageJson}> = /*@__PURE__*/
-  messageDesc(file_discoflix_timeline_v1_timeline, 3);
+  messageDesc(file_discoflix_timeline_v1_timeline, 5);
+
+/**
+ * @generated from message discoflix.timeline.v1.ReactionChange
+ */
+export type ReactionChange = Message$1<"discoflix.timeline.v1.ReactionChange"> & {
+  /**
+   * @generated from field: int64 seq = 1;
+   */
+  seq: bigint;
+
+  /**
+   * @generated from field: string emoji = 2;
+   */
+  emoji: string;
+
+  /**
+   * @generated from field: string user_id = 3;
+   */
+  userId: string;
+
+  /**
+   * Reactors with this emoji after the change
+   *
+   * @generated from field: int64 count = 4;
+   */
+  count: bigint;
+};
+
+/**
+ * @generated from message discoflix.timeline.v1.ReactionChange
+ */
+export type ReactionChangeJson = {
+  /**
+   * @generated from field: int64 seq = 1;
+   */
+  seq?: string;
+
+  /**
+   * @generated from field: string emoji = 2;
+   */
+  emoji?: string;
+
+  /**
+   * @generated from field: string user_id = 3;
+   */
+  userId?: string;
+
+  /**
+   * Reactors with this emoji after the change
+   *
+   * @generated from field: int64 count = 4;
+   */
+  count?: string;
+};
+
+/**
+ * Describes the message discoflix.timeline.v1.ReactionChange.
+ * Use `create(ReactionChangeSchema)` to create a new message.
+ */
+export const ReactionChangeSchema: GenMessage<ReactionChange, {jsonType: ReactionChangeJson}> = /*@__PURE__*/
+  messageDesc(file_discoflix_timeline_v1_timeline, 6);
+
+/**
+ * @generated from message discoflix.timeline.v1.Typing
+ */
+export type Typing = Message$1<"discoflix.timeline.v1.Typing"> & {
+  /**
+   * @generated from field: string channel_id = 1;
+   */
+  channelId: string;
+
+  /**
+   * @generated from field: string user_id = 2;
+   */
+  userId: string;
+
+  /**
+   * @generated from field: string display_name = 3;
+   */
+  displayName: string;
+};
+
+/**
+ * @generated from message discoflix.timeline.v1.Typing
+ */
+export type TypingJson = {
+  /**
+   * @generated from field: string channel_id = 1;
+   */
+  channelId?: string;
+
+  /**
+   * @generated from field: string user_id = 2;
+   */
+  userId?: string;
+
+  /**
+   * @generated from field: string display_name = 3;
+   */
+  displayName?: string;
+};
+
+/**
+ * Describes the message discoflix.timeline.v1.Typing.
+ * Use `create(TypingSchema)` to create a new message.
+ */
+export const TypingSchema: GenMessage<Typing, {jsonType: TypingJson}> = /*@__PURE__*/
+  messageDesc(file_discoflix_timeline_v1_timeline, 7);
+
+/**
+ * @generated from message discoflix.timeline.v1.PresenceChange
+ */
+export type PresenceChange = Message$1<"discoflix.timeline.v1.PresenceChange"> & {
+  /**
+   * @generated from field: string user_id = 1;
+   */
+  userId: string;
+
+  /**
+   * online, idle, dnd, offline
+   *
+   * @generated from field: string status = 2;
+   */
+  status: string;
+};
+
+/**
+ * @generated from message discoflix.timeline.v1.PresenceChange
+ */
+export type PresenceChangeJson = {
+  /**
+   * @generated from field: string user_id = 1;
+   */
+  userId?: string;
+
+  /**
+   * online, idle, dnd, offline
+   *
+   * @generated from field: string status = 2;
+   */
+  status?: string;
+};
+
+/**
+ * Describes the message discoflix.timeline.v1.PresenceChange.
+ * Use `create(PresenceChangeSchema)` to create a new message.
+ */
+export const PresenceChangeSchema: GenMessage<PresenceChange, {jsonType: PresenceChangeJson}> = /*@__PURE__*/
+  messageDesc(file_discoflix_timeline_v1_timeline, 8);
 
 /**
  * @generated from message discoflix.timeline.v1.Event
@@ -482,6 +839,28 @@ export type Event = Message$1<"discoflix.timeline.v1.Event"> & {
    * @generated from field: google.protobuf.Timestamp at = 6;
    */
   at?: Timestamp | undefined;
+
+  /**
+   * Transport that produced the event
+   *
+   * @generated from field: string origin = 7;
+   */
+  origin: string;
+
+  /**
+   * @generated from field: discoflix.timeline.v1.ReactionChange reaction = 8;
+   */
+  reaction?: ReactionChange | undefined;
+
+  /**
+   * @generated from field: discoflix.timeline.v1.Typing typing = 9;
+   */
+  typing?: Typing | undefined;
+
+  /**
+   * @generated from field: discoflix.timeline.v1.PresenceChange presence = 10;
+   */
+  presence?: PresenceChange | undefined;
 };
 
 /**
@@ -517,6 +896,28 @@ export type EventJson = {
    * @generated from field: google.protobuf.Timestamp at = 6;
    */
   at?: TimestampJson;
+
+  /**
+   * Transport that produced the event
+   *
+   * @generated from field: string origin = 7;
+   */
+  origin?: string;
+
+  /**
+   * @generated from field: discoflix.timeline.v1.ReactionChange reaction = 8;
+   */
+  reaction?: ReactionChangeJson;
+
+  /**
+   * @generated from field: discoflix.timeline.v1.Typing typing = 9;
+   */
+  typing?: TypingJson;
+
+  /**
+   * @generated from field: discoflix.timeline.v1.PresenceChange presence = 10;
+   */
+  presence?: PresenceChangeJson;
 };
 
 /**
@@ -524,7 +925,173 @@ export type EventJson = {
  * Use `create(EventSchema)` to create a new message.
  */
 export const EventSchema: GenMessage<Event, {jsonType: EventJson}> = /*@__PURE__*/
-  messageDesc(file_discoflix_timeline_v1_timeline, 4);
+  messageDesc(file_discoflix_timeline_v1_timeline, 9);
+
+/**
+ * @generated from message discoflix.timeline.v1.Role
+ */
+export type Role = Message$1<"discoflix.timeline.v1.Role"> & {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id: string;
+
+  /**
+   * @generated from field: string name = 2;
+   */
+  name: string;
+
+  /**
+   * @generated from field: string color = 3;
+   */
+  color: string;
+
+  /**
+   * @generated from field: int32 position = 4;
+   */
+  position: number;
+
+  /**
+   * Shown as its own group in the member list
+   *
+   * @generated from field: bool hoist = 5;
+   */
+  hoist: boolean;
+};
+
+/**
+ * @generated from message discoflix.timeline.v1.Role
+ */
+export type RoleJson = {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id?: string;
+
+  /**
+   * @generated from field: string name = 2;
+   */
+  name?: string;
+
+  /**
+   * @generated from field: string color = 3;
+   */
+  color?: string;
+
+  /**
+   * @generated from field: int32 position = 4;
+   */
+  position?: number;
+
+  /**
+   * Shown as its own group in the member list
+   *
+   * @generated from field: bool hoist = 5;
+   */
+  hoist?: boolean;
+};
+
+/**
+ * Describes the message discoflix.timeline.v1.Role.
+ * Use `create(RoleSchema)` to create a new message.
+ */
+export const RoleSchema: GenMessage<Role, {jsonType: RoleJson}> = /*@__PURE__*/
+  messageDesc(file_discoflix_timeline_v1_timeline, 10);
+
+/**
+ * @generated from message discoflix.timeline.v1.Member
+ */
+export type Member = Message$1<"discoflix.timeline.v1.Member"> & {
+  /**
+   * @generated from field: discoflix.timeline.v1.Author user = 1;
+   */
+  user?: Author | undefined;
+
+  /**
+   * @generated from field: repeated string roles = 2;
+   */
+  roles: string[];
+
+  /**
+   * @generated from field: string nickname = 3;
+   */
+  nickname: string;
+
+  /**
+   * online, idle, dnd, offline
+   *
+   * @generated from field: string presence = 4;
+   */
+  presence: string;
+
+  /**
+   * Discord user id when the member came from a guild
+   *
+   * @generated from field: string external_id = 5;
+   */
+  externalId: string;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp joined_at = 6;
+   */
+  joinedAt?: Timestamp | undefined;
+
+  /**
+   * @generated from field: bool admin = 7;
+   */
+  admin: boolean;
+};
+
+/**
+ * @generated from message discoflix.timeline.v1.Member
+ */
+export type MemberJson = {
+  /**
+   * @generated from field: discoflix.timeline.v1.Author user = 1;
+   */
+  user?: AuthorJson;
+
+  /**
+   * @generated from field: repeated string roles = 2;
+   */
+  roles?: string[];
+
+  /**
+   * @generated from field: string nickname = 3;
+   */
+  nickname?: string;
+
+  /**
+   * online, idle, dnd, offline
+   *
+   * @generated from field: string presence = 4;
+   */
+  presence?: string;
+
+  /**
+   * Discord user id when the member came from a guild
+   *
+   * @generated from field: string external_id = 5;
+   */
+  externalId?: string;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp joined_at = 6;
+   */
+  joinedAt?: TimestampJson;
+
+  /**
+   * @generated from field: bool admin = 7;
+   */
+  admin?: boolean;
+};
+
+/**
+ * Describes the message discoflix.timeline.v1.Member.
+ * Use `create(MemberSchema)` to create a new message.
+ */
+export const MemberSchema: GenMessage<Member, {jsonType: MemberJson}> = /*@__PURE__*/
+  messageDesc(file_discoflix_timeline_v1_timeline, 11);
 
 /**
  * @generated from message discoflix.timeline.v1.ListSpacesRequest
@@ -543,7 +1110,7 @@ export type ListSpacesRequestJson = {
  * Use `create(ListSpacesRequestSchema)` to create a new message.
  */
 export const ListSpacesRequestSchema: GenMessage<ListSpacesRequest, {jsonType: ListSpacesRequestJson}> = /*@__PURE__*/
-  messageDesc(file_discoflix_timeline_v1_timeline, 5);
+  messageDesc(file_discoflix_timeline_v1_timeline, 12);
 
 /**
  * @generated from message discoflix.timeline.v1.ListSpacesResponse
@@ -570,7 +1137,7 @@ export type ListSpacesResponseJson = {
  * Use `create(ListSpacesResponseSchema)` to create a new message.
  */
 export const ListSpacesResponseSchema: GenMessage<ListSpacesResponse, {jsonType: ListSpacesResponseJson}> = /*@__PURE__*/
-  messageDesc(file_discoflix_timeline_v1_timeline, 6);
+  messageDesc(file_discoflix_timeline_v1_timeline, 13);
 
 /**
  * @generated from message discoflix.timeline.v1.ListChannelsRequest
@@ -597,7 +1164,7 @@ export type ListChannelsRequestJson = {
  * Use `create(ListChannelsRequestSchema)` to create a new message.
  */
 export const ListChannelsRequestSchema: GenMessage<ListChannelsRequest, {jsonType: ListChannelsRequestJson}> = /*@__PURE__*/
-  messageDesc(file_discoflix_timeline_v1_timeline, 7);
+  messageDesc(file_discoflix_timeline_v1_timeline, 14);
 
 /**
  * @generated from message discoflix.timeline.v1.ListChannelsResponse
@@ -624,7 +1191,71 @@ export type ListChannelsResponseJson = {
  * Use `create(ListChannelsResponseSchema)` to create a new message.
  */
 export const ListChannelsResponseSchema: GenMessage<ListChannelsResponse, {jsonType: ListChannelsResponseJson}> = /*@__PURE__*/
-  messageDesc(file_discoflix_timeline_v1_timeline, 8);
+  messageDesc(file_discoflix_timeline_v1_timeline, 15);
+
+/**
+ * @generated from message discoflix.timeline.v1.ListMembersRequest
+ */
+export type ListMembersRequest = Message$1<"discoflix.timeline.v1.ListMembersRequest"> & {
+  /**
+   * @generated from field: string space_id = 1;
+   */
+  spaceId: string;
+};
+
+/**
+ * @generated from message discoflix.timeline.v1.ListMembersRequest
+ */
+export type ListMembersRequestJson = {
+  /**
+   * @generated from field: string space_id = 1;
+   */
+  spaceId?: string;
+};
+
+/**
+ * Describes the message discoflix.timeline.v1.ListMembersRequest.
+ * Use `create(ListMembersRequestSchema)` to create a new message.
+ */
+export const ListMembersRequestSchema: GenMessage<ListMembersRequest, {jsonType: ListMembersRequestJson}> = /*@__PURE__*/
+  messageDesc(file_discoflix_timeline_v1_timeline, 16);
+
+/**
+ * @generated from message discoflix.timeline.v1.ListMembersResponse
+ */
+export type ListMembersResponse = Message$1<"discoflix.timeline.v1.ListMembersResponse"> & {
+  /**
+   * @generated from field: repeated discoflix.timeline.v1.Member members = 1;
+   */
+  members: Member[];
+
+  /**
+   * @generated from field: repeated discoflix.timeline.v1.Role roles = 2;
+   */
+  roles: Role[];
+};
+
+/**
+ * @generated from message discoflix.timeline.v1.ListMembersResponse
+ */
+export type ListMembersResponseJson = {
+  /**
+   * @generated from field: repeated discoflix.timeline.v1.Member members = 1;
+   */
+  members?: MemberJson[];
+
+  /**
+   * @generated from field: repeated discoflix.timeline.v1.Role roles = 2;
+   */
+  roles?: RoleJson[];
+};
+
+/**
+ * Describes the message discoflix.timeline.v1.ListMembersResponse.
+ * Use `create(ListMembersResponseSchema)` to create a new message.
+ */
+export const ListMembersResponseSchema: GenMessage<ListMembersResponse, {jsonType: ListMembersResponseJson}> = /*@__PURE__*/
+  messageDesc(file_discoflix_timeline_v1_timeline, 17);
 
 /**
  * @generated from message discoflix.timeline.v1.ListMessagesRequest
@@ -675,7 +1306,7 @@ export type ListMessagesRequestJson = {
  * Use `create(ListMessagesRequestSchema)` to create a new message.
  */
 export const ListMessagesRequestSchema: GenMessage<ListMessagesRequest, {jsonType: ListMessagesRequestJson}> = /*@__PURE__*/
-  messageDesc(file_discoflix_timeline_v1_timeline, 9);
+  messageDesc(file_discoflix_timeline_v1_timeline, 18);
 
 /**
  * @generated from message discoflix.timeline.v1.ListMessagesResponse
@@ -712,7 +1343,7 @@ export type ListMessagesResponseJson = {
  * Use `create(ListMessagesResponseSchema)` to create a new message.
  */
 export const ListMessagesResponseSchema: GenMessage<ListMessagesResponse, {jsonType: ListMessagesResponseJson}> = /*@__PURE__*/
-  messageDesc(file_discoflix_timeline_v1_timeline, 10);
+  messageDesc(file_discoflix_timeline_v1_timeline, 19);
 
 /**
  * @generated from message discoflix.timeline.v1.PostMessageRequest
@@ -769,7 +1400,7 @@ export type PostMessageRequestJson = {
  * Use `create(PostMessageRequestSchema)` to create a new message.
  */
 export const PostMessageRequestSchema: GenMessage<PostMessageRequest, {jsonType: PostMessageRequestJson}> = /*@__PURE__*/
-  messageDesc(file_discoflix_timeline_v1_timeline, 11);
+  messageDesc(file_discoflix_timeline_v1_timeline, 20);
 
 /**
  * @generated from message discoflix.timeline.v1.PostMessageResponse
@@ -796,7 +1427,7 @@ export type PostMessageResponseJson = {
  * Use `create(PostMessageResponseSchema)` to create a new message.
  */
 export const PostMessageResponseSchema: GenMessage<PostMessageResponse, {jsonType: PostMessageResponseJson}> = /*@__PURE__*/
-  messageDesc(file_discoflix_timeline_v1_timeline, 12);
+  messageDesc(file_discoflix_timeline_v1_timeline, 21);
 
 /**
  * @generated from message discoflix.timeline.v1.EditMessageRequest
@@ -833,7 +1464,7 @@ export type EditMessageRequestJson = {
  * Use `create(EditMessageRequestSchema)` to create a new message.
  */
 export const EditMessageRequestSchema: GenMessage<EditMessageRequest, {jsonType: EditMessageRequestJson}> = /*@__PURE__*/
-  messageDesc(file_discoflix_timeline_v1_timeline, 13);
+  messageDesc(file_discoflix_timeline_v1_timeline, 22);
 
 /**
  * @generated from message discoflix.timeline.v1.EditMessageResponse
@@ -860,7 +1491,7 @@ export type EditMessageResponseJson = {
  * Use `create(EditMessageResponseSchema)` to create a new message.
  */
 export const EditMessageResponseSchema: GenMessage<EditMessageResponse, {jsonType: EditMessageResponseJson}> = /*@__PURE__*/
-  messageDesc(file_discoflix_timeline_v1_timeline, 14);
+  messageDesc(file_discoflix_timeline_v1_timeline, 23);
 
 /**
  * @generated from message discoflix.timeline.v1.DeleteMessageRequest
@@ -887,7 +1518,7 @@ export type DeleteMessageRequestJson = {
  * Use `create(DeleteMessageRequestSchema)` to create a new message.
  */
 export const DeleteMessageRequestSchema: GenMessage<DeleteMessageRequest, {jsonType: DeleteMessageRequestJson}> = /*@__PURE__*/
-  messageDesc(file_discoflix_timeline_v1_timeline, 15);
+  messageDesc(file_discoflix_timeline_v1_timeline, 24);
 
 /**
  * @generated from message discoflix.timeline.v1.DeleteMessageResponse
@@ -906,7 +1537,337 @@ export type DeleteMessageResponseJson = {
  * Use `create(DeleteMessageResponseSchema)` to create a new message.
  */
 export const DeleteMessageResponseSchema: GenMessage<DeleteMessageResponse, {jsonType: DeleteMessageResponseJson}> = /*@__PURE__*/
-  messageDesc(file_discoflix_timeline_v1_timeline, 16);
+  messageDesc(file_discoflix_timeline_v1_timeline, 25);
+
+/**
+ * @generated from message discoflix.timeline.v1.AddReactionRequest
+ */
+export type AddReactionRequest = Message$1<"discoflix.timeline.v1.AddReactionRequest"> & {
+  /**
+   * @generated from field: int64 seq = 1;
+   */
+  seq: bigint;
+
+  /**
+   * @generated from field: string emoji = 2;
+   */
+  emoji: string;
+};
+
+/**
+ * @generated from message discoflix.timeline.v1.AddReactionRequest
+ */
+export type AddReactionRequestJson = {
+  /**
+   * @generated from field: int64 seq = 1;
+   */
+  seq?: string;
+
+  /**
+   * @generated from field: string emoji = 2;
+   */
+  emoji?: string;
+};
+
+/**
+ * Describes the message discoflix.timeline.v1.AddReactionRequest.
+ * Use `create(AddReactionRequestSchema)` to create a new message.
+ */
+export const AddReactionRequestSchema: GenMessage<AddReactionRequest, {jsonType: AddReactionRequestJson}> = /*@__PURE__*/
+  messageDesc(file_discoflix_timeline_v1_timeline, 26);
+
+/**
+ * @generated from message discoflix.timeline.v1.AddReactionResponse
+ */
+export type AddReactionResponse = Message$1<"discoflix.timeline.v1.AddReactionResponse"> & {
+  /**
+   * @generated from field: discoflix.timeline.v1.Message message = 1;
+   */
+  message?: Message | undefined;
+};
+
+/**
+ * @generated from message discoflix.timeline.v1.AddReactionResponse
+ */
+export type AddReactionResponseJson = {
+  /**
+   * @generated from field: discoflix.timeline.v1.Message message = 1;
+   */
+  message?: MessageJson;
+};
+
+/**
+ * Describes the message discoflix.timeline.v1.AddReactionResponse.
+ * Use `create(AddReactionResponseSchema)` to create a new message.
+ */
+export const AddReactionResponseSchema: GenMessage<AddReactionResponse, {jsonType: AddReactionResponseJson}> = /*@__PURE__*/
+  messageDesc(file_discoflix_timeline_v1_timeline, 27);
+
+/**
+ * @generated from message discoflix.timeline.v1.RemoveReactionRequest
+ */
+export type RemoveReactionRequest = Message$1<"discoflix.timeline.v1.RemoveReactionRequest"> & {
+  /**
+   * @generated from field: int64 seq = 1;
+   */
+  seq: bigint;
+
+  /**
+   * @generated from field: string emoji = 2;
+   */
+  emoji: string;
+};
+
+/**
+ * @generated from message discoflix.timeline.v1.RemoveReactionRequest
+ */
+export type RemoveReactionRequestJson = {
+  /**
+   * @generated from field: int64 seq = 1;
+   */
+  seq?: string;
+
+  /**
+   * @generated from field: string emoji = 2;
+   */
+  emoji?: string;
+};
+
+/**
+ * Describes the message discoflix.timeline.v1.RemoveReactionRequest.
+ * Use `create(RemoveReactionRequestSchema)` to create a new message.
+ */
+export const RemoveReactionRequestSchema: GenMessage<RemoveReactionRequest, {jsonType: RemoveReactionRequestJson}> = /*@__PURE__*/
+  messageDesc(file_discoflix_timeline_v1_timeline, 28);
+
+/**
+ * @generated from message discoflix.timeline.v1.RemoveReactionResponse
+ */
+export type RemoveReactionResponse = Message$1<"discoflix.timeline.v1.RemoveReactionResponse"> & {
+  /**
+   * @generated from field: discoflix.timeline.v1.Message message = 1;
+   */
+  message?: Message | undefined;
+};
+
+/**
+ * @generated from message discoflix.timeline.v1.RemoveReactionResponse
+ */
+export type RemoveReactionResponseJson = {
+  /**
+   * @generated from field: discoflix.timeline.v1.Message message = 1;
+   */
+  message?: MessageJson;
+};
+
+/**
+ * Describes the message discoflix.timeline.v1.RemoveReactionResponse.
+ * Use `create(RemoveReactionResponseSchema)` to create a new message.
+ */
+export const RemoveReactionResponseSchema: GenMessage<RemoveReactionResponse, {jsonType: RemoveReactionResponseJson}> = /*@__PURE__*/
+  messageDesc(file_discoflix_timeline_v1_timeline, 29);
+
+/**
+ * @generated from message discoflix.timeline.v1.InteractCardRequest
+ */
+export type InteractCardRequest = Message$1<"discoflix.timeline.v1.InteractCardRequest"> & {
+  /**
+   * @generated from field: int64 seq = 1;
+   */
+  seq: bigint;
+
+  /**
+   * Component the caller used, such as approve or deny
+   *
+   * @generated from field: string action = 2;
+   */
+  action: string;
+
+  /**
+   * @generated from field: string value = 3;
+   */
+  value: string;
+};
+
+/**
+ * @generated from message discoflix.timeline.v1.InteractCardRequest
+ */
+export type InteractCardRequestJson = {
+  /**
+   * @generated from field: int64 seq = 1;
+   */
+  seq?: string;
+
+  /**
+   * Component the caller used, such as approve or deny
+   *
+   * @generated from field: string action = 2;
+   */
+  action?: string;
+
+  /**
+   * @generated from field: string value = 3;
+   */
+  value?: string;
+};
+
+/**
+ * Describes the message discoflix.timeline.v1.InteractCardRequest.
+ * Use `create(InteractCardRequestSchema)` to create a new message.
+ */
+export const InteractCardRequestSchema: GenMessage<InteractCardRequest, {jsonType: InteractCardRequestJson}> = /*@__PURE__*/
+  messageDesc(file_discoflix_timeline_v1_timeline, 30);
+
+/**
+ * @generated from message discoflix.timeline.v1.InteractCardResponse
+ */
+export type InteractCardResponse = Message$1<"discoflix.timeline.v1.InteractCardResponse"> & {
+  /**
+   * @generated from field: discoflix.timeline.v1.Message message = 1;
+   */
+  message?: Message | undefined;
+};
+
+/**
+ * @generated from message discoflix.timeline.v1.InteractCardResponse
+ */
+export type InteractCardResponseJson = {
+  /**
+   * @generated from field: discoflix.timeline.v1.Message message = 1;
+   */
+  message?: MessageJson;
+};
+
+/**
+ * Describes the message discoflix.timeline.v1.InteractCardResponse.
+ * Use `create(InteractCardResponseSchema)` to create a new message.
+ */
+export const InteractCardResponseSchema: GenMessage<InteractCardResponse, {jsonType: InteractCardResponseJson}> = /*@__PURE__*/
+  messageDesc(file_discoflix_timeline_v1_timeline, 31);
+
+/**
+ * @generated from message discoflix.timeline.v1.CreateThreadRequest
+ */
+export type CreateThreadRequest = Message$1<"discoflix.timeline.v1.CreateThreadRequest"> & {
+  /**
+   * @generated from field: string channel_id = 1;
+   */
+  channelId: string;
+
+  /**
+   * @generated from field: string name = 2;
+   */
+  name: string;
+
+  /**
+   * Message the thread starts from, 0 starts an empty thread
+   *
+   * @generated from field: int64 from_seq = 3;
+   */
+  fromSeq: bigint;
+};
+
+/**
+ * @generated from message discoflix.timeline.v1.CreateThreadRequest
+ */
+export type CreateThreadRequestJson = {
+  /**
+   * @generated from field: string channel_id = 1;
+   */
+  channelId?: string;
+
+  /**
+   * @generated from field: string name = 2;
+   */
+  name?: string;
+
+  /**
+   * Message the thread starts from, 0 starts an empty thread
+   *
+   * @generated from field: int64 from_seq = 3;
+   */
+  fromSeq?: string;
+};
+
+/**
+ * Describes the message discoflix.timeline.v1.CreateThreadRequest.
+ * Use `create(CreateThreadRequestSchema)` to create a new message.
+ */
+export const CreateThreadRequestSchema: GenMessage<CreateThreadRequest, {jsonType: CreateThreadRequestJson}> = /*@__PURE__*/
+  messageDesc(file_discoflix_timeline_v1_timeline, 32);
+
+/**
+ * @generated from message discoflix.timeline.v1.CreateThreadResponse
+ */
+export type CreateThreadResponse = Message$1<"discoflix.timeline.v1.CreateThreadResponse"> & {
+  /**
+   * @generated from field: discoflix.timeline.v1.Channel channel = 1;
+   */
+  channel?: Channel | undefined;
+};
+
+/**
+ * @generated from message discoflix.timeline.v1.CreateThreadResponse
+ */
+export type CreateThreadResponseJson = {
+  /**
+   * @generated from field: discoflix.timeline.v1.Channel channel = 1;
+   */
+  channel?: ChannelJson;
+};
+
+/**
+ * Describes the message discoflix.timeline.v1.CreateThreadResponse.
+ * Use `create(CreateThreadResponseSchema)` to create a new message.
+ */
+export const CreateThreadResponseSchema: GenMessage<CreateThreadResponse, {jsonType: CreateThreadResponseJson}> = /*@__PURE__*/
+  messageDesc(file_discoflix_timeline_v1_timeline, 33);
+
+/**
+ * @generated from message discoflix.timeline.v1.SendTypingRequest
+ */
+export type SendTypingRequest = Message$1<"discoflix.timeline.v1.SendTypingRequest"> & {
+  /**
+   * @generated from field: string channel_id = 1;
+   */
+  channelId: string;
+};
+
+/**
+ * @generated from message discoflix.timeline.v1.SendTypingRequest
+ */
+export type SendTypingRequestJson = {
+  /**
+   * @generated from field: string channel_id = 1;
+   */
+  channelId?: string;
+};
+
+/**
+ * Describes the message discoflix.timeline.v1.SendTypingRequest.
+ * Use `create(SendTypingRequestSchema)` to create a new message.
+ */
+export const SendTypingRequestSchema: GenMessage<SendTypingRequest, {jsonType: SendTypingRequestJson}> = /*@__PURE__*/
+  messageDesc(file_discoflix_timeline_v1_timeline, 34);
+
+/**
+ * @generated from message discoflix.timeline.v1.SendTypingResponse
+ */
+export type SendTypingResponse = Message$1<"discoflix.timeline.v1.SendTypingResponse"> & {
+};
+
+/**
+ * @generated from message discoflix.timeline.v1.SendTypingResponse
+ */
+export type SendTypingResponseJson = {
+};
+
+/**
+ * Describes the message discoflix.timeline.v1.SendTypingResponse.
+ * Use `create(SendTypingResponseSchema)` to create a new message.
+ */
+export const SendTypingResponseSchema: GenMessage<SendTypingResponse, {jsonType: SendTypingResponseJson}> = /*@__PURE__*/
+  messageDesc(file_discoflix_timeline_v1_timeline, 35);
 
 /**
  * @generated from message discoflix.timeline.v1.MarkReadRequest
@@ -943,7 +1904,7 @@ export type MarkReadRequestJson = {
  * Use `create(MarkReadRequestSchema)` to create a new message.
  */
 export const MarkReadRequestSchema: GenMessage<MarkReadRequest, {jsonType: MarkReadRequestJson}> = /*@__PURE__*/
-  messageDesc(file_discoflix_timeline_v1_timeline, 17);
+  messageDesc(file_discoflix_timeline_v1_timeline, 36);
 
 /**
  * @generated from message discoflix.timeline.v1.MarkReadResponse
@@ -970,7 +1931,7 @@ export type MarkReadResponseJson = {
  * Use `create(MarkReadResponseSchema)` to create a new message.
  */
 export const MarkReadResponseSchema: GenMessage<MarkReadResponse, {jsonType: MarkReadResponseJson}> = /*@__PURE__*/
-  messageDesc(file_discoflix_timeline_v1_timeline, 18);
+  messageDesc(file_discoflix_timeline_v1_timeline, 37);
 
 /**
  * @generated from message discoflix.timeline.v1.WatchEventsRequest
@@ -1015,7 +1976,7 @@ export type WatchEventsRequestJson = {
  * Use `create(WatchEventsRequestSchema)` to create a new message.
  */
 export const WatchEventsRequestSchema: GenMessage<WatchEventsRequest, {jsonType: WatchEventsRequestJson}> = /*@__PURE__*/
-  messageDesc(file_discoflix_timeline_v1_timeline, 19);
+  messageDesc(file_discoflix_timeline_v1_timeline, 38);
 
 /**
  * @generated from message discoflix.timeline.v1.WatchEventsResponse
@@ -1042,7 +2003,7 @@ export type WatchEventsResponseJson = {
  * Use `create(WatchEventsResponseSchema)` to create a new message.
  */
 export const WatchEventsResponseSchema: GenMessage<WatchEventsResponse, {jsonType: WatchEventsResponseJson}> = /*@__PURE__*/
-  messageDesc(file_discoflix_timeline_v1_timeline, 20);
+  messageDesc(file_discoflix_timeline_v1_timeline, 39);
 
 /**
  * @generated from enum discoflix.timeline.v1.SpaceKind
@@ -1205,12 +2166,47 @@ export enum EventKind {
    * @generated from enum value: EVENT_KIND_CHANNEL_READ = 5;
    */
   CHANNEL_READ = 5,
+
+  /**
+   * @generated from enum value: EVENT_KIND_REACTION_ADDED = 6;
+   */
+  REACTION_ADDED = 6,
+
+  /**
+   * @generated from enum value: EVENT_KIND_REACTION_REMOVED = 7;
+   */
+  REACTION_REMOVED = 7,
+
+  /**
+   * @generated from enum value: EVENT_KIND_TYPING = 8;
+   */
+  TYPING = 8,
+
+  /**
+   * @generated from enum value: EVENT_KIND_PRESENCE_CHANGED = 9;
+   */
+  PRESENCE_CHANGED = 9,
+
+  /**
+   * @generated from enum value: EVENT_KIND_CHANNELS_CHANGED = 10;
+   */
+  CHANNELS_CHANGED = 10,
+
+  /**
+   * @generated from enum value: EVENT_KIND_SPACES_CHANGED = 11;
+   */
+  SPACES_CHANGED = 11,
+
+  /**
+   * @generated from enum value: EVENT_KIND_MEMBERS_CHANGED = 12;
+   */
+  MEMBERS_CHANGED = 12,
 }
 
 /**
  * @generated from enum discoflix.timeline.v1.EventKind
  */
-export type EventKindJson = "EVENT_KIND_UNSPECIFIED" | "EVENT_KIND_MESSAGE_CREATED" | "EVENT_KIND_MESSAGE_EDITED" | "EVENT_KIND_MESSAGE_DELETED" | "EVENT_KIND_CARD_UPDATED" | "EVENT_KIND_CHANNEL_READ";
+export type EventKindJson = "EVENT_KIND_UNSPECIFIED" | "EVENT_KIND_MESSAGE_CREATED" | "EVENT_KIND_MESSAGE_EDITED" | "EVENT_KIND_MESSAGE_DELETED" | "EVENT_KIND_CARD_UPDATED" | "EVENT_KIND_CHANNEL_READ" | "EVENT_KIND_REACTION_ADDED" | "EVENT_KIND_REACTION_REMOVED" | "EVENT_KIND_TYPING" | "EVENT_KIND_PRESENCE_CHANGED" | "EVENT_KIND_CHANNELS_CHANGED" | "EVENT_KIND_SPACES_CHANGED" | "EVENT_KIND_MEMBERS_CHANGED";
 
 /**
  * Describes the enum discoflix.timeline.v1.EventKind.
@@ -1237,6 +2233,14 @@ export const TimelineService: GenService<{
     methodKind: "unary";
     input: typeof ListChannelsRequestSchema;
     output: typeof ListChannelsResponseSchema;
+  },
+  /**
+   * @generated from rpc discoflix.timeline.v1.TimelineService.ListMembers
+   */
+  listMembers: {
+    methodKind: "unary";
+    input: typeof ListMembersRequestSchema;
+    output: typeof ListMembersResponseSchema;
   },
   /**
    * @generated from rpc discoflix.timeline.v1.TimelineService.ListMessages
@@ -1269,6 +2273,46 @@ export const TimelineService: GenService<{
     methodKind: "unary";
     input: typeof DeleteMessageRequestSchema;
     output: typeof DeleteMessageResponseSchema;
+  },
+  /**
+   * @generated from rpc discoflix.timeline.v1.TimelineService.AddReaction
+   */
+  addReaction: {
+    methodKind: "unary";
+    input: typeof AddReactionRequestSchema;
+    output: typeof AddReactionResponseSchema;
+  },
+  /**
+   * @generated from rpc discoflix.timeline.v1.TimelineService.RemoveReaction
+   */
+  removeReaction: {
+    methodKind: "unary";
+    input: typeof RemoveReactionRequestSchema;
+    output: typeof RemoveReactionResponseSchema;
+  },
+  /**
+   * @generated from rpc discoflix.timeline.v1.TimelineService.InteractCard
+   */
+  interactCard: {
+    methodKind: "unary";
+    input: typeof InteractCardRequestSchema;
+    output: typeof InteractCardResponseSchema;
+  },
+  /**
+   * @generated from rpc discoflix.timeline.v1.TimelineService.CreateThread
+   */
+  createThread: {
+    methodKind: "unary";
+    input: typeof CreateThreadRequestSchema;
+    output: typeof CreateThreadResponseSchema;
+  },
+  /**
+   * @generated from rpc discoflix.timeline.v1.TimelineService.SendTyping
+   */
+  sendTyping: {
+    methodKind: "unary";
+    input: typeof SendTypingRequestSchema;
+    output: typeof SendTypingResponseSchema;
   },
   /**
    * @generated from rpc discoflix.timeline.v1.TimelineService.MarkRead

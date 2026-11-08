@@ -10,14 +10,24 @@ import (
 	"time"
 
 	"github.com/nickheyer/DiscoFlix/internal/store"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/user"
 	cardv1 "github.com/nickheyer/DiscoFlix/sdk/go/pb/discoflix/card/v1"
 	timelinev1 "github.com/nickheyer/DiscoFlix/sdk/go/pb/discoflix/timeline/v1"
 )
 
-type noFlush struct{}
+// openAuthz grants every member every channel, so visibility filtering stays out of these tests
+type openAuthz struct{ ent *ent.Client }
 
-func (noFlush) Flush(context.Context) error { return nil }
+func (openAuthz) Flush(context.Context) error { return nil }
+
+func (openAuthz) OnChange(func()) {}
+
+func (openAuthz) ListUsers(context.Context, string, string) ([]string, bool, error) {
+	return nil, true, nil
+}
+
+func (openAuthz) Has(context.Context, string, string, string) (bool, error) { return false, nil }
 
 type capture struct {
 	mu   sync.Mutex
@@ -53,7 +63,7 @@ func newService(t *testing.T) (*Service, *capture, *store.Store) {
 		t.Fatal(err)
 	}
 	pub := &capture{}
-	svc := New(st.Ent, noFlush{}, pub, log)
+	svc := New(st.Ent, openAuthz{ent: st.Ent}, pub, log)
 	if err := svc.EnsureSystem(ctx, "Test Instance"); err != nil {
 		t.Fatal(err)
 	}
@@ -134,14 +144,14 @@ func TestSystemSpaceAndMessages(t *testing.T) {
 		t.Fatalf("user publications after read = %d", pub.count(UserChannel(alice.ID)))
 	}
 
-	edited, err := svc.Edit(ctx, hello.GetSeq(), "hello again")
+	edited, err := svc.Edit(ctx, hello.GetSeq(), "hello again", Change{Origin: OriginWeb})
 	if err != nil || edited.GetContent() != "hello again" || edited.GetEditedAt() == nil {
 		t.Fatalf("edit = %v, %v", edited, err)
 	}
-	if err := svc.Delete(ctx, hello.GetSeq()); err != nil {
+	if err := svc.Delete(ctx, hello.GetSeq(), Change{Origin: OriginWeb}); err != nil {
 		t.Fatal(err)
 	}
-	msgs, more, err := svc.ListMessages(ctx, svc.SystemChannelID("general"), 0, 10)
+	msgs, more, err := svc.ListMessages(ctx, alice.ID, svc.SystemChannelID("general"), 0, 10)
 	if err != nil || more || len(msgs) != 1 || msgs[0].GetDeletedAt() == nil || msgs[0].GetContent() != "" {
 		t.Fatalf("list after delete = %v, %v, %v", msgs, more, err)
 	}
@@ -149,7 +159,7 @@ func TestSystemSpaceAndMessages(t *testing.T) {
 	if err != nil || len(events) != 2 || events[1].GetKind() != timelinev1.EventKind_EVENT_KIND_MESSAGE_DELETED {
 		t.Fatalf("events after = %v, %v", events, err)
 	}
-	if _, err := svc.Edit(ctx, 999, "x"); !errors.Is(err, ErrNotFound) {
+	if _, err := svc.Edit(ctx, 999, "x", Change{}); !errors.Is(err, ErrNotFound) {
 		t.Fatalf("edit missing = %v", err)
 	}
 }

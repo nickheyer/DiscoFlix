@@ -1,0 +1,37 @@
+{
+  "$defs": {
+    "discoflix.discord.v1.SetApprovalsChannelRequest.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(channel_id)$": {
+          "default": "",
+          "description": "Empty sends approvals for this space to the system audit channel",
+          "type": "string"
+        },
+        "^(space_id)$": {
+          "default": "",
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "properties": {
+        "channelId": {
+          "default": "",
+          "description": "Empty sends approvals for this space to the system audit channel",
+          "type": "string"
+        },
+        "spaceId": {
+          "default": "",
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "title": "Set Approvals Channel Request",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.discord.v1.SetApprovalsChannelRequest.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.discord.v1.SetApprovalsChannelRequest.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

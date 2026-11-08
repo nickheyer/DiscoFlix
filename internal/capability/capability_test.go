@@ -63,15 +63,18 @@ func newRegistry(t *testing.T) *Registry {
 
 func TestRegistryCoversEveryMethod(t *testing.T) {
 	reg := newRegistry(t)
-	if reg.Len() != 1+8+19 {
+	if reg.Len() != 1+14+25 {
 		t.Fatalf("registered %d capabilities", reg.Len())
 	}
 	e, ok := reg.Get("/discoflix.timeline.v1.TimelineService/PostMessage")
-	if !ok || e.Object.GetType() != "channel" || e.Relation() != "writer" || !e.Slash || len(e.InputSchema) == 0 {
+	if !ok || e.Object.GetType() != "channel" || e.Relation() != "writer" || e.Command != "" || len(e.InputSchema) == 0 {
 		t.Fatalf("post message entry = %+v", e)
 	}
-	if e, _ := reg.Get("/discoflix.identity.v1.IdentityService/GetMe"); e.Relation() != "session_self" {
-		t.Fatalf("relation = %s", e.Relation())
+	if e, _ := reg.Get("/discoflix.identity.v1.IdentityService/GetMe"); e.Relation() != "session_self" || e.Command != "whoami" {
+		t.Fatalf("get me entry = %+v", e)
+	}
+	if e, ok := reg.ByCommand("link"); !ok || e.Method != "CreateLinkCode" || len(reg.Commands()) != 3 {
+		t.Fatalf("commands = %v", reg.Commands())
 	}
 }
 

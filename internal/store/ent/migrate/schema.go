@@ -47,6 +47,8 @@ var (
 		{Name: "position", Type: field.TypeInt32, Default: 0},
 		{Name: "external_id", Type: field.TypeString, Default: ""},
 		{Name: "last_seq", Type: field.TypeInt64, Default: 0},
+		{Name: "archived", Type: field.TypeBool, Default: false},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "space_id", Type: field.TypeString},
 	}
 	// ChannelsTable holds the schema information for the "channels" table.
@@ -57,7 +59,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "channels_spaces_channels",
-				Columns:    []*schema.Column{ChannelsColumns[10]},
+				Columns:    []*schema.Column{ChannelsColumns[12]},
 				RefColumns: []*schema.Column{SpacesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -66,12 +68,17 @@ var (
 			{
 				Name:    "channel_space_id_position",
 				Unique:  false,
-				Columns: []*schema.Column{ChannelsColumns[10], ChannelsColumns[7]},
+				Columns: []*schema.Column{ChannelsColumns[12], ChannelsColumns[7]},
 			},
 			{
 				Name:    "channel_space_id_external_id",
 				Unique:  false,
-				Columns: []*schema.Column{ChannelsColumns[10], ChannelsColumns[8]},
+				Columns: []*schema.Column{ChannelsColumns[12], ChannelsColumns[8]},
+			},
+			{
+				Name:    "channel_external_id",
+				Unique:  false,
+				Columns: []*schema.Column{ChannelsColumns[8]},
 			},
 			{
 				Name:    "channel_parent_id",
@@ -174,6 +181,8 @@ var (
 	MembershipsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString},
 		{Name: "roles", Type: field.TypeJSON},
+		{Name: "nickname", Type: field.TypeString, Default: ""},
+		{Name: "admin", Type: field.TypeBool, Default: false},
 		{Name: "joined_at", Type: field.TypeTime},
 		{Name: "space_id", Type: field.TypeString},
 		{Name: "user_id", Type: field.TypeString},
@@ -186,13 +195,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "memberships_spaces_memberships",
-				Columns:    []*schema.Column{MembershipsColumns[3]},
+				Columns:    []*schema.Column{MembershipsColumns[5]},
 				RefColumns: []*schema.Column{SpacesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "memberships_users_memberships",
-				Columns:    []*schema.Column{MembershipsColumns[4]},
+				Columns:    []*schema.Column{MembershipsColumns[6]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -201,12 +210,12 @@ var (
 			{
 				Name:    "membership_user_id_space_id",
 				Unique:  true,
-				Columns: []*schema.Column{MembershipsColumns[4], MembershipsColumns[3]},
+				Columns: []*schema.Column{MembershipsColumns[6], MembershipsColumns[5]},
 			},
 			{
 				Name:    "membership_space_id",
 				Unique:  false,
-				Columns: []*schema.Column{MembershipsColumns[3]},
+				Columns: []*schema.Column{MembershipsColumns[5]},
 			},
 		},
 	}
@@ -219,9 +228,13 @@ var (
 		{Name: "card", Type: field.TypeBytes, Nullable: true},
 		{Name: "reply_to", Type: field.TypeInt64, Default: 0},
 		{Name: "external_id", Type: field.TypeString, Default: ""},
+		{Name: "origin", Type: field.TypeString, Default: ""},
+		{Name: "attachments", Type: field.TypeJSON, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "edited_at", Type: field.TypeTime, Nullable: true},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "synced_at", Type: field.TypeTime, Nullable: true},
 		{Name: "channel_id", Type: field.TypeString},
 		{Name: "space_id", Type: field.TypeString},
 		{Name: "author_id", Type: field.TypeString},
@@ -234,19 +247,19 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "messages_channels_messages",
-				Columns:    []*schema.Column{MessagesColumns[10]},
+				Columns:    []*schema.Column{MessagesColumns[14]},
 				RefColumns: []*schema.Column{ChannelsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "messages_spaces_messages",
-				Columns:    []*schema.Column{MessagesColumns[11]},
+				Columns:    []*schema.Column{MessagesColumns[15]},
 				RefColumns: []*schema.Column{SpacesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "messages_users_messages",
-				Columns:    []*schema.Column{MessagesColumns[12]},
+				Columns:    []*schema.Column{MessagesColumns[16]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -255,17 +268,17 @@ var (
 			{
 				Name:    "message_channel_id_id",
 				Unique:  false,
-				Columns: []*schema.Column{MessagesColumns[10], MessagesColumns[0]},
+				Columns: []*schema.Column{MessagesColumns[14], MessagesColumns[0]},
 			},
 			{
 				Name:    "message_space_id_id",
 				Unique:  false,
-				Columns: []*schema.Column{MessagesColumns[11], MessagesColumns[0]},
+				Columns: []*schema.Column{MessagesColumns[15], MessagesColumns[0]},
 			},
 			{
 				Name:    "message_author_id",
 				Unique:  false,
-				Columns: []*schema.Column{MessagesColumns[12]},
+				Columns: []*schema.Column{MessagesColumns[16]},
 			},
 			{
 				Name:    "message_external_id",
@@ -276,6 +289,85 @@ var (
 				Name:    "message_card_type",
 				Unique:  false,
 				Columns: []*schema.Column{MessagesColumns[3]},
+			},
+			{
+				Name:    "message_channel_id_synced_at",
+				Unique:  false,
+				Columns: []*schema.Column{MessagesColumns[14], MessagesColumns[13]},
+			},
+		},
+	}
+	// PendingActionsColumns holds the columns for the "pending_actions" table.
+	PendingActionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString},
+		{Name: "procedure", Type: field.TypeString},
+		{Name: "input", Type: field.TypeBytes},
+		{Name: "principal_user_id", Type: field.TypeString},
+		{Name: "principal_kind", Type: field.TypeString},
+		{Name: "principal_via", Type: field.TypeString, Default: ""},
+		{Name: "message_seq", Type: field.TypeInt64, Default: 0},
+		{Name: "state", Type: field.TypeEnum, Enums: []string{"pending", "approved", "denied", "executed", "failed"}, Default: "pending"},
+		{Name: "decided_by", Type: field.TypeString, Default: ""},
+		{Name: "decided_at", Type: field.TypeTime, Nullable: true},
+		{Name: "result", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "created_at", Type: field.TypeTime},
+	}
+	// PendingActionsTable holds the schema information for the "pending_actions" table.
+	PendingActionsTable = &schema.Table{
+		Name:       "pending_actions",
+		Columns:    PendingActionsColumns,
+		PrimaryKey: []*schema.Column{PendingActionsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "pendingaction_state_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{PendingActionsColumns[7], PendingActionsColumns[11]},
+			},
+			{
+				Name:    "pendingaction_message_seq",
+				Unique:  false,
+				Columns: []*schema.Column{PendingActionsColumns[6]},
+			},
+		},
+	}
+	// ReactionsColumns holds the columns for the "reactions" table.
+	ReactionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString},
+		{Name: "emoji", Type: field.TypeString, Size: 64},
+		{Name: "origin", Type: field.TypeString, Default: ""},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "message_id", Type: field.TypeInt64},
+		{Name: "user_id", Type: field.TypeString},
+	}
+	// ReactionsTable holds the schema information for the "reactions" table.
+	ReactionsTable = &schema.Table{
+		Name:       "reactions",
+		Columns:    ReactionsColumns,
+		PrimaryKey: []*schema.Column{ReactionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "reactions_messages_reactions",
+				Columns:    []*schema.Column{ReactionsColumns[4]},
+				RefColumns: []*schema.Column{MessagesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "reactions_users_reactions",
+				Columns:    []*schema.Column{ReactionsColumns[5]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "reaction_message_id_user_id_emoji",
+				Unique:  true,
+				Columns: []*schema.Column{ReactionsColumns[4], ReactionsColumns[5], ReactionsColumns[1]},
+			},
+			{
+				Name:    "reaction_message_id_emoji",
+				Unique:  false,
+				Columns: []*schema.Column{ReactionsColumns[4], ReactionsColumns[1]},
 			},
 		},
 	}
@@ -337,6 +429,8 @@ var (
 		{Name: "icon_url", Type: field.TypeString, Default: ""},
 		{Name: "external_id", Type: field.TypeString, Default: ""},
 		{Name: "position", Type: field.TypeInt32, Default: 0},
+		{Name: "approvals_channel_id", Type: field.TypeString, Default: ""},
+		{Name: "roles", Type: field.TypeJSON, Nullable: true},
 	}
 	// SpacesTable holds the schema information for the "spaces" table.
 	SpacesTable = &schema.Table{
@@ -368,12 +462,58 @@ var (
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"active", "disabled"}, Default: "active"},
 		{Name: "system_admin", Type: field.TypeBool, Default: false},
 		{Name: "last_seen_at", Type: field.TypeTime, Nullable: true},
+		{Name: "merged_into_id", Type: field.TypeString, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{
 		Name:       "users",
 		Columns:    UsersColumns,
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "users_users_absorbed",
+				Columns:    []*schema.Column{UsersColumns[10]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "user_merged_into_id",
+				Unique:  false,
+				Columns: []*schema.Column{UsersColumns[10]},
+			},
+		},
+	}
+	// UserMergesColumns holds the columns for the "user_merges" table.
+	UserMergesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString},
+		{Name: "from_user_id", Type: field.TypeString},
+		{Name: "into_user_id", Type: field.TypeString},
+		{Name: "identity_ids", Type: field.TypeJSON},
+		{Name: "credential_ids", Type: field.TypeJSON},
+		{Name: "added_space_ids", Type: field.TypeJSON},
+		{Name: "granted_system_member", Type: field.TypeBool, Default: false},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "reverted_at", Type: field.TypeTime, Nullable: true},
+	}
+	// UserMergesTable holds the schema information for the "user_merges" table.
+	UserMergesTable = &schema.Table{
+		Name:       "user_merges",
+		Columns:    UserMergesColumns,
+		PrimaryKey: []*schema.Column{UserMergesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "usermerge_from_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{UserMergesColumns[1]},
+			},
+			{
+				Name:    "usermerge_into_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{UserMergesColumns[2]},
+			},
+		},
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
@@ -383,10 +523,13 @@ var (
 		IdentitiesTable,
 		MembershipsTable,
 		MessagesTable,
+		PendingActionsTable,
+		ReactionsTable,
 		ReadStatesTable,
 		SettingsTable,
 		SpacesTable,
 		UsersTable,
+		UserMergesTable,
 	}
 )
 
@@ -399,6 +542,9 @@ func init() {
 	MessagesTable.ForeignKeys[0].RefTable = ChannelsTable
 	MessagesTable.ForeignKeys[1].RefTable = SpacesTable
 	MessagesTable.ForeignKeys[2].RefTable = UsersTable
+	ReactionsTable.ForeignKeys[0].RefTable = MessagesTable
+	ReactionsTable.ForeignKeys[1].RefTable = UsersTable
 	ReadStatesTable.ForeignKeys[0].RefTable = ChannelsTable
 	ReadStatesTable.ForeignKeys[1].RefTable = UsersTable
+	UsersTable.ForeignKeys[0].RefTable = UsersTable
 }

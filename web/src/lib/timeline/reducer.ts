@@ -24,21 +24,39 @@ export interface ChannelMessages {
 	hasOlder: boolean;
 }
 
+export interface TypingEntry {
+	name: string;
+	until: number;
+}
+
 export interface TimelineState {
 	spaces: ReadonlyMap<string, bigint>;
 	channels: ReadonlyMap<string, ChannelCounter>;
 	messages: ReadonlyMap<string, ChannelMessages>;
 	activity: readonly Message[];
 	stale: ReadonlySet<string>;
+	typing: ReadonlyMap<string, ReadonlyMap<string, TypingEntry>>;
+	presence: ReadonlyMap<string, string>;
 }
 
 export interface ReduceContext {
 	selfId: string;
 	readingChannelId: string | null;
+	now?: number;
 }
 
+export const TYPING_TTL_MS = 8000;
+
 export function emptyTimeline(): TimelineState {
-	return { spaces: new Map(), channels: new Map(), messages: new Map(), activity: [], stale: new Set() };
+	return {
+		spaces: new Map(),
+		channels: new Map(),
+		messages: new Map(),
+		activity: [],
+		stale: new Set(),
+		typing: new Map(),
+		presence: new Map()
+	};
 }
 
 function withEntry<K, V>(map: ReadonlyMap<K, V>, key: K, value: V): Map<K, V> {
@@ -161,10 +179,91 @@ function read(state: TimelineState, event: Event): TimelineState {
 	};
 }
 
+// Applies an absolute reaction count to one message, adding, updating, or dropping the emoji row
+function applyReaction(message: Message, emoji: string, count: bigint, me: boolean | null): Message {
+	const at = message.reactions.findIndex((r) => r.emoji === emoji);
+	const reactions = message.reactions.slice();
+	if (count <= 0n) {
+		if (at < 0) return message;
+		reactions.splice(at, 1);
+		return { ...message, reactions };
+	}
+	if (at < 0) {
+		reactions.push({ ...createReaction(emoji), count, me: me ?? false });
+	} else {
+		reactions[at] = { ...reactions[at], count, me: me ?? reactions[at].me };
+	}
+	return { ...message, reactions };
+}
+
+function createReaction(emoji: string): Message['reactions'][number] {
+	return { $typeName: 'discoflix.timeline.v1.Reaction', emoji, count: 0n, me: false };
+}
+
+function reacted(state: TimelineState, event: Event, added: boolean, ctx: ReduceContext): TimelineState {
+	const change = event.reaction;
+	if (!change) return state;
+	const me = change.userId === ctx.selfId ? added : null;
+	const next = updateChannelMessages(state, event.channelId, (items) =>
+		replaceMessage(items, change.seq, (old) => applyReaction(old, change.emoji, change.count, me))
+	);
+	const at = next.activity.findIndex((m) => m.seq === change.seq);
+	if (at < 0) return next;
+	const activity = next.activity.slice();
+	activity[at] = applyReaction(activity[at], change.emoji, change.count, me);
+	return { ...next, activity };
+}
+
+// Replaces one loaded message with the server copy, wherever it is held
+export function replaceLoaded(state: TimelineState, message: Message): TimelineState {
+	let next = updateChannelMessages(state, message.channelId, (items) =>
+		replaceMessage(items, message.seq, () => message)
+	);
+	const at = next.activity.findIndex((m) => m.seq === message.seq);
+	if (at >= 0) {
+		const activity = next.activity.slice();
+		activity[at] = message.card ? { ...message } : activity[at];
+		next = { ...next, activity };
+	}
+	return next;
+}
+
+function typing(state: TimelineState, event: Event, ctx: ReduceContext): TimelineState {
+	const t = event.typing;
+	if (!t || t.userId === ctx.selfId) return state;
+	const now = ctx.now ?? Date.now();
+	const channel = new Map(state.typing.get(event.channelId) ?? []);
+	channel.set(t.userId, { name: t.displayName, until: now + TYPING_TTL_MS });
+	return { ...state, typing: withEntry(state.typing, event.channelId, channel) };
+}
+
+// Drops typing entries whose window passed, returning the same state when nothing expired
+export function expireTyping(state: TimelineState, now: number): TimelineState {
+	let changed = false;
+	const next = new Map<string, ReadonlyMap<string, TypingEntry>>();
+	for (const [channelId, users] of state.typing) {
+		const live = new Map([...users].filter(([, entry]) => entry.until > now));
+		if (live.size !== users.size) changed = true;
+		if (live.size > 0) next.set(channelId, live);
+	}
+	return changed ? { ...state, typing: next } : state;
+}
+
 // Applies one timeline event to the client state without mutating the previous state
 export function reduceEvent(state: TimelineState, event: Event, ctx: ReduceContext): TimelineState {
 	const message = event.message;
 	switch (event.kind) {
+		case EventKind.REACTION_ADDED:
+			return reacted(state, event, true, ctx);
+		case EventKind.REACTION_REMOVED:
+			return reacted(state, event, false, ctx);
+		case EventKind.TYPING:
+			return typing(state, event, ctx);
+		case EventKind.PRESENCE_CHANGED: {
+			const p = event.presence;
+			if (!p || state.presence.get(p.userId) === p.status) return state;
+			return { ...state, presence: withEntry(state.presence, p.userId, p.status) };
+		}
 		case EventKind.MESSAGE_CREATED:
 			return message ? created(state, event, message, ctx) : state;
 		case EventKind.MESSAGE_EDITED: {

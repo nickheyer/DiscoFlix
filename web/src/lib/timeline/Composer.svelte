@@ -9,16 +9,19 @@
 	import { autosize } from './autosize';
 	import { MAX_CONTENT } from './limits';
 	import { timeline } from './store.svelte';
+	import TypingIndicator from './TypingIndicator.svelte';
 
 	let {
 		channelId,
 		channelName,
+		maxContent = MAX_CONTENT,
 		replyTarget,
 		oncancelreply,
 		onsent
 	}: {
 		channelId: string;
 		channelName: string;
+		maxContent?: number;
 		replyTarget: Message | null;
 		oncancelreply: () => void;
 		onsent: () => void;
@@ -28,11 +31,22 @@
 	let sending = $state(false);
 	let error = $state('');
 	const readOnly = $derived(timeline.readOnly.has(channelId));
-	const length = $derived(text.trim().length);
-	const tooLong = $derived(length > MAX_CONTENT);
+	const length = $derived([...text.trim()].length);
+	const limit = $derived(maxContent > 0 ? maxContent : MAX_CONTENT);
+	const tooLong = $derived(length > limit);
+	let lastTyping = 0;
 
 	$effect(() => {
 		timeline.drafts.set(channelId, text);
+	});
+
+	// Tells the channel the author is typing at most once every five seconds while text changes
+	$effect(() => {
+		if (text.trim() === '' || readOnly) return;
+		const now = Date.now();
+		if (now - lastTyping < 5000) return;
+		lastTyping = now;
+		timelineClient.sendTyping({ channelId }).catch(() => undefined);
 	});
 
 	async function send(): Promise<void> {
@@ -54,6 +68,7 @@
 				);
 			}
 			text = '';
+			lastTyping = 0;
 			oncancelreply();
 			onsent();
 		} catch (err) {
@@ -76,6 +91,7 @@
 </script>
 
 <div class="shrink-0 px-4 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
+	<TypingIndicator {channelId} />
 	{#if error && !readOnly}
 		<p role="alert" class="mb-1 text-sm text-dnd">{error}</p>
 	{/if}
@@ -105,8 +121,8 @@
 				aria-invalid={tooLong}
 				class="max-h-[40vh] min-h-11 flex-1 resize-none bg-transparent py-2.5 leading-[22px] text-normal outline-none placeholder:text-faint scroll-thin"
 				enterkeyhint="send"></textarea>
-			{#if length > MAX_CONTENT - 200}
-				<span class="py-3 pl-2 text-xs {tooLong ? 'text-dnd' : 'text-faint'}">{MAX_CONTENT - length}</span>
+			{#if length > limit - 200}
+				<span class="py-3 pl-2 text-xs {tooLong ? 'text-dnd' : 'text-faint'}">{limit - length}</span>
 			{/if}
 		</div>
 	{/if}

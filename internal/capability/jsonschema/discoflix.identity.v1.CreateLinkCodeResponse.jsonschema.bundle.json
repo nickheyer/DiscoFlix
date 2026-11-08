@@ -1,0 +1,34 @@
+{
+  "$defs": {
+    "discoflix.identity.v1.CreateLinkCodeResponse.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(expires_at)$": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        }
+      },
+      "properties": {
+        "expiresAt": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "url": {
+          "default": "",
+          "description": "Open this in a browser while signed in to attach the caller's Discord account to that user",
+          "type": "string"
+        }
+      },
+      "title": "Create Link Code Response",
+      "type": "object"
+    },
+    "google.protobuf.Timestamp.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "format": "date-time",
+      "title": "Timestamp",
+      "type": "string"
+    }
+  },
+  "$id": "discoflix.identity.v1.CreateLinkCodeResponse.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.identity.v1.CreateLinkCodeResponse.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

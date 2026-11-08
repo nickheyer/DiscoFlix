@@ -133,3 +133,18 @@ func sessionLoaded(ctx context.Context) bool {
 	v, _ := ctx.Value(sessionLoadedKey{}).(bool)
 	return v
 }
+
+// SessionPut stores a value in the caller's browser session, for flows that span redirects
+func (s *Service) SessionPut(ctx context.Context, key string, value string) {
+	if sessionLoaded(ctx) {
+		s.sessions.Put(ctx, key, value)
+	}
+}
+
+// SessionPopString reads and clears a value stored by SessionPut
+func (s *Service) SessionPopString(ctx context.Context, key string) string {
+	if !sessionLoaded(ctx) {
+		return ""
+	}
+	return s.sessions.PopString(ctx, key)
+}

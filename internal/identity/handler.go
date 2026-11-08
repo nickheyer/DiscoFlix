@@ -60,8 +60,24 @@ func mapErr(err error) error {
 		return connect.NewError(connect.CodePermissionDenied, "account disabled")
 	case errors.Is(err, ErrWeakPassword):
 		return connect.NewError(connect.CodeInvalidArgument, "password must be at least 12 characters")
+	case errors.Is(err, ErrLastIdentity):
+		return connect.NewError(connect.CodeFailedPrecondition, "the last linked account cannot be removed")
+	case errors.Is(err, ErrNoPublicURL):
+		return connect.NewError(connect.CodeFailedPrecondition, "the server needs --public-url before it can build links")
+	case errors.Is(err, ErrLinkExpired):
+		return connect.NewError(connect.CodeNotFound, "this link code expired or was already used")
+	case errors.Is(err, ErrNotExternal):
+		return connect.NewError(connect.CodeFailedPrecondition, "only accounts that came from Discord can create link codes")
+	case errors.Is(err, ErrMergeReverted):
+		return connect.NewError(connect.CodeFailedPrecondition, "this merge was already reverted")
+	case errors.Is(err, ErrUnknownUser):
+		return connect.NewError(connect.CodeNotFound, "no user is linked to that account")
 	}
 	return err
+}
+
+func identityProto(id *ent.Identity) *identityv1.Identity {
+	return &identityv1.Identity{Id: id.ID, Provider: id.Provider, Subject: id.Subject, Display: id.Display, VerifiedAt: stamp(id.VerifiedAt), LinkedAt: stamp(id.LinkedAt)}
 }
 
 var userKinds = map[user.Kind]identityv1.UserKind{
@@ -116,6 +132,7 @@ func (h *Handler) GetServerInfo(ctx context.Context, _ *identityv1.GetServerInfo
 		PasswordLogin: true,
 		PasskeyLogin:  true,
 		InstanceName:  name,
+		DiscordLogin:  h.svc.DiscordLogin(),
 	}, nil
 }
 
@@ -181,7 +198,7 @@ func (h *Handler) GetMe(ctx context.Context, _ *identityv1.GetMeRequest) (*ident
 	}
 	res := &identityv1.GetMeResponse{User: userProto(u)}
 	for _, id := range ids {
-		res.Identities = append(res.Identities, &identityv1.Identity{Id: id.ID, Provider: id.Provider, Subject: id.Subject, Display: id.Display, VerifiedAt: stamp(id.VerifiedAt), LinkedAt: stamp(id.LinkedAt)})
+		res.Identities = append(res.Identities, identityProto(id))
 	}
 	for _, m := range mems {
 		res.Memberships = append(res.Memberships, &identityv1.Membership{SpaceId: m.SpaceID, Roles: m.Roles})
@@ -356,4 +373,91 @@ func (h *Handler) UpdateUser(ctx context.Context, req *identityv1.UpdateUserRequ
 		return nil, mapErr(err)
 	}
 	return &identityv1.UpdateUserResponse{User: userProto(u)}, nil
+}
+
+func (h *Handler) UnlinkIdentity(ctx context.Context, req *identityv1.UnlinkIdentityRequest) (*identityv1.UnlinkIdentityResponse, error) {
+	p, err := principal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := h.svc.UnlinkIdentity(ctx, p, req.GetId(), meta(ctx)); err != nil {
+		return nil, mapErr(err)
+	}
+	return &identityv1.UnlinkIdentityResponse{}, nil
+}
+
+func (h *Handler) CreateLinkCode(ctx context.Context, _ *identityv1.CreateLinkCodeRequest) (*identityv1.CreateLinkCodeResponse, error) {
+	p, err := principal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	url, expires, err := h.svc.CreateLinkCode(ctx, p)
+	if err != nil {
+		return nil, mapErr(err)
+	}
+	return &identityv1.CreateLinkCodeResponse{Url: url, ExpiresAt: timestamppb.New(expires)}, nil
+}
+
+func (h *Handler) FinishLinkCode(ctx context.Context, req *identityv1.FinishLinkCodeRequest) (*identityv1.FinishLinkCodeResponse, error) {
+	p, err := principal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	id, merged, err := h.svc.FinishLinkCode(ctx, p, req.GetCode(), meta(ctx))
+	if err != nil {
+		return nil, mapErr(err)
+	}
+	return &identityv1.FinishLinkCodeResponse{Identity: identityProto(id), Merged: merged}, nil
+}
+
+func (h *Handler) CreateServiceAccount(ctx context.Context, req *identityv1.CreateServiceAccountRequest) (*identityv1.CreateServiceAccountResponse, error) {
+	p, err := principal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	kind := user.KindAgent
+	if req.GetKind() == identityv1.UserKind_USER_KIND_BOT {
+		kind = user.KindBot
+	}
+	var expires *time.Time
+	if req.GetExpiresAt() != nil {
+		t := req.GetExpiresAt().AsTime()
+		expires = &t
+	}
+	u, cred, secret, err := h.svc.CreateServiceAccount(ctx, p, req.GetDisplayName(), kind, req.GetKeyName(), expires, meta(ctx))
+	if err != nil {
+		return nil, mapErr(err)
+	}
+	return &identityv1.CreateServiceAccountResponse{User: userProto(u), ApiKey: apiKeyProto(cred), Secret: secret}, nil
+}
+
+func (h *Handler) ListUserMerges(ctx context.Context, _ *identityv1.ListUserMergesRequest) (*identityv1.ListUserMergesResponse, error) {
+	rows, err := h.svc.ListMerges(ctx)
+	if err != nil {
+		return nil, err
+	}
+	res := &identityv1.ListUserMergesResponse{}
+	for _, m := range rows {
+		from, err := h.svc.ent.User.Get(ctx, m.FromUserID)
+		if err != nil {
+			return nil, err
+		}
+		into, err := h.svc.ent.User.Get(ctx, m.IntoUserID)
+		if err != nil {
+			return nil, err
+		}
+		res.Merges = append(res.Merges, &identityv1.UserMerge{Id: m.ID, FromUser: userProto(from), IntoUser: userProto(into), CreatedAt: timestamppb.New(m.CreatedAt), RevertedAt: stamp(m.RevertedAt)})
+	}
+	return res, nil
+}
+
+func (h *Handler) RevertUserMerge(ctx context.Context, req *identityv1.RevertUserMergeRequest) (*identityv1.RevertUserMergeResponse, error) {
+	p, err := principal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := h.svc.RevertMerge(ctx, p, req.GetId(), meta(ctx)); err != nil {
+		return nil, mapErr(err)
+	}
+	return &identityv1.RevertUserMergeResponse{}, nil
 }

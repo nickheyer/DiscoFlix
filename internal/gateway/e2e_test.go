@@ -66,7 +66,7 @@ func newStack(t *testing.T) (*httptest.Server, *timeline.Service) {
 	}
 	node, err := realtime.New(log, "test", func(ctx context.Context, userID, channel string) (bool, error) {
 		return true, nil
-	})
+	}, realtime.Hooks{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -104,13 +104,12 @@ func newStack(t *testing.T) (*httptest.Server, *timeline.Service) {
 	}
 	tlHandler := timeline.NewHandler(tl, check, cards)
 	gate.Resolve("message", tlHandler.ResolveMessage)
+	server := connect.NewServer(validate.NewServerInterceptor(), capability.NewInterceptor(reg, ids, gate, log).Server())
+	capabilityv1connect.RegisterCapabilityServiceHandler(server, capability.NewHandler(reg))
+	timelinev1connect.RegisterTimelineServiceHandler(server, tlHandler)
+	identityv1connect.RegisterIdentityServiceHandler(server, identity.NewHandler(ids))
 	handler := NewHandler(Deps{
-		Interceptors: []connect.ServerInterceptor{validate.NewServerInterceptor(), capability.NewInterceptor(reg, ids, gate, log).Server()},
-		Register: func(s *connect.Server) {
-			capabilityv1connect.RegisterCapabilityServiceHandler(s, capability.NewHandler(reg))
-			timelinev1connect.RegisterTimelineServiceHandler(s, tlHandler)
-			identityv1connect.RegisterIdentityServiceHandler(s, identity.NewHandler(ids))
-		},
+		Server:  server,
 		Session: ids.Middleware,
 		Websocket: node.WebsocketHandler(func(r *http.Request) (string, error) {
 			p, err := ids.AuthenticateHTTP(r)
@@ -224,7 +223,7 @@ func TestEndToEnd(t *testing.T) {
 	}
 
 	caps, err := c.capab.ListCapabilities(ctx, &capabilityv1.ListCapabilitiesRequest{})
-	if err != nil || len(caps.GetCapabilities()) != 28 {
+	if err != nil || len(caps.GetCapabilities()) != 1+14+25 {
 		t.Fatalf("capabilities = %d, %v", len(caps.GetCapabilities()), err)
 	}
 

@@ -150,6 +150,34 @@ func (_c *ChannelCreate) SetNillableLastSeq(v *int64) *ChannelCreate {
 	return _c
 }
 
+// SetArchived sets the "archived" field.
+func (_c *ChannelCreate) SetArchived(v bool) *ChannelCreate {
+	_c.mutation.SetArchived(v)
+	return _c
+}
+
+// SetNillableArchived sets the "archived" field if the given value is not nil.
+func (_c *ChannelCreate) SetNillableArchived(v *bool) *ChannelCreate {
+	if v != nil {
+		_c.SetArchived(*v)
+	}
+	return _c
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (_c *ChannelCreate) SetDeletedAt(v time.Time) *ChannelCreate {
+	_c.mutation.SetDeletedAt(v)
+	return _c
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (_c *ChannelCreate) SetNillableDeletedAt(v *time.Time) *ChannelCreate {
+	if v != nil {
+		_c.SetDeletedAt(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *ChannelCreate) SetID(v string) *ChannelCreate {
 	_c.mutation.SetID(v)
@@ -266,6 +294,10 @@ func (_c *ChannelCreate) defaults() {
 		v := channel.DefaultLastSeq
 		_c.mutation.SetLastSeq(v)
 	}
+	if _, ok := _c.mutation.Archived(); !ok {
+		v := channel.DefaultArchived
+		_c.mutation.SetArchived(v)
+	}
 	if _, ok := _c.mutation.ID(); !ok {
 		v := channel.DefaultID()
 		_c.mutation.SetID(v)
@@ -318,6 +350,9 @@ func (_c *ChannelCreate) check() error {
 	}
 	if _, ok := _c.mutation.LastSeq(); !ok {
 		return &ValidationError{Name: "last_seq", err: errors.New(`ent: missing required field "Channel.last_seq"`)}
+	}
+	if _, ok := _c.mutation.Archived(); !ok {
+		return &ValidationError{Name: "archived", err: errors.New(`ent: missing required field "Channel.archived"`)}
 	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := channel.IDValidator(v); err != nil {
@@ -398,6 +433,14 @@ func (_c *ChannelCreate) createSpec() (*Channel, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.LastSeq(); ok {
 		_spec.SetField(channel.FieldLastSeq, field.TypeInt64, value)
 		_node.LastSeq = value
+	}
+	if value, ok := _c.mutation.Archived(); ok {
+		_spec.SetField(channel.FieldArchived, field.TypeBool, value)
+		_node.Archived = value
+	}
+	if value, ok := _c.mutation.DeletedAt(); ok {
+		_spec.SetField(channel.FieldDeletedAt, field.TypeTime, value)
+		_node.DeletedAt = &value
 	}
 	if nodes := _c.mutation.SpaceIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -620,6 +663,36 @@ func (u *ChannelUpsert) AddLastSeq(v int64) *ChannelUpsert {
 	return u
 }
 
+// SetArchived sets the "archived" field.
+func (u *ChannelUpsert) SetArchived(v bool) *ChannelUpsert {
+	u.Set(channel.FieldArchived, v)
+	return u
+}
+
+// UpdateArchived sets the "archived" field to the value that was provided on create.
+func (u *ChannelUpsert) UpdateArchived() *ChannelUpsert {
+	u.SetExcluded(channel.FieldArchived)
+	return u
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *ChannelUpsert) SetDeletedAt(v time.Time) *ChannelUpsert {
+	u.Set(channel.FieldDeletedAt, v)
+	return u
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *ChannelUpsert) UpdateDeletedAt() *ChannelUpsert {
+	u.SetExcluded(channel.FieldDeletedAt)
+	return u
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *ChannelUpsert) ClearDeletedAt() *ChannelUpsert {
+	u.SetNull(channel.FieldDeletedAt)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -808,6 +881,41 @@ func (u *ChannelUpsertOne) AddLastSeq(v int64) *ChannelUpsertOne {
 func (u *ChannelUpsertOne) UpdateLastSeq() *ChannelUpsertOne {
 	return u.Update(func(s *ChannelUpsert) {
 		s.UpdateLastSeq()
+	})
+}
+
+// SetArchived sets the "archived" field.
+func (u *ChannelUpsertOne) SetArchived(v bool) *ChannelUpsertOne {
+	return u.Update(func(s *ChannelUpsert) {
+		s.SetArchived(v)
+	})
+}
+
+// UpdateArchived sets the "archived" field to the value that was provided on create.
+func (u *ChannelUpsertOne) UpdateArchived() *ChannelUpsertOne {
+	return u.Update(func(s *ChannelUpsert) {
+		s.UpdateArchived()
+	})
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *ChannelUpsertOne) SetDeletedAt(v time.Time) *ChannelUpsertOne {
+	return u.Update(func(s *ChannelUpsert) {
+		s.SetDeletedAt(v)
+	})
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *ChannelUpsertOne) UpdateDeletedAt() *ChannelUpsertOne {
+	return u.Update(func(s *ChannelUpsert) {
+		s.UpdateDeletedAt()
+	})
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *ChannelUpsertOne) ClearDeletedAt() *ChannelUpsertOne {
+	return u.Update(func(s *ChannelUpsert) {
+		s.ClearDeletedAt()
 	})
 }
 
@@ -1166,6 +1274,41 @@ func (u *ChannelUpsertBulk) AddLastSeq(v int64) *ChannelUpsertBulk {
 func (u *ChannelUpsertBulk) UpdateLastSeq() *ChannelUpsertBulk {
 	return u.Update(func(s *ChannelUpsert) {
 		s.UpdateLastSeq()
+	})
+}
+
+// SetArchived sets the "archived" field.
+func (u *ChannelUpsertBulk) SetArchived(v bool) *ChannelUpsertBulk {
+	return u.Update(func(s *ChannelUpsert) {
+		s.SetArchived(v)
+	})
+}
+
+// UpdateArchived sets the "archived" field to the value that was provided on create.
+func (u *ChannelUpsertBulk) UpdateArchived() *ChannelUpsertBulk {
+	return u.Update(func(s *ChannelUpsert) {
+		s.UpdateArchived()
+	})
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *ChannelUpsertBulk) SetDeletedAt(v time.Time) *ChannelUpsertBulk {
+	return u.Update(func(s *ChannelUpsert) {
+		s.SetDeletedAt(v)
+	})
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *ChannelUpsertBulk) UpdateDeletedAt() *ChannelUpsertBulk {
+	return u.Update(func(s *ChannelUpsert) {
+		s.UpdateDeletedAt()
+	})
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *ChannelUpsertBulk) ClearDeletedAt() *ChannelUpsertBulk {
+	return u.Update(func(s *ChannelUpsert) {
+		s.ClearDeletedAt()
 	})
 }
 

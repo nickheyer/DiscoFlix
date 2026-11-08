@@ -1,0 +1,104 @@
+{
+  "$defs": {
+    "discoflix.timeline.v1.Author.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(accent_color)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(avatar_url)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(display_name)$": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "properties": {
+        "accentColor": {
+          "default": "",
+          "type": "string"
+        },
+        "avatarUrl": {
+          "default": "",
+          "type": "string"
+        },
+        "displayName": {
+          "default": "",
+          "type": "string"
+        },
+        "id": {
+          "default": "",
+          "type": "string"
+        },
+        "kind": {
+          "default": "",
+          "description": "person, bot, plugin, agent",
+          "type": "string"
+        }
+      },
+      "title": "Author",
+      "type": "object"
+    },
+    "discoflix.timeline.v1.Member.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(external_id)$": {
+          "default": "",
+          "description": "Discord user id when the member came from a guild",
+          "type": "string"
+        },
+        "^(joined_at)$": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        }
+      },
+      "properties": {
+        "admin": {
+          "default": false,
+          "type": "boolean"
+        },
+        "externalId": {
+          "default": "",
+          "description": "Discord user id when the member came from a guild",
+          "type": "string"
+        },
+        "joinedAt": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "nickname": {
+          "default": "",
+          "type": "string"
+        },
+        "presence": {
+          "default": "",
+          "description": "online, idle, dnd, offline",
+          "type": "string"
+        },
+        "roles": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "user": {
+          "$ref": "#/$defs/discoflix.timeline.v1.Author.jsonschema.json"
+        }
+      },
+      "title": "Member",
+      "type": "object"
+    },
+    "google.protobuf.Timestamp.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "format": "date-time",
+      "title": "Timestamp",
+      "type": "string"
+    }
+  },
+  "$id": "discoflix.timeline.v1.Member.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.timeline.v1.Member.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

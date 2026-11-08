@@ -7,13 +7,13 @@ import "discoflix/capability/v1/options.proto";
 option features.field_presence = IMPLICIT;
 
 message CapabilityEntry {
+  reserved 6;
   // Fully qualified procedure such as /discoflix.timeline.v1.TimelineService/ListMessages
   string procedure = 1;
   string name = 2;
   string scope = 3;
   Effect effect = 4;
   ObjectRef object = 5;
-  bool slash = 6;
   bool public = 7;
   string title = 8;
   string description = 9;
@@ -22,6 +22,8 @@ message CapabilityEntry {
   string input_schema_json = 12;
   string output_schema_json = 13;
   bool server_streaming = 14;
+  // Discord slash command name, empty when the entry is not a command
+  string command = 15;
 }
 
 message ListCapabilitiesRequest {}

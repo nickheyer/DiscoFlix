@@ -84,7 +84,7 @@
 				<span role="columnheader">Scope</span>
 				<span role="columnheader">Effect</span>
 				<span role="columnheader">Object</span>
-				<span role="columnheader">Slash</span>
+				<span role="columnheader">Command</span>
 				<span role="columnheader">Public</span>
 			</div>
 			<div bind:this={scroller} class="max-h-[70vh] overflow-y-auto scroll-thin" role="rowgroup">
@@ -126,8 +126,8 @@
 									<span role="cell" class="truncate font-mono text-xs text-interactive">
 										{c.object ? `${c.object.type}.${c.object.field}` : 'system'}
 									</span>
-									<span role="cell" class="text-xs {c.slash ? 'text-online' : 'text-faint'}">
-										<span class="md:hidden">slash </span>{c.slash ? 'yes' : 'no'}
+									<span role="cell" class="text-xs {c.command ? 'text-online' : 'text-faint'}">
+										<span class="md:hidden">command </span>{c.command ? `/${c.command}` : 'no'}
 									</span>
 									<span role="cell" class="text-xs {c.public ? 'text-idle' : 'text-faint'}">
 										<span class="md:hidden">public </span>{c.public ? 'yes' : 'no'}

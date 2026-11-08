@@ -86,6 +86,8 @@ message GetServerInfoResponse {
   bool password_login = 4;
   bool passkey_login = 5;
   string instance_name = 6;
+  // Discord sign-in is configured, the browser starts it at /auth/discord/start
+  bool discord_login = 7;
 }
 
 message BootstrapRequest {
@@ -227,12 +229,72 @@ message UpdateUserResponse {
   User user = 1;
 }
 
+message UnlinkIdentityRequest {
+  string id = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+message UnlinkIdentityResponse {}
+
+message CreateLinkCodeRequest {}
+
+message CreateLinkCodeResponse {
+  // Open this in a browser while signed in to attach the caller's Discord account to that user
+  string url = 1;
+  google.protobuf.Timestamp expires_at = 2;
+}
+
+message FinishLinkCodeRequest {
+  string code = 1 [(buf.validate.field).string = {min_len: 1, max_len: 128}];
+}
+
+message FinishLinkCodeResponse {
+  Identity identity = 1;
+  // True when the Discord user already had a row that was merged into the caller
+  bool merged = 2;
+}
+
+message CreateServiceAccountRequest {
+  string display_name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // USER_KIND_BOT or USER_KIND_AGENT
+  UserKind kind = 2 [(buf.validate.field).enum = {in: [2, 4]}];
+  string key_name = 3 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  google.protobuf.Timestamp expires_at = 4;
+}
+
+message CreateServiceAccountResponse {
+  User user = 1;
+  ApiKey api_key = 2;
+  // Shown once
+  string secret = 3;
+}
+
+message UserMerge {
+  string id = 1;
+  User from_user = 2;
+  User into_user = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp reverted_at = 5;
+}
+
+message ListUserMergesRequest {}
+
+message ListUserMergesResponse {
+  repeated UserMerge merges = 1;
+}
+
+message RevertUserMergeRequest {
+  string id = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+message RevertUserMergeResponse {}
+
 service IdentityService {
   rpc GetServerInfo(GetServerInfoRequest) returns (GetServerInfoResponse) {
     option (discoflix.capability.v1.capability) = {
       scope: "server.info"
       effect: EFFECT_READ
       public: true
+      command: "status"
       title: "Server info"
       description: "Version and sign-in methods, readable before signing in"
     };
@@ -281,6 +343,7 @@ service IdentityService {
     option (discoflix.capability.v1.capability) = {
       scope: "session.self"
       effect: EFFECT_READ
+      command: "whoami"
       title: "Who am I"
       description: "The caller's user, identities, and memberships"
     };
@@ -367,6 +430,54 @@ service IdentityService {
       scope: "users.admin"
       effect: EFFECT_WRITE
       title: "Update user"
+    };
+  }
+  rpc UnlinkIdentity(UnlinkIdentityRequest) returns (UnlinkIdentityResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "credentials.self"
+      effect: EFFECT_DESTRUCTIVE
+      title: "Unlink identity"
+      description: "Detach a linked account, keeping at least one way to sign in"
+    };
+  }
+  rpc CreateLinkCode(CreateLinkCodeRequest) returns (CreateLinkCodeResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "identity.link"
+      effect: EFFECT_WRITE
+      command: "link"
+      title: "Link this Discord account"
+      description: "Get a one-time link that attaches your Discord account to the DiscoFlix user you sign in as"
+    };
+  }
+  rpc FinishLinkCode(FinishLinkCodeRequest) returns (FinishLinkCodeResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "credentials.self"
+      effect: EFFECT_WRITE
+      title: "Finish link"
+      description: "Redeem a link code so the Discord account that created it belongs to the caller"
+    };
+  }
+  rpc CreateServiceAccount(CreateServiceAccountRequest) returns (CreateServiceAccountResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "users.admin"
+      effect: EFFECT_WRITE
+      title: "Create service account"
+      description: "Create a bot or agent user with an API key, destructive calls it makes wait for approval"
+    };
+  }
+  rpc ListUserMerges(ListUserMergesRequest) returns (ListUserMergesResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "users.admin"
+      effect: EFFECT_READ
+      title: "List user merges"
+    };
+  }
+  rpc RevertUserMerge(RevertUserMergeRequest) returns (RevertUserMergeResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "users.admin"
+      effect: EFFECT_WRITE
+      title: "Revert user merge"
+      description: "Split two users that identity linking merged"
     };
   }
 }

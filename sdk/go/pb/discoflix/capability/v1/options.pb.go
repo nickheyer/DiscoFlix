@@ -137,12 +137,12 @@ type Capability struct {
 	Scope  string     `protobuf:"bytes,1,opt,name=scope" json:"scope,omitempty"`
 	Effect Effect     `protobuf:"varint,2,opt,name=effect,enum=discoflix.capability.v1.Effect" json:"effect,omitempty"`
 	Object *ObjectRef `protobuf:"bytes,3,opt,name=object" json:"object,omitempty"`
-	// Safe to expose as a Discord slash command
-	Slash bool `protobuf:"varint,4,opt,name=slash" json:"slash,omitempty"`
 	// Callable without a principal
-	Public        bool   `protobuf:"varint,5,opt,name=public" json:"public,omitempty"`
-	Title         string `protobuf:"bytes,6,opt,name=title" json:"title,omitempty"`
-	Description   string `protobuf:"bytes,7,opt,name=description" json:"description,omitempty"`
+	Public      bool   `protobuf:"varint,5,opt,name=public" json:"public,omitempty"`
+	Title       string `protobuf:"bytes,6,opt,name=title" json:"title,omitempty"`
+	Description string `protobuf:"bytes,7,opt,name=description" json:"description,omitempty"`
+	// Discord slash command name this entry is registered as, empty keeps it off Discord
+	Command       string `protobuf:"bytes,8,opt,name=command" json:"command,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -198,13 +198,6 @@ func (x *Capability) GetObject() *ObjectRef {
 	return nil
 }
 
-func (x *Capability) GetSlash() bool {
-	if x != nil {
-		return x.Slash
-	}
-	return false
-}
-
 func (x *Capability) GetPublic() bool {
 	if x != nil {
 		return x.Public
@@ -222,6 +215,13 @@ func (x *Capability) GetTitle() string {
 func (x *Capability) GetDescription() string {
 	if x != nil {
 		return x.Description
+	}
+	return ""
+}
+
+func (x *Capability) GetCommand() string {
+	if x != nil {
+		return x.Command
 	}
 	return ""
 }
@@ -250,16 +250,16 @@ const file_discoflix_capability_v1_options_proto_rawDesc = "" +
 	"%discoflix/capability/v1/options.proto\x12\x17discoflix.capability.v1\x1a google/protobuf/descriptor.proto\"5\n" +
 	"\tObjectRef\x12\x12\n" +
 	"\x04type\x18\x01 \x01(\tR\x04type\x12\x14\n" +
-	"\x05field\x18\x02 \x01(\tR\x05field\"\xfd\x01\n" +
+	"\x05field\x18\x02 \x01(\tR\x05field\"\x87\x02\n" +
 	"\n" +
 	"Capability\x12\x14\n" +
 	"\x05scope\x18\x01 \x01(\tR\x05scope\x127\n" +
 	"\x06effect\x18\x02 \x01(\x0e2\x1f.discoflix.capability.v1.EffectR\x06effect\x12:\n" +
-	"\x06object\x18\x03 \x01(\v2\".discoflix.capability.v1.ObjectRefR\x06object\x12\x14\n" +
-	"\x05slash\x18\x04 \x01(\bR\x05slash\x12\x16\n" +
+	"\x06object\x18\x03 \x01(\v2\".discoflix.capability.v1.ObjectRefR\x06object\x12\x16\n" +
 	"\x06public\x18\x05 \x01(\bR\x06public\x12\x14\n" +
 	"\x05title\x18\x06 \x01(\tR\x05title\x12 \n" +
-	"\vdescription\x18\a \x01(\tR\vdescription*[\n" +
+	"\vdescription\x18\a \x01(\tR\vdescription\x12\x18\n" +
+	"\acommand\x18\b \x01(\tR\acommandJ\x04\b\x04\x10\x05*[\n" +
 	"\x06Effect\x12\x16\n" +
 	"\x12EFFECT_UNSPECIFIED\x10\x00\x12\x0f\n" +
 	"\vEFFECT_READ\x10\x01\x12\x10\n" +

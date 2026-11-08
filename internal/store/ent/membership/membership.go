@@ -20,6 +20,10 @@ const (
 	FieldSpaceID = "space_id"
 	// FieldRoles holds the string denoting the roles field in the database.
 	FieldRoles = "roles"
+	// FieldNickname holds the string denoting the nickname field in the database.
+	FieldNickname = "nickname"
+	// FieldAdmin holds the string denoting the admin field in the database.
+	FieldAdmin = "admin"
 	// FieldJoinedAt holds the string denoting the joined_at field in the database.
 	FieldJoinedAt = "joined_at"
 	// EdgeUser holds the string denoting the user edge name in mutations.
@@ -50,6 +54,8 @@ var Columns = []string{
 	FieldUserID,
 	FieldSpaceID,
 	FieldRoles,
+	FieldNickname,
+	FieldAdmin,
 	FieldJoinedAt,
 }
 
@@ -70,6 +76,10 @@ var (
 	SpaceIDValidator func(string) error
 	// DefaultRoles holds the default value on creation for the "roles" field.
 	DefaultRoles []string
+	// DefaultNickname holds the default value on creation for the "nickname" field.
+	DefaultNickname string
+	// DefaultAdmin holds the default value on creation for the "admin" field.
+	DefaultAdmin bool
 	// DefaultJoinedAt holds the default value on creation for the "joined_at" field.
 	DefaultJoinedAt func() time.Time
 	// DefaultID holds the default value on creation for the "id" field.
@@ -94,6 +104,16 @@ func ByUserID(opts ...sql.OrderTermOption) OrderOption {
 // BySpaceID orders the results by the space_id field.
 func BySpaceID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSpaceID, opts...).ToFunc()
+}
+
+// ByNickname orders the results by the nickname field.
+func ByNickname(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldNickname, opts...).ToFunc()
+}
+
+// ByAdmin orders the results by the admin field.
+func ByAdmin(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAdmin, opts...).ToFunc()
 }
 
 // ByJoinedAt orders the results by the joined_at field.

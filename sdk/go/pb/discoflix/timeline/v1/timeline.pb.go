@@ -196,31 +196,52 @@ func (MessageKind) EnumDescriptor() ([]byte, []int) {
 type EventKind int32
 
 const (
-	EventKind_EVENT_KIND_UNSPECIFIED     EventKind = 0
-	EventKind_EVENT_KIND_MESSAGE_CREATED EventKind = 1
-	EventKind_EVENT_KIND_MESSAGE_EDITED  EventKind = 2
-	EventKind_EVENT_KIND_MESSAGE_DELETED EventKind = 3
-	EventKind_EVENT_KIND_CARD_UPDATED    EventKind = 4
-	EventKind_EVENT_KIND_CHANNEL_READ    EventKind = 5
+	EventKind_EVENT_KIND_UNSPECIFIED      EventKind = 0
+	EventKind_EVENT_KIND_MESSAGE_CREATED  EventKind = 1
+	EventKind_EVENT_KIND_MESSAGE_EDITED   EventKind = 2
+	EventKind_EVENT_KIND_MESSAGE_DELETED  EventKind = 3
+	EventKind_EVENT_KIND_CARD_UPDATED     EventKind = 4
+	EventKind_EVENT_KIND_CHANNEL_READ     EventKind = 5
+	EventKind_EVENT_KIND_REACTION_ADDED   EventKind = 6
+	EventKind_EVENT_KIND_REACTION_REMOVED EventKind = 7
+	EventKind_EVENT_KIND_TYPING           EventKind = 8
+	EventKind_EVENT_KIND_PRESENCE_CHANGED EventKind = 9
+	EventKind_EVENT_KIND_CHANNELS_CHANGED EventKind = 10
+	EventKind_EVENT_KIND_SPACES_CHANGED   EventKind = 11
+	EventKind_EVENT_KIND_MEMBERS_CHANGED  EventKind = 12
 )
 
 // Enum value maps for EventKind.
 var (
 	EventKind_name = map[int32]string{
-		0: "EVENT_KIND_UNSPECIFIED",
-		1: "EVENT_KIND_MESSAGE_CREATED",
-		2: "EVENT_KIND_MESSAGE_EDITED",
-		3: "EVENT_KIND_MESSAGE_DELETED",
-		4: "EVENT_KIND_CARD_UPDATED",
-		5: "EVENT_KIND_CHANNEL_READ",
+		0:  "EVENT_KIND_UNSPECIFIED",
+		1:  "EVENT_KIND_MESSAGE_CREATED",
+		2:  "EVENT_KIND_MESSAGE_EDITED",
+		3:  "EVENT_KIND_MESSAGE_DELETED",
+		4:  "EVENT_KIND_CARD_UPDATED",
+		5:  "EVENT_KIND_CHANNEL_READ",
+		6:  "EVENT_KIND_REACTION_ADDED",
+		7:  "EVENT_KIND_REACTION_REMOVED",
+		8:  "EVENT_KIND_TYPING",
+		9:  "EVENT_KIND_PRESENCE_CHANGED",
+		10: "EVENT_KIND_CHANNELS_CHANGED",
+		11: "EVENT_KIND_SPACES_CHANGED",
+		12: "EVENT_KIND_MEMBERS_CHANGED",
 	}
 	EventKind_value = map[string]int32{
-		"EVENT_KIND_UNSPECIFIED":     0,
-		"EVENT_KIND_MESSAGE_CREATED": 1,
-		"EVENT_KIND_MESSAGE_EDITED":  2,
-		"EVENT_KIND_MESSAGE_DELETED": 3,
-		"EVENT_KIND_CARD_UPDATED":    4,
-		"EVENT_KIND_CHANNEL_READ":    5,
+		"EVENT_KIND_UNSPECIFIED":      0,
+		"EVENT_KIND_MESSAGE_CREATED":  1,
+		"EVENT_KIND_MESSAGE_EDITED":   2,
+		"EVENT_KIND_MESSAGE_DELETED":  3,
+		"EVENT_KIND_CARD_UPDATED":     4,
+		"EVENT_KIND_CHANNEL_READ":     5,
+		"EVENT_KIND_REACTION_ADDED":   6,
+		"EVENT_KIND_REACTION_REMOVED": 7,
+		"EVENT_KIND_TYPING":           8,
+		"EVENT_KIND_PRESENCE_CHANGED": 9,
+		"EVENT_KIND_CHANNELS_CHANGED": 10,
+		"EVENT_KIND_SPACES_CHANGED":   11,
+		"EVENT_KIND_MEMBERS_CHANGED":  12,
 	}
 )
 
@@ -252,17 +273,19 @@ func (EventKind) EnumDescriptor() ([]byte, []int) {
 }
 
 type Space struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id" json:"id,omitempty"`
-	Kind          SpaceKind              `protobuf:"varint,2,opt,name=kind,enum=discoflix.timeline.v1.SpaceKind" json:"kind,omitempty"`
-	Name          string                 `protobuf:"bytes,3,opt,name=name" json:"name,omitempty"`
-	IconUrl       string                 `protobuf:"bytes,4,opt,name=icon_url,json=iconUrl" json:"icon_url,omitempty"`
-	ExternalId    string                 `protobuf:"bytes,5,opt,name=external_id,json=externalId" json:"external_id,omitempty"`
-	Position      int32                  `protobuf:"varint,6,opt,name=position" json:"position,omitempty"`
-	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=created_at,json=createdAt" json:"created_at,omitempty"`
-	Unread        int64                  `protobuf:"varint,8,opt,name=unread" json:"unread,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state      protoimpl.MessageState `protogen:"open.v1"`
+	Id         string                 `protobuf:"bytes,1,opt,name=id" json:"id,omitempty"`
+	Kind       SpaceKind              `protobuf:"varint,2,opt,name=kind,enum=discoflix.timeline.v1.SpaceKind" json:"kind,omitempty"`
+	Name       string                 `protobuf:"bytes,3,opt,name=name" json:"name,omitempty"`
+	IconUrl    string                 `protobuf:"bytes,4,opt,name=icon_url,json=iconUrl" json:"icon_url,omitempty"`
+	ExternalId string                 `protobuf:"bytes,5,opt,name=external_id,json=externalId" json:"external_id,omitempty"`
+	Position   int32                  `protobuf:"varint,6,opt,name=position" json:"position,omitempty"`
+	CreatedAt  *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=created_at,json=createdAt" json:"created_at,omitempty"`
+	Unread     int64                  `protobuf:"varint,8,opt,name=unread" json:"unread,omitempty"`
+	// Channel that receives approval cards for actions inside this space
+	ApprovalsChannelId string `protobuf:"bytes,9,opt,name=approvals_channel_id,json=approvalsChannelId" json:"approvals_channel_id,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *Space) Reset() {
@@ -351,19 +374,28 @@ func (x *Space) GetUnread() int64 {
 	return 0
 }
 
+func (x *Space) GetApprovalsChannelId() string {
+	if x != nil {
+		return x.ApprovalsChannelId
+	}
+	return ""
+}
+
 type Channel struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id" json:"id,omitempty"`
-	SpaceId       string                 `protobuf:"bytes,2,opt,name=space_id,json=spaceId" json:"space_id,omitempty"`
-	Kind          ChannelKind            `protobuf:"varint,3,opt,name=kind,enum=discoflix.timeline.v1.ChannelKind" json:"kind,omitempty"`
-	Name          string                 `protobuf:"bytes,4,opt,name=name" json:"name,omitempty"`
-	Topic         string                 `protobuf:"bytes,5,opt,name=topic" json:"topic,omitempty"`
-	ParentId      string                 `protobuf:"bytes,6,opt,name=parent_id,json=parentId" json:"parent_id,omitempty"`
-	Position      int32                  `protobuf:"varint,7,opt,name=position" json:"position,omitempty"`
-	ExternalId    string                 `protobuf:"bytes,8,opt,name=external_id,json=externalId" json:"external_id,omitempty"`
-	LastSeq       int64                  `protobuf:"varint,9,opt,name=last_seq,json=lastSeq" json:"last_seq,omitempty"`
-	LastReadSeq   int64                  `protobuf:"varint,10,opt,name=last_read_seq,json=lastReadSeq" json:"last_read_seq,omitempty"`
-	Unread        int64                  `protobuf:"varint,11,opt,name=unread" json:"unread,omitempty"`
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	Id          string                 `protobuf:"bytes,1,opt,name=id" json:"id,omitempty"`
+	SpaceId     string                 `protobuf:"bytes,2,opt,name=space_id,json=spaceId" json:"space_id,omitempty"`
+	Kind        ChannelKind            `protobuf:"varint,3,opt,name=kind,enum=discoflix.timeline.v1.ChannelKind" json:"kind,omitempty"`
+	Name        string                 `protobuf:"bytes,4,opt,name=name" json:"name,omitempty"`
+	Topic       string                 `protobuf:"bytes,5,opt,name=topic" json:"topic,omitempty"`
+	ParentId    string                 `protobuf:"bytes,6,opt,name=parent_id,json=parentId" json:"parent_id,omitempty"`
+	Position    int32                  `protobuf:"varint,7,opt,name=position" json:"position,omitempty"`
+	ExternalId  string                 `protobuf:"bytes,8,opt,name=external_id,json=externalId" json:"external_id,omitempty"`
+	LastSeq     int64                  `protobuf:"varint,9,opt,name=last_seq,json=lastSeq" json:"last_seq,omitempty"`
+	LastReadSeq int64                  `protobuf:"varint,10,opt,name=last_read_seq,json=lastReadSeq" json:"last_read_seq,omitempty"`
+	Unread      int64                  `protobuf:"varint,11,opt,name=unread" json:"unread,omitempty"`
+	// Longest message content this channel accepts, lower on channels mirrored to Discord
+	MaxContent    int32 `protobuf:"varint,12,opt,name=max_content,json=maxContent" json:"max_content,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -475,6 +507,13 @@ func (x *Channel) GetUnread() int64 {
 	return 0
 }
 
+func (x *Channel) GetMaxContent() int32 {
+	if x != nil {
+		return x.MaxContent
+	}
+	return 0
+}
+
 type Author struct {
 	state       protoimpl.MessageState `protogen:"open.v1"`
 	Id          string                 `protobuf:"bytes,1,opt,name=id" json:"id,omitempty"`
@@ -552,27 +591,186 @@ func (x *Author) GetKind() string {
 	return ""
 }
 
-type Message struct {
+type Attachment struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Seq           int64                  `protobuf:"varint,1,opt,name=seq" json:"seq,omitempty"`
-	SpaceId       string                 `protobuf:"bytes,2,opt,name=space_id,json=spaceId" json:"space_id,omitempty"`
-	ChannelId     string                 `protobuf:"bytes,3,opt,name=channel_id,json=channelId" json:"channel_id,omitempty"`
-	Author        *Author                `protobuf:"bytes,4,opt,name=author" json:"author,omitempty"`
-	Kind          MessageKind            `protobuf:"varint,5,opt,name=kind,enum=discoflix.timeline.v1.MessageKind" json:"kind,omitempty"`
-	Content       string                 `protobuf:"bytes,6,opt,name=content" json:"content,omitempty"`
-	Card          *anypb.Any             `protobuf:"bytes,7,opt,name=card" json:"card,omitempty"`
-	ReplyTo       int64                  `protobuf:"varint,8,opt,name=reply_to,json=replyTo" json:"reply_to,omitempty"`
-	ExternalId    string                 `protobuf:"bytes,9,opt,name=external_id,json=externalId" json:"external_id,omitempty"`
-	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=created_at,json=createdAt" json:"created_at,omitempty"`
-	EditedAt      *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=edited_at,json=editedAt" json:"edited_at,omitempty"`
-	DeletedAt     *timestamppb.Timestamp `protobuf:"bytes,12,opt,name=deleted_at,json=deletedAt" json:"deleted_at,omitempty"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id" json:"id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name" json:"name,omitempty"`
+	Url           string                 `protobuf:"bytes,3,opt,name=url" json:"url,omitempty"`
+	ContentType   string                 `protobuf:"bytes,4,opt,name=content_type,json=contentType" json:"content_type,omitempty"`
+	Size          int64                  `protobuf:"varint,5,opt,name=size" json:"size,omitempty"`
+	Width         int32                  `protobuf:"varint,6,opt,name=width" json:"width,omitempty"`
+	Height        int32                  `protobuf:"varint,7,opt,name=height" json:"height,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Attachment) Reset() {
+	*x = Attachment{}
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Attachment) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Attachment) ProtoMessage() {}
+
+func (x *Attachment) ProtoReflect() protoreflect.Message {
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Attachment.ProtoReflect.Descriptor instead.
+func (*Attachment) Descriptor() ([]byte, []int) {
+	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *Attachment) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Attachment) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Attachment) GetUrl() string {
+	if x != nil {
+		return x.Url
+	}
+	return ""
+}
+
+func (x *Attachment) GetContentType() string {
+	if x != nil {
+		return x.ContentType
+	}
+	return ""
+}
+
+func (x *Attachment) GetSize() int64 {
+	if x != nil {
+		return x.Size
+	}
+	return 0
+}
+
+func (x *Attachment) GetWidth() int32 {
+	if x != nil {
+		return x.Width
+	}
+	return 0
+}
+
+func (x *Attachment) GetHeight() int32 {
+	if x != nil {
+		return x.Height
+	}
+	return 0
+}
+
+// One emoji on a message with how many users added it
+type Reaction struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Unicode emoji, or name:id for a custom Discord emoji
+	Emoji string `protobuf:"bytes,1,opt,name=emoji" json:"emoji,omitempty"`
+	Count int64  `protobuf:"varint,2,opt,name=count" json:"count,omitempty"`
+	// True when the caller is among the reactors
+	Me            bool `protobuf:"varint,3,opt,name=me" json:"me,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Reaction) Reset() {
+	*x = Reaction{}
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Reaction) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Reaction) ProtoMessage() {}
+
+func (x *Reaction) ProtoReflect() protoreflect.Message {
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Reaction.ProtoReflect.Descriptor instead.
+func (*Reaction) Descriptor() ([]byte, []int) {
+	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *Reaction) GetEmoji() string {
+	if x != nil {
+		return x.Emoji
+	}
+	return ""
+}
+
+func (x *Reaction) GetCount() int64 {
+	if x != nil {
+		return x.Count
+	}
+	return 0
+}
+
+func (x *Reaction) GetMe() bool {
+	if x != nil {
+		return x.Me
+	}
+	return false
+}
+
+type Message struct {
+	state      protoimpl.MessageState `protogen:"open.v1"`
+	Seq        int64                  `protobuf:"varint,1,opt,name=seq" json:"seq,omitempty"`
+	SpaceId    string                 `protobuf:"bytes,2,opt,name=space_id,json=spaceId" json:"space_id,omitempty"`
+	ChannelId  string                 `protobuf:"bytes,3,opt,name=channel_id,json=channelId" json:"channel_id,omitempty"`
+	Author     *Author                `protobuf:"bytes,4,opt,name=author" json:"author,omitempty"`
+	Kind       MessageKind            `protobuf:"varint,5,opt,name=kind,enum=discoflix.timeline.v1.MessageKind" json:"kind,omitempty"`
+	Content    string                 `protobuf:"bytes,6,opt,name=content" json:"content,omitempty"`
+	Card       *anypb.Any             `protobuf:"bytes,7,opt,name=card" json:"card,omitempty"`
+	ReplyTo    int64                  `protobuf:"varint,8,opt,name=reply_to,json=replyTo" json:"reply_to,omitempty"`
+	ExternalId string                 `protobuf:"bytes,9,opt,name=external_id,json=externalId" json:"external_id,omitempty"`
+	CreatedAt  *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=created_at,json=createdAt" json:"created_at,omitempty"`
+	EditedAt   *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=edited_at,json=editedAt" json:"edited_at,omitempty"`
+	DeletedAt  *timestamppb.Timestamp `protobuf:"bytes,12,opt,name=deleted_at,json=deletedAt" json:"deleted_at,omitempty"`
+	// Transport that wrote the message such as web, discord, system, api
+	Origin        string        `protobuf:"bytes,13,opt,name=origin" json:"origin,omitempty"`
+	Attachments   []*Attachment `protobuf:"bytes,14,rep,name=attachments" json:"attachments,omitempty"`
+	Reactions     []*Reaction   `protobuf:"bytes,15,rep,name=reactions" json:"reactions,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Message) Reset() {
 	*x = Message{}
-	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[3]
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -584,7 +782,7 @@ func (x *Message) String() string {
 func (*Message) ProtoMessage() {}
 
 func (x *Message) ProtoReflect() protoreflect.Message {
-	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[3]
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -597,7 +795,7 @@ func (x *Message) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Message.ProtoReflect.Descriptor instead.
 func (*Message) Descriptor() ([]byte, []int) {
-	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{3}
+	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *Message) GetSeq() int64 {
@@ -684,21 +882,229 @@ func (x *Message) GetDeletedAt() *timestamppb.Timestamp {
 	return nil
 }
 
-type Event struct {
+func (x *Message) GetOrigin() string {
+	if x != nil {
+		return x.Origin
+	}
+	return ""
+}
+
+func (x *Message) GetAttachments() []*Attachment {
+	if x != nil {
+		return x.Attachments
+	}
+	return nil
+}
+
+func (x *Message) GetReactions() []*Reaction {
+	if x != nil {
+		return x.Reactions
+	}
+	return nil
+}
+
+type ReactionChange struct {
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	Seq    int64                  `protobuf:"varint,1,opt,name=seq" json:"seq,omitempty"`
+	Emoji  string                 `protobuf:"bytes,2,opt,name=emoji" json:"emoji,omitempty"`
+	UserId string                 `protobuf:"bytes,3,opt,name=user_id,json=userId" json:"user_id,omitempty"`
+	// Reactors with this emoji after the change
+	Count         int64 `protobuf:"varint,4,opt,name=count" json:"count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReactionChange) Reset() {
+	*x = ReactionChange{}
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReactionChange) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReactionChange) ProtoMessage() {}
+
+func (x *ReactionChange) ProtoReflect() protoreflect.Message {
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReactionChange.ProtoReflect.Descriptor instead.
+func (*ReactionChange) Descriptor() ([]byte, []int) {
+	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *ReactionChange) GetSeq() int64 {
+	if x != nil {
+		return x.Seq
+	}
+	return 0
+}
+
+func (x *ReactionChange) GetEmoji() string {
+	if x != nil {
+		return x.Emoji
+	}
+	return ""
+}
+
+func (x *ReactionChange) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *ReactionChange) GetCount() int64 {
+	if x != nil {
+		return x.Count
+	}
+	return 0
+}
+
+type Typing struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Seq           int64                  `protobuf:"varint,1,opt,name=seq" json:"seq,omitempty"`
-	Kind          EventKind              `protobuf:"varint,2,opt,name=kind,enum=discoflix.timeline.v1.EventKind" json:"kind,omitempty"`
-	Message       *Message               `protobuf:"bytes,3,opt,name=message" json:"message,omitempty"`
-	ChannelId     string                 `protobuf:"bytes,4,opt,name=channel_id,json=channelId" json:"channel_id,omitempty"`
-	SpaceId       string                 `protobuf:"bytes,5,opt,name=space_id,json=spaceId" json:"space_id,omitempty"`
-	At            *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=at" json:"at,omitempty"`
+	ChannelId     string                 `protobuf:"bytes,1,opt,name=channel_id,json=channelId" json:"channel_id,omitempty"`
+	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId" json:"user_id,omitempty"`
+	DisplayName   string                 `protobuf:"bytes,3,opt,name=display_name,json=displayName" json:"display_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Typing) Reset() {
+	*x = Typing{}
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Typing) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Typing) ProtoMessage() {}
+
+func (x *Typing) ProtoReflect() protoreflect.Message {
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Typing.ProtoReflect.Descriptor instead.
+func (*Typing) Descriptor() ([]byte, []int) {
+	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *Typing) GetChannelId() string {
+	if x != nil {
+		return x.ChannelId
+	}
+	return ""
+}
+
+func (x *Typing) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *Typing) GetDisplayName() string {
+	if x != nil {
+		return x.DisplayName
+	}
+	return ""
+}
+
+type PresenceChange struct {
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	UserId string                 `protobuf:"bytes,1,opt,name=user_id,json=userId" json:"user_id,omitempty"`
+	// online, idle, dnd, offline
+	Status        string `protobuf:"bytes,2,opt,name=status" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PresenceChange) Reset() {
+	*x = PresenceChange{}
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PresenceChange) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PresenceChange) ProtoMessage() {}
+
+func (x *PresenceChange) ProtoReflect() protoreflect.Message {
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PresenceChange.ProtoReflect.Descriptor instead.
+func (*PresenceChange) Descriptor() ([]byte, []int) {
+	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *PresenceChange) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *PresenceChange) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+type Event struct {
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	Seq       int64                  `protobuf:"varint,1,opt,name=seq" json:"seq,omitempty"`
+	Kind      EventKind              `protobuf:"varint,2,opt,name=kind,enum=discoflix.timeline.v1.EventKind" json:"kind,omitempty"`
+	Message   *Message               `protobuf:"bytes,3,opt,name=message" json:"message,omitempty"`
+	ChannelId string                 `protobuf:"bytes,4,opt,name=channel_id,json=channelId" json:"channel_id,omitempty"`
+	SpaceId   string                 `protobuf:"bytes,5,opt,name=space_id,json=spaceId" json:"space_id,omitempty"`
+	At        *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=at" json:"at,omitempty"`
+	// Transport that produced the event
+	Origin        string          `protobuf:"bytes,7,opt,name=origin" json:"origin,omitempty"`
+	Reaction      *ReactionChange `protobuf:"bytes,8,opt,name=reaction" json:"reaction,omitempty"`
+	Typing        *Typing         `protobuf:"bytes,9,opt,name=typing" json:"typing,omitempty"`
+	Presence      *PresenceChange `protobuf:"bytes,10,opt,name=presence" json:"presence,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Event) Reset() {
 	*x = Event{}
-	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[4]
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -710,7 +1116,7 @@ func (x *Event) String() string {
 func (*Event) ProtoMessage() {}
 
 func (x *Event) ProtoReflect() protoreflect.Message {
-	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[4]
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -723,7 +1129,7 @@ func (x *Event) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Event.ProtoReflect.Descriptor instead.
 func (*Event) Descriptor() ([]byte, []int) {
-	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{4}
+	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *Event) GetSeq() int64 {
@@ -768,6 +1174,205 @@ func (x *Event) GetAt() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *Event) GetOrigin() string {
+	if x != nil {
+		return x.Origin
+	}
+	return ""
+}
+
+func (x *Event) GetReaction() *ReactionChange {
+	if x != nil {
+		return x.Reaction
+	}
+	return nil
+}
+
+func (x *Event) GetTyping() *Typing {
+	if x != nil {
+		return x.Typing
+	}
+	return nil
+}
+
+func (x *Event) GetPresence() *PresenceChange {
+	if x != nil {
+		return x.Presence
+	}
+	return nil
+}
+
+type Role struct {
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	Id       string                 `protobuf:"bytes,1,opt,name=id" json:"id,omitempty"`
+	Name     string                 `protobuf:"bytes,2,opt,name=name" json:"name,omitempty"`
+	Color    string                 `protobuf:"bytes,3,opt,name=color" json:"color,omitempty"`
+	Position int32                  `protobuf:"varint,4,opt,name=position" json:"position,omitempty"`
+	// Shown as its own group in the member list
+	Hoist         bool `protobuf:"varint,5,opt,name=hoist" json:"hoist,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Role) Reset() {
+	*x = Role{}
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Role) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Role) ProtoMessage() {}
+
+func (x *Role) ProtoReflect() protoreflect.Message {
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Role.ProtoReflect.Descriptor instead.
+func (*Role) Descriptor() ([]byte, []int) {
+	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *Role) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Role) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Role) GetColor() string {
+	if x != nil {
+		return x.Color
+	}
+	return ""
+}
+
+func (x *Role) GetPosition() int32 {
+	if x != nil {
+		return x.Position
+	}
+	return 0
+}
+
+func (x *Role) GetHoist() bool {
+	if x != nil {
+		return x.Hoist
+	}
+	return false
+}
+
+type Member struct {
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	User     *Author                `protobuf:"bytes,1,opt,name=user" json:"user,omitempty"`
+	Roles    []string               `protobuf:"bytes,2,rep,name=roles" json:"roles,omitempty"`
+	Nickname string                 `protobuf:"bytes,3,opt,name=nickname" json:"nickname,omitempty"`
+	// online, idle, dnd, offline
+	Presence string `protobuf:"bytes,4,opt,name=presence" json:"presence,omitempty"`
+	// Discord user id when the member came from a guild
+	ExternalId    string                 `protobuf:"bytes,5,opt,name=external_id,json=externalId" json:"external_id,omitempty"`
+	JoinedAt      *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=joined_at,json=joinedAt" json:"joined_at,omitempty"`
+	Admin         bool                   `protobuf:"varint,7,opt,name=admin" json:"admin,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Member) Reset() {
+	*x = Member{}
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Member) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Member) ProtoMessage() {}
+
+func (x *Member) ProtoReflect() protoreflect.Message {
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Member.ProtoReflect.Descriptor instead.
+func (*Member) Descriptor() ([]byte, []int) {
+	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *Member) GetUser() *Author {
+	if x != nil {
+		return x.User
+	}
+	return nil
+}
+
+func (x *Member) GetRoles() []string {
+	if x != nil {
+		return x.Roles
+	}
+	return nil
+}
+
+func (x *Member) GetNickname() string {
+	if x != nil {
+		return x.Nickname
+	}
+	return ""
+}
+
+func (x *Member) GetPresence() string {
+	if x != nil {
+		return x.Presence
+	}
+	return ""
+}
+
+func (x *Member) GetExternalId() string {
+	if x != nil {
+		return x.ExternalId
+	}
+	return ""
+}
+
+func (x *Member) GetJoinedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.JoinedAt
+	}
+	return nil
+}
+
+func (x *Member) GetAdmin() bool {
+	if x != nil {
+		return x.Admin
+	}
+	return false
+}
+
 type ListSpacesRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -776,7 +1381,7 @@ type ListSpacesRequest struct {
 
 func (x *ListSpacesRequest) Reset() {
 	*x = ListSpacesRequest{}
-	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[5]
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -788,7 +1393,7 @@ func (x *ListSpacesRequest) String() string {
 func (*ListSpacesRequest) ProtoMessage() {}
 
 func (x *ListSpacesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[5]
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -801,7 +1406,7 @@ func (x *ListSpacesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSpacesRequest.ProtoReflect.Descriptor instead.
 func (*ListSpacesRequest) Descriptor() ([]byte, []int) {
-	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{5}
+	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{12}
 }
 
 type ListSpacesResponse struct {
@@ -813,7 +1418,7 @@ type ListSpacesResponse struct {
 
 func (x *ListSpacesResponse) Reset() {
 	*x = ListSpacesResponse{}
-	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[6]
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -825,7 +1430,7 @@ func (x *ListSpacesResponse) String() string {
 func (*ListSpacesResponse) ProtoMessage() {}
 
 func (x *ListSpacesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[6]
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -838,7 +1443,7 @@ func (x *ListSpacesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSpacesResponse.ProtoReflect.Descriptor instead.
 func (*ListSpacesResponse) Descriptor() ([]byte, []int) {
-	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{6}
+	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *ListSpacesResponse) GetSpaces() []*Space {
@@ -857,7 +1462,7 @@ type ListChannelsRequest struct {
 
 func (x *ListChannelsRequest) Reset() {
 	*x = ListChannelsRequest{}
-	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[7]
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -869,7 +1474,7 @@ func (x *ListChannelsRequest) String() string {
 func (*ListChannelsRequest) ProtoMessage() {}
 
 func (x *ListChannelsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[7]
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -882,7 +1487,7 @@ func (x *ListChannelsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListChannelsRequest.ProtoReflect.Descriptor instead.
 func (*ListChannelsRequest) Descriptor() ([]byte, []int) {
-	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{7}
+	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *ListChannelsRequest) GetSpaceId() string {
@@ -901,7 +1506,7 @@ type ListChannelsResponse struct {
 
 func (x *ListChannelsResponse) Reset() {
 	*x = ListChannelsResponse{}
-	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[8]
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -913,7 +1518,7 @@ func (x *ListChannelsResponse) String() string {
 func (*ListChannelsResponse) ProtoMessage() {}
 
 func (x *ListChannelsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[8]
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -926,12 +1531,108 @@ func (x *ListChannelsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListChannelsResponse.ProtoReflect.Descriptor instead.
 func (*ListChannelsResponse) Descriptor() ([]byte, []int) {
-	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{8}
+	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *ListChannelsResponse) GetChannels() []*Channel {
 	if x != nil {
 		return x.Channels
+	}
+	return nil
+}
+
+type ListMembersRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SpaceId       string                 `protobuf:"bytes,1,opt,name=space_id,json=spaceId" json:"space_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListMembersRequest) Reset() {
+	*x = ListMembersRequest{}
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListMembersRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListMembersRequest) ProtoMessage() {}
+
+func (x *ListMembersRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListMembersRequest.ProtoReflect.Descriptor instead.
+func (*ListMembersRequest) Descriptor() ([]byte, []int) {
+	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *ListMembersRequest) GetSpaceId() string {
+	if x != nil {
+		return x.SpaceId
+	}
+	return ""
+}
+
+type ListMembersResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Members       []*Member              `protobuf:"bytes,1,rep,name=members" json:"members,omitempty"`
+	Roles         []*Role                `protobuf:"bytes,2,rep,name=roles" json:"roles,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListMembersResponse) Reset() {
+	*x = ListMembersResponse{}
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListMembersResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListMembersResponse) ProtoMessage() {}
+
+func (x *ListMembersResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListMembersResponse.ProtoReflect.Descriptor instead.
+func (*ListMembersResponse) Descriptor() ([]byte, []int) {
+	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *ListMembersResponse) GetMembers() []*Member {
+	if x != nil {
+		return x.Members
+	}
+	return nil
+}
+
+func (x *ListMembersResponse) GetRoles() []*Role {
+	if x != nil {
+		return x.Roles
 	}
 	return nil
 }
@@ -948,7 +1649,7 @@ type ListMessagesRequest struct {
 
 func (x *ListMessagesRequest) Reset() {
 	*x = ListMessagesRequest{}
-	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[9]
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -960,7 +1661,7 @@ func (x *ListMessagesRequest) String() string {
 func (*ListMessagesRequest) ProtoMessage() {}
 
 func (x *ListMessagesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[9]
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -973,7 +1674,7 @@ func (x *ListMessagesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMessagesRequest.ProtoReflect.Descriptor instead.
 func (*ListMessagesRequest) Descriptor() ([]byte, []int) {
-	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{9}
+	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *ListMessagesRequest) GetChannelId() string {
@@ -1007,7 +1708,7 @@ type ListMessagesResponse struct {
 
 func (x *ListMessagesResponse) Reset() {
 	*x = ListMessagesResponse{}
-	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[10]
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1019,7 +1720,7 @@ func (x *ListMessagesResponse) String() string {
 func (*ListMessagesResponse) ProtoMessage() {}
 
 func (x *ListMessagesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[10]
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1032,7 +1733,7 @@ func (x *ListMessagesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMessagesResponse.ProtoReflect.Descriptor instead.
 func (*ListMessagesResponse) Descriptor() ([]byte, []int) {
-	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{10}
+	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *ListMessagesResponse) GetMessages() []*Message {
@@ -1061,7 +1762,7 @@ type PostMessageRequest struct {
 
 func (x *PostMessageRequest) Reset() {
 	*x = PostMessageRequest{}
-	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[11]
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1073,7 +1774,7 @@ func (x *PostMessageRequest) String() string {
 func (*PostMessageRequest) ProtoMessage() {}
 
 func (x *PostMessageRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[11]
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1086,7 +1787,7 @@ func (x *PostMessageRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PostMessageRequest.ProtoReflect.Descriptor instead.
 func (*PostMessageRequest) Descriptor() ([]byte, []int) {
-	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{11}
+	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *PostMessageRequest) GetChannelId() string {
@@ -1126,7 +1827,7 @@ type PostMessageResponse struct {
 
 func (x *PostMessageResponse) Reset() {
 	*x = PostMessageResponse{}
-	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[12]
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1138,7 +1839,7 @@ func (x *PostMessageResponse) String() string {
 func (*PostMessageResponse) ProtoMessage() {}
 
 func (x *PostMessageResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[12]
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1151,7 +1852,7 @@ func (x *PostMessageResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PostMessageResponse.ProtoReflect.Descriptor instead.
 func (*PostMessageResponse) Descriptor() ([]byte, []int) {
-	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{12}
+	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *PostMessageResponse) GetMessage() *Message {
@@ -1171,7 +1872,7 @@ type EditMessageRequest struct {
 
 func (x *EditMessageRequest) Reset() {
 	*x = EditMessageRequest{}
-	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[13]
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1183,7 +1884,7 @@ func (x *EditMessageRequest) String() string {
 func (*EditMessageRequest) ProtoMessage() {}
 
 func (x *EditMessageRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[13]
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1196,7 +1897,7 @@ func (x *EditMessageRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EditMessageRequest.ProtoReflect.Descriptor instead.
 func (*EditMessageRequest) Descriptor() ([]byte, []int) {
-	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{13}
+	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *EditMessageRequest) GetSeq() int64 {
@@ -1222,7 +1923,7 @@ type EditMessageResponse struct {
 
 func (x *EditMessageResponse) Reset() {
 	*x = EditMessageResponse{}
-	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[14]
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1234,7 +1935,7 @@ func (x *EditMessageResponse) String() string {
 func (*EditMessageResponse) ProtoMessage() {}
 
 func (x *EditMessageResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[14]
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1247,7 +1948,7 @@ func (x *EditMessageResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EditMessageResponse.ProtoReflect.Descriptor instead.
 func (*EditMessageResponse) Descriptor() ([]byte, []int) {
-	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{14}
+	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *EditMessageResponse) GetMessage() *Message {
@@ -1266,7 +1967,7 @@ type DeleteMessageRequest struct {
 
 func (x *DeleteMessageRequest) Reset() {
 	*x = DeleteMessageRequest{}
-	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[15]
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1278,7 +1979,7 @@ func (x *DeleteMessageRequest) String() string {
 func (*DeleteMessageRequest) ProtoMessage() {}
 
 func (x *DeleteMessageRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[15]
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1291,7 +1992,7 @@ func (x *DeleteMessageRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteMessageRequest.ProtoReflect.Descriptor instead.
 func (*DeleteMessageRequest) Descriptor() ([]byte, []int) {
-	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{15}
+	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *DeleteMessageRequest) GetSeq() int64 {
@@ -1309,7 +2010,7 @@ type DeleteMessageResponse struct {
 
 func (x *DeleteMessageResponse) Reset() {
 	*x = DeleteMessageResponse{}
-	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[16]
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1321,7 +2022,7 @@ func (x *DeleteMessageResponse) String() string {
 func (*DeleteMessageResponse) ProtoMessage() {}
 
 func (x *DeleteMessageResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[16]
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1334,7 +2035,489 @@ func (x *DeleteMessageResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteMessageResponse.ProtoReflect.Descriptor instead.
 func (*DeleteMessageResponse) Descriptor() ([]byte, []int) {
-	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{16}
+	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{25}
+}
+
+type AddReactionRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Seq           int64                  `protobuf:"varint,1,opt,name=seq" json:"seq,omitempty"`
+	Emoji         string                 `protobuf:"bytes,2,opt,name=emoji" json:"emoji,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AddReactionRequest) Reset() {
+	*x = AddReactionRequest{}
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AddReactionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddReactionRequest) ProtoMessage() {}
+
+func (x *AddReactionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddReactionRequest.ProtoReflect.Descriptor instead.
+func (*AddReactionRequest) Descriptor() ([]byte, []int) {
+	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *AddReactionRequest) GetSeq() int64 {
+	if x != nil {
+		return x.Seq
+	}
+	return 0
+}
+
+func (x *AddReactionRequest) GetEmoji() string {
+	if x != nil {
+		return x.Emoji
+	}
+	return ""
+}
+
+type AddReactionResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Message       *Message               `protobuf:"bytes,1,opt,name=message" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AddReactionResponse) Reset() {
+	*x = AddReactionResponse{}
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AddReactionResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddReactionResponse) ProtoMessage() {}
+
+func (x *AddReactionResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddReactionResponse.ProtoReflect.Descriptor instead.
+func (*AddReactionResponse) Descriptor() ([]byte, []int) {
+	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *AddReactionResponse) GetMessage() *Message {
+	if x != nil {
+		return x.Message
+	}
+	return nil
+}
+
+type RemoveReactionRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Seq           int64                  `protobuf:"varint,1,opt,name=seq" json:"seq,omitempty"`
+	Emoji         string                 `protobuf:"bytes,2,opt,name=emoji" json:"emoji,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RemoveReactionRequest) Reset() {
+	*x = RemoveReactionRequest{}
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RemoveReactionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RemoveReactionRequest) ProtoMessage() {}
+
+func (x *RemoveReactionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RemoveReactionRequest.ProtoReflect.Descriptor instead.
+func (*RemoveReactionRequest) Descriptor() ([]byte, []int) {
+	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *RemoveReactionRequest) GetSeq() int64 {
+	if x != nil {
+		return x.Seq
+	}
+	return 0
+}
+
+func (x *RemoveReactionRequest) GetEmoji() string {
+	if x != nil {
+		return x.Emoji
+	}
+	return ""
+}
+
+type RemoveReactionResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Message       *Message               `protobuf:"bytes,1,opt,name=message" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RemoveReactionResponse) Reset() {
+	*x = RemoveReactionResponse{}
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RemoveReactionResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RemoveReactionResponse) ProtoMessage() {}
+
+func (x *RemoveReactionResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RemoveReactionResponse.ProtoReflect.Descriptor instead.
+func (*RemoveReactionResponse) Descriptor() ([]byte, []int) {
+	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *RemoveReactionResponse) GetMessage() *Message {
+	if x != nil {
+		return x.Message
+	}
+	return nil
+}
+
+type InteractCardRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Seq   int64                  `protobuf:"varint,1,opt,name=seq" json:"seq,omitempty"`
+	// Component the caller used, such as approve or deny
+	Action        string `protobuf:"bytes,2,opt,name=action" json:"action,omitempty"`
+	Value         string `protobuf:"bytes,3,opt,name=value" json:"value,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InteractCardRequest) Reset() {
+	*x = InteractCardRequest{}
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InteractCardRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InteractCardRequest) ProtoMessage() {}
+
+func (x *InteractCardRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InteractCardRequest.ProtoReflect.Descriptor instead.
+func (*InteractCardRequest) Descriptor() ([]byte, []int) {
+	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *InteractCardRequest) GetSeq() int64 {
+	if x != nil {
+		return x.Seq
+	}
+	return 0
+}
+
+func (x *InteractCardRequest) GetAction() string {
+	if x != nil {
+		return x.Action
+	}
+	return ""
+}
+
+func (x *InteractCardRequest) GetValue() string {
+	if x != nil {
+		return x.Value
+	}
+	return ""
+}
+
+type InteractCardResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Message       *Message               `protobuf:"bytes,1,opt,name=message" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InteractCardResponse) Reset() {
+	*x = InteractCardResponse{}
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InteractCardResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InteractCardResponse) ProtoMessage() {}
+
+func (x *InteractCardResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InteractCardResponse.ProtoReflect.Descriptor instead.
+func (*InteractCardResponse) Descriptor() ([]byte, []int) {
+	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *InteractCardResponse) GetMessage() *Message {
+	if x != nil {
+		return x.Message
+	}
+	return nil
+}
+
+type CreateThreadRequest struct {
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	ChannelId string                 `protobuf:"bytes,1,opt,name=channel_id,json=channelId" json:"channel_id,omitempty"`
+	Name      string                 `protobuf:"bytes,2,opt,name=name" json:"name,omitempty"`
+	// Message the thread starts from, 0 starts an empty thread
+	FromSeq       int64 `protobuf:"varint,3,opt,name=from_seq,json=fromSeq" json:"from_seq,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateThreadRequest) Reset() {
+	*x = CreateThreadRequest{}
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateThreadRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateThreadRequest) ProtoMessage() {}
+
+func (x *CreateThreadRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateThreadRequest.ProtoReflect.Descriptor instead.
+func (*CreateThreadRequest) Descriptor() ([]byte, []int) {
+	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *CreateThreadRequest) GetChannelId() string {
+	if x != nil {
+		return x.ChannelId
+	}
+	return ""
+}
+
+func (x *CreateThreadRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *CreateThreadRequest) GetFromSeq() int64 {
+	if x != nil {
+		return x.FromSeq
+	}
+	return 0
+}
+
+type CreateThreadResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Channel       *Channel               `protobuf:"bytes,1,opt,name=channel" json:"channel,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateThreadResponse) Reset() {
+	*x = CreateThreadResponse{}
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateThreadResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateThreadResponse) ProtoMessage() {}
+
+func (x *CreateThreadResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateThreadResponse.ProtoReflect.Descriptor instead.
+func (*CreateThreadResponse) Descriptor() ([]byte, []int) {
+	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *CreateThreadResponse) GetChannel() *Channel {
+	if x != nil {
+		return x.Channel
+	}
+	return nil
+}
+
+type SendTypingRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ChannelId     string                 `protobuf:"bytes,1,opt,name=channel_id,json=channelId" json:"channel_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SendTypingRequest) Reset() {
+	*x = SendTypingRequest{}
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[34]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SendTypingRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SendTypingRequest) ProtoMessage() {}
+
+func (x *SendTypingRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[34]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SendTypingRequest.ProtoReflect.Descriptor instead.
+func (*SendTypingRequest) Descriptor() ([]byte, []int) {
+	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{34}
+}
+
+func (x *SendTypingRequest) GetChannelId() string {
+	if x != nil {
+		return x.ChannelId
+	}
+	return ""
+}
+
+type SendTypingResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SendTypingResponse) Reset() {
+	*x = SendTypingResponse{}
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[35]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SendTypingResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SendTypingResponse) ProtoMessage() {}
+
+func (x *SendTypingResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[35]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SendTypingResponse.ProtoReflect.Descriptor instead.
+func (*SendTypingResponse) Descriptor() ([]byte, []int) {
+	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{35}
 }
 
 type MarkReadRequest struct {
@@ -1347,7 +2530,7 @@ type MarkReadRequest struct {
 
 func (x *MarkReadRequest) Reset() {
 	*x = MarkReadRequest{}
-	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[17]
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1359,7 +2542,7 @@ func (x *MarkReadRequest) String() string {
 func (*MarkReadRequest) ProtoMessage() {}
 
 func (x *MarkReadRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[17]
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1372,7 +2555,7 @@ func (x *MarkReadRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MarkReadRequest.ProtoReflect.Descriptor instead.
 func (*MarkReadRequest) Descriptor() ([]byte, []int) {
-	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{17}
+	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *MarkReadRequest) GetChannelId() string {
@@ -1398,7 +2581,7 @@ type MarkReadResponse struct {
 
 func (x *MarkReadResponse) Reset() {
 	*x = MarkReadResponse{}
-	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[18]
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1410,7 +2593,7 @@ func (x *MarkReadResponse) String() string {
 func (*MarkReadResponse) ProtoMessage() {}
 
 func (x *MarkReadResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[18]
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1423,7 +2606,7 @@ func (x *MarkReadResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MarkReadResponse.ProtoReflect.Descriptor instead.
 func (*MarkReadResponse) Descriptor() ([]byte, []int) {
-	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{18}
+	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *MarkReadResponse) GetChannel() *Channel {
@@ -1445,7 +2628,7 @@ type WatchEventsRequest struct {
 
 func (x *WatchEventsRequest) Reset() {
 	*x = WatchEventsRequest{}
-	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[19]
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1457,7 +2640,7 @@ func (x *WatchEventsRequest) String() string {
 func (*WatchEventsRequest) ProtoMessage() {}
 
 func (x *WatchEventsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[19]
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1470,7 +2653,7 @@ func (x *WatchEventsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchEventsRequest.ProtoReflect.Descriptor instead.
 func (*WatchEventsRequest) Descriptor() ([]byte, []int) {
-	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{19}
+	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *WatchEventsRequest) GetAfterSeq() int64 {
@@ -1496,7 +2679,7 @@ type WatchEventsResponse struct {
 
 func (x *WatchEventsResponse) Reset() {
 	*x = WatchEventsResponse{}
-	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[20]
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1508,7 +2691,7 @@ func (x *WatchEventsResponse) String() string {
 func (*WatchEventsResponse) ProtoMessage() {}
 
 func (x *WatchEventsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[20]
+	mi := &file_discoflix_timeline_v1_timeline_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1521,7 +2704,7 @@ func (x *WatchEventsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchEventsResponse.ProtoReflect.Descriptor instead.
 func (*WatchEventsResponse) Descriptor() ([]byte, []int) {
-	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{20}
+	return file_discoflix_timeline_v1_timeline_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *WatchEventsResponse) GetEvent() *Event {
@@ -1535,7 +2718,7 @@ var File_discoflix_timeline_v1_timeline_proto protoreflect.FileDescriptor
 
 const file_discoflix_timeline_v1_timeline_proto_rawDesc = "" +
 	"\n" +
-	"$discoflix/timeline/v1/timeline.proto\x12\x15discoflix.timeline.v1\x1a\x1bbuf/validate/validate.proto\x1a%discoflix/capability/v1/options.proto\x1a\x19google/protobuf/any.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x8c\x02\n" +
+	"$discoflix/timeline/v1/timeline.proto\x12\x15discoflix.timeline.v1\x1a\x1bbuf/validate/validate.proto\x1a%discoflix/capability/v1/options.proto\x1a\x19google/protobuf/any.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xbe\x02\n" +
 	"\x05Space\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x124\n" +
 	"\x04kind\x18\x02 \x01(\x0e2 .discoflix.timeline.v1.SpaceKindR\x04kind\x12\x12\n" +
@@ -1546,7 +2729,8 @@ const file_discoflix_timeline_v1_timeline_proto_rawDesc = "" +
 	"\bposition\x18\x06 \x01(\x05R\bposition\x129\n" +
 	"\n" +
 	"created_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12\x16\n" +
-	"\x06unread\x18\b \x01(\x03R\x06unread\"\xc7\x02\n" +
+	"\x06unread\x18\b \x01(\x03R\x06unread\x120\n" +
+	"\x14approvals_channel_id\x18\t \x01(\tR\x12approvalsChannelId\"\xe8\x02\n" +
 	"\aChannel\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\bspace_id\x18\x02 \x01(\tR\aspaceId\x126\n" +
@@ -1560,14 +2744,29 @@ const file_discoflix_timeline_v1_timeline_proto_rawDesc = "" +
 	"\blast_seq\x18\t \x01(\x03R\alastSeq\x12\"\n" +
 	"\rlast_read_seq\x18\n" +
 	" \x01(\x03R\vlastReadSeq\x12\x16\n" +
-	"\x06unread\x18\v \x01(\x03R\x06unread\"\x91\x01\n" +
+	"\x06unread\x18\v \x01(\x03R\x06unread\x12\x1f\n" +
+	"\vmax_content\x18\f \x01(\x05R\n" +
+	"maxContent\"\x91\x01\n" +
 	"\x06Author\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12!\n" +
 	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\x12\x1d\n" +
 	"\n" +
 	"avatar_url\x18\x03 \x01(\tR\tavatarUrl\x12!\n" +
 	"\faccent_color\x18\x04 \x01(\tR\vaccentColor\x12\x12\n" +
-	"\x04kind\x18\x05 \x01(\tR\x04kind\"\xf3\x03\n" +
+	"\x04kind\x18\x05 \x01(\tR\x04kind\"\xa7\x01\n" +
+	"\n" +
+	"Attachment\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x10\n" +
+	"\x03url\x18\x03 \x01(\tR\x03url\x12!\n" +
+	"\fcontent_type\x18\x04 \x01(\tR\vcontentType\x12\x12\n" +
+	"\x04size\x18\x05 \x01(\x03R\x04size\x12\x14\n" +
+	"\x05width\x18\x06 \x01(\x05R\x05width\x12\x16\n" +
+	"\x06height\x18\a \x01(\x05R\x06height\"F\n" +
+	"\bReaction\x12\x14\n" +
+	"\x05emoji\x18\x01 \x01(\tR\x05emoji\x12\x14\n" +
+	"\x05count\x18\x02 \x01(\x03R\x05count\x12\x0e\n" +
+	"\x02me\x18\x03 \x01(\bR\x02me\"\x8f\x05\n" +
 	"\aMessage\x12\x10\n" +
 	"\x03seq\x18\x01 \x01(\x03R\x03seq\x12\x19\n" +
 	"\bspace_id\x18\x02 \x01(\tR\aspaceId\x12\x1d\n" +
@@ -1585,7 +2784,23 @@ const file_discoflix_timeline_v1_timeline_proto_rawDesc = "" +
 	" \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x127\n" +
 	"\tedited_at\x18\v \x01(\v2\x1a.google.protobuf.TimestampR\beditedAt\x129\n" +
 	"\n" +
-	"deleted_at\x18\f \x01(\v2\x1a.google.protobuf.TimestampR\tdeletedAt\"\xef\x01\n" +
+	"deleted_at\x18\f \x01(\v2\x1a.google.protobuf.TimestampR\tdeletedAt\x12\x16\n" +
+	"\x06origin\x18\r \x01(\tR\x06origin\x12C\n" +
+	"\vattachments\x18\x0e \x03(\v2!.discoflix.timeline.v1.AttachmentR\vattachments\x12=\n" +
+	"\treactions\x18\x0f \x03(\v2\x1f.discoflix.timeline.v1.ReactionR\treactions\"g\n" +
+	"\x0eReactionChange\x12\x10\n" +
+	"\x03seq\x18\x01 \x01(\x03R\x03seq\x12\x14\n" +
+	"\x05emoji\x18\x02 \x01(\tR\x05emoji\x12\x17\n" +
+	"\auser_id\x18\x03 \x01(\tR\x06userId\x12\x14\n" +
+	"\x05count\x18\x04 \x01(\x03R\x05count\"c\n" +
+	"\x06Typing\x12\x1d\n" +
+	"\n" +
+	"channel_id\x18\x01 \x01(\tR\tchannelId\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\tR\x06userId\x12!\n" +
+	"\fdisplay_name\x18\x03 \x01(\tR\vdisplayName\"A\n" +
+	"\x0ePresenceChange\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x16\n" +
+	"\x06status\x18\x02 \x01(\tR\x06status\"\xc4\x03\n" +
 	"\x05Event\x12\x10\n" +
 	"\x03seq\x18\x01 \x01(\x03R\x03seq\x124\n" +
 	"\x04kind\x18\x02 \x01(\x0e2 .discoflix.timeline.v1.EventKindR\x04kind\x128\n" +
@@ -1593,14 +2808,39 @@ const file_discoflix_timeline_v1_timeline_proto_rawDesc = "" +
 	"\n" +
 	"channel_id\x18\x04 \x01(\tR\tchannelId\x12\x19\n" +
 	"\bspace_id\x18\x05 \x01(\tR\aspaceId\x12*\n" +
-	"\x02at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\x02at\"\x13\n" +
+	"\x02at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\x02at\x12\x16\n" +
+	"\x06origin\x18\a \x01(\tR\x06origin\x12A\n" +
+	"\breaction\x18\b \x01(\v2%.discoflix.timeline.v1.ReactionChangeR\breaction\x125\n" +
+	"\x06typing\x18\t \x01(\v2\x1d.discoflix.timeline.v1.TypingR\x06typing\x12A\n" +
+	"\bpresence\x18\n" +
+	" \x01(\v2%.discoflix.timeline.v1.PresenceChangeR\bpresence\"r\n" +
+	"\x04Role\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x14\n" +
+	"\x05color\x18\x03 \x01(\tR\x05color\x12\x1a\n" +
+	"\bposition\x18\x04 \x01(\x05R\bposition\x12\x14\n" +
+	"\x05hoist\x18\x05 \x01(\bR\x05hoist\"\xf9\x01\n" +
+	"\x06Member\x121\n" +
+	"\x04user\x18\x01 \x01(\v2\x1d.discoflix.timeline.v1.AuthorR\x04user\x12\x14\n" +
+	"\x05roles\x18\x02 \x03(\tR\x05roles\x12\x1a\n" +
+	"\bnickname\x18\x03 \x01(\tR\bnickname\x12\x1a\n" +
+	"\bpresence\x18\x04 \x01(\tR\bpresence\x12\x1f\n" +
+	"\vexternal_id\x18\x05 \x01(\tR\n" +
+	"externalId\x127\n" +
+	"\tjoined_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\bjoinedAt\x12\x14\n" +
+	"\x05admin\x18\a \x01(\bR\x05admin\"\x13\n" +
 	"\x11ListSpacesRequest\"J\n" +
 	"\x12ListSpacesResponse\x124\n" +
 	"\x06spaces\x18\x01 \x03(\v2\x1c.discoflix.timeline.v1.SpaceR\x06spaces\"9\n" +
 	"\x13ListChannelsRequest\x12\"\n" +
 	"\bspace_id\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\aspaceId\"R\n" +
 	"\x14ListChannelsResponse\x12:\n" +
-	"\bchannels\x18\x01 \x03(\v2\x1e.discoflix.timeline.v1.ChannelR\bchannels\"~\n" +
+	"\bchannels\x18\x01 \x03(\v2\x1e.discoflix.timeline.v1.ChannelR\bchannels\"8\n" +
+	"\x12ListMembersRequest\x12\"\n" +
+	"\bspace_id\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\aspaceId\"\x81\x01\n" +
+	"\x13ListMembersResponse\x127\n" +
+	"\amembers\x18\x01 \x03(\v2\x1d.discoflix.timeline.v1.MemberR\amembers\x121\n" +
+	"\x05roles\x18\x02 \x03(\v2\x1b.discoflix.timeline.v1.RoleR\x05roles\"~\n" +
 	"\x13ListMessagesRequest\x12&\n" +
 	"\n" +
 	"channel_id\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\tchannelId\x12\x1d\n" +
@@ -1626,7 +2866,34 @@ const file_discoflix_timeline_v1_timeline_proto_rawDesc = "" +
 	"\amessage\x18\x01 \x01(\v2\x1e.discoflix.timeline.v1.MessageR\amessage\"1\n" +
 	"\x14DeleteMessageRequest\x12\x19\n" +
 	"\x03seq\x18\x01 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x03seq\"\x17\n" +
-	"\x15DeleteMessageResponse\"K\n" +
+	"\x15DeleteMessageResponse\"P\n" +
+	"\x12AddReactionRequest\x12\x19\n" +
+	"\x03seq\x18\x01 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x03seq\x12\x1f\n" +
+	"\x05emoji\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x05emoji\"O\n" +
+	"\x13AddReactionResponse\x128\n" +
+	"\amessage\x18\x01 \x01(\v2\x1e.discoflix.timeline.v1.MessageR\amessage\"S\n" +
+	"\x15RemoveReactionRequest\x12\x19\n" +
+	"\x03seq\x18\x01 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x03seq\x12\x1f\n" +
+	"\x05emoji\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x05emoji\"R\n" +
+	"\x16RemoveReactionResponse\x128\n" +
+	"\amessage\x18\x01 \x01(\v2\x1e.discoflix.timeline.v1.MessageR\amessage\"s\n" +
+	"\x13InteractCardRequest\x12\x19\n" +
+	"\x03seq\x18\x01 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x03seq\x12!\n" +
+	"\x06action\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x06action\x12\x1e\n" +
+	"\x05value\x18\x03 \x01(\tB\b\xbaH\x05r\x03\x18\xa0\x1fR\x05value\"P\n" +
+	"\x14InteractCardResponse\x128\n" +
+	"\amessage\x18\x01 \x01(\v2\x1e.discoflix.timeline.v1.MessageR\amessage\"w\n" +
+	"\x13CreateThreadRequest\x12&\n" +
+	"\n" +
+	"channel_id\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\tchannelId\x12\x1d\n" +
+	"\x04name\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18dR\x04name\x12\x19\n" +
+	"\bfrom_seq\x18\x03 \x01(\x03R\afromSeq\"P\n" +
+	"\x14CreateThreadResponse\x128\n" +
+	"\achannel\x18\x01 \x01(\v2\x1e.discoflix.timeline.v1.ChannelR\achannel\";\n" +
+	"\x11SendTypingRequest\x12&\n" +
+	"\n" +
+	"channel_id\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\tchannelId\"\x14\n" +
+	"\x12SendTypingResponse\"K\n" +
 	"\x0fMarkReadRequest\x12&\n" +
 	"\n" +
 	"channel_id\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\tchannelId\x12\x10\n" +
@@ -1656,35 +2923,64 @@ const file_discoflix_timeline_v1_timeline_proto_rawDesc = "" +
 	"\x18MESSAGE_KIND_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11MESSAGE_KIND_USER\x10\x01\x12\x17\n" +
 	"\x13MESSAGE_KIND_SYSTEM\x10\x02\x12\x15\n" +
-	"\x11MESSAGE_KIND_CARD\x10\x03*\xc0\x01\n" +
+	"\x11MESSAGE_KIND_CARD\x10\x03*\x98\x03\n" +
 	"\tEventKind\x12\x1a\n" +
 	"\x16EVENT_KIND_UNSPECIFIED\x10\x00\x12\x1e\n" +
 	"\x1aEVENT_KIND_MESSAGE_CREATED\x10\x01\x12\x1d\n" +
 	"\x19EVENT_KIND_MESSAGE_EDITED\x10\x02\x12\x1e\n" +
 	"\x1aEVENT_KIND_MESSAGE_DELETED\x10\x03\x12\x1b\n" +
 	"\x17EVENT_KIND_CARD_UPDATED\x10\x04\x12\x1b\n" +
-	"\x17EVENT_KIND_CHANNEL_READ\x10\x052\xcf\f\n" +
+	"\x17EVENT_KIND_CHANNEL_READ\x10\x05\x12\x1d\n" +
+	"\x19EVENT_KIND_REACTION_ADDED\x10\x06\x12\x1f\n" +
+	"\x1bEVENT_KIND_REACTION_REMOVED\x10\a\x12\x15\n" +
+	"\x11EVENT_KIND_TYPING\x10\b\x12\x1f\n" +
+	"\x1bEVENT_KIND_PRESENCE_CHANGED\x10\t\x12\x1f\n" +
+	"\x1bEVENT_KIND_CHANNELS_CHANGED\x10\n" +
+	"\x12\x1d\n" +
+	"\x19EVENT_KIND_SPACES_CHANGED\x10\v\x12\x1e\n" +
+	"\x1aEVENT_KIND_MEMBERS_CHANGED\x10\f2\xa4\x16\n" +
 	"\x0fTimelineService\x12\xa7\x01\n" +
 	"\n" +
 	"ListSpaces\x12(.discoflix.timeline.v1.ListSpacesRequest\x1a).discoflix.timeline.v1.ListSpacesResponse\"D\xa2\xbb\x18@\n" +
 	"\rtimeline.read\x10\x012\vList spaces: Spaces the caller is a member of\x12\xd2\x01\n" +
 	"\fListChannels\x12*.discoflix.timeline.v1.ListChannelsRequest\x1a+.discoflix.timeline.v1.ListChannelsResponse\"i\xa2\xbb\x18e\n" +
 	"\x06reader\x10\x01\x1a\x11\n" +
-	"\x05space\x12\bspace_id2\rList channels:7Channels of one space with unread counts for the caller\x12\xd0\x01\n" +
+	"\x05space\x12\bspace_id2\rList channels:7Channels of one space with unread counts for the caller\x12\xc3\x01\n" +
+	"\vListMembers\x12).discoflix.timeline.v1.ListMembersRequest\x1a*.discoflix.timeline.v1.ListMembersResponse\"]\xa2\xbb\x18Y\n" +
+	"\x06reader\x10\x01\x1a\x11\n" +
+	"\x05space\x12\bspace_id2\fList members:,Members of one space with roles and presence\x12\xd0\x01\n" +
 	"\fListMessages\x12*.discoflix.timeline.v1.ListMessagesRequest\x1a+.discoflix.timeline.v1.ListMessagesResponse\"g\xa2\xbb\x18c\n" +
 	"\x06reader\x10\x01\x1a\x15\n" +
 	"\achannel\x12\n" +
-	"channel_id2\rList messages:1A page of messages from one channel, newest first\x12\xc4\x01\n" +
-	"\vPostMessage\x12).discoflix.timeline.v1.PostMessageRequest\x1a*.discoflix.timeline.v1.PostMessageResponse\"^\xa2\xbb\x18Z\n" +
+	"channel_id2\rList messages:1A page of messages from one channel, newest first\x12\xc2\x01\n" +
+	"\vPostMessage\x12).discoflix.timeline.v1.PostMessageRequest\x1a*.discoflix.timeline.v1.PostMessageResponse\"\\\xa2\xbb\x18X\n" +
 	"\x06writer\x10\x02\x1a\x15\n" +
 	"\achannel\x12\n" +
-	"channel_id \x012\fPost message:'Post a message or a card to one channel\x12\xc5\x01\n" +
+	"channel_id2\fPost message:'Post a message or a card to one channel\x12\xc5\x01\n" +
 	"\vEditMessage\x12).discoflix.timeline.v1.EditMessageRequest\x1a*.discoflix.timeline.v1.EditMessageResponse\"_\xa2\xbb\x18[\n" +
 	"\x06writer\x10\x02\x1a\x0e\n" +
 	"\amessage\x12\x03seq2\fEdit message:1Edit the content of a message the caller authored\x12\xcd\x01\n" +
 	"\rDeleteMessage\x12+.discoflix.timeline.v1.DeleteMessageRequest\x1a,.discoflix.timeline.v1.DeleteMessageResponse\"a\xa2\xbb\x18]\n" +
 	"\x06writer\x10\x03\x1a\x0e\n" +
-	"\amessage\x12\x03seq2\x0eDelete message:1Delete a message the caller authored or moderates\x12\xbe\x01\n" +
+	"\amessage\x12\x03seq2\x0eDelete message:1Delete a message the caller authored or moderates\x12\xb4\x01\n" +
+	"\vAddReaction\x12).discoflix.timeline.v1.AddReactionRequest\x1a*.discoflix.timeline.v1.AddReactionResponse\"N\xa2\xbb\x18J\n" +
+	"\x06reader\x10\x02\x1a\x0e\n" +
+	"\amessage\x12\x03seq2\fAdd reaction: React to a message with an emoji\x12\xcc\x01\n" +
+	"\x0eRemoveReaction\x12,.discoflix.timeline.v1.RemoveReactionRequest\x1a-.discoflix.timeline.v1.RemoveReactionResponse\"]\xa2\xbb\x18Y\n" +
+	"\x06reader\x10\x02\x1a\x0e\n" +
+	"\amessage\x12\x03seq2\x0fRemove reaction:,Take back the caller's reaction on a message\x12\xf3\x01\n" +
+	"\fInteractCard\x12*.discoflix.timeline.v1.InteractCardRequest\x1a+.discoflix.timeline.v1.InteractCardResponse\"\x89\x01\xa2\xbb\x18\x84\x01\n" +
+	"\x06reader\x10\x02\x1a\x0e\n" +
+	"\amessage\x12\x03seq2\x12Interact with card:TPress a button or pick an option on a card, the same transition every transport uses\x12\xd3\x01\n" +
+	"\fCreateThread\x12*.discoflix.timeline.v1.CreateThreadRequest\x1a+.discoflix.timeline.v1.CreateThreadResponse\"j\xa2\xbb\x18f\n" +
+	"\x06writer\x10\x02\x1a\x15\n" +
+	"\achannel\x12\n" +
+	"channel_id2\rCreate thread:4Start a thread in a channel, from a message or empty\x12\xbc\x01\n" +
+	"\n" +
+	"SendTyping\x12(.discoflix.timeline.v1.SendTypingRequest\x1a).discoflix.timeline.v1.SendTypingResponse\"Y\xa2\xbb\x18U\n" +
+	"\x06writer\x10\x02\x1a\x15\n" +
+	"\achannel\x12\n" +
+	"channel_id2\vSend typing:%Tell the channel the caller is typing\x12\xbe\x01\n" +
 	"\bMarkRead\x12&.discoflix.timeline.v1.MarkReadRequest\x1a'.discoflix.timeline.v1.MarkReadResponse\"a\xa2\xbb\x18]\n" +
 	"\x06reader\x10\x02\x1a\x15\n" +
 	"\achannel\x12\n" +
@@ -1706,78 +3002,122 @@ func file_discoflix_timeline_v1_timeline_proto_rawDescGZIP() []byte {
 }
 
 var file_discoflix_timeline_v1_timeline_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
-var file_discoflix_timeline_v1_timeline_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
+var file_discoflix_timeline_v1_timeline_proto_msgTypes = make([]protoimpl.MessageInfo, 40)
 var file_discoflix_timeline_v1_timeline_proto_goTypes = []any{
-	(SpaceKind)(0),                // 0: discoflix.timeline.v1.SpaceKind
-	(ChannelKind)(0),              // 1: discoflix.timeline.v1.ChannelKind
-	(MessageKind)(0),              // 2: discoflix.timeline.v1.MessageKind
-	(EventKind)(0),                // 3: discoflix.timeline.v1.EventKind
-	(*Space)(nil),                 // 4: discoflix.timeline.v1.Space
-	(*Channel)(nil),               // 5: discoflix.timeline.v1.Channel
-	(*Author)(nil),                // 6: discoflix.timeline.v1.Author
-	(*Message)(nil),               // 7: discoflix.timeline.v1.Message
-	(*Event)(nil),                 // 8: discoflix.timeline.v1.Event
-	(*ListSpacesRequest)(nil),     // 9: discoflix.timeline.v1.ListSpacesRequest
-	(*ListSpacesResponse)(nil),    // 10: discoflix.timeline.v1.ListSpacesResponse
-	(*ListChannelsRequest)(nil),   // 11: discoflix.timeline.v1.ListChannelsRequest
-	(*ListChannelsResponse)(nil),  // 12: discoflix.timeline.v1.ListChannelsResponse
-	(*ListMessagesRequest)(nil),   // 13: discoflix.timeline.v1.ListMessagesRequest
-	(*ListMessagesResponse)(nil),  // 14: discoflix.timeline.v1.ListMessagesResponse
-	(*PostMessageRequest)(nil),    // 15: discoflix.timeline.v1.PostMessageRequest
-	(*PostMessageResponse)(nil),   // 16: discoflix.timeline.v1.PostMessageResponse
-	(*EditMessageRequest)(nil),    // 17: discoflix.timeline.v1.EditMessageRequest
-	(*EditMessageResponse)(nil),   // 18: discoflix.timeline.v1.EditMessageResponse
-	(*DeleteMessageRequest)(nil),  // 19: discoflix.timeline.v1.DeleteMessageRequest
-	(*DeleteMessageResponse)(nil), // 20: discoflix.timeline.v1.DeleteMessageResponse
-	(*MarkReadRequest)(nil),       // 21: discoflix.timeline.v1.MarkReadRequest
-	(*MarkReadResponse)(nil),      // 22: discoflix.timeline.v1.MarkReadResponse
-	(*WatchEventsRequest)(nil),    // 23: discoflix.timeline.v1.WatchEventsRequest
-	(*WatchEventsResponse)(nil),   // 24: discoflix.timeline.v1.WatchEventsResponse
-	(*timestamppb.Timestamp)(nil), // 25: google.protobuf.Timestamp
-	(*anypb.Any)(nil),             // 26: google.protobuf.Any
+	(SpaceKind)(0),                 // 0: discoflix.timeline.v1.SpaceKind
+	(ChannelKind)(0),               // 1: discoflix.timeline.v1.ChannelKind
+	(MessageKind)(0),               // 2: discoflix.timeline.v1.MessageKind
+	(EventKind)(0),                 // 3: discoflix.timeline.v1.EventKind
+	(*Space)(nil),                  // 4: discoflix.timeline.v1.Space
+	(*Channel)(nil),                // 5: discoflix.timeline.v1.Channel
+	(*Author)(nil),                 // 6: discoflix.timeline.v1.Author
+	(*Attachment)(nil),             // 7: discoflix.timeline.v1.Attachment
+	(*Reaction)(nil),               // 8: discoflix.timeline.v1.Reaction
+	(*Message)(nil),                // 9: discoflix.timeline.v1.Message
+	(*ReactionChange)(nil),         // 10: discoflix.timeline.v1.ReactionChange
+	(*Typing)(nil),                 // 11: discoflix.timeline.v1.Typing
+	(*PresenceChange)(nil),         // 12: discoflix.timeline.v1.PresenceChange
+	(*Event)(nil),                  // 13: discoflix.timeline.v1.Event
+	(*Role)(nil),                   // 14: discoflix.timeline.v1.Role
+	(*Member)(nil),                 // 15: discoflix.timeline.v1.Member
+	(*ListSpacesRequest)(nil),      // 16: discoflix.timeline.v1.ListSpacesRequest
+	(*ListSpacesResponse)(nil),     // 17: discoflix.timeline.v1.ListSpacesResponse
+	(*ListChannelsRequest)(nil),    // 18: discoflix.timeline.v1.ListChannelsRequest
+	(*ListChannelsResponse)(nil),   // 19: discoflix.timeline.v1.ListChannelsResponse
+	(*ListMembersRequest)(nil),     // 20: discoflix.timeline.v1.ListMembersRequest
+	(*ListMembersResponse)(nil),    // 21: discoflix.timeline.v1.ListMembersResponse
+	(*ListMessagesRequest)(nil),    // 22: discoflix.timeline.v1.ListMessagesRequest
+	(*ListMessagesResponse)(nil),   // 23: discoflix.timeline.v1.ListMessagesResponse
+	(*PostMessageRequest)(nil),     // 24: discoflix.timeline.v1.PostMessageRequest
+	(*PostMessageResponse)(nil),    // 25: discoflix.timeline.v1.PostMessageResponse
+	(*EditMessageRequest)(nil),     // 26: discoflix.timeline.v1.EditMessageRequest
+	(*EditMessageResponse)(nil),    // 27: discoflix.timeline.v1.EditMessageResponse
+	(*DeleteMessageRequest)(nil),   // 28: discoflix.timeline.v1.DeleteMessageRequest
+	(*DeleteMessageResponse)(nil),  // 29: discoflix.timeline.v1.DeleteMessageResponse
+	(*AddReactionRequest)(nil),     // 30: discoflix.timeline.v1.AddReactionRequest
+	(*AddReactionResponse)(nil),    // 31: discoflix.timeline.v1.AddReactionResponse
+	(*RemoveReactionRequest)(nil),  // 32: discoflix.timeline.v1.RemoveReactionRequest
+	(*RemoveReactionResponse)(nil), // 33: discoflix.timeline.v1.RemoveReactionResponse
+	(*InteractCardRequest)(nil),    // 34: discoflix.timeline.v1.InteractCardRequest
+	(*InteractCardResponse)(nil),   // 35: discoflix.timeline.v1.InteractCardResponse
+	(*CreateThreadRequest)(nil),    // 36: discoflix.timeline.v1.CreateThreadRequest
+	(*CreateThreadResponse)(nil),   // 37: discoflix.timeline.v1.CreateThreadResponse
+	(*SendTypingRequest)(nil),      // 38: discoflix.timeline.v1.SendTypingRequest
+	(*SendTypingResponse)(nil),     // 39: discoflix.timeline.v1.SendTypingResponse
+	(*MarkReadRequest)(nil),        // 40: discoflix.timeline.v1.MarkReadRequest
+	(*MarkReadResponse)(nil),       // 41: discoflix.timeline.v1.MarkReadResponse
+	(*WatchEventsRequest)(nil),     // 42: discoflix.timeline.v1.WatchEventsRequest
+	(*WatchEventsResponse)(nil),    // 43: discoflix.timeline.v1.WatchEventsResponse
+	(*timestamppb.Timestamp)(nil),  // 44: google.protobuf.Timestamp
+	(*anypb.Any)(nil),              // 45: google.protobuf.Any
 }
 var file_discoflix_timeline_v1_timeline_proto_depIdxs = []int32{
 	0,  // 0: discoflix.timeline.v1.Space.kind:type_name -> discoflix.timeline.v1.SpaceKind
-	25, // 1: discoflix.timeline.v1.Space.created_at:type_name -> google.protobuf.Timestamp
+	44, // 1: discoflix.timeline.v1.Space.created_at:type_name -> google.protobuf.Timestamp
 	1,  // 2: discoflix.timeline.v1.Channel.kind:type_name -> discoflix.timeline.v1.ChannelKind
 	6,  // 3: discoflix.timeline.v1.Message.author:type_name -> discoflix.timeline.v1.Author
 	2,  // 4: discoflix.timeline.v1.Message.kind:type_name -> discoflix.timeline.v1.MessageKind
-	26, // 5: discoflix.timeline.v1.Message.card:type_name -> google.protobuf.Any
-	25, // 6: discoflix.timeline.v1.Message.created_at:type_name -> google.protobuf.Timestamp
-	25, // 7: discoflix.timeline.v1.Message.edited_at:type_name -> google.protobuf.Timestamp
-	25, // 8: discoflix.timeline.v1.Message.deleted_at:type_name -> google.protobuf.Timestamp
-	3,  // 9: discoflix.timeline.v1.Event.kind:type_name -> discoflix.timeline.v1.EventKind
-	7,  // 10: discoflix.timeline.v1.Event.message:type_name -> discoflix.timeline.v1.Message
-	25, // 11: discoflix.timeline.v1.Event.at:type_name -> google.protobuf.Timestamp
-	4,  // 12: discoflix.timeline.v1.ListSpacesResponse.spaces:type_name -> discoflix.timeline.v1.Space
-	5,  // 13: discoflix.timeline.v1.ListChannelsResponse.channels:type_name -> discoflix.timeline.v1.Channel
-	7,  // 14: discoflix.timeline.v1.ListMessagesResponse.messages:type_name -> discoflix.timeline.v1.Message
-	26, // 15: discoflix.timeline.v1.PostMessageRequest.card:type_name -> google.protobuf.Any
-	7,  // 16: discoflix.timeline.v1.PostMessageResponse.message:type_name -> discoflix.timeline.v1.Message
-	7,  // 17: discoflix.timeline.v1.EditMessageResponse.message:type_name -> discoflix.timeline.v1.Message
-	5,  // 18: discoflix.timeline.v1.MarkReadResponse.channel:type_name -> discoflix.timeline.v1.Channel
-	8,  // 19: discoflix.timeline.v1.WatchEventsResponse.event:type_name -> discoflix.timeline.v1.Event
-	9,  // 20: discoflix.timeline.v1.TimelineService.ListSpaces:input_type -> discoflix.timeline.v1.ListSpacesRequest
-	11, // 21: discoflix.timeline.v1.TimelineService.ListChannels:input_type -> discoflix.timeline.v1.ListChannelsRequest
-	13, // 22: discoflix.timeline.v1.TimelineService.ListMessages:input_type -> discoflix.timeline.v1.ListMessagesRequest
-	15, // 23: discoflix.timeline.v1.TimelineService.PostMessage:input_type -> discoflix.timeline.v1.PostMessageRequest
-	17, // 24: discoflix.timeline.v1.TimelineService.EditMessage:input_type -> discoflix.timeline.v1.EditMessageRequest
-	19, // 25: discoflix.timeline.v1.TimelineService.DeleteMessage:input_type -> discoflix.timeline.v1.DeleteMessageRequest
-	21, // 26: discoflix.timeline.v1.TimelineService.MarkRead:input_type -> discoflix.timeline.v1.MarkReadRequest
-	23, // 27: discoflix.timeline.v1.TimelineService.WatchEvents:input_type -> discoflix.timeline.v1.WatchEventsRequest
-	10, // 28: discoflix.timeline.v1.TimelineService.ListSpaces:output_type -> discoflix.timeline.v1.ListSpacesResponse
-	12, // 29: discoflix.timeline.v1.TimelineService.ListChannels:output_type -> discoflix.timeline.v1.ListChannelsResponse
-	14, // 30: discoflix.timeline.v1.TimelineService.ListMessages:output_type -> discoflix.timeline.v1.ListMessagesResponse
-	16, // 31: discoflix.timeline.v1.TimelineService.PostMessage:output_type -> discoflix.timeline.v1.PostMessageResponse
-	18, // 32: discoflix.timeline.v1.TimelineService.EditMessage:output_type -> discoflix.timeline.v1.EditMessageResponse
-	20, // 33: discoflix.timeline.v1.TimelineService.DeleteMessage:output_type -> discoflix.timeline.v1.DeleteMessageResponse
-	22, // 34: discoflix.timeline.v1.TimelineService.MarkRead:output_type -> discoflix.timeline.v1.MarkReadResponse
-	24, // 35: discoflix.timeline.v1.TimelineService.WatchEvents:output_type -> discoflix.timeline.v1.WatchEventsResponse
-	28, // [28:36] is the sub-list for method output_type
-	20, // [20:28] is the sub-list for method input_type
-	20, // [20:20] is the sub-list for extension type_name
-	20, // [20:20] is the sub-list for extension extendee
-	0,  // [0:20] is the sub-list for field type_name
+	45, // 5: discoflix.timeline.v1.Message.card:type_name -> google.protobuf.Any
+	44, // 6: discoflix.timeline.v1.Message.created_at:type_name -> google.protobuf.Timestamp
+	44, // 7: discoflix.timeline.v1.Message.edited_at:type_name -> google.protobuf.Timestamp
+	44, // 8: discoflix.timeline.v1.Message.deleted_at:type_name -> google.protobuf.Timestamp
+	7,  // 9: discoflix.timeline.v1.Message.attachments:type_name -> discoflix.timeline.v1.Attachment
+	8,  // 10: discoflix.timeline.v1.Message.reactions:type_name -> discoflix.timeline.v1.Reaction
+	3,  // 11: discoflix.timeline.v1.Event.kind:type_name -> discoflix.timeline.v1.EventKind
+	9,  // 12: discoflix.timeline.v1.Event.message:type_name -> discoflix.timeline.v1.Message
+	44, // 13: discoflix.timeline.v1.Event.at:type_name -> google.protobuf.Timestamp
+	10, // 14: discoflix.timeline.v1.Event.reaction:type_name -> discoflix.timeline.v1.ReactionChange
+	11, // 15: discoflix.timeline.v1.Event.typing:type_name -> discoflix.timeline.v1.Typing
+	12, // 16: discoflix.timeline.v1.Event.presence:type_name -> discoflix.timeline.v1.PresenceChange
+	6,  // 17: discoflix.timeline.v1.Member.user:type_name -> discoflix.timeline.v1.Author
+	44, // 18: discoflix.timeline.v1.Member.joined_at:type_name -> google.protobuf.Timestamp
+	4,  // 19: discoflix.timeline.v1.ListSpacesResponse.spaces:type_name -> discoflix.timeline.v1.Space
+	5,  // 20: discoflix.timeline.v1.ListChannelsResponse.channels:type_name -> discoflix.timeline.v1.Channel
+	15, // 21: discoflix.timeline.v1.ListMembersResponse.members:type_name -> discoflix.timeline.v1.Member
+	14, // 22: discoflix.timeline.v1.ListMembersResponse.roles:type_name -> discoflix.timeline.v1.Role
+	9,  // 23: discoflix.timeline.v1.ListMessagesResponse.messages:type_name -> discoflix.timeline.v1.Message
+	45, // 24: discoflix.timeline.v1.PostMessageRequest.card:type_name -> google.protobuf.Any
+	9,  // 25: discoflix.timeline.v1.PostMessageResponse.message:type_name -> discoflix.timeline.v1.Message
+	9,  // 26: discoflix.timeline.v1.EditMessageResponse.message:type_name -> discoflix.timeline.v1.Message
+	9,  // 27: discoflix.timeline.v1.AddReactionResponse.message:type_name -> discoflix.timeline.v1.Message
+	9,  // 28: discoflix.timeline.v1.RemoveReactionResponse.message:type_name -> discoflix.timeline.v1.Message
+	9,  // 29: discoflix.timeline.v1.InteractCardResponse.message:type_name -> discoflix.timeline.v1.Message
+	5,  // 30: discoflix.timeline.v1.CreateThreadResponse.channel:type_name -> discoflix.timeline.v1.Channel
+	5,  // 31: discoflix.timeline.v1.MarkReadResponse.channel:type_name -> discoflix.timeline.v1.Channel
+	13, // 32: discoflix.timeline.v1.WatchEventsResponse.event:type_name -> discoflix.timeline.v1.Event
+	16, // 33: discoflix.timeline.v1.TimelineService.ListSpaces:input_type -> discoflix.timeline.v1.ListSpacesRequest
+	18, // 34: discoflix.timeline.v1.TimelineService.ListChannels:input_type -> discoflix.timeline.v1.ListChannelsRequest
+	20, // 35: discoflix.timeline.v1.TimelineService.ListMembers:input_type -> discoflix.timeline.v1.ListMembersRequest
+	22, // 36: discoflix.timeline.v1.TimelineService.ListMessages:input_type -> discoflix.timeline.v1.ListMessagesRequest
+	24, // 37: discoflix.timeline.v1.TimelineService.PostMessage:input_type -> discoflix.timeline.v1.PostMessageRequest
+	26, // 38: discoflix.timeline.v1.TimelineService.EditMessage:input_type -> discoflix.timeline.v1.EditMessageRequest
+	28, // 39: discoflix.timeline.v1.TimelineService.DeleteMessage:input_type -> discoflix.timeline.v1.DeleteMessageRequest
+	30, // 40: discoflix.timeline.v1.TimelineService.AddReaction:input_type -> discoflix.timeline.v1.AddReactionRequest
+	32, // 41: discoflix.timeline.v1.TimelineService.RemoveReaction:input_type -> discoflix.timeline.v1.RemoveReactionRequest
+	34, // 42: discoflix.timeline.v1.TimelineService.InteractCard:input_type -> discoflix.timeline.v1.InteractCardRequest
+	36, // 43: discoflix.timeline.v1.TimelineService.CreateThread:input_type -> discoflix.timeline.v1.CreateThreadRequest
+	38, // 44: discoflix.timeline.v1.TimelineService.SendTyping:input_type -> discoflix.timeline.v1.SendTypingRequest
+	40, // 45: discoflix.timeline.v1.TimelineService.MarkRead:input_type -> discoflix.timeline.v1.MarkReadRequest
+	42, // 46: discoflix.timeline.v1.TimelineService.WatchEvents:input_type -> discoflix.timeline.v1.WatchEventsRequest
+	17, // 47: discoflix.timeline.v1.TimelineService.ListSpaces:output_type -> discoflix.timeline.v1.ListSpacesResponse
+	19, // 48: discoflix.timeline.v1.TimelineService.ListChannels:output_type -> discoflix.timeline.v1.ListChannelsResponse
+	21, // 49: discoflix.timeline.v1.TimelineService.ListMembers:output_type -> discoflix.timeline.v1.ListMembersResponse
+	23, // 50: discoflix.timeline.v1.TimelineService.ListMessages:output_type -> discoflix.timeline.v1.ListMessagesResponse
+	25, // 51: discoflix.timeline.v1.TimelineService.PostMessage:output_type -> discoflix.timeline.v1.PostMessageResponse
+	27, // 52: discoflix.timeline.v1.TimelineService.EditMessage:output_type -> discoflix.timeline.v1.EditMessageResponse
+	29, // 53: discoflix.timeline.v1.TimelineService.DeleteMessage:output_type -> discoflix.timeline.v1.DeleteMessageResponse
+	31, // 54: discoflix.timeline.v1.TimelineService.AddReaction:output_type -> discoflix.timeline.v1.AddReactionResponse
+	33, // 55: discoflix.timeline.v1.TimelineService.RemoveReaction:output_type -> discoflix.timeline.v1.RemoveReactionResponse
+	35, // 56: discoflix.timeline.v1.TimelineService.InteractCard:output_type -> discoflix.timeline.v1.InteractCardResponse
+	37, // 57: discoflix.timeline.v1.TimelineService.CreateThread:output_type -> discoflix.timeline.v1.CreateThreadResponse
+	39, // 58: discoflix.timeline.v1.TimelineService.SendTyping:output_type -> discoflix.timeline.v1.SendTypingResponse
+	41, // 59: discoflix.timeline.v1.TimelineService.MarkRead:output_type -> discoflix.timeline.v1.MarkReadResponse
+	43, // 60: discoflix.timeline.v1.TimelineService.WatchEvents:output_type -> discoflix.timeline.v1.WatchEventsResponse
+	47, // [47:61] is the sub-list for method output_type
+	33, // [33:47] is the sub-list for method input_type
+	33, // [33:33] is the sub-list for extension type_name
+	33, // [33:33] is the sub-list for extension extendee
+	0,  // [0:33] is the sub-list for field type_name
 }
 
 func init() { file_discoflix_timeline_v1_timeline_proto_init() }
@@ -1791,7 +3131,7 @@ func file_discoflix_timeline_v1_timeline_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_discoflix_timeline_v1_timeline_proto_rawDesc), len(file_discoflix_timeline_v1_timeline_proto_rawDesc)),
 			NumEnums:      4,
-			NumMessages:   21,
+			NumMessages:   40,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -663,6 +663,8 @@ type GetServerInfoResponse struct {
 	PasswordLogin bool   `protobuf:"varint,4,opt,name=password_login,json=passwordLogin" json:"password_login,omitempty"`
 	PasskeyLogin  bool   `protobuf:"varint,5,opt,name=passkey_login,json=passkeyLogin" json:"passkey_login,omitempty"`
 	InstanceName  string `protobuf:"bytes,6,opt,name=instance_name,json=instanceName" json:"instance_name,omitempty"`
+	// Discord sign-in is configured, the browser starts it at /auth/discord/start
+	DiscordLogin  bool `protobuf:"varint,7,opt,name=discord_login,json=discordLogin" json:"discord_login,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -737,6 +739,13 @@ func (x *GetServerInfoResponse) GetInstanceName() string {
 		return x.InstanceName
 	}
 	return ""
+}
+
+func (x *GetServerInfoResponse) GetDiscordLogin() bool {
+	if x != nil {
+		return x.DiscordLogin
+	}
+	return false
 }
 
 type BootstrapRequest struct {
@@ -2345,6 +2354,638 @@ func (x *UpdateUserResponse) GetUser() *User {
 	return nil
 }
 
+type UnlinkIdentityRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UnlinkIdentityRequest) Reset() {
+	*x = UnlinkIdentityRequest{}
+	mi := &file_discoflix_identity_v1_identity_proto_msgTypes[44]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UnlinkIdentityRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UnlinkIdentityRequest) ProtoMessage() {}
+
+func (x *UnlinkIdentityRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_discoflix_identity_v1_identity_proto_msgTypes[44]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UnlinkIdentityRequest.ProtoReflect.Descriptor instead.
+func (*UnlinkIdentityRequest) Descriptor() ([]byte, []int) {
+	return file_discoflix_identity_v1_identity_proto_rawDescGZIP(), []int{44}
+}
+
+func (x *UnlinkIdentityRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type UnlinkIdentityResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UnlinkIdentityResponse) Reset() {
+	*x = UnlinkIdentityResponse{}
+	mi := &file_discoflix_identity_v1_identity_proto_msgTypes[45]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UnlinkIdentityResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UnlinkIdentityResponse) ProtoMessage() {}
+
+func (x *UnlinkIdentityResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_discoflix_identity_v1_identity_proto_msgTypes[45]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UnlinkIdentityResponse.ProtoReflect.Descriptor instead.
+func (*UnlinkIdentityResponse) Descriptor() ([]byte, []int) {
+	return file_discoflix_identity_v1_identity_proto_rawDescGZIP(), []int{45}
+}
+
+type CreateLinkCodeRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateLinkCodeRequest) Reset() {
+	*x = CreateLinkCodeRequest{}
+	mi := &file_discoflix_identity_v1_identity_proto_msgTypes[46]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateLinkCodeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateLinkCodeRequest) ProtoMessage() {}
+
+func (x *CreateLinkCodeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_discoflix_identity_v1_identity_proto_msgTypes[46]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateLinkCodeRequest.ProtoReflect.Descriptor instead.
+func (*CreateLinkCodeRequest) Descriptor() ([]byte, []int) {
+	return file_discoflix_identity_v1_identity_proto_rawDescGZIP(), []int{46}
+}
+
+type CreateLinkCodeResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Open this in a browser while signed in to attach the caller's Discord account to that user
+	Url           string                 `protobuf:"bytes,1,opt,name=url" json:"url,omitempty"`
+	ExpiresAt     *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=expires_at,json=expiresAt" json:"expires_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateLinkCodeResponse) Reset() {
+	*x = CreateLinkCodeResponse{}
+	mi := &file_discoflix_identity_v1_identity_proto_msgTypes[47]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateLinkCodeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateLinkCodeResponse) ProtoMessage() {}
+
+func (x *CreateLinkCodeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_discoflix_identity_v1_identity_proto_msgTypes[47]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateLinkCodeResponse.ProtoReflect.Descriptor instead.
+func (*CreateLinkCodeResponse) Descriptor() ([]byte, []int) {
+	return file_discoflix_identity_v1_identity_proto_rawDescGZIP(), []int{47}
+}
+
+func (x *CreateLinkCodeResponse) GetUrl() string {
+	if x != nil {
+		return x.Url
+	}
+	return ""
+}
+
+func (x *CreateLinkCodeResponse) GetExpiresAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.ExpiresAt
+	}
+	return nil
+}
+
+type FinishLinkCodeRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Code          string                 `protobuf:"bytes,1,opt,name=code" json:"code,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FinishLinkCodeRequest) Reset() {
+	*x = FinishLinkCodeRequest{}
+	mi := &file_discoflix_identity_v1_identity_proto_msgTypes[48]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FinishLinkCodeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FinishLinkCodeRequest) ProtoMessage() {}
+
+func (x *FinishLinkCodeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_discoflix_identity_v1_identity_proto_msgTypes[48]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FinishLinkCodeRequest.ProtoReflect.Descriptor instead.
+func (*FinishLinkCodeRequest) Descriptor() ([]byte, []int) {
+	return file_discoflix_identity_v1_identity_proto_rawDescGZIP(), []int{48}
+}
+
+func (x *FinishLinkCodeRequest) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+type FinishLinkCodeResponse struct {
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	Identity *Identity              `protobuf:"bytes,1,opt,name=identity" json:"identity,omitempty"`
+	// True when the Discord user already had a row that was merged into the caller
+	Merged        bool `protobuf:"varint,2,opt,name=merged" json:"merged,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FinishLinkCodeResponse) Reset() {
+	*x = FinishLinkCodeResponse{}
+	mi := &file_discoflix_identity_v1_identity_proto_msgTypes[49]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FinishLinkCodeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FinishLinkCodeResponse) ProtoMessage() {}
+
+func (x *FinishLinkCodeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_discoflix_identity_v1_identity_proto_msgTypes[49]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FinishLinkCodeResponse.ProtoReflect.Descriptor instead.
+func (*FinishLinkCodeResponse) Descriptor() ([]byte, []int) {
+	return file_discoflix_identity_v1_identity_proto_rawDescGZIP(), []int{49}
+}
+
+func (x *FinishLinkCodeResponse) GetIdentity() *Identity {
+	if x != nil {
+		return x.Identity
+	}
+	return nil
+}
+
+func (x *FinishLinkCodeResponse) GetMerged() bool {
+	if x != nil {
+		return x.Merged
+	}
+	return false
+}
+
+type CreateServiceAccountRequest struct {
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	DisplayName string                 `protobuf:"bytes,1,opt,name=display_name,json=displayName" json:"display_name,omitempty"`
+	// USER_KIND_BOT or USER_KIND_AGENT
+	Kind          UserKind               `protobuf:"varint,2,opt,name=kind,enum=discoflix.identity.v1.UserKind" json:"kind,omitempty"`
+	KeyName       string                 `protobuf:"bytes,3,opt,name=key_name,json=keyName" json:"key_name,omitempty"`
+	ExpiresAt     *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=expires_at,json=expiresAt" json:"expires_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateServiceAccountRequest) Reset() {
+	*x = CreateServiceAccountRequest{}
+	mi := &file_discoflix_identity_v1_identity_proto_msgTypes[50]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateServiceAccountRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateServiceAccountRequest) ProtoMessage() {}
+
+func (x *CreateServiceAccountRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_discoflix_identity_v1_identity_proto_msgTypes[50]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateServiceAccountRequest.ProtoReflect.Descriptor instead.
+func (*CreateServiceAccountRequest) Descriptor() ([]byte, []int) {
+	return file_discoflix_identity_v1_identity_proto_rawDescGZIP(), []int{50}
+}
+
+func (x *CreateServiceAccountRequest) GetDisplayName() string {
+	if x != nil {
+		return x.DisplayName
+	}
+	return ""
+}
+
+func (x *CreateServiceAccountRequest) GetKind() UserKind {
+	if x != nil {
+		return x.Kind
+	}
+	return UserKind_USER_KIND_UNSPECIFIED
+}
+
+func (x *CreateServiceAccountRequest) GetKeyName() string {
+	if x != nil {
+		return x.KeyName
+	}
+	return ""
+}
+
+func (x *CreateServiceAccountRequest) GetExpiresAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.ExpiresAt
+	}
+	return nil
+}
+
+type CreateServiceAccountResponse struct {
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	User   *User                  `protobuf:"bytes,1,opt,name=user" json:"user,omitempty"`
+	ApiKey *ApiKey                `protobuf:"bytes,2,opt,name=api_key,json=apiKey" json:"api_key,omitempty"`
+	// Shown once
+	Secret        string `protobuf:"bytes,3,opt,name=secret" json:"secret,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateServiceAccountResponse) Reset() {
+	*x = CreateServiceAccountResponse{}
+	mi := &file_discoflix_identity_v1_identity_proto_msgTypes[51]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateServiceAccountResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateServiceAccountResponse) ProtoMessage() {}
+
+func (x *CreateServiceAccountResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_discoflix_identity_v1_identity_proto_msgTypes[51]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateServiceAccountResponse.ProtoReflect.Descriptor instead.
+func (*CreateServiceAccountResponse) Descriptor() ([]byte, []int) {
+	return file_discoflix_identity_v1_identity_proto_rawDescGZIP(), []int{51}
+}
+
+func (x *CreateServiceAccountResponse) GetUser() *User {
+	if x != nil {
+		return x.User
+	}
+	return nil
+}
+
+func (x *CreateServiceAccountResponse) GetApiKey() *ApiKey {
+	if x != nil {
+		return x.ApiKey
+	}
+	return nil
+}
+
+func (x *CreateServiceAccountResponse) GetSecret() string {
+	if x != nil {
+		return x.Secret
+	}
+	return ""
+}
+
+type UserMerge struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id" json:"id,omitempty"`
+	FromUser      *User                  `protobuf:"bytes,2,opt,name=from_user,json=fromUser" json:"from_user,omitempty"`
+	IntoUser      *User                  `protobuf:"bytes,3,opt,name=into_user,json=intoUser" json:"into_user,omitempty"`
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=created_at,json=createdAt" json:"created_at,omitempty"`
+	RevertedAt    *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=reverted_at,json=revertedAt" json:"reverted_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UserMerge) Reset() {
+	*x = UserMerge{}
+	mi := &file_discoflix_identity_v1_identity_proto_msgTypes[52]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UserMerge) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UserMerge) ProtoMessage() {}
+
+func (x *UserMerge) ProtoReflect() protoreflect.Message {
+	mi := &file_discoflix_identity_v1_identity_proto_msgTypes[52]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UserMerge.ProtoReflect.Descriptor instead.
+func (*UserMerge) Descriptor() ([]byte, []int) {
+	return file_discoflix_identity_v1_identity_proto_rawDescGZIP(), []int{52}
+}
+
+func (x *UserMerge) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *UserMerge) GetFromUser() *User {
+	if x != nil {
+		return x.FromUser
+	}
+	return nil
+}
+
+func (x *UserMerge) GetIntoUser() *User {
+	if x != nil {
+		return x.IntoUser
+	}
+	return nil
+}
+
+func (x *UserMerge) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
+func (x *UserMerge) GetRevertedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.RevertedAt
+	}
+	return nil
+}
+
+type ListUserMergesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListUserMergesRequest) Reset() {
+	*x = ListUserMergesRequest{}
+	mi := &file_discoflix_identity_v1_identity_proto_msgTypes[53]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListUserMergesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListUserMergesRequest) ProtoMessage() {}
+
+func (x *ListUserMergesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_discoflix_identity_v1_identity_proto_msgTypes[53]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListUserMergesRequest.ProtoReflect.Descriptor instead.
+func (*ListUserMergesRequest) Descriptor() ([]byte, []int) {
+	return file_discoflix_identity_v1_identity_proto_rawDescGZIP(), []int{53}
+}
+
+type ListUserMergesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Merges        []*UserMerge           `protobuf:"bytes,1,rep,name=merges" json:"merges,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListUserMergesResponse) Reset() {
+	*x = ListUserMergesResponse{}
+	mi := &file_discoflix_identity_v1_identity_proto_msgTypes[54]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListUserMergesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListUserMergesResponse) ProtoMessage() {}
+
+func (x *ListUserMergesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_discoflix_identity_v1_identity_proto_msgTypes[54]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListUserMergesResponse.ProtoReflect.Descriptor instead.
+func (*ListUserMergesResponse) Descriptor() ([]byte, []int) {
+	return file_discoflix_identity_v1_identity_proto_rawDescGZIP(), []int{54}
+}
+
+func (x *ListUserMergesResponse) GetMerges() []*UserMerge {
+	if x != nil {
+		return x.Merges
+	}
+	return nil
+}
+
+type RevertUserMergeRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RevertUserMergeRequest) Reset() {
+	*x = RevertUserMergeRequest{}
+	mi := &file_discoflix_identity_v1_identity_proto_msgTypes[55]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RevertUserMergeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RevertUserMergeRequest) ProtoMessage() {}
+
+func (x *RevertUserMergeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_discoflix_identity_v1_identity_proto_msgTypes[55]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RevertUserMergeRequest.ProtoReflect.Descriptor instead.
+func (*RevertUserMergeRequest) Descriptor() ([]byte, []int) {
+	return file_discoflix_identity_v1_identity_proto_rawDescGZIP(), []int{55}
+}
+
+func (x *RevertUserMergeRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type RevertUserMergeResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RevertUserMergeResponse) Reset() {
+	*x = RevertUserMergeResponse{}
+	mi := &file_discoflix_identity_v1_identity_proto_msgTypes[56]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RevertUserMergeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RevertUserMergeResponse) ProtoMessage() {}
+
+func (x *RevertUserMergeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_discoflix_identity_v1_identity_proto_msgTypes[56]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RevertUserMergeResponse.ProtoReflect.Descriptor instead.
+func (*RevertUserMergeResponse) Descriptor() ([]byte, []int) {
+	return file_discoflix_identity_v1_identity_proto_rawDescGZIP(), []int{56}
+}
+
 var File_discoflix_identity_v1_identity_proto protoreflect.FileDescriptor
 
 const file_discoflix_identity_v1_identity_proto_rawDesc = "" +
@@ -2404,14 +3045,15 @@ const file_discoflix_identity_v1_identity_proto_rawDesc = "" +
 	"\n" +
 	"expires_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\x12\x18\n" +
 	"\acurrent\x18\x06 \x01(\bR\acurrent\"\x16\n" +
-	"\x14GetServerInfoRequest\"\xe1\x01\n" +
+	"\x14GetServerInfoRequest\"\x86\x02\n" +
 	"\x15GetServerInfoResponse\x12\x18\n" +
 	"\aversion\x18\x01 \x01(\tR\aversion\x12\x16\n" +
 	"\x06commit\x18\x02 \x01(\tR\x06commit\x12%\n" +
 	"\x0esetup_required\x18\x03 \x01(\bR\rsetupRequired\x12%\n" +
 	"\x0epassword_login\x18\x04 \x01(\bR\rpasswordLogin\x12#\n" +
 	"\rpasskey_login\x18\x05 \x01(\bR\fpasskeyLogin\x12#\n" +
-	"\rinstance_name\x18\x06 \x01(\tR\finstanceName\"\xcd\x01\n" +
+	"\rinstance_name\x18\x06 \x01(\tR\finstanceName\x12#\n" +
+	"\rdiscord_login\x18\a \x01(\bR\fdiscordLogin\"\xcd\x01\n" +
 	"\x10BootstrapRequest\x125\n" +
 	"\busername\x18\x01 \x01(\tB\x19\xbaH\x16r\x14\x10\x02\x18 2\x0e^[a-z0-9._-]+$R\busername\x12,\n" +
 	"\fdisplay_name\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\vdisplayName\x12&\n" +
@@ -2492,7 +3134,46 @@ const file_discoflix_identity_v1_identity_proto_rawDesc = "" +
 	"\x06status\x18\x03 \x01(\x0e2!.discoflix.identity.v1.UserStatusR\x06status\x12!\n" +
 	"\fsystem_admin\x18\x04 \x01(\bR\vsystemAdmin\"E\n" +
 	"\x12UpdateUserResponse\x12/\n" +
-	"\x04user\x18\x01 \x01(\v2\x1b.discoflix.identity.v1.UserR\x04user*y\n" +
+	"\x04user\x18\x01 \x01(\v2\x1b.discoflix.identity.v1.UserR\x04user\"0\n" +
+	"\x15UnlinkIdentityRequest\x12\x17\n" +
+	"\x02id\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x02id\"\x18\n" +
+	"\x16UnlinkIdentityResponse\"\x17\n" +
+	"\x15CreateLinkCodeRequest\"e\n" +
+	"\x16CreateLinkCodeResponse\x12\x10\n" +
+	"\x03url\x18\x01 \x01(\tR\x03url\x129\n" +
+	"\n" +
+	"expires_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\"7\n" +
+	"\x15FinishLinkCodeRequest\x12\x1e\n" +
+	"\x04code\x18\x01 \x01(\tB\n" +
+	"\xbaH\ar\x05\x10\x01\x18\x80\x01R\x04code\"m\n" +
+	"\x16FinishLinkCodeResponse\x12;\n" +
+	"\bidentity\x18\x01 \x01(\v2\x1f.discoflix.identity.v1.IdentityR\bidentity\x12\x16\n" +
+	"\x06merged\x18\x02 \x01(\bR\x06merged\"\xed\x01\n" +
+	"\x1bCreateServiceAccountRequest\x12,\n" +
+	"\fdisplay_name\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\vdisplayName\x12?\n" +
+	"\x04kind\x18\x02 \x01(\x0e2\x1f.discoflix.identity.v1.UserKindB\n" +
+	"\xbaH\a\x82\x01\x04\x18\x02\x18\x04R\x04kind\x12$\n" +
+	"\bkey_name\x18\x03 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\akeyName\x129\n" +
+	"\n" +
+	"expires_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\"\x9f\x01\n" +
+	"\x1cCreateServiceAccountResponse\x12/\n" +
+	"\x04user\x18\x01 \x01(\v2\x1b.discoflix.identity.v1.UserR\x04user\x126\n" +
+	"\aapi_key\x18\x02 \x01(\v2\x1d.discoflix.identity.v1.ApiKeyR\x06apiKey\x12\x16\n" +
+	"\x06secret\x18\x03 \x01(\tR\x06secret\"\x87\x02\n" +
+	"\tUserMerge\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x128\n" +
+	"\tfrom_user\x18\x02 \x01(\v2\x1b.discoflix.identity.v1.UserR\bfromUser\x128\n" +
+	"\tinto_user\x18\x03 \x01(\v2\x1b.discoflix.identity.v1.UserR\bintoUser\x129\n" +
+	"\n" +
+	"created_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12;\n" +
+	"\vreverted_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
+	"revertedAt\"\x17\n" +
+	"\x15ListUserMergesRequest\"R\n" +
+	"\x16ListUserMergesResponse\x128\n" +
+	"\x06merges\x18\x01 \x03(\v2 .discoflix.identity.v1.UserMergeR\x06merges\"1\n" +
+	"\x16RevertUserMergeRequest\x12\x17\n" +
+	"\x02id\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x02id\"\x19\n" +
+	"\x17RevertUserMergeResponse*y\n" +
 	"\bUserKind\x12\x19\n" +
 	"\x15USER_KIND_UNSPECIFIED\x10\x00\x12\x14\n" +
 	"\x10USER_KIND_PERSON\x10\x01\x12\x11\n" +
@@ -2503,10 +3184,10 @@ const file_discoflix_identity_v1_identity_proto_rawDesc = "" +
 	"UserStatus\x12\x1b\n" +
 	"\x17USER_STATUS_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12USER_STATUS_ACTIVE\x10\x01\x12\x18\n" +
-	"\x14USER_STATUS_DISABLED\x10\x022\xf6\x17\n" +
-	"\x0fIdentityService\x12\xc7\x01\n" +
-	"\rGetServerInfo\x12+.discoflix.identity.v1.GetServerInfoRequest\x1a,.discoflix.identity.v1.GetServerInfoResponse\"[\xa2\xbb\x18W\n" +
-	"\vserver.info\x10\x01(\x012\vServer info:7Version and sign-in methods, readable before signing in\x12\xc8\x01\n" +
+	"\x14USER_STATUS_DISABLED\x10\x022\xb9\"\n" +
+	"\x0fIdentityService\x12\xcf\x01\n" +
+	"\rGetServerInfo\x12+.discoflix.identity.v1.GetServerInfoRequest\x1a,.discoflix.identity.v1.GetServerInfoResponse\"c\xa2\xbb\x18_\n" +
+	"\vserver.info\x10\x01(\x012\vServer info:7Version and sign-in methods, readable before signing inB\x06status\x12\xc8\x01\n" +
 	"\tBootstrap\x12'.discoflix.identity.v1.BootstrapRequest\x1a(.discoflix.identity.v1.BootstrapResponse\"h\xa2\xbb\x18d\n" +
 	"\x10server.bootstrap\x10\x02(\x012\tBootstrap:ACreate the first administrator, allowed only while no user exists\x12\xa7\x01\n" +
 	"\x11LoginWithPassword\x12/.discoflix.identity.v1.LoginWithPasswordRequest\x1a0.discoflix.identity.v1.LoginWithPasswordResponse\"/\xa2\xbb\x18+\n" +
@@ -2516,9 +3197,9 @@ const file_discoflix_identity_v1_identity_proto_rawDesc = "" +
 	"\x12FinishPasskeyLogin\x120.discoflix.identity.v1.FinishPasskeyLoginRequest\x1a1.discoflix.identity.v1.FinishPasskeyLoginResponse\"0\xa2\xbb\x18,\n" +
 	"\x0esession.create\x10\x02(\x012\x16Finish passkey sign-in\x12u\n" +
 	"\x06Logout\x12$.discoflix.identity.v1.LogoutRequest\x1a%.discoflix.identity.v1.LogoutResponse\"\x1e\xa2\xbb\x18\x1a\n" +
-	"\fsession.self\x10\x022\bSign out\x12\xa2\x01\n" +
-	"\x05GetMe\x12#.discoflix.identity.v1.GetMeRequest\x1a$.discoflix.identity.v1.GetMeResponse\"N\xa2\xbb\x18J\n" +
-	"\fsession.self\x10\x012\bWho am I:.The caller's user, identities, and memberships\x12\x98\x01\n" +
+	"\fsession.self\x10\x022\bSign out\x12\xaa\x01\n" +
+	"\x05GetMe\x12#.discoflix.identity.v1.GetMeRequest\x1a$.discoflix.identity.v1.GetMeResponse\"V\xa2\xbb\x18R\n" +
+	"\fsession.self\x10\x012\bWho am I:.The caller's user, identities, and membershipsB\x06whoami\x12\x98\x01\n" +
 	"\x0eChangePassword\x12,.discoflix.identity.v1.ChangePasswordRequest\x1a-.discoflix.identity.v1.ChangePasswordResponse\")\xa2\xbb\x18%\n" +
 	"\x10credentials.self\x10\x022\x0fChange password\x12\xc1\x01\n" +
 	"\x18BeginPasskeyRegistration\x126.discoflix.identity.v1.BeginPasskeyRegistrationRequest\x1a7.discoflix.identity.v1.BeginPasskeyRegistrationResponse\"4\xa2\xbb\x180\n" +
@@ -2544,7 +3225,19 @@ const file_discoflix_identity_v1_identity_proto_rawDesc = "" +
 	"List users\x12\x83\x01\n" +
 	"\n" +
 	"UpdateUser\x12(.discoflix.identity.v1.UpdateUserRequest\x1a).discoflix.identity.v1.UpdateUserResponse\" \xa2\xbb\x18\x1c\n" +
-	"\vusers.admin\x10\x022\vUpdate userB\xf0\x01\n" +
+	"\vusers.admin\x10\x022\vUpdate user\x12\xd6\x01\n" +
+	"\x0eUnlinkIdentity\x12,.discoflix.identity.v1.UnlinkIdentityRequest\x1a-.discoflix.identity.v1.UnlinkIdentityResponse\"g\xa2\xbb\x18c\n" +
+	"\x10credentials.self\x10\x032\x0fUnlink identity:<Detach a linked account, keeping at least one way to sign in\x12\x84\x02\n" +
+	"\x0eCreateLinkCode\x12,.discoflix.identity.v1.CreateLinkCodeRequest\x1a-.discoflix.identity.v1.CreateLinkCodeResponse\"\x94\x01\xa2\xbb\x18\x8f\x01\n" +
+	"\ridentity.link\x10\x022\x19Link this Discord account:[Get a one-time link that attaches your Discord account to the DiscoFlix user you sign in asB\x04link\x12\xe5\x01\n" +
+	"\x0eFinishLinkCode\x12,.discoflix.identity.v1.FinishLinkCodeRequest\x1a-.discoflix.identity.v1.FinishLinkCodeResponse\"v\xa2\xbb\x18r\n" +
+	"\x10credentials.self\x10\x022\vFinish link:ORedeem a link code so the Discord account that created it belongs to the caller\x12\x88\x02\n" +
+	"\x14CreateServiceAccount\x122.discoflix.identity.v1.CreateServiceAccountRequest\x1a3.discoflix.identity.v1.CreateServiceAccountResponse\"\x86\x01\xa2\xbb\x18\x81\x01\n" +
+	"\vusers.admin\x10\x022\x16Create service account:XCreate a bot or agent user with an API key, destructive calls it makes wait for approval\x12\x94\x01\n" +
+	"\x0eListUserMerges\x12,.discoflix.identity.v1.ListUserMergesRequest\x1a-.discoflix.identity.v1.ListUserMergesResponse\"%\xa2\xbb\x18!\n" +
+	"\vusers.admin\x10\x012\x10List user merges\x12\xc6\x01\n" +
+	"\x0fRevertUserMerge\x12-.discoflix.identity.v1.RevertUserMergeRequest\x1a..discoflix.identity.v1.RevertUserMergeResponse\"T\xa2\xbb\x18P\n" +
+	"\vusers.admin\x10\x022\x11Revert user merge:,Split two users that identity linking mergedB\xf0\x01\n" +
 	"\x19com.discoflix.identity.v1B\rIdentityProtoP\x01ZIgithub.com/nickheyer/DiscoFlix/sdk/go/pb/discoflix/identity/v1;identityv1\xa2\x02\x03DIX\xaa\x02\x15Discoflix.Identity.V1\xca\x02\x15Discoflix\\Identity\\V1\xe2\x02!Discoflix\\Identity\\V1\\GPBMetadata\xea\x02\x17Discoflix::Identity::V1\x92\x03\x02\b\x02b\beditionsp\xe8\a"
 
 var (
@@ -2560,7 +3253,7 @@ func file_discoflix_identity_v1_identity_proto_rawDescGZIP() []byte {
 }
 
 var file_discoflix_identity_v1_identity_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_discoflix_identity_v1_identity_proto_msgTypes = make([]protoimpl.MessageInfo, 44)
+var file_discoflix_identity_v1_identity_proto_msgTypes = make([]protoimpl.MessageInfo, 57)
 var file_discoflix_identity_v1_identity_proto_goTypes = []any{
 	(UserKind)(0),                             // 0: discoflix.identity.v1.UserKind
 	(UserStatus)(0),                           // 1: discoflix.identity.v1.UserStatus
@@ -2608,22 +3301,35 @@ var file_discoflix_identity_v1_identity_proto_goTypes = []any{
 	(*ListUsersResponse)(nil),                 // 43: discoflix.identity.v1.ListUsersResponse
 	(*UpdateUserRequest)(nil),                 // 44: discoflix.identity.v1.UpdateUserRequest
 	(*UpdateUserResponse)(nil),                // 45: discoflix.identity.v1.UpdateUserResponse
-	(*timestamppb.Timestamp)(nil),             // 46: google.protobuf.Timestamp
+	(*UnlinkIdentityRequest)(nil),             // 46: discoflix.identity.v1.UnlinkIdentityRequest
+	(*UnlinkIdentityResponse)(nil),            // 47: discoflix.identity.v1.UnlinkIdentityResponse
+	(*CreateLinkCodeRequest)(nil),             // 48: discoflix.identity.v1.CreateLinkCodeRequest
+	(*CreateLinkCodeResponse)(nil),            // 49: discoflix.identity.v1.CreateLinkCodeResponse
+	(*FinishLinkCodeRequest)(nil),             // 50: discoflix.identity.v1.FinishLinkCodeRequest
+	(*FinishLinkCodeResponse)(nil),            // 51: discoflix.identity.v1.FinishLinkCodeResponse
+	(*CreateServiceAccountRequest)(nil),       // 52: discoflix.identity.v1.CreateServiceAccountRequest
+	(*CreateServiceAccountResponse)(nil),      // 53: discoflix.identity.v1.CreateServiceAccountResponse
+	(*UserMerge)(nil),                         // 54: discoflix.identity.v1.UserMerge
+	(*ListUserMergesRequest)(nil),             // 55: discoflix.identity.v1.ListUserMergesRequest
+	(*ListUserMergesResponse)(nil),            // 56: discoflix.identity.v1.ListUserMergesResponse
+	(*RevertUserMergeRequest)(nil),            // 57: discoflix.identity.v1.RevertUserMergeRequest
+	(*RevertUserMergeResponse)(nil),           // 58: discoflix.identity.v1.RevertUserMergeResponse
+	(*timestamppb.Timestamp)(nil),             // 59: google.protobuf.Timestamp
 }
 var file_discoflix_identity_v1_identity_proto_depIdxs = []int32{
 	0,  // 0: discoflix.identity.v1.User.kind:type_name -> discoflix.identity.v1.UserKind
 	1,  // 1: discoflix.identity.v1.User.status:type_name -> discoflix.identity.v1.UserStatus
-	46, // 2: discoflix.identity.v1.User.created_at:type_name -> google.protobuf.Timestamp
-	46, // 3: discoflix.identity.v1.User.last_seen_at:type_name -> google.protobuf.Timestamp
-	46, // 4: discoflix.identity.v1.Identity.verified_at:type_name -> google.protobuf.Timestamp
-	46, // 5: discoflix.identity.v1.Identity.linked_at:type_name -> google.protobuf.Timestamp
-	46, // 6: discoflix.identity.v1.Passkey.created_at:type_name -> google.protobuf.Timestamp
-	46, // 7: discoflix.identity.v1.Passkey.last_used_at:type_name -> google.protobuf.Timestamp
-	46, // 8: discoflix.identity.v1.ApiKey.created_at:type_name -> google.protobuf.Timestamp
-	46, // 9: discoflix.identity.v1.ApiKey.last_used_at:type_name -> google.protobuf.Timestamp
-	46, // 10: discoflix.identity.v1.ApiKey.expires_at:type_name -> google.protobuf.Timestamp
-	46, // 11: discoflix.identity.v1.Session.created_at:type_name -> google.protobuf.Timestamp
-	46, // 12: discoflix.identity.v1.Session.expires_at:type_name -> google.protobuf.Timestamp
+	59, // 2: discoflix.identity.v1.User.created_at:type_name -> google.protobuf.Timestamp
+	59, // 3: discoflix.identity.v1.User.last_seen_at:type_name -> google.protobuf.Timestamp
+	59, // 4: discoflix.identity.v1.Identity.verified_at:type_name -> google.protobuf.Timestamp
+	59, // 5: discoflix.identity.v1.Identity.linked_at:type_name -> google.protobuf.Timestamp
+	59, // 6: discoflix.identity.v1.Passkey.created_at:type_name -> google.protobuf.Timestamp
+	59, // 7: discoflix.identity.v1.Passkey.last_used_at:type_name -> google.protobuf.Timestamp
+	59, // 8: discoflix.identity.v1.ApiKey.created_at:type_name -> google.protobuf.Timestamp
+	59, // 9: discoflix.identity.v1.ApiKey.last_used_at:type_name -> google.protobuf.Timestamp
+	59, // 10: discoflix.identity.v1.ApiKey.expires_at:type_name -> google.protobuf.Timestamp
+	59, // 11: discoflix.identity.v1.Session.created_at:type_name -> google.protobuf.Timestamp
+	59, // 12: discoflix.identity.v1.Session.expires_at:type_name -> google.protobuf.Timestamp
 	2,  // 13: discoflix.identity.v1.BootstrapResponse.user:type_name -> discoflix.identity.v1.User
 	2,  // 14: discoflix.identity.v1.LoginWithPasswordResponse.user:type_name -> discoflix.identity.v1.User
 	2,  // 15: discoflix.identity.v1.GetMeResponse.user:type_name -> discoflix.identity.v1.User
@@ -2633,55 +3339,78 @@ var file_discoflix_identity_v1_identity_proto_depIdxs = []int32{
 	2,  // 19: discoflix.identity.v1.FinishPasskeyLoginResponse.user:type_name -> discoflix.identity.v1.User
 	5,  // 20: discoflix.identity.v1.ListPasskeysResponse.passkeys:type_name -> discoflix.identity.v1.Passkey
 	6,  // 21: discoflix.identity.v1.ListApiKeysResponse.api_keys:type_name -> discoflix.identity.v1.ApiKey
-	46, // 22: discoflix.identity.v1.CreateApiKeyRequest.expires_at:type_name -> google.protobuf.Timestamp
+	59, // 22: discoflix.identity.v1.CreateApiKeyRequest.expires_at:type_name -> google.protobuf.Timestamp
 	6,  // 23: discoflix.identity.v1.CreateApiKeyResponse.api_key:type_name -> discoflix.identity.v1.ApiKey
 	7,  // 24: discoflix.identity.v1.ListSessionsResponse.sessions:type_name -> discoflix.identity.v1.Session
 	2,  // 25: discoflix.identity.v1.ListUsersResponse.users:type_name -> discoflix.identity.v1.User
 	1,  // 26: discoflix.identity.v1.UpdateUserRequest.status:type_name -> discoflix.identity.v1.UserStatus
 	2,  // 27: discoflix.identity.v1.UpdateUserResponse.user:type_name -> discoflix.identity.v1.User
-	8,  // 28: discoflix.identity.v1.IdentityService.GetServerInfo:input_type -> discoflix.identity.v1.GetServerInfoRequest
-	10, // 29: discoflix.identity.v1.IdentityService.Bootstrap:input_type -> discoflix.identity.v1.BootstrapRequest
-	12, // 30: discoflix.identity.v1.IdentityService.LoginWithPassword:input_type -> discoflix.identity.v1.LoginWithPasswordRequest
-	24, // 31: discoflix.identity.v1.IdentityService.BeginPasskeyLogin:input_type -> discoflix.identity.v1.BeginPasskeyLoginRequest
-	26, // 32: discoflix.identity.v1.IdentityService.FinishPasskeyLogin:input_type -> discoflix.identity.v1.FinishPasskeyLoginRequest
-	14, // 33: discoflix.identity.v1.IdentityService.Logout:input_type -> discoflix.identity.v1.LogoutRequest
-	16, // 34: discoflix.identity.v1.IdentityService.GetMe:input_type -> discoflix.identity.v1.GetMeRequest
-	18, // 35: discoflix.identity.v1.IdentityService.ChangePassword:input_type -> discoflix.identity.v1.ChangePasswordRequest
-	20, // 36: discoflix.identity.v1.IdentityService.BeginPasskeyRegistration:input_type -> discoflix.identity.v1.BeginPasskeyRegistrationRequest
-	22, // 37: discoflix.identity.v1.IdentityService.FinishPasskeyRegistration:input_type -> discoflix.identity.v1.FinishPasskeyRegistrationRequest
-	28, // 38: discoflix.identity.v1.IdentityService.ListPasskeys:input_type -> discoflix.identity.v1.ListPasskeysRequest
-	30, // 39: discoflix.identity.v1.IdentityService.DeletePasskey:input_type -> discoflix.identity.v1.DeletePasskeyRequest
-	32, // 40: discoflix.identity.v1.IdentityService.ListApiKeys:input_type -> discoflix.identity.v1.ListApiKeysRequest
-	34, // 41: discoflix.identity.v1.IdentityService.CreateApiKey:input_type -> discoflix.identity.v1.CreateApiKeyRequest
-	36, // 42: discoflix.identity.v1.IdentityService.RevokeApiKey:input_type -> discoflix.identity.v1.RevokeApiKeyRequest
-	38, // 43: discoflix.identity.v1.IdentityService.ListSessions:input_type -> discoflix.identity.v1.ListSessionsRequest
-	40, // 44: discoflix.identity.v1.IdentityService.RevokeSession:input_type -> discoflix.identity.v1.RevokeSessionRequest
-	42, // 45: discoflix.identity.v1.IdentityService.ListUsers:input_type -> discoflix.identity.v1.ListUsersRequest
-	44, // 46: discoflix.identity.v1.IdentityService.UpdateUser:input_type -> discoflix.identity.v1.UpdateUserRequest
-	9,  // 47: discoflix.identity.v1.IdentityService.GetServerInfo:output_type -> discoflix.identity.v1.GetServerInfoResponse
-	11, // 48: discoflix.identity.v1.IdentityService.Bootstrap:output_type -> discoflix.identity.v1.BootstrapResponse
-	13, // 49: discoflix.identity.v1.IdentityService.LoginWithPassword:output_type -> discoflix.identity.v1.LoginWithPasswordResponse
-	25, // 50: discoflix.identity.v1.IdentityService.BeginPasskeyLogin:output_type -> discoflix.identity.v1.BeginPasskeyLoginResponse
-	27, // 51: discoflix.identity.v1.IdentityService.FinishPasskeyLogin:output_type -> discoflix.identity.v1.FinishPasskeyLoginResponse
-	15, // 52: discoflix.identity.v1.IdentityService.Logout:output_type -> discoflix.identity.v1.LogoutResponse
-	17, // 53: discoflix.identity.v1.IdentityService.GetMe:output_type -> discoflix.identity.v1.GetMeResponse
-	19, // 54: discoflix.identity.v1.IdentityService.ChangePassword:output_type -> discoflix.identity.v1.ChangePasswordResponse
-	21, // 55: discoflix.identity.v1.IdentityService.BeginPasskeyRegistration:output_type -> discoflix.identity.v1.BeginPasskeyRegistrationResponse
-	23, // 56: discoflix.identity.v1.IdentityService.FinishPasskeyRegistration:output_type -> discoflix.identity.v1.FinishPasskeyRegistrationResponse
-	29, // 57: discoflix.identity.v1.IdentityService.ListPasskeys:output_type -> discoflix.identity.v1.ListPasskeysResponse
-	31, // 58: discoflix.identity.v1.IdentityService.DeletePasskey:output_type -> discoflix.identity.v1.DeletePasskeyResponse
-	33, // 59: discoflix.identity.v1.IdentityService.ListApiKeys:output_type -> discoflix.identity.v1.ListApiKeysResponse
-	35, // 60: discoflix.identity.v1.IdentityService.CreateApiKey:output_type -> discoflix.identity.v1.CreateApiKeyResponse
-	37, // 61: discoflix.identity.v1.IdentityService.RevokeApiKey:output_type -> discoflix.identity.v1.RevokeApiKeyResponse
-	39, // 62: discoflix.identity.v1.IdentityService.ListSessions:output_type -> discoflix.identity.v1.ListSessionsResponse
-	41, // 63: discoflix.identity.v1.IdentityService.RevokeSession:output_type -> discoflix.identity.v1.RevokeSessionResponse
-	43, // 64: discoflix.identity.v1.IdentityService.ListUsers:output_type -> discoflix.identity.v1.ListUsersResponse
-	45, // 65: discoflix.identity.v1.IdentityService.UpdateUser:output_type -> discoflix.identity.v1.UpdateUserResponse
-	47, // [47:66] is the sub-list for method output_type
-	28, // [28:47] is the sub-list for method input_type
-	28, // [28:28] is the sub-list for extension type_name
-	28, // [28:28] is the sub-list for extension extendee
-	0,  // [0:28] is the sub-list for field type_name
+	59, // 28: discoflix.identity.v1.CreateLinkCodeResponse.expires_at:type_name -> google.protobuf.Timestamp
+	3,  // 29: discoflix.identity.v1.FinishLinkCodeResponse.identity:type_name -> discoflix.identity.v1.Identity
+	0,  // 30: discoflix.identity.v1.CreateServiceAccountRequest.kind:type_name -> discoflix.identity.v1.UserKind
+	59, // 31: discoflix.identity.v1.CreateServiceAccountRequest.expires_at:type_name -> google.protobuf.Timestamp
+	2,  // 32: discoflix.identity.v1.CreateServiceAccountResponse.user:type_name -> discoflix.identity.v1.User
+	6,  // 33: discoflix.identity.v1.CreateServiceAccountResponse.api_key:type_name -> discoflix.identity.v1.ApiKey
+	2,  // 34: discoflix.identity.v1.UserMerge.from_user:type_name -> discoflix.identity.v1.User
+	2,  // 35: discoflix.identity.v1.UserMerge.into_user:type_name -> discoflix.identity.v1.User
+	59, // 36: discoflix.identity.v1.UserMerge.created_at:type_name -> google.protobuf.Timestamp
+	59, // 37: discoflix.identity.v1.UserMerge.reverted_at:type_name -> google.protobuf.Timestamp
+	54, // 38: discoflix.identity.v1.ListUserMergesResponse.merges:type_name -> discoflix.identity.v1.UserMerge
+	8,  // 39: discoflix.identity.v1.IdentityService.GetServerInfo:input_type -> discoflix.identity.v1.GetServerInfoRequest
+	10, // 40: discoflix.identity.v1.IdentityService.Bootstrap:input_type -> discoflix.identity.v1.BootstrapRequest
+	12, // 41: discoflix.identity.v1.IdentityService.LoginWithPassword:input_type -> discoflix.identity.v1.LoginWithPasswordRequest
+	24, // 42: discoflix.identity.v1.IdentityService.BeginPasskeyLogin:input_type -> discoflix.identity.v1.BeginPasskeyLoginRequest
+	26, // 43: discoflix.identity.v1.IdentityService.FinishPasskeyLogin:input_type -> discoflix.identity.v1.FinishPasskeyLoginRequest
+	14, // 44: discoflix.identity.v1.IdentityService.Logout:input_type -> discoflix.identity.v1.LogoutRequest
+	16, // 45: discoflix.identity.v1.IdentityService.GetMe:input_type -> discoflix.identity.v1.GetMeRequest
+	18, // 46: discoflix.identity.v1.IdentityService.ChangePassword:input_type -> discoflix.identity.v1.ChangePasswordRequest
+	20, // 47: discoflix.identity.v1.IdentityService.BeginPasskeyRegistration:input_type -> discoflix.identity.v1.BeginPasskeyRegistrationRequest
+	22, // 48: discoflix.identity.v1.IdentityService.FinishPasskeyRegistration:input_type -> discoflix.identity.v1.FinishPasskeyRegistrationRequest
+	28, // 49: discoflix.identity.v1.IdentityService.ListPasskeys:input_type -> discoflix.identity.v1.ListPasskeysRequest
+	30, // 50: discoflix.identity.v1.IdentityService.DeletePasskey:input_type -> discoflix.identity.v1.DeletePasskeyRequest
+	32, // 51: discoflix.identity.v1.IdentityService.ListApiKeys:input_type -> discoflix.identity.v1.ListApiKeysRequest
+	34, // 52: discoflix.identity.v1.IdentityService.CreateApiKey:input_type -> discoflix.identity.v1.CreateApiKeyRequest
+	36, // 53: discoflix.identity.v1.IdentityService.RevokeApiKey:input_type -> discoflix.identity.v1.RevokeApiKeyRequest
+	38, // 54: discoflix.identity.v1.IdentityService.ListSessions:input_type -> discoflix.identity.v1.ListSessionsRequest
+	40, // 55: discoflix.identity.v1.IdentityService.RevokeSession:input_type -> discoflix.identity.v1.RevokeSessionRequest
+	42, // 56: discoflix.identity.v1.IdentityService.ListUsers:input_type -> discoflix.identity.v1.ListUsersRequest
+	44, // 57: discoflix.identity.v1.IdentityService.UpdateUser:input_type -> discoflix.identity.v1.UpdateUserRequest
+	46, // 58: discoflix.identity.v1.IdentityService.UnlinkIdentity:input_type -> discoflix.identity.v1.UnlinkIdentityRequest
+	48, // 59: discoflix.identity.v1.IdentityService.CreateLinkCode:input_type -> discoflix.identity.v1.CreateLinkCodeRequest
+	50, // 60: discoflix.identity.v1.IdentityService.FinishLinkCode:input_type -> discoflix.identity.v1.FinishLinkCodeRequest
+	52, // 61: discoflix.identity.v1.IdentityService.CreateServiceAccount:input_type -> discoflix.identity.v1.CreateServiceAccountRequest
+	55, // 62: discoflix.identity.v1.IdentityService.ListUserMerges:input_type -> discoflix.identity.v1.ListUserMergesRequest
+	57, // 63: discoflix.identity.v1.IdentityService.RevertUserMerge:input_type -> discoflix.identity.v1.RevertUserMergeRequest
+	9,  // 64: discoflix.identity.v1.IdentityService.GetServerInfo:output_type -> discoflix.identity.v1.GetServerInfoResponse
+	11, // 65: discoflix.identity.v1.IdentityService.Bootstrap:output_type -> discoflix.identity.v1.BootstrapResponse
+	13, // 66: discoflix.identity.v1.IdentityService.LoginWithPassword:output_type -> discoflix.identity.v1.LoginWithPasswordResponse
+	25, // 67: discoflix.identity.v1.IdentityService.BeginPasskeyLogin:output_type -> discoflix.identity.v1.BeginPasskeyLoginResponse
+	27, // 68: discoflix.identity.v1.IdentityService.FinishPasskeyLogin:output_type -> discoflix.identity.v1.FinishPasskeyLoginResponse
+	15, // 69: discoflix.identity.v1.IdentityService.Logout:output_type -> discoflix.identity.v1.LogoutResponse
+	17, // 70: discoflix.identity.v1.IdentityService.GetMe:output_type -> discoflix.identity.v1.GetMeResponse
+	19, // 71: discoflix.identity.v1.IdentityService.ChangePassword:output_type -> discoflix.identity.v1.ChangePasswordResponse
+	21, // 72: discoflix.identity.v1.IdentityService.BeginPasskeyRegistration:output_type -> discoflix.identity.v1.BeginPasskeyRegistrationResponse
+	23, // 73: discoflix.identity.v1.IdentityService.FinishPasskeyRegistration:output_type -> discoflix.identity.v1.FinishPasskeyRegistrationResponse
+	29, // 74: discoflix.identity.v1.IdentityService.ListPasskeys:output_type -> discoflix.identity.v1.ListPasskeysResponse
+	31, // 75: discoflix.identity.v1.IdentityService.DeletePasskey:output_type -> discoflix.identity.v1.DeletePasskeyResponse
+	33, // 76: discoflix.identity.v1.IdentityService.ListApiKeys:output_type -> discoflix.identity.v1.ListApiKeysResponse
+	35, // 77: discoflix.identity.v1.IdentityService.CreateApiKey:output_type -> discoflix.identity.v1.CreateApiKeyResponse
+	37, // 78: discoflix.identity.v1.IdentityService.RevokeApiKey:output_type -> discoflix.identity.v1.RevokeApiKeyResponse
+	39, // 79: discoflix.identity.v1.IdentityService.ListSessions:output_type -> discoflix.identity.v1.ListSessionsResponse
+	41, // 80: discoflix.identity.v1.IdentityService.RevokeSession:output_type -> discoflix.identity.v1.RevokeSessionResponse
+	43, // 81: discoflix.identity.v1.IdentityService.ListUsers:output_type -> discoflix.identity.v1.ListUsersResponse
+	45, // 82: discoflix.identity.v1.IdentityService.UpdateUser:output_type -> discoflix.identity.v1.UpdateUserResponse
+	47, // 83: discoflix.identity.v1.IdentityService.UnlinkIdentity:output_type -> discoflix.identity.v1.UnlinkIdentityResponse
+	49, // 84: discoflix.identity.v1.IdentityService.CreateLinkCode:output_type -> discoflix.identity.v1.CreateLinkCodeResponse
+	51, // 85: discoflix.identity.v1.IdentityService.FinishLinkCode:output_type -> discoflix.identity.v1.FinishLinkCodeResponse
+	53, // 86: discoflix.identity.v1.IdentityService.CreateServiceAccount:output_type -> discoflix.identity.v1.CreateServiceAccountResponse
+	56, // 87: discoflix.identity.v1.IdentityService.ListUserMerges:output_type -> discoflix.identity.v1.ListUserMergesResponse
+	58, // 88: discoflix.identity.v1.IdentityService.RevertUserMerge:output_type -> discoflix.identity.v1.RevertUserMergeResponse
+	64, // [64:89] is the sub-list for method output_type
+	39, // [39:64] is the sub-list for method input_type
+	39, // [39:39] is the sub-list for extension type_name
+	39, // [39:39] is the sub-list for extension extendee
+	0,  // [0:39] is the sub-list for field type_name
 }
 
 func init() { file_discoflix_identity_v1_identity_proto_init() }
@@ -2695,7 +3424,7 @@ func file_discoflix_identity_v1_identity_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_discoflix_identity_v1_identity_proto_rawDesc), len(file_discoflix_identity_v1_identity_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   44,
+			NumMessages:   57,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

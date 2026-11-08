@@ -1,3 +1,4 @@
+import { ApprovalState, type Approval } from '#lib/gen/discoflix/card/v1/approval_pb';
 import {
 	Severity,
 	type BootReport,
@@ -5,7 +6,7 @@ import {
 	type SystemNotice,
 	type UpdateEvent
 } from '#lib/gen/discoflix/card/v1/system_pb';
-import type { Accent } from './registry';
+import type { Accent, CardAction } from './registry';
 
 const securityLabels: Record<string, string> = {
 	login: 'Signed in',
@@ -16,7 +17,12 @@ const securityLabels: Record<string, string> = {
 	passkey_removed: 'Passkey removed',
 	apikey_created: 'API key created',
 	apikey_revoked: 'API key revoked',
-	session_revoked: 'Session revoked'
+	session_revoked: 'Session revoked',
+	identity_linked: 'Account linked',
+	identity_unlinked: 'Account unlinked',
+	merge_reverted: 'Merge reverted',
+	service_account_created: 'Service account created',
+	user_updated: 'User updated'
 };
 
 function humanize(text: string): string {
@@ -81,4 +87,51 @@ export function updateAccent(card: UpdateEvent): Accent {
 	if (card.stage === 'applied') return 'success';
 	if (card.stage === 'checked' && card.availableVersion) return 'info';
 	return 'neutral';
+}
+
+export function approvalSummary(card: Approval): string {
+	return card.title || 'Approval';
+}
+
+export function approvalAccent(card: Approval): Accent {
+	switch (card.state) {
+		case ApprovalState.PENDING:
+			return 'warning';
+		case ApprovalState.APPROVED:
+			return 'info';
+		case ApprovalState.EXECUTED:
+			return 'success';
+		case ApprovalState.DENIED:
+		case ApprovalState.FAILED:
+			return 'danger';
+		default:
+			return 'neutral';
+	}
+}
+
+// Offers approve and deny while nobody has decided, matching the server interactor
+export function approvalActions(card: Approval): CardAction[] {
+	if (card.state !== ApprovalState.PENDING) return [];
+	return [
+		{ id: 'approve', label: 'Approve', style: 'success' },
+		{ id: 'deny', label: 'Deny', style: 'danger' }
+	];
+}
+
+export function approvalStateLabel(card: Approval): string {
+	const by = card.decidedByName || card.decidedBy;
+	switch (card.state) {
+		case ApprovalState.PENDING:
+			return 'Waiting for a space administrator';
+		case ApprovalState.APPROVED:
+			return `Approved by ${by}, running`;
+		case ApprovalState.DENIED:
+			return `Denied by ${by}`;
+		case ApprovalState.EXECUTED:
+			return `Approved by ${by} and done`;
+		case ApprovalState.FAILED:
+			return `Approved by ${by} but failed`;
+		default:
+			return 'Unknown state';
+	}
 }

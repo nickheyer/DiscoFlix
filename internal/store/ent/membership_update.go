@@ -71,6 +71,34 @@ func (_u *MembershipUpdate) AppendRoles(v []string) *MembershipUpdate {
 	return _u
 }
 
+// SetNickname sets the "nickname" field.
+func (_u *MembershipUpdate) SetNickname(v string) *MembershipUpdate {
+	_u.mutation.SetNickname(v)
+	return _u
+}
+
+// SetNillableNickname sets the "nickname" field if the given value is not nil.
+func (_u *MembershipUpdate) SetNillableNickname(v *string) *MembershipUpdate {
+	if v != nil {
+		_u.SetNickname(*v)
+	}
+	return _u
+}
+
+// SetAdmin sets the "admin" field.
+func (_u *MembershipUpdate) SetAdmin(v bool) *MembershipUpdate {
+	_u.mutation.SetAdmin(v)
+	return _u
+}
+
+// SetNillableAdmin sets the "admin" field if the given value is not nil.
+func (_u *MembershipUpdate) SetNillableAdmin(v *bool) *MembershipUpdate {
+	if v != nil {
+		_u.SetAdmin(*v)
+	}
+	return _u
+}
+
 // SetUser sets the "user" edge to the User entity.
 func (_u *MembershipUpdate) SetUser(v *User) *MembershipUpdate {
 	return _u.SetUserID(v.ID)
@@ -171,6 +199,12 @@ func (_u *MembershipUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
 			sqljson.Append(u, membership.FieldRoles, value)
 		})
+	}
+	if value, ok := _u.mutation.Nickname(); ok {
+		_spec.SetField(membership.FieldNickname, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Admin(); ok {
+		_spec.SetField(membership.FieldAdmin, field.TypeBool, value)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -289,6 +323,34 @@ func (_u *MembershipUpdateOne) SetRoles(v []string) *MembershipUpdateOne {
 // AppendRoles appends value to the "roles" field.
 func (_u *MembershipUpdateOne) AppendRoles(v []string) *MembershipUpdateOne {
 	_u.mutation.AppendRoles(v)
+	return _u
+}
+
+// SetNickname sets the "nickname" field.
+func (_u *MembershipUpdateOne) SetNickname(v string) *MembershipUpdateOne {
+	_u.mutation.SetNickname(v)
+	return _u
+}
+
+// SetNillableNickname sets the "nickname" field if the given value is not nil.
+func (_u *MembershipUpdateOne) SetNillableNickname(v *string) *MembershipUpdateOne {
+	if v != nil {
+		_u.SetNickname(*v)
+	}
+	return _u
+}
+
+// SetAdmin sets the "admin" field.
+func (_u *MembershipUpdateOne) SetAdmin(v bool) *MembershipUpdateOne {
+	_u.mutation.SetAdmin(v)
+	return _u
+}
+
+// SetNillableAdmin sets the "admin" field if the given value is not nil.
+func (_u *MembershipUpdateOne) SetNillableAdmin(v *bool) *MembershipUpdateOne {
+	if v != nil {
+		_u.SetAdmin(*v)
+	}
 	return _u
 }
 
@@ -422,6 +484,12 @@ func (_u *MembershipUpdateOne) sqlSave(ctx context.Context) (_node *Membership, 
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
 			sqljson.Append(u, membership.FieldRoles, value)
 		})
+	}
+	if value, ok := _u.mutation.Nickname(); ok {
+		_spec.SetField(membership.FieldNickname, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Admin(); ok {
+		_spec.SetField(membership.FieldAdmin, field.TypeBool, value)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{

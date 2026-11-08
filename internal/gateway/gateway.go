@@ -18,15 +18,16 @@ import (
 
 // Deps are the components the gateway exposes
 type Deps struct {
-	Interceptors []connect.ServerInterceptor
-	Register     func(*connect.Server)
-	Session      func(http.Handler) http.Handler
-	Websocket    http.Handler
-	ShellLogin   http.Handler
-	IsAdmin      func(*http.Request) bool
-	Health       func(context.Context) error
-	Web          fs.FS
-	Log          *slog.Logger
+	Server     *connect.Server
+	Session    func(http.Handler) http.Handler
+	Websocket  http.Handler
+	ShellLogin http.Handler
+	// Extra plain HTTP routes keyed by method and pattern, such as OAuth callbacks
+	Routes  map[string]http.Handler
+	IsAdmin func(*http.Request) bool
+	Health  func(context.Context) error
+	Web     fs.FS
+	Log     *slog.Logger
 }
 
 // WebsocketPath is where Centrifuge clients connect
@@ -34,12 +35,13 @@ const WebsocketPath = "/connection/websocket"
 
 // NewHandler builds the root handler with sessions loaded for every route
 func NewHandler(d Deps) http.Handler {
-	srv := connect.NewServer(d.Interceptors...)
-	d.Register(srv)
 	mux := http.NewServeMux()
-	connecthttp.Mount(mux, srv, connecthttp.WithGRPC(), connecthttp.WithGRPCWeb(), connecthttp.WithHTTPGet(), connecthttp.WithSendGzip())
+	connecthttp.Mount(mux, d.Server, connecthttp.WithGRPC(), connecthttp.WithGRPCWeb(), connecthttp.WithHTTPGet(), connecthttp.WithSendGzip())
 	mux.Handle(WebsocketPath, d.Websocket)
 	mux.Handle("GET /shell/session", d.ShellLogin)
+	for pattern, h := range d.Routes {
+		mux.Handle(pattern, h)
+	}
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {
 		status := http.StatusOK
 		body := map[string]string{"status": "ok"}

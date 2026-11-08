@@ -76,6 +76,24 @@ const (
 	IdentityServiceListUsersProcedure = "/discoflix.identity.v1.IdentityService/ListUsers"
 	// IdentityServiceUpdateUserProcedure is the procedure name of the IdentityService's UpdateUser RPC.
 	IdentityServiceUpdateUserProcedure = "/discoflix.identity.v1.IdentityService/UpdateUser"
+	// IdentityServiceUnlinkIdentityProcedure is the procedure name of the IdentityService's
+	// UnlinkIdentity RPC.
+	IdentityServiceUnlinkIdentityProcedure = "/discoflix.identity.v1.IdentityService/UnlinkIdentity"
+	// IdentityServiceCreateLinkCodeProcedure is the procedure name of the IdentityService's
+	// CreateLinkCode RPC.
+	IdentityServiceCreateLinkCodeProcedure = "/discoflix.identity.v1.IdentityService/CreateLinkCode"
+	// IdentityServiceFinishLinkCodeProcedure is the procedure name of the IdentityService's
+	// FinishLinkCode RPC.
+	IdentityServiceFinishLinkCodeProcedure = "/discoflix.identity.v1.IdentityService/FinishLinkCode"
+	// IdentityServiceCreateServiceAccountProcedure is the procedure name of the IdentityService's
+	// CreateServiceAccount RPC.
+	IdentityServiceCreateServiceAccountProcedure = "/discoflix.identity.v1.IdentityService/CreateServiceAccount"
+	// IdentityServiceListUserMergesProcedure is the procedure name of the IdentityService's
+	// ListUserMerges RPC.
+	IdentityServiceListUserMergesProcedure = "/discoflix.identity.v1.IdentityService/ListUserMerges"
+	// IdentityServiceRevertUserMergeProcedure is the procedure name of the IdentityService's
+	// RevertUserMerge RPC.
+	IdentityServiceRevertUserMergeProcedure = "/discoflix.identity.v1.IdentityService/RevertUserMerge"
 )
 
 var (
@@ -212,6 +230,48 @@ var (
 			Procedure:  IdentityServiceUpdateUserProcedure,
 		}
 	})
+	identityServiceUnlinkIdentitySpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_discoflix_identity_v1_identity_proto.Services().ByName("IdentityService").Methods().ByName("UnlinkIdentity"),
+			Procedure:  IdentityServiceUnlinkIdentityProcedure,
+		}
+	})
+	identityServiceCreateLinkCodeSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_discoflix_identity_v1_identity_proto.Services().ByName("IdentityService").Methods().ByName("CreateLinkCode"),
+			Procedure:  IdentityServiceCreateLinkCodeProcedure,
+		}
+	})
+	identityServiceFinishLinkCodeSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_discoflix_identity_v1_identity_proto.Services().ByName("IdentityService").Methods().ByName("FinishLinkCode"),
+			Procedure:  IdentityServiceFinishLinkCodeProcedure,
+		}
+	})
+	identityServiceCreateServiceAccountSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_discoflix_identity_v1_identity_proto.Services().ByName("IdentityService").Methods().ByName("CreateServiceAccount"),
+			Procedure:  IdentityServiceCreateServiceAccountProcedure,
+		}
+	})
+	identityServiceListUserMergesSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_discoflix_identity_v1_identity_proto.Services().ByName("IdentityService").Methods().ByName("ListUserMerges"),
+			Procedure:  IdentityServiceListUserMergesProcedure,
+		}
+	})
+	identityServiceRevertUserMergeSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_discoflix_identity_v1_identity_proto.Services().ByName("IdentityService").Methods().ByName("RevertUserMerge"),
+			Procedure:  IdentityServiceRevertUserMergeProcedure,
+		}
+	})
 )
 
 // IdentityServiceClient is a client for the discoflix.identity.v1.IdentityService service.
@@ -235,6 +295,12 @@ type IdentityServiceClient interface {
 	RevokeSession(context.Context, *v1.RevokeSessionRequest) (*v1.RevokeSessionResponse, error)
 	ListUsers(context.Context, *v1.ListUsersRequest) (*v1.ListUsersResponse, error)
 	UpdateUser(context.Context, *v1.UpdateUserRequest) (*v1.UpdateUserResponse, error)
+	UnlinkIdentity(context.Context, *v1.UnlinkIdentityRequest) (*v1.UnlinkIdentityResponse, error)
+	CreateLinkCode(context.Context, *v1.CreateLinkCodeRequest) (*v1.CreateLinkCodeResponse, error)
+	FinishLinkCode(context.Context, *v1.FinishLinkCodeRequest) (*v1.FinishLinkCodeResponse, error)
+	CreateServiceAccount(context.Context, *v1.CreateServiceAccountRequest) (*v1.CreateServiceAccountResponse, error)
+	ListUserMerges(context.Context, *v1.ListUserMergesRequest) (*v1.ListUserMergesResponse, error)
+	RevertUserMerge(context.Context, *v1.RevertUserMergeRequest) (*v1.RevertUserMergeResponse, error)
 }
 
 // NewIdentityServiceClient constructs a client for the discoflix.identity.v1.IdentityService
@@ -264,6 +330,12 @@ type IdentityServiceHandler interface {
 	RevokeSession(context.Context, *v1.RevokeSessionRequest) (*v1.RevokeSessionResponse, error)
 	ListUsers(context.Context, *v1.ListUsersRequest) (*v1.ListUsersResponse, error)
 	UpdateUser(context.Context, *v1.UpdateUserRequest) (*v1.UpdateUserResponse, error)
+	UnlinkIdentity(context.Context, *v1.UnlinkIdentityRequest) (*v1.UnlinkIdentityResponse, error)
+	CreateLinkCode(context.Context, *v1.CreateLinkCodeRequest) (*v1.CreateLinkCodeResponse, error)
+	FinishLinkCode(context.Context, *v1.FinishLinkCodeRequest) (*v1.FinishLinkCodeResponse, error)
+	CreateServiceAccount(context.Context, *v1.CreateServiceAccountRequest) (*v1.CreateServiceAccountResponse, error)
+	ListUserMerges(context.Context, *v1.ListUserMergesRequest) (*v1.ListUserMergesResponse, error)
+	RevertUserMerge(context.Context, *v1.RevertUserMergeRequest) (*v1.RevertUserMergeResponse, error)
 }
 
 // RegisterIdentityServiceHandler registers svc as the discoflix.identity.v1.IdentityService
@@ -290,6 +362,12 @@ func RegisterIdentityServiceHandler(server *connect.Server, svc IdentityServiceH
 		connect.Method{Spec: identityServiceRevokeSessionSpec(), Handler: adapter.revokeSession},
 		connect.Method{Spec: identityServiceListUsersSpec(), Handler: adapter.listUsers},
 		connect.Method{Spec: identityServiceUpdateUserSpec(), Handler: adapter.updateUser},
+		connect.Method{Spec: identityServiceUnlinkIdentitySpec(), Handler: adapter.unlinkIdentity},
+		connect.Method{Spec: identityServiceCreateLinkCodeSpec(), Handler: adapter.createLinkCode},
+		connect.Method{Spec: identityServiceFinishLinkCodeSpec(), Handler: adapter.finishLinkCode},
+		connect.Method{Spec: identityServiceCreateServiceAccountSpec(), Handler: adapter.createServiceAccount},
+		connect.Method{Spec: identityServiceListUserMergesSpec(), Handler: adapter.listUserMerges},
+		connect.Method{Spec: identityServiceRevertUserMergeSpec(), Handler: adapter.revertUserMerge},
 	)
 }
 
@@ -370,6 +448,30 @@ func (UnimplementedIdentityServiceHandler) ListUsers(context.Context, *v1.ListUs
 
 func (UnimplementedIdentityServiceHandler) UpdateUser(context.Context, *v1.UpdateUserRequest) (*v1.UpdateUserResponse, error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, "discoflix.identity.v1.IdentityService.UpdateUser is not implemented")
+}
+
+func (UnimplementedIdentityServiceHandler) UnlinkIdentity(context.Context, *v1.UnlinkIdentityRequest) (*v1.UnlinkIdentityResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "discoflix.identity.v1.IdentityService.UnlinkIdentity is not implemented")
+}
+
+func (UnimplementedIdentityServiceHandler) CreateLinkCode(context.Context, *v1.CreateLinkCodeRequest) (*v1.CreateLinkCodeResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "discoflix.identity.v1.IdentityService.CreateLinkCode is not implemented")
+}
+
+func (UnimplementedIdentityServiceHandler) FinishLinkCode(context.Context, *v1.FinishLinkCodeRequest) (*v1.FinishLinkCodeResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "discoflix.identity.v1.IdentityService.FinishLinkCode is not implemented")
+}
+
+func (UnimplementedIdentityServiceHandler) CreateServiceAccount(context.Context, *v1.CreateServiceAccountRequest) (*v1.CreateServiceAccountResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "discoflix.identity.v1.IdentityService.CreateServiceAccount is not implemented")
+}
+
+func (UnimplementedIdentityServiceHandler) ListUserMerges(context.Context, *v1.ListUserMergesRequest) (*v1.ListUserMergesResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "discoflix.identity.v1.IdentityService.ListUserMerges is not implemented")
+}
+
+func (UnimplementedIdentityServiceHandler) RevertUserMerge(context.Context, *v1.RevertUserMergeRequest) (*v1.RevertUserMergeResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "discoflix.identity.v1.IdentityService.RevertUserMerge is not implemented")
 }
 
 type identityServiceClient struct {
@@ -523,6 +625,54 @@ func (c *identityServiceClient) ListUsers(ctx context.Context, req *v1.ListUsers
 func (c *identityServiceClient) UpdateUser(ctx context.Context, req *v1.UpdateUserRequest) (*v1.UpdateUserResponse, error) {
 	var res v1.UpdateUserResponse
 	if err := c.client.CallUnary(ctx, identityServiceUpdateUserSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *identityServiceClient) UnlinkIdentity(ctx context.Context, req *v1.UnlinkIdentityRequest) (*v1.UnlinkIdentityResponse, error) {
+	var res v1.UnlinkIdentityResponse
+	if err := c.client.CallUnary(ctx, identityServiceUnlinkIdentitySpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *identityServiceClient) CreateLinkCode(ctx context.Context, req *v1.CreateLinkCodeRequest) (*v1.CreateLinkCodeResponse, error) {
+	var res v1.CreateLinkCodeResponse
+	if err := c.client.CallUnary(ctx, identityServiceCreateLinkCodeSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *identityServiceClient) FinishLinkCode(ctx context.Context, req *v1.FinishLinkCodeRequest) (*v1.FinishLinkCodeResponse, error) {
+	var res v1.FinishLinkCodeResponse
+	if err := c.client.CallUnary(ctx, identityServiceFinishLinkCodeSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *identityServiceClient) CreateServiceAccount(ctx context.Context, req *v1.CreateServiceAccountRequest) (*v1.CreateServiceAccountResponse, error) {
+	var res v1.CreateServiceAccountResponse
+	if err := c.client.CallUnary(ctx, identityServiceCreateServiceAccountSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *identityServiceClient) ListUserMerges(ctx context.Context, req *v1.ListUserMergesRequest) (*v1.ListUserMergesResponse, error) {
+	var res v1.ListUserMergesResponse
+	if err := c.client.CallUnary(ctx, identityServiceListUserMergesSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *identityServiceClient) RevertUserMerge(ctx context.Context, req *v1.RevertUserMergeRequest) (*v1.RevertUserMergeResponse, error) {
+	var res v1.RevertUserMergeResponse
+	if err := c.client.CallUnary(ctx, identityServiceRevertUserMergeSpec(), req, &res); err != nil {
 		return nil, err
 	}
 	return &res, nil
@@ -752,6 +902,78 @@ func (h identityServiceHandler) updateUser(ctx context.Context, _ connect.Spec, 
 		return err
 	}
 	res, err := h.svc.UpdateUser(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h identityServiceHandler) unlinkIdentity(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.UnlinkIdentityRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.UnlinkIdentity(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h identityServiceHandler) createLinkCode(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.CreateLinkCodeRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.CreateLinkCode(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h identityServiceHandler) finishLinkCode(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.FinishLinkCodeRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.FinishLinkCode(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h identityServiceHandler) createServiceAccount(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.CreateServiceAccountRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.CreateServiceAccount(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h identityServiceHandler) listUserMerges(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.ListUserMergesRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.ListUserMerges(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h identityServiceHandler) revertUserMerge(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.RevertUserMergeRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.RevertUserMerge(ctx, &req)
 	if err != nil {
 		return err
 	}

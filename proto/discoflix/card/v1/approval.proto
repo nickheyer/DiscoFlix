@@ -1,0 +1,37 @@
+edition = "2023";
+
+package discoflix.card.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option features.field_presence = IMPLICIT;
+
+enum ApprovalState {
+  APPROVAL_STATE_UNSPECIFIED = 0;
+  APPROVAL_STATE_PENDING = 1;
+  APPROVAL_STATE_APPROVED = 2;
+  APPROVAL_STATE_DENIED = 3;
+  APPROVAL_STATE_EXECUTED = 4;
+  APPROVAL_STATE_FAILED = 5;
+}
+
+// Asks a space administrator to allow one destructive capability call made by an agent or plugin
+message Approval {
+  // Pending action this card decides
+  string action_id = 1;
+  string title = 2;
+  string body = 3;
+  string procedure = 4;
+  // Request message as protobuf JSON
+  string input_json = 5;
+  string requested_by = 6;
+  string requested_by_name = 7;
+  // apikey, plugin, discord, or session
+  string requested_via = 8;
+  ApprovalState state = 9;
+  string decided_by = 10;
+  string decided_by_name = 11;
+  google.protobuf.Timestamp decided_at = 12;
+  // Outcome of running the call after approval, or the failure
+  string result = 13;
+}

@@ -100,6 +100,11 @@ func LastSeenAt(v time.Time) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldLastSeenAt, v))
 }
 
+// MergedIntoID applies equality check predicate on the "merged_into_id" field. It's identical to MergedIntoIDEQ.
+func MergedIntoID(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldMergedIntoID, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldCreatedAt, v))
@@ -475,6 +480,81 @@ func LastSeenAtNotNil() predicate.User {
 	return predicate.User(sql.FieldNotNull(FieldLastSeenAt))
 }
 
+// MergedIntoIDEQ applies the EQ predicate on the "merged_into_id" field.
+func MergedIntoIDEQ(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldMergedIntoID, v))
+}
+
+// MergedIntoIDNEQ applies the NEQ predicate on the "merged_into_id" field.
+func MergedIntoIDNEQ(v string) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldMergedIntoID, v))
+}
+
+// MergedIntoIDIn applies the In predicate on the "merged_into_id" field.
+func MergedIntoIDIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldIn(FieldMergedIntoID, vs...))
+}
+
+// MergedIntoIDNotIn applies the NotIn predicate on the "merged_into_id" field.
+func MergedIntoIDNotIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldMergedIntoID, vs...))
+}
+
+// MergedIntoIDGT applies the GT predicate on the "merged_into_id" field.
+func MergedIntoIDGT(v string) predicate.User {
+	return predicate.User(sql.FieldGT(FieldMergedIntoID, v))
+}
+
+// MergedIntoIDGTE applies the GTE predicate on the "merged_into_id" field.
+func MergedIntoIDGTE(v string) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldMergedIntoID, v))
+}
+
+// MergedIntoIDLT applies the LT predicate on the "merged_into_id" field.
+func MergedIntoIDLT(v string) predicate.User {
+	return predicate.User(sql.FieldLT(FieldMergedIntoID, v))
+}
+
+// MergedIntoIDLTE applies the LTE predicate on the "merged_into_id" field.
+func MergedIntoIDLTE(v string) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldMergedIntoID, v))
+}
+
+// MergedIntoIDContains applies the Contains predicate on the "merged_into_id" field.
+func MergedIntoIDContains(v string) predicate.User {
+	return predicate.User(sql.FieldContains(FieldMergedIntoID, v))
+}
+
+// MergedIntoIDHasPrefix applies the HasPrefix predicate on the "merged_into_id" field.
+func MergedIntoIDHasPrefix(v string) predicate.User {
+	return predicate.User(sql.FieldHasPrefix(FieldMergedIntoID, v))
+}
+
+// MergedIntoIDHasSuffix applies the HasSuffix predicate on the "merged_into_id" field.
+func MergedIntoIDHasSuffix(v string) predicate.User {
+	return predicate.User(sql.FieldHasSuffix(FieldMergedIntoID, v))
+}
+
+// MergedIntoIDIsNil applies the IsNil predicate on the "merged_into_id" field.
+func MergedIntoIDIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldMergedIntoID))
+}
+
+// MergedIntoIDNotNil applies the NotNil predicate on the "merged_into_id" field.
+func MergedIntoIDNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldMergedIntoID))
+}
+
+// MergedIntoIDEqualFold applies the EqualFold predicate on the "merged_into_id" field.
+func MergedIntoIDEqualFold(v string) predicate.User {
+	return predicate.User(sql.FieldEqualFold(FieldMergedIntoID, v))
+}
+
+// MergedIntoIDContainsFold applies the ContainsFold predicate on the "merged_into_id" field.
+func MergedIntoIDContainsFold(v string) predicate.User {
+	return predicate.User(sql.FieldContainsFold(FieldMergedIntoID, v))
+}
+
 // HasIdentities applies the HasEdge predicate on the "identities" edge.
 func HasIdentities() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
@@ -582,6 +662,75 @@ func HasReadStates() predicate.User {
 func HasReadStatesWith(preds ...predicate.ReadState) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := newReadStatesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasReactions applies the HasEdge predicate on the "reactions" edge.
+func HasReactions() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ReactionsTable, ReactionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasReactionsWith applies the HasEdge predicate on the "reactions" edge with a given conditions (other predicates).
+func HasReactionsWith(preds ...predicate.Reaction) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newReactionsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasMergedInto applies the HasEdge predicate on the "merged_into" edge.
+func HasMergedInto() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, MergedIntoTable, MergedIntoColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasMergedIntoWith applies the HasEdge predicate on the "merged_into" edge with a given conditions (other predicates).
+func HasMergedIntoWith(preds ...predicate.User) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newMergedIntoStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasAbsorbed applies the HasEdge predicate on the "absorbed" edge.
+func HasAbsorbed() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, AbsorbedTable, AbsorbedColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAbsorbedWith applies the HasEdge predicate on the "absorbed" edge with a given conditions (other predicates).
+func HasAbsorbedWith(preds ...predicate.User) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newAbsorbedStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

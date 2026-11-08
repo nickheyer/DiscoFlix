@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -11,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/channel"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/message"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/schema"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/space"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/user"
 )
@@ -38,12 +40,20 @@ type Message struct {
 	ReplyTo int64 `json:"reply_to,omitempty"`
 	// ExternalID holds the value of the "external_id" field.
 	ExternalID string `json:"external_id,omitempty"`
+	// Origin holds the value of the "origin" field.
+	Origin string `json:"origin,omitempty"`
+	// Attachments holds the value of the "attachments" field.
+	Attachments []schema.Attachment `json:"attachments,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
+	// UpdatedAt holds the value of the "updated_at" field.
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// EditedAt holds the value of the "edited_at" field.
 	EditedAt *time.Time `json:"edited_at,omitempty"`
 	// DeletedAt holds the value of the "deleted_at" field.
 	DeletedAt *time.Time `json:"deleted_at,omitempty"`
+	// SyncedAt holds the value of the "synced_at" field.
+	SyncedAt *time.Time `json:"synced_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the MessageQuery when eager-loading is set.
 	Edges        MessageEdges `json:"edges"`
@@ -58,9 +68,11 @@ type MessageEdges struct {
 	Channel *Channel `json:"channel,omitempty"`
 	// Author holds the value of the author edge.
 	Author *User `json:"author,omitempty"`
+	// Reactions holds the value of the reactions edge.
+	Reactions []*Reaction `json:"reactions,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 }
 
 // SpaceOrErr returns the Space value or an error if the edge
@@ -96,18 +108,27 @@ func (e MessageEdges) AuthorOrErr() (*User, error) {
 	return nil, &NotLoadedError{edge: "author"}
 }
 
+// ReactionsOrErr returns the Reactions value or an error if the edge
+// was not loaded in eager-loading.
+func (e MessageEdges) ReactionsOrErr() ([]*Reaction, error) {
+	if e.loadedTypes[3] {
+		return e.Reactions, nil
+	}
+	return nil, &NotLoadedError{edge: "reactions"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Message) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case message.FieldCard:
+		case message.FieldCard, message.FieldAttachments:
 			values[i] = new([]byte)
 		case message.FieldID, message.FieldReplyTo:
 			values[i] = new(sql.NullInt64)
-		case message.FieldSpaceID, message.FieldChannelID, message.FieldAuthorID, message.FieldKind, message.FieldContent, message.FieldCardType, message.FieldExternalID:
+		case message.FieldSpaceID, message.FieldChannelID, message.FieldAuthorID, message.FieldKind, message.FieldContent, message.FieldCardType, message.FieldExternalID, message.FieldOrigin:
 			values[i] = new(sql.NullString)
-		case message.FieldCreatedAt, message.FieldEditedAt, message.FieldDeletedAt:
+		case message.FieldCreatedAt, message.FieldUpdatedAt, message.FieldEditedAt, message.FieldDeletedAt, message.FieldSyncedAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -184,11 +205,31 @@ func (_m *Message) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.ExternalID = value.String
 			}
+		case message.FieldOrigin:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field origin", values[i])
+			} else if value.Valid {
+				_m.Origin = value.String
+			}
+		case message.FieldAttachments:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field attachments", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.Attachments); err != nil {
+					return fmt.Errorf("unmarshal field attachments: %w", err)
+				}
+			}
 		case message.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
 			} else if value.Valid {
 				_m.CreatedAt = value.Time
+			}
+		case message.FieldUpdatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
+			} else if value.Valid {
+				_m.UpdatedAt = value.Time
 			}
 		case message.FieldEditedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -203,6 +244,13 @@ func (_m *Message) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.DeletedAt = new(time.Time)
 				*_m.DeletedAt = value.Time
+			}
+		case message.FieldSyncedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field synced_at", values[i])
+			} else if value.Valid {
+				_m.SyncedAt = new(time.Time)
+				*_m.SyncedAt = value.Time
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -230,6 +278,11 @@ func (_m *Message) QueryChannel() *ChannelQuery {
 // QueryAuthor queries the "author" edge of the Message entity.
 func (_m *Message) QueryAuthor() *UserQuery {
 	return NewMessageClient(_m.config).QueryAuthor(_m)
+}
+
+// QueryReactions queries the "reactions" edge of the Message entity.
+func (_m *Message) QueryReactions() *ReactionQuery {
+	return NewMessageClient(_m.config).QueryReactions(_m)
 }
 
 // Update returns a builder for updating this Message.
@@ -282,8 +335,17 @@ func (_m *Message) String() string {
 	builder.WriteString("external_id=")
 	builder.WriteString(_m.ExternalID)
 	builder.WriteString(", ")
+	builder.WriteString("origin=")
+	builder.WriteString(_m.Origin)
+	builder.WriteString(", ")
+	builder.WriteString("attachments=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Attachments))
+	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("updated_at=")
+	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
 	if v := _m.EditedAt; v != nil {
 		builder.WriteString("edited_at=")
@@ -292,6 +354,11 @@ func (_m *Message) String() string {
 	builder.WriteString(", ")
 	if v := _m.DeletedAt; v != nil {
 		builder.WriteString("deleted_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	if v := _m.SyncedAt; v != nil {
+		builder.WriteString("synced_at=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
 	builder.WriteByte(')')

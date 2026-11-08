@@ -1,15 +1,20 @@
+import { ApprovalSchema } from '#lib/gen/discoflix/card/v1/approval_pb';
 import {
 	BootReportSchema,
 	SecurityEventSchema,
 	SystemNoticeSchema,
 	UpdateEventSchema
 } from '#lib/gen/discoflix/card/v1/system_pb';
+import ApprovalCard from './ApprovalCard.svelte';
 import BootReportCard from './BootReportCard.svelte';
 import SecurityEventCard from './SecurityEventCard.svelte';
 import SystemNoticeCard from './SystemNoticeCard.svelte';
 import UpdateEventCard from './UpdateEventCard.svelte';
 import { registerCard } from './registry';
 import {
+	approvalAccent,
+	approvalActions,
+	approvalSummary,
 	bootSummary,
 	noticeAccent,
 	noticeSummary,
@@ -48,5 +53,12 @@ export function registerBuiltinCards(): void {
 		component: UpdateEventCard,
 		summary: updateSummary,
 		accent: updateAccent
+	});
+	registerCard({
+		schema: ApprovalSchema,
+		component: ApprovalCard,
+		summary: approvalSummary,
+		accent: approvalAccent,
+		actions: approvalActions
 	});
 }

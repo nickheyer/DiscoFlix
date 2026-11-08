@@ -35,6 +35,8 @@ type User struct {
 	SystemAdmin bool `json:"system_admin,omitempty"`
 	// LastSeenAt holds the value of the "last_seen_at" field.
 	LastSeenAt *time.Time `json:"last_seen_at,omitempty"`
+	// MergedIntoID holds the value of the "merged_into_id" field.
+	MergedIntoID string `json:"merged_into_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges        UserEdges `json:"edges"`
@@ -53,9 +55,15 @@ type UserEdges struct {
 	Messages []*Message `json:"messages,omitempty"`
 	// ReadStates holds the value of the read_states edge.
 	ReadStates []*ReadState `json:"read_states,omitempty"`
+	// Reactions holds the value of the reactions edge.
+	Reactions []*Reaction `json:"reactions,omitempty"`
+	// MergedInto holds the value of the merged_into edge.
+	MergedInto *User `json:"merged_into,omitempty"`
+	// Absorbed holds the value of the absorbed edge.
+	Absorbed []*User `json:"absorbed,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [5]bool
+	loadedTypes [8]bool
 }
 
 // IdentitiesOrErr returns the Identities value or an error if the edge
@@ -103,6 +111,35 @@ func (e UserEdges) ReadStatesOrErr() ([]*ReadState, error) {
 	return nil, &NotLoadedError{edge: "read_states"}
 }
 
+// ReactionsOrErr returns the Reactions value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) ReactionsOrErr() ([]*Reaction, error) {
+	if e.loadedTypes[5] {
+		return e.Reactions, nil
+	}
+	return nil, &NotLoadedError{edge: "reactions"}
+}
+
+// MergedIntoOrErr returns the MergedInto value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UserEdges) MergedIntoOrErr() (*User, error) {
+	if e.MergedInto != nil {
+		return e.MergedInto, nil
+	} else if e.loadedTypes[6] {
+		return nil, &NotFoundError{label: user.Label}
+	}
+	return nil, &NotLoadedError{edge: "merged_into"}
+}
+
+// AbsorbedOrErr returns the Absorbed value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) AbsorbedOrErr() ([]*User, error) {
+	if e.loadedTypes[7] {
+		return e.Absorbed, nil
+	}
+	return nil, &NotLoadedError{edge: "absorbed"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -110,7 +147,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case user.FieldSystemAdmin:
 			values[i] = new(sql.NullBool)
-		case user.FieldID, user.FieldDisplayName, user.FieldAvatarURL, user.FieldAccentColor, user.FieldKind, user.FieldStatus:
+		case user.FieldID, user.FieldDisplayName, user.FieldAvatarURL, user.FieldAccentColor, user.FieldKind, user.FieldStatus, user.FieldMergedIntoID:
 			values[i] = new(sql.NullString)
 		case user.FieldCreatedAt, user.FieldUpdatedAt, user.FieldLastSeenAt:
 			values[i] = new(sql.NullTime)
@@ -190,6 +227,12 @@ func (_m *User) assignValues(columns []string, values []any) error {
 				_m.LastSeenAt = new(time.Time)
 				*_m.LastSeenAt = value.Time
 			}
+		case user.FieldMergedIntoID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field merged_into_id", values[i])
+			} else if value.Valid {
+				_m.MergedIntoID = value.String
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -226,6 +269,21 @@ func (_m *User) QueryMessages() *MessageQuery {
 // QueryReadStates queries the "read_states" edge of the User entity.
 func (_m *User) QueryReadStates() *ReadStateQuery {
 	return NewUserClient(_m.config).QueryReadStates(_m)
+}
+
+// QueryReactions queries the "reactions" edge of the User entity.
+func (_m *User) QueryReactions() *ReactionQuery {
+	return NewUserClient(_m.config).QueryReactions(_m)
+}
+
+// QueryMergedInto queries the "merged_into" edge of the User entity.
+func (_m *User) QueryMergedInto() *UserQuery {
+	return NewUserClient(_m.config).QueryMergedInto(_m)
+}
+
+// QueryAbsorbed queries the "absorbed" edge of the User entity.
+func (_m *User) QueryAbsorbed() *UserQuery {
+	return NewUserClient(_m.config).QueryAbsorbed(_m)
 }
 
 // Update returns a builder for updating this User.
@@ -279,6 +337,9 @@ func (_m *User) String() string {
 		builder.WriteString("last_seen_at=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
+	builder.WriteString(", ")
+	builder.WriteString("merged_into_id=")
+	builder.WriteString(_m.MergedIntoID)
 	builder.WriteByte(')')
 	return builder.String()
 }

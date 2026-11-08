@@ -3,12 +3,14 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/schema"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/space"
 )
 
@@ -31,6 +33,10 @@ type Space struct {
 	ExternalID string `json:"external_id,omitempty"`
 	// Position holds the value of the "position" field.
 	Position int32 `json:"position,omitempty"`
+	// ApprovalsChannelID holds the value of the "approvals_channel_id" field.
+	ApprovalsChannelID string `json:"approvals_channel_id,omitempty"`
+	// Roles holds the value of the "roles" field.
+	Roles []schema.Role `json:"roles,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SpaceQuery when eager-loading is set.
 	Edges        SpaceEdges `json:"edges"`
@@ -82,9 +88,11 @@ func (*Space) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case space.FieldRoles:
+			values[i] = new([]byte)
 		case space.FieldPosition:
 			values[i] = new(sql.NullInt64)
-		case space.FieldID, space.FieldKind, space.FieldName, space.FieldIconURL, space.FieldExternalID:
+		case space.FieldID, space.FieldKind, space.FieldName, space.FieldIconURL, space.FieldExternalID, space.FieldApprovalsChannelID:
 			values[i] = new(sql.NullString)
 		case space.FieldCreatedAt, space.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -150,6 +158,20 @@ func (_m *Space) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field position", values[i])
 			} else if value.Valid {
 				_m.Position = int32(value.Int64)
+			}
+		case space.FieldApprovalsChannelID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field approvals_channel_id", values[i])
+			} else if value.Valid {
+				_m.ApprovalsChannelID = value.String
+			}
+		case space.FieldRoles:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field roles", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.Roles); err != nil {
+					return fmt.Errorf("unmarshal field roles: %w", err)
+				}
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -222,6 +244,12 @@ func (_m *Space) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("position=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Position))
+	builder.WriteString(", ")
+	builder.WriteString("approvals_channel_id=")
+	builder.WriteString(_m.ApprovalsChannelID)
+	builder.WriteString(", ")
+	builder.WriteString("roles=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Roles))
 	builder.WriteByte(')')
 	return builder.String()
 }

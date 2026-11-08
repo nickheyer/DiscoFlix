@@ -29,6 +29,10 @@ const (
 	FieldExternalID = "external_id"
 	// FieldPosition holds the string denoting the position field in the database.
 	FieldPosition = "position"
+	// FieldApprovalsChannelID holds the string denoting the approvals_channel_id field in the database.
+	FieldApprovalsChannelID = "approvals_channel_id"
+	// FieldRoles holds the string denoting the roles field in the database.
+	FieldRoles = "roles"
 	// EdgeChannels holds the string denoting the channels edge name in mutations.
 	EdgeChannels = "channels"
 	// EdgeMemberships holds the string denoting the memberships edge name in mutations.
@@ -70,6 +74,8 @@ var Columns = []string{
 	FieldIconURL,
 	FieldExternalID,
 	FieldPosition,
+	FieldApprovalsChannelID,
+	FieldRoles,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -97,6 +103,8 @@ var (
 	DefaultExternalID string
 	// DefaultPosition holds the default value on creation for the "position" field.
 	DefaultPosition int32
+	// DefaultApprovalsChannelID holds the default value on creation for the "approvals_channel_id" field.
+	DefaultApprovalsChannelID string
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() string
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
@@ -171,6 +179,11 @@ func ByExternalID(opts ...sql.OrderTermOption) OrderOption {
 // ByPosition orders the results by the position field.
 func ByPosition(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPosition, opts...).ToFunc()
+}
+
+// ByApprovalsChannelID orders the results by the approvals_channel_id field.
+func ByApprovalsChannelID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldApprovalsChannelID, opts...).ToFunc()
 }
 
 // ByChannelsCount orders the results by channels count.

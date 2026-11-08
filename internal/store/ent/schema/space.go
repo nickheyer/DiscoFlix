@@ -19,6 +19,8 @@ func (Space) Fields() []ent.Field {
 		field.String("icon_url").Default(""),
 		field.String("external_id").Default(""),
 		field.Int32("position").Default(0),
+		field.String("approvals_channel_id").Default(""),
+		field.JSON("roles", []Role{}).Optional(),
 	}
 }
 

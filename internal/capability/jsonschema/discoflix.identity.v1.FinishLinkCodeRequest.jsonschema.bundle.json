@@ -1,0 +1,21 @@
+{
+  "$defs": {
+    "discoflix.identity.v1.FinishLinkCodeRequest.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "default": "",
+          "maxLength": 128,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "title": "Finish Link Code Request",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.identity.v1.FinishLinkCodeRequest.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.identity.v1.FinishLinkCodeRequest.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

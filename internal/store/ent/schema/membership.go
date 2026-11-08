@@ -19,6 +19,8 @@ func (Membership) Fields() []ent.Field {
 		field.String("user_id").NotEmpty(),
 		field.String("space_id").NotEmpty(),
 		field.Strings("roles").Default([]string{}),
+		field.String("nickname").Default(""),
+		field.Bool("admin").Default(false),
 		field.Time("joined_at").Default(time.Now).Immutable(),
 	}
 }

@@ -1,0 +1,41 @@
+{
+  "$defs": {
+    "discoflix.timeline.v1.Typing.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(channel_id)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(display_name)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(user_id)$": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "properties": {
+        "channelId": {
+          "default": "",
+          "type": "string"
+        },
+        "displayName": {
+          "default": "",
+          "type": "string"
+        },
+        "userId": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "title": "Typing",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.timeline.v1.Typing.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.timeline.v1.Typing.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

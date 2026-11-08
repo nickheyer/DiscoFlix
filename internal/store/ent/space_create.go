@@ -15,6 +15,7 @@ import (
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/channel"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/membership"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/message"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/schema"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/space"
 )
 
@@ -105,6 +106,26 @@ func (_c *SpaceCreate) SetNillablePosition(v *int32) *SpaceCreate {
 	if v != nil {
 		_c.SetPosition(*v)
 	}
+	return _c
+}
+
+// SetApprovalsChannelID sets the "approvals_channel_id" field.
+func (_c *SpaceCreate) SetApprovalsChannelID(v string) *SpaceCreate {
+	_c.mutation.SetApprovalsChannelID(v)
+	return _c
+}
+
+// SetNillableApprovalsChannelID sets the "approvals_channel_id" field if the given value is not nil.
+func (_c *SpaceCreate) SetNillableApprovalsChannelID(v *string) *SpaceCreate {
+	if v != nil {
+		_c.SetApprovalsChannelID(*v)
+	}
+	return _c
+}
+
+// SetRoles sets the "roles" field.
+func (_c *SpaceCreate) SetRoles(v []schema.Role) *SpaceCreate {
+	_c.mutation.SetRoles(v)
 	return _c
 }
 
@@ -222,6 +243,10 @@ func (_c *SpaceCreate) defaults() {
 		v := space.DefaultPosition
 		_c.mutation.SetPosition(v)
 	}
+	if _, ok := _c.mutation.ApprovalsChannelID(); !ok {
+		v := space.DefaultApprovalsChannelID
+		_c.mutation.SetApprovalsChannelID(v)
+	}
 	if _, ok := _c.mutation.ID(); !ok {
 		v := space.DefaultID()
 		_c.mutation.SetID(v)
@@ -260,6 +285,9 @@ func (_c *SpaceCreate) check() error {
 	}
 	if _, ok := _c.mutation.Position(); !ok {
 		return &ValidationError{Name: "position", err: errors.New(`ent: missing required field "Space.position"`)}
+	}
+	if _, ok := _c.mutation.ApprovalsChannelID(); !ok {
+		return &ValidationError{Name: "approvals_channel_id", err: errors.New(`ent: missing required field "Space.approvals_channel_id"`)}
 	}
 	if v, ok := _c.mutation.ID(); ok {
 		if err := space.IDValidator(v); err != nil {
@@ -329,6 +357,14 @@ func (_c *SpaceCreate) createSpec() (*Space, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Position(); ok {
 		_spec.SetField(space.FieldPosition, field.TypeInt32, value)
 		_node.Position = value
+	}
+	if value, ok := _c.mutation.ApprovalsChannelID(); ok {
+		_spec.SetField(space.FieldApprovalsChannelID, field.TypeString, value)
+		_node.ApprovalsChannelID = value
+	}
+	if value, ok := _c.mutation.Roles(); ok {
+		_spec.SetField(space.FieldRoles, field.TypeJSON, value)
+		_node.Roles = value
 	}
 	if nodes := _c.mutation.ChannelsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -508,6 +544,36 @@ func (u *SpaceUpsert) AddPosition(v int32) *SpaceUpsert {
 	return u
 }
 
+// SetApprovalsChannelID sets the "approvals_channel_id" field.
+func (u *SpaceUpsert) SetApprovalsChannelID(v string) *SpaceUpsert {
+	u.Set(space.FieldApprovalsChannelID, v)
+	return u
+}
+
+// UpdateApprovalsChannelID sets the "approvals_channel_id" field to the value that was provided on create.
+func (u *SpaceUpsert) UpdateApprovalsChannelID() *SpaceUpsert {
+	u.SetExcluded(space.FieldApprovalsChannelID)
+	return u
+}
+
+// SetRoles sets the "roles" field.
+func (u *SpaceUpsert) SetRoles(v []schema.Role) *SpaceUpsert {
+	u.Set(space.FieldRoles, v)
+	return u
+}
+
+// UpdateRoles sets the "roles" field to the value that was provided on create.
+func (u *SpaceUpsert) UpdateRoles() *SpaceUpsert {
+	u.SetExcluded(space.FieldRoles)
+	return u
+}
+
+// ClearRoles clears the value of the "roles" field.
+func (u *SpaceUpsert) ClearRoles() *SpaceUpsert {
+	u.SetNull(space.FieldRoles)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -647,6 +713,41 @@ func (u *SpaceUpsertOne) AddPosition(v int32) *SpaceUpsertOne {
 func (u *SpaceUpsertOne) UpdatePosition() *SpaceUpsertOne {
 	return u.Update(func(s *SpaceUpsert) {
 		s.UpdatePosition()
+	})
+}
+
+// SetApprovalsChannelID sets the "approvals_channel_id" field.
+func (u *SpaceUpsertOne) SetApprovalsChannelID(v string) *SpaceUpsertOne {
+	return u.Update(func(s *SpaceUpsert) {
+		s.SetApprovalsChannelID(v)
+	})
+}
+
+// UpdateApprovalsChannelID sets the "approvals_channel_id" field to the value that was provided on create.
+func (u *SpaceUpsertOne) UpdateApprovalsChannelID() *SpaceUpsertOne {
+	return u.Update(func(s *SpaceUpsert) {
+		s.UpdateApprovalsChannelID()
+	})
+}
+
+// SetRoles sets the "roles" field.
+func (u *SpaceUpsertOne) SetRoles(v []schema.Role) *SpaceUpsertOne {
+	return u.Update(func(s *SpaceUpsert) {
+		s.SetRoles(v)
+	})
+}
+
+// UpdateRoles sets the "roles" field to the value that was provided on create.
+func (u *SpaceUpsertOne) UpdateRoles() *SpaceUpsertOne {
+	return u.Update(func(s *SpaceUpsert) {
+		s.UpdateRoles()
+	})
+}
+
+// ClearRoles clears the value of the "roles" field.
+func (u *SpaceUpsertOne) ClearRoles() *SpaceUpsertOne {
+	return u.Update(func(s *SpaceUpsert) {
+		s.ClearRoles()
 	})
 }
 
@@ -956,6 +1057,41 @@ func (u *SpaceUpsertBulk) AddPosition(v int32) *SpaceUpsertBulk {
 func (u *SpaceUpsertBulk) UpdatePosition() *SpaceUpsertBulk {
 	return u.Update(func(s *SpaceUpsert) {
 		s.UpdatePosition()
+	})
+}
+
+// SetApprovalsChannelID sets the "approvals_channel_id" field.
+func (u *SpaceUpsertBulk) SetApprovalsChannelID(v string) *SpaceUpsertBulk {
+	return u.Update(func(s *SpaceUpsert) {
+		s.SetApprovalsChannelID(v)
+	})
+}
+
+// UpdateApprovalsChannelID sets the "approvals_channel_id" field to the value that was provided on create.
+func (u *SpaceUpsertBulk) UpdateApprovalsChannelID() *SpaceUpsertBulk {
+	return u.Update(func(s *SpaceUpsert) {
+		s.UpdateApprovalsChannelID()
+	})
+}
+
+// SetRoles sets the "roles" field.
+func (u *SpaceUpsertBulk) SetRoles(v []schema.Role) *SpaceUpsertBulk {
+	return u.Update(func(s *SpaceUpsert) {
+		s.SetRoles(v)
+	})
+}
+
+// UpdateRoles sets the "roles" field to the value that was provided on create.
+func (u *SpaceUpsertBulk) UpdateRoles() *SpaceUpsertBulk {
+	return u.Update(func(s *SpaceUpsert) {
+		s.UpdateRoles()
+	})
+}
+
+// ClearRoles clears the value of the "roles" field.
+func (u *SpaceUpsertBulk) ClearRoles() *SpaceUpsertBulk {
+	return u.Update(func(s *SpaceUpsert) {
+		s.ClearRoles()
 	})
 }
 

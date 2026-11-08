@@ -13,7 +13,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file discoflix/capability/v1/options.proto.
  */
 export const file_discoflix_capability_v1_options: GenFile = /*@__PURE__*/
-  fileDesc("CiVkaXNjb2ZsaXgvY2FwYWJpbGl0eS92MS9vcHRpb25zLnByb3RvEhdkaXNjb2ZsaXguY2FwYWJpbGl0eS52MSIoCglPYmplY3RSZWYSDAoEdHlwZRgBIAEoCRINCgVmaWVsZBgCIAEoCSLDAQoKQ2FwYWJpbGl0eRINCgVzY29wZRgBIAEoCRIvCgZlZmZlY3QYAiABKA4yHy5kaXNjb2ZsaXguY2FwYWJpbGl0eS52MS5FZmZlY3QSMgoGb2JqZWN0GAMgASgLMiIuZGlzY29mbGl4LmNhcGFiaWxpdHkudjEuT2JqZWN0UmVmEg0KBXNsYXNoGAQgASgIEg4KBnB1YmxpYxgFIAEoCBINCgV0aXRsZRgGIAEoCRITCgtkZXNjcmlwdGlvbhgHIAEoCSpbCgZFZmZlY3QSFgoSRUZGRUNUX1VOU1BFQ0lGSUVEEAASDwoLRUZGRUNUX1JFQUQQARIQCgxFRkZFQ1RfV1JJVEUQAhIWChJFRkZFQ1RfREVTVFJVQ1RJVkUQAzplCgpjYXBhYmlsaXR5Eh4uZ29vZ2xlLnByb3RvYnVmLk1ldGhvZE9wdGlvbnMYtIcDIAEoCzIjLmRpc2NvZmxpeC5jYXBhYmlsaXR5LnYxLkNhcGFiaWxpdHlSCmNhcGFiaWxpdHlC/QEKG2NvbS5kaXNjb2ZsaXguY2FwYWJpbGl0eS52MUIMT3B0aW9uc1Byb3RvUAFaTWdpdGh1Yi5jb20vbmlja2hleWVyL0Rpc2NvRmxpeC9zZGsvZ28vcGIvZGlzY29mbGl4L2NhcGFiaWxpdHkvdjE7Y2FwYWJpbGl0eXYxogIDRENYqgIXRGlzY29mbGl4LkNhcGFiaWxpdHkuVjHKAhdEaXNjb2ZsaXhcQ2FwYWJpbGl0eVxWMeICI0Rpc2NvZmxpeFxDYXBhYmlsaXR5XFYxXEdQQk1ldGFkYXRh6gIZRGlzY29mbGl4OjpDYXBhYmlsaXR5OjpWMZIDAggCYghlZGl0aW9uc3DoBw", [file_google_protobuf_descriptor]);
+  fileDesc("CiVkaXNjb2ZsaXgvY2FwYWJpbGl0eS92MS9vcHRpb25zLnByb3RvEhdkaXNjb2ZsaXguY2FwYWJpbGl0eS52MSIoCglPYmplY3RSZWYSDAoEdHlwZRgBIAEoCRINCgVmaWVsZBgCIAEoCSLLAQoKQ2FwYWJpbGl0eRINCgVzY29wZRgBIAEoCRIvCgZlZmZlY3QYAiABKA4yHy5kaXNjb2ZsaXguY2FwYWJpbGl0eS52MS5FZmZlY3QSMgoGb2JqZWN0GAMgASgLMiIuZGlzY29mbGl4LmNhcGFiaWxpdHkudjEuT2JqZWN0UmVmEg4KBnB1YmxpYxgFIAEoCBINCgV0aXRsZRgGIAEoCRITCgtkZXNjcmlwdGlvbhgHIAEoCRIPCgdjb21tYW5kGAggASgJSgQIBBAFKlsKBkVmZmVjdBIWChJFRkZFQ1RfVU5TUEVDSUZJRUQQABIPCgtFRkZFQ1RfUkVBRBABEhAKDEVGRkVDVF9XUklURRACEhYKEkVGRkVDVF9ERVNUUlVDVElWRRADOmUKCmNhcGFiaWxpdHkSHi5nb29nbGUucHJvdG9idWYuTWV0aG9kT3B0aW9ucxi0hwMgASgLMiMuZGlzY29mbGl4LmNhcGFiaWxpdHkudjEuQ2FwYWJpbGl0eVIKY2FwYWJpbGl0eUL9AQobY29tLmRpc2NvZmxpeC5jYXBhYmlsaXR5LnYxQgxPcHRpb25zUHJvdG9QAVpNZ2l0aHViLmNvbS9uaWNraGV5ZXIvRGlzY29GbGl4L3Nkay9nby9wYi9kaXNjb2ZsaXgvY2FwYWJpbGl0eS92MTtjYXBhYmlsaXR5djGiAgNEQ1iqAhdEaXNjb2ZsaXguQ2FwYWJpbGl0eS5WMcoCF0Rpc2NvZmxpeFxDYXBhYmlsaXR5XFYx4gIjRGlzY29mbGl4XENhcGFiaWxpdHlcVjFcR1BCTWV0YWRhdGHqAhlEaXNjb2ZsaXg6OkNhcGFiaWxpdHk6OlYxkgMCCAJiCGVkaXRpb25zcOgH", [file_google_protobuf_descriptor]);
 
 /**
  * Names the authorization object a request targets
@@ -88,13 +88,6 @@ export type Capability = Message<"discoflix.capability.v1.Capability"> & {
   object?: ObjectRef | undefined;
 
   /**
-   * Safe to expose as a Discord slash command
-   *
-   * @generated from field: bool slash = 4;
-   */
-  slash: boolean;
-
-  /**
    * Callable without a principal
    *
    * @generated from field: bool public = 5;
@@ -110,6 +103,13 @@ export type Capability = Message<"discoflix.capability.v1.Capability"> & {
    * @generated from field: string description = 7;
    */
   description: string;
+
+  /**
+   * Discord slash command name this entry is registered as, empty keeps it off Discord
+   *
+   * @generated from field: string command = 8;
+   */
+  command: string;
 };
 
 /**
@@ -136,13 +136,6 @@ export type CapabilityJson = {
   object?: ObjectRefJson;
 
   /**
-   * Safe to expose as a Discord slash command
-   *
-   * @generated from field: bool slash = 4;
-   */
-  slash?: boolean;
-
-  /**
    * Callable without a principal
    *
    * @generated from field: bool public = 5;
@@ -158,6 +151,13 @@ export type CapabilityJson = {
    * @generated from field: string description = 7;
    */
   description?: string;
+
+  /**
+   * Discord slash command name this entry is registered as, empty keeps it off Discord
+   *
+   * @generated from field: string command = 8;
+   */
+  command?: string;
 };
 
 /**

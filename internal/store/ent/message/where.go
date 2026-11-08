@@ -95,9 +95,19 @@ func ExternalID(v string) predicate.Message {
 	return predicate.Message(sql.FieldEQ(FieldExternalID, v))
 }
 
+// Origin applies equality check predicate on the "origin" field. It's identical to OriginEQ.
+func Origin(v string) predicate.Message {
+	return predicate.Message(sql.FieldEQ(FieldOrigin, v))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.Message {
 	return predicate.Message(sql.FieldEQ(FieldCreatedAt, v))
+}
+
+// UpdatedAt applies equality check predicate on the "updated_at" field. It's identical to UpdatedAtEQ.
+func UpdatedAt(v time.Time) predicate.Message {
+	return predicate.Message(sql.FieldEQ(FieldUpdatedAt, v))
 }
 
 // EditedAt applies equality check predicate on the "edited_at" field. It's identical to EditedAtEQ.
@@ -108,6 +118,11 @@ func EditedAt(v time.Time) predicate.Message {
 // DeletedAt applies equality check predicate on the "deleted_at" field. It's identical to DeletedAtEQ.
 func DeletedAt(v time.Time) predicate.Message {
 	return predicate.Message(sql.FieldEQ(FieldDeletedAt, v))
+}
+
+// SyncedAt applies equality check predicate on the "synced_at" field. It's identical to SyncedAtEQ.
+func SyncedAt(v time.Time) predicate.Message {
+	return predicate.Message(sql.FieldEQ(FieldSyncedAt, v))
 }
 
 // SpaceIDEQ applies the EQ predicate on the "space_id" field.
@@ -610,6 +625,81 @@ func ExternalIDContainsFold(v string) predicate.Message {
 	return predicate.Message(sql.FieldContainsFold(FieldExternalID, v))
 }
 
+// OriginEQ applies the EQ predicate on the "origin" field.
+func OriginEQ(v string) predicate.Message {
+	return predicate.Message(sql.FieldEQ(FieldOrigin, v))
+}
+
+// OriginNEQ applies the NEQ predicate on the "origin" field.
+func OriginNEQ(v string) predicate.Message {
+	return predicate.Message(sql.FieldNEQ(FieldOrigin, v))
+}
+
+// OriginIn applies the In predicate on the "origin" field.
+func OriginIn(vs ...string) predicate.Message {
+	return predicate.Message(sql.FieldIn(FieldOrigin, vs...))
+}
+
+// OriginNotIn applies the NotIn predicate on the "origin" field.
+func OriginNotIn(vs ...string) predicate.Message {
+	return predicate.Message(sql.FieldNotIn(FieldOrigin, vs...))
+}
+
+// OriginGT applies the GT predicate on the "origin" field.
+func OriginGT(v string) predicate.Message {
+	return predicate.Message(sql.FieldGT(FieldOrigin, v))
+}
+
+// OriginGTE applies the GTE predicate on the "origin" field.
+func OriginGTE(v string) predicate.Message {
+	return predicate.Message(sql.FieldGTE(FieldOrigin, v))
+}
+
+// OriginLT applies the LT predicate on the "origin" field.
+func OriginLT(v string) predicate.Message {
+	return predicate.Message(sql.FieldLT(FieldOrigin, v))
+}
+
+// OriginLTE applies the LTE predicate on the "origin" field.
+func OriginLTE(v string) predicate.Message {
+	return predicate.Message(sql.FieldLTE(FieldOrigin, v))
+}
+
+// OriginContains applies the Contains predicate on the "origin" field.
+func OriginContains(v string) predicate.Message {
+	return predicate.Message(sql.FieldContains(FieldOrigin, v))
+}
+
+// OriginHasPrefix applies the HasPrefix predicate on the "origin" field.
+func OriginHasPrefix(v string) predicate.Message {
+	return predicate.Message(sql.FieldHasPrefix(FieldOrigin, v))
+}
+
+// OriginHasSuffix applies the HasSuffix predicate on the "origin" field.
+func OriginHasSuffix(v string) predicate.Message {
+	return predicate.Message(sql.FieldHasSuffix(FieldOrigin, v))
+}
+
+// OriginEqualFold applies the EqualFold predicate on the "origin" field.
+func OriginEqualFold(v string) predicate.Message {
+	return predicate.Message(sql.FieldEqualFold(FieldOrigin, v))
+}
+
+// OriginContainsFold applies the ContainsFold predicate on the "origin" field.
+func OriginContainsFold(v string) predicate.Message {
+	return predicate.Message(sql.FieldContainsFold(FieldOrigin, v))
+}
+
+// AttachmentsIsNil applies the IsNil predicate on the "attachments" field.
+func AttachmentsIsNil() predicate.Message {
+	return predicate.Message(sql.FieldIsNull(FieldAttachments))
+}
+
+// AttachmentsNotNil applies the NotNil predicate on the "attachments" field.
+func AttachmentsNotNil() predicate.Message {
+	return predicate.Message(sql.FieldNotNull(FieldAttachments))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Message {
 	return predicate.Message(sql.FieldEQ(FieldCreatedAt, v))
@@ -648,6 +738,46 @@ func CreatedAtLT(v time.Time) predicate.Message {
 // CreatedAtLTE applies the LTE predicate on the "created_at" field.
 func CreatedAtLTE(v time.Time) predicate.Message {
 	return predicate.Message(sql.FieldLTE(FieldCreatedAt, v))
+}
+
+// UpdatedAtEQ applies the EQ predicate on the "updated_at" field.
+func UpdatedAtEQ(v time.Time) predicate.Message {
+	return predicate.Message(sql.FieldEQ(FieldUpdatedAt, v))
+}
+
+// UpdatedAtNEQ applies the NEQ predicate on the "updated_at" field.
+func UpdatedAtNEQ(v time.Time) predicate.Message {
+	return predicate.Message(sql.FieldNEQ(FieldUpdatedAt, v))
+}
+
+// UpdatedAtIn applies the In predicate on the "updated_at" field.
+func UpdatedAtIn(vs ...time.Time) predicate.Message {
+	return predicate.Message(sql.FieldIn(FieldUpdatedAt, vs...))
+}
+
+// UpdatedAtNotIn applies the NotIn predicate on the "updated_at" field.
+func UpdatedAtNotIn(vs ...time.Time) predicate.Message {
+	return predicate.Message(sql.FieldNotIn(FieldUpdatedAt, vs...))
+}
+
+// UpdatedAtGT applies the GT predicate on the "updated_at" field.
+func UpdatedAtGT(v time.Time) predicate.Message {
+	return predicate.Message(sql.FieldGT(FieldUpdatedAt, v))
+}
+
+// UpdatedAtGTE applies the GTE predicate on the "updated_at" field.
+func UpdatedAtGTE(v time.Time) predicate.Message {
+	return predicate.Message(sql.FieldGTE(FieldUpdatedAt, v))
+}
+
+// UpdatedAtLT applies the LT predicate on the "updated_at" field.
+func UpdatedAtLT(v time.Time) predicate.Message {
+	return predicate.Message(sql.FieldLT(FieldUpdatedAt, v))
+}
+
+// UpdatedAtLTE applies the LTE predicate on the "updated_at" field.
+func UpdatedAtLTE(v time.Time) predicate.Message {
+	return predicate.Message(sql.FieldLTE(FieldUpdatedAt, v))
 }
 
 // EditedAtEQ applies the EQ predicate on the "edited_at" field.
@@ -750,6 +880,56 @@ func DeletedAtNotNil() predicate.Message {
 	return predicate.Message(sql.FieldNotNull(FieldDeletedAt))
 }
 
+// SyncedAtEQ applies the EQ predicate on the "synced_at" field.
+func SyncedAtEQ(v time.Time) predicate.Message {
+	return predicate.Message(sql.FieldEQ(FieldSyncedAt, v))
+}
+
+// SyncedAtNEQ applies the NEQ predicate on the "synced_at" field.
+func SyncedAtNEQ(v time.Time) predicate.Message {
+	return predicate.Message(sql.FieldNEQ(FieldSyncedAt, v))
+}
+
+// SyncedAtIn applies the In predicate on the "synced_at" field.
+func SyncedAtIn(vs ...time.Time) predicate.Message {
+	return predicate.Message(sql.FieldIn(FieldSyncedAt, vs...))
+}
+
+// SyncedAtNotIn applies the NotIn predicate on the "synced_at" field.
+func SyncedAtNotIn(vs ...time.Time) predicate.Message {
+	return predicate.Message(sql.FieldNotIn(FieldSyncedAt, vs...))
+}
+
+// SyncedAtGT applies the GT predicate on the "synced_at" field.
+func SyncedAtGT(v time.Time) predicate.Message {
+	return predicate.Message(sql.FieldGT(FieldSyncedAt, v))
+}
+
+// SyncedAtGTE applies the GTE predicate on the "synced_at" field.
+func SyncedAtGTE(v time.Time) predicate.Message {
+	return predicate.Message(sql.FieldGTE(FieldSyncedAt, v))
+}
+
+// SyncedAtLT applies the LT predicate on the "synced_at" field.
+func SyncedAtLT(v time.Time) predicate.Message {
+	return predicate.Message(sql.FieldLT(FieldSyncedAt, v))
+}
+
+// SyncedAtLTE applies the LTE predicate on the "synced_at" field.
+func SyncedAtLTE(v time.Time) predicate.Message {
+	return predicate.Message(sql.FieldLTE(FieldSyncedAt, v))
+}
+
+// SyncedAtIsNil applies the IsNil predicate on the "synced_at" field.
+func SyncedAtIsNil() predicate.Message {
+	return predicate.Message(sql.FieldIsNull(FieldSyncedAt))
+}
+
+// SyncedAtNotNil applies the NotNil predicate on the "synced_at" field.
+func SyncedAtNotNil() predicate.Message {
+	return predicate.Message(sql.FieldNotNull(FieldSyncedAt))
+}
+
 // HasSpace applies the HasEdge predicate on the "space" edge.
 func HasSpace() predicate.Message {
 	return predicate.Message(func(s *sql.Selector) {
@@ -811,6 +991,29 @@ func HasAuthor() predicate.Message {
 func HasAuthorWith(preds ...predicate.User) predicate.Message {
 	return predicate.Message(func(s *sql.Selector) {
 		step := newAuthorStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasReactions applies the HasEdge predicate on the "reactions" edge.
+func HasReactions() predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ReactionsTable, ReactionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasReactionsWith applies the HasEdge predicate on the "reactions" edge with a given conditions (other predicates).
+func HasReactionsWith(preds ...predicate.Reaction) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		step := newReactionsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

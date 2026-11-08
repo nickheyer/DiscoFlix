@@ -35,6 +35,10 @@ const (
 	FieldExternalID = "external_id"
 	// FieldLastSeq holds the string denoting the last_seq field in the database.
 	FieldLastSeq = "last_seq"
+	// FieldArchived holds the string denoting the archived field in the database.
+	FieldArchived = "archived"
+	// FieldDeletedAt holds the string denoting the deleted_at field in the database.
+	FieldDeletedAt = "deleted_at"
 	// EdgeSpace holds the string denoting the space edge name in mutations.
 	EdgeSpace = "space"
 	// EdgeMessages holds the string denoting the messages edge name in mutations.
@@ -79,6 +83,8 @@ var Columns = []string{
 	FieldPosition,
 	FieldExternalID,
 	FieldLastSeq,
+	FieldArchived,
+	FieldDeletedAt,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -112,6 +118,8 @@ var (
 	DefaultExternalID string
 	// DefaultLastSeq holds the default value on creation for the "last_seq" field.
 	DefaultLastSeq int64
+	// DefaultArchived holds the default value on creation for the "archived" field.
+	DefaultArchived bool
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() string
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
@@ -202,6 +210,16 @@ func ByExternalID(opts ...sql.OrderTermOption) OrderOption {
 // ByLastSeq orders the results by the last_seq field.
 func ByLastSeq(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldLastSeq, opts...).ToFunc()
+}
+
+// ByArchived orders the results by the archived field.
+func ByArchived(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldArchived, opts...).ToFunc()
+}
+
+// ByDeletedAt orders the results by the deleted_at field.
+func ByDeletedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDeletedAt, opts...).ToFunc()
 }
 
 // BySpaceField orders the results by space field.

@@ -4,6 +4,11 @@
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "additionalProperties": false,
       "patternProperties": {
+        "^(discord_login)$": {
+          "default": false,
+          "description": "Discord sign-in is configured, the browser starts it at /auth/discord/start",
+          "type": "boolean"
+        },
         "^(instance_name)$": {
           "default": "",
           "type": "string"
@@ -26,6 +31,11 @@
         "commit": {
           "default": "",
           "type": "string"
+        },
+        "discordLogin": {
+          "default": false,
+          "description": "Discord sign-in is configured, the browser starts it at /auth/discord/start",
+          "type": "boolean"
         },
         "instanceName": {
           "default": "",

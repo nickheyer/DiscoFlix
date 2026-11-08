@@ -26,6 +26,10 @@ type Tx struct {
 	Membership *MembershipClient
 	// Message is the client for interacting with the Message builders.
 	Message *MessageClient
+	// PendingAction is the client for interacting with the PendingAction builders.
+	PendingAction *PendingActionClient
+	// Reaction is the client for interacting with the Reaction builders.
+	Reaction *ReactionClient
 	// ReadState is the client for interacting with the ReadState builders.
 	ReadState *ReadStateClient
 	// Setting is the client for interacting with the Setting builders.
@@ -34,6 +38,8 @@ type Tx struct {
 	Space *SpaceClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
+	// UserMerge is the client for interacting with the UserMerge builders.
+	UserMerge *UserMergeClient
 
 	// lazily loaded.
 	client     *Client
@@ -171,10 +177,13 @@ func (tx *Tx) init() {
 	tx.Identity = NewIdentityClient(tx.config)
 	tx.Membership = NewMembershipClient(tx.config)
 	tx.Message = NewMessageClient(tx.config)
+	tx.PendingAction = NewPendingActionClient(tx.config)
+	tx.Reaction = NewReactionClient(tx.config)
 	tx.ReadState = NewReadStateClient(tx.config)
 	tx.Setting = NewSettingClient(tx.config)
 	tx.Space = NewSpaceClient(tx.config)
 	tx.User = NewUserClient(tx.config)
+	tx.UserMerge = NewUserMergeClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

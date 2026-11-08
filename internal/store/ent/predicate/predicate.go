@@ -24,6 +24,12 @@ type Membership func(*sql.Selector)
 // Message is the predicate function for message builders.
 type Message func(*sql.Selector)
 
+// PendingAction is the predicate function for pendingaction builders.
+type PendingAction func(*sql.Selector)
+
+// Reaction is the predicate function for reaction builders.
+type Reaction func(*sql.Selector)
+
 // ReadState is the predicate function for readstate builders.
 type ReadState func(*sql.Selector)
 
@@ -35,3 +41,6 @@ type Space func(*sql.Selector)
 
 // User is the predicate function for user builders.
 type User func(*sql.Selector)
+
+// UserMerge is the predicate function for usermerge builders.
+type UserMerge func(*sql.Selector)

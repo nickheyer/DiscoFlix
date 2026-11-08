@@ -13,6 +13,8 @@ import (
 
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
+
+	"github.com/nickheyer/DiscoFlix/internal/capability"
 )
 
 // Kind names one extension point of the host
@@ -211,4 +213,35 @@ func (r *Registry) Kinds() []Kind {
 	}
 	slices.Sort(out)
 	return out
+}
+
+// Interaction is one press or selection on a card made through any transport
+type Interaction struct {
+	Principal capability.Principal
+	Seq       int64
+	SpaceID   string
+	ChannelID string
+	Card      proto.Message
+	Action    string
+	Value     string
+}
+
+// Action is one control a card offers, rendered as a button by every transport
+type Action struct {
+	ID    string
+	Label string
+	// primary, success, danger, or secondary
+	Style string
+}
+
+// CardActions lists the controls a card currently offers given its state
+type CardActions interface {
+	Actions(card proto.Message) []Action
+}
+
+// CardInteractor applies one interaction and returns the card's next state
+type CardInteractor interface {
+	CardSchema
+	CardActions
+	Interact(ctx context.Context, in Interaction) (proto.Message, error)
 }

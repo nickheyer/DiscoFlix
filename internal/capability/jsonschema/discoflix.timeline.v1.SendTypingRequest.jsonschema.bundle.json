@@ -1,0 +1,27 @@
+{
+  "$defs": {
+    "discoflix.timeline.v1.SendTypingRequest.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(channel_id)$": {
+          "default": "",
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "properties": {
+        "channelId": {
+          "default": "",
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "title": "Send Typing Request",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.timeline.v1.SendTypingRequest.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.timeline.v1.SendTypingRequest.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

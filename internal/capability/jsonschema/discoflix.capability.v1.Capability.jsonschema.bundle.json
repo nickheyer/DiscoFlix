@@ -5,6 +5,11 @@
       "additionalProperties": false,
       "description": "Declares how one RPC is exposed through every transport",
       "properties": {
+        "command": {
+          "default": "",
+          "description": "Discord slash command name this entry is registered as, empty keeps it off Discord",
+          "type": "string"
+        },
         "description": {
           "default": "",
           "type": "string"
@@ -44,11 +49,6 @@
           "default": "",
           "description": "Relation checked on the object, or on the system object when no object is named",
           "type": "string"
-        },
-        "slash": {
-          "default": false,
-          "description": "Safe to expose as a Discord slash command",
-          "type": "boolean"
         },
         "title": {
           "default": "",

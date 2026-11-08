@@ -110,6 +110,16 @@ func LastSeq(v int64) predicate.Channel {
 	return predicate.Channel(sql.FieldEQ(FieldLastSeq, v))
 }
 
+// Archived applies equality check predicate on the "archived" field. It's identical to ArchivedEQ.
+func Archived(v bool) predicate.Channel {
+	return predicate.Channel(sql.FieldEQ(FieldArchived, v))
+}
+
+// DeletedAt applies equality check predicate on the "deleted_at" field. It's identical to DeletedAtEQ.
+func DeletedAt(v time.Time) predicate.Channel {
+	return predicate.Channel(sql.FieldEQ(FieldDeletedAt, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Channel {
 	return predicate.Channel(sql.FieldEQ(FieldCreatedAt, v))
@@ -613,6 +623,66 @@ func LastSeqLT(v int64) predicate.Channel {
 // LastSeqLTE applies the LTE predicate on the "last_seq" field.
 func LastSeqLTE(v int64) predicate.Channel {
 	return predicate.Channel(sql.FieldLTE(FieldLastSeq, v))
+}
+
+// ArchivedEQ applies the EQ predicate on the "archived" field.
+func ArchivedEQ(v bool) predicate.Channel {
+	return predicate.Channel(sql.FieldEQ(FieldArchived, v))
+}
+
+// ArchivedNEQ applies the NEQ predicate on the "archived" field.
+func ArchivedNEQ(v bool) predicate.Channel {
+	return predicate.Channel(sql.FieldNEQ(FieldArchived, v))
+}
+
+// DeletedAtEQ applies the EQ predicate on the "deleted_at" field.
+func DeletedAtEQ(v time.Time) predicate.Channel {
+	return predicate.Channel(sql.FieldEQ(FieldDeletedAt, v))
+}
+
+// DeletedAtNEQ applies the NEQ predicate on the "deleted_at" field.
+func DeletedAtNEQ(v time.Time) predicate.Channel {
+	return predicate.Channel(sql.FieldNEQ(FieldDeletedAt, v))
+}
+
+// DeletedAtIn applies the In predicate on the "deleted_at" field.
+func DeletedAtIn(vs ...time.Time) predicate.Channel {
+	return predicate.Channel(sql.FieldIn(FieldDeletedAt, vs...))
+}
+
+// DeletedAtNotIn applies the NotIn predicate on the "deleted_at" field.
+func DeletedAtNotIn(vs ...time.Time) predicate.Channel {
+	return predicate.Channel(sql.FieldNotIn(FieldDeletedAt, vs...))
+}
+
+// DeletedAtGT applies the GT predicate on the "deleted_at" field.
+func DeletedAtGT(v time.Time) predicate.Channel {
+	return predicate.Channel(sql.FieldGT(FieldDeletedAt, v))
+}
+
+// DeletedAtGTE applies the GTE predicate on the "deleted_at" field.
+func DeletedAtGTE(v time.Time) predicate.Channel {
+	return predicate.Channel(sql.FieldGTE(FieldDeletedAt, v))
+}
+
+// DeletedAtLT applies the LT predicate on the "deleted_at" field.
+func DeletedAtLT(v time.Time) predicate.Channel {
+	return predicate.Channel(sql.FieldLT(FieldDeletedAt, v))
+}
+
+// DeletedAtLTE applies the LTE predicate on the "deleted_at" field.
+func DeletedAtLTE(v time.Time) predicate.Channel {
+	return predicate.Channel(sql.FieldLTE(FieldDeletedAt, v))
+}
+
+// DeletedAtIsNil applies the IsNil predicate on the "deleted_at" field.
+func DeletedAtIsNil() predicate.Channel {
+	return predicate.Channel(sql.FieldIsNull(FieldDeletedAt))
+}
+
+// DeletedAtNotNil applies the NotNil predicate on the "deleted_at" field.
+func DeletedAtNotNil() predicate.Channel {
+	return predicate.Channel(sql.FieldNotNull(FieldDeletedAt))
 }
 
 // HasSpace applies the HasEdge predicate on the "space" edge.

@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -15,6 +16,7 @@ import (
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/channel"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/message"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/predicate"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/reaction"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/space"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/user"
 )
@@ -22,14 +24,15 @@ import (
 // MessageQuery is the builder for querying Message entities.
 type MessageQuery struct {
 	config
-	ctx         *QueryContext
-	order       []message.OrderOption
-	inters      []Interceptor
-	predicates  []predicate.Message
-	withSpace   *SpaceQuery
-	withChannel *ChannelQuery
-	withAuthor  *UserQuery
-	modifiers   []func(*sql.Selector)
+	ctx           *QueryContext
+	order         []message.OrderOption
+	inters        []Interceptor
+	predicates    []predicate.Message
+	withSpace     *SpaceQuery
+	withChannel   *ChannelQuery
+	withAuthor    *UserQuery
+	withReactions *ReactionQuery
+	modifiers     []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -125,6 +128,28 @@ func (_q *MessageQuery) QueryAuthor() *UserQuery {
 			sqlgraph.From(message.Table, message.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, message.AuthorTable, message.AuthorColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryReactions chains the current query on the "reactions" edge.
+func (_q *MessageQuery) QueryReactions() *ReactionQuery {
+	query := (&ReactionClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(message.Table, message.FieldID, selector),
+			sqlgraph.To(reaction.Table, reaction.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, message.ReactionsTable, message.ReactionsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -319,14 +344,15 @@ func (_q *MessageQuery) Clone() *MessageQuery {
 		return nil
 	}
 	return &MessageQuery{
-		config:      _q.config,
-		ctx:         _q.ctx.Clone(),
-		order:       append([]message.OrderOption{}, _q.order...),
-		inters:      append([]Interceptor{}, _q.inters...),
-		predicates:  append([]predicate.Message{}, _q.predicates...),
-		withSpace:   _q.withSpace.Clone(),
-		withChannel: _q.withChannel.Clone(),
-		withAuthor:  _q.withAuthor.Clone(),
+		config:        _q.config,
+		ctx:           _q.ctx.Clone(),
+		order:         append([]message.OrderOption{}, _q.order...),
+		inters:        append([]Interceptor{}, _q.inters...),
+		predicates:    append([]predicate.Message{}, _q.predicates...),
+		withSpace:     _q.withSpace.Clone(),
+		withChannel:   _q.withChannel.Clone(),
+		withAuthor:    _q.withAuthor.Clone(),
+		withReactions: _q.withReactions.Clone(),
 		// clone intermediate query.
 		sql:       _q.sql.Clone(),
 		path:      _q.path,
@@ -364,6 +390,17 @@ func (_q *MessageQuery) WithAuthor(opts ...func(*UserQuery)) *MessageQuery {
 		opt(query)
 	}
 	_q.withAuthor = query
+	return _q
+}
+
+// WithReactions tells the query-builder to eager-load the nodes that are connected to
+// the "reactions" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *MessageQuery) WithReactions(opts ...func(*ReactionQuery)) *MessageQuery {
+	query := (&ReactionClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withReactions = query
 	return _q
 }
 
@@ -445,10 +482,11 @@ func (_q *MessageQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Mess
 	var (
 		nodes       = []*Message{}
 		_spec       = _q.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [4]bool{
 			_q.withSpace != nil,
 			_q.withChannel != nil,
 			_q.withAuthor != nil,
+			_q.withReactions != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -487,6 +525,13 @@ func (_q *MessageQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Mess
 	if query := _q.withAuthor; query != nil {
 		if err := _q.loadAuthor(ctx, query, nodes, nil,
 			func(n *Message, e *User) { n.Edges.Author = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withReactions; query != nil {
+		if err := _q.loadReactions(ctx, query, nodes,
+			func(n *Message) { n.Edges.Reactions = []*Reaction{} },
+			func(n *Message, e *Reaction) { n.Edges.Reactions = append(n.Edges.Reactions, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -577,6 +622,36 @@ func (_q *MessageQuery) loadAuthor(ctx context.Context, query *UserQuery, nodes 
 		for i := range nodes {
 			assign(nodes[i], n)
 		}
+	}
+	return nil
+}
+func (_q *MessageQuery) loadReactions(ctx context.Context, query *ReactionQuery, nodes []*Message, init func(*Message), assign func(*Message, *Reaction)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int64]*Message)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(reaction.FieldMessageID)
+	}
+	query.Where(predicate.Reaction(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(message.ReactionsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.MessageID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "message_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }

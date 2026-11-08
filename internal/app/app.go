@@ -9,7 +9,9 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	"os"
 	"runtime"
+	"strconv"
 	"sync"
 	"time"
 
@@ -18,18 +20,23 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
+	"github.com/nickheyer/DiscoFlix/internal/approval"
 	"github.com/nickheyer/DiscoFlix/internal/authz"
 	"github.com/nickheyer/DiscoFlix/internal/capability"
 	"github.com/nickheyer/DiscoFlix/internal/config"
+	"github.com/nickheyer/DiscoFlix/internal/discord"
 	"github.com/nickheyer/DiscoFlix/internal/extension"
 	"github.com/nickheyer/DiscoFlix/internal/gateway"
 	"github.com/nickheyer/DiscoFlix/internal/identity"
+	"github.com/nickheyer/DiscoFlix/internal/presence"
 	"github.com/nickheyer/DiscoFlix/internal/realtime"
 	"github.com/nickheyer/DiscoFlix/internal/store"
 	"github.com/nickheyer/DiscoFlix/internal/timeline"
 	capabilityv1 "github.com/nickheyer/DiscoFlix/sdk/go/pb/discoflix/capability/v1"
 	"github.com/nickheyer/DiscoFlix/sdk/go/pb/discoflix/capability/v1/capabilityv1connect"
 	cardv1 "github.com/nickheyer/DiscoFlix/sdk/go/pb/discoflix/card/v1"
+	discordv1 "github.com/nickheyer/DiscoFlix/sdk/go/pb/discoflix/discord/v1"
+	"github.com/nickheyer/DiscoFlix/sdk/go/pb/discoflix/discord/v1/discordv1connect"
 	identityv1 "github.com/nickheyer/DiscoFlix/sdk/go/pb/discoflix/identity/v1"
 	"github.com/nickheyer/DiscoFlix/sdk/go/pb/discoflix/identity/v1/identityv1connect"
 	timelinev1 "github.com/nickheyer/DiscoFlix/sdk/go/pb/discoflix/timeline/v1"
@@ -49,17 +56,19 @@ type Options struct {
 
 // App holds every subsystem for the lifetime of the process
 type App struct {
-	opts     Options
-	store    *store.Store
-	authz    *authz.Service
-	node     *realtime.Node
-	tl       *timeline.Service
-	ids      *identity.Service
-	reg      *capability.Registry
-	exts     *extension.Registry
-	handler  http.Handler
-	migrated store.MigrateReport
-	token    *identity.ShellToken
+	opts      Options
+	store     *store.Store
+	authz     *authz.Service
+	node      *realtime.Node
+	tl        *timeline.Service
+	ids       *identity.Service
+	reg       *capability.Registry
+	exts      *extension.Registry
+	approvals *approval.Service
+	discord   *discord.Service
+	handler   http.Handler
+	migrated  store.MigrateReport
+	token     *identity.ShellToken
 
 	ready     chan struct{}
 	mu        sync.Mutex
@@ -91,13 +100,19 @@ func New(ctx context.Context, opts Options) (*App, error) {
 	check := func(ctx context.Context, subject, relation, object string) (bool, error) {
 		return a.authz.Check(ctx, subject, relation, object, nil)
 	}
+	var tracker *presence.Tracker
 	if a.node, err = realtime.New(log, opts.Version, func(ctx context.Context, userID, channel string) (bool, error) {
 		return authorizeChannel(ctx, check, userID, channel)
+	}, realtime.Hooks{
+		OnConnect:    func(userID string) { tracker.Connect(userID) },
+		OnDisconnect: func(userID string) { tracker.Disconnect(userID) },
 	}); err != nil {
 		a.Close()
 		return nil, err
 	}
 	a.tl = timeline.New(st.Ent, a.authz, a.node, log)
+	tracker = presence.New(a.tl.PresenceChanged)
+	a.tl.SetPresence(tracker)
 	if err := a.tl.EnsureSystem(ctx, "DiscoFlix"); err != nil {
 		a.Close()
 		return nil, err
@@ -118,6 +133,7 @@ func New(ctx context.Context, opts Options) (*App, error) {
 		capabilityv1.File_discoflix_capability_v1_capability_proto.Services().ByName("CapabilityService"),
 		timelinev1.File_discoflix_timeline_v1_timeline_proto.Services().ByName("TimelineService"),
 		identityv1.File_discoflix_identity_v1_identity_proto.Services().ByName("IdentityService"),
+		discordv1.File_discoflix_discord_v1_discord_proto.Services().ByName("DiscordService"),
 	} {
 		if err := a.reg.AddService(sd); err != nil {
 			a.Close()
@@ -134,17 +150,38 @@ func New(ctx context.Context, opts Options) (*App, error) {
 	gate := capability.NewGate(check)
 	tlHandler := timeline.NewHandler(a.tl, check, a.exts)
 	gate.Resolve("message", tlHandler.ResolveMessage)
+	interceptor := capability.NewInterceptor(a.reg, a.ids, gate, log)
+	srv := connect.NewServer(validate.NewServerInterceptor(), interceptor.Server())
+	invoker := capability.NewInvoker(a.reg, srv)
+	a.approvals = approval.New(st.Ent, a.tl, invoker, check, log)
+	interceptor.SetApprover(a.approvals)
+	if err := a.exts.Register(a.approvals.Card()); err != nil {
+		a.Close()
+		return nil, err
+	}
+	a.discord = discord.New(discord.Deps{
+		Ent:      st.Ent,
+		Timeline: a.tl,
+		Identity: a.ids,
+		Authz:    a.authz,
+		Secrets:  secrets,
+		Settings: store.NewSettings(st.Ent),
+		Invoker:  invoker,
+		Registry: a.reg,
+		Cards:    a.exts,
+		Presence: tracker,
+		Log:      log.With("component", "discord"),
+	})
+	capabilityv1connect.RegisterCapabilityServiceHandler(srv, capability.NewHandler(a.reg))
+	timelinev1connect.RegisterTimelineServiceHandler(srv, tlHandler)
+	identityv1connect.RegisterIdentityServiceHandler(srv, identity.NewHandler(a.ids))
+	discordv1connect.RegisterDiscordServiceHandler(srv, discord.NewHandler(a.discord))
 	if a.token, err = identity.NewShellToken(); err != nil {
 		a.Close()
 		return nil, err
 	}
 	a.handler = gateway.NewHandler(gateway.Deps{
-		Interceptors: []connect.ServerInterceptor{validate.NewServerInterceptor(), capability.NewInterceptor(a.reg, a.ids, gate, log).Server()},
-		Register: func(s *connect.Server) {
-			capabilityv1connect.RegisterCapabilityServiceHandler(s, capability.NewHandler(a.reg))
-			timelinev1connect.RegisterTimelineServiceHandler(s, tlHandler)
-			identityv1connect.RegisterIdentityServiceHandler(s, identity.NewHandler(a.ids))
-		},
+		Server:  srv,
 		Session: a.ids.Middleware,
 		Websocket: a.node.WebsocketHandler(func(r *http.Request) (string, error) {
 			p, err := a.ids.AuthenticateHTTP(r)
@@ -157,6 +194,10 @@ func New(ctx context.Context, opts Options) (*App, error) {
 			return p.UserID, nil
 		}),
 		ShellLogin: a.ids.ShellLoginHandler(a.token),
+		Routes: map[string]http.Handler{
+			"GET /auth/discord/start":    a.discord.StartHandler(),
+			"GET /auth/discord/callback": a.discord.CallbackHandler(),
+		},
 		IsAdmin: func(r *http.Request) bool {
 			p, err := a.ids.AuthenticateHTTP(r)
 			return err == nil && p.SystemAdmin
@@ -173,11 +214,15 @@ func authorizeChannel(ctx context.Context, check capability.CheckFunc, userID, c
 	if channel == timeline.UserChannel(userID) {
 		return true, nil
 	}
-	var spaceID, channelID string
-	if n, _ := fmt.Sscanf(channel, "space:%36s:channel:%36s", &spaceID, &channelID); n == 2 {
+	spaceID, channelID, ok := timeline.ParseName(channel)
+	switch {
+	case !ok:
+		return false, nil
+	case channelID != "":
 		return check(ctx, "user:"+userID, "reader", "channel:"+channelID)
+	default:
+		return check(ctx, "user:"+userID, "member", "space:"+spaceID)
 	}
-	return false, nil
 }
 
 func secureCookies(publicURL string) bool {
@@ -192,15 +237,20 @@ func (a *App) Run(ctx context.Context) error {
 		return err
 	}
 	var wg sync.WaitGroup
-	wg.Add(2)
+	wg.Add(3)
 	go func() { defer wg.Done(); _ = a.authz.Run(ctx) }()
 	go func() { defer wg.Done(); _ = a.ids.Run(ctx) }()
+	go func() { defer wg.Done(); _ = a.discord.Run(ctx) }()
 	err := gateway.Serve(ctx, a.opts.Config.Addr, a.handler, a.opts.Log, func(addr net.Addr) {
 		a.mu.Lock()
 		a.addr = addr
 		a.mu.Unlock()
+		if a.opts.Config.PublicURL == "" {
+			a.ids.SetLinkBase(defaultBase(addr))
+		}
 		close(a.ready)
 		a.postBootReport(ctx)
+		a.discord.Start(ctx)
 	})
 	cancel()
 	wg.Wait()
@@ -208,6 +258,22 @@ func (a *App) Run(ctx context.Context) error {
 	defer stop()
 	_ = a.node.Shutdown(shutdown)
 	return err
+}
+
+// defaultBase guesses the address people on the LAN reach this server at when no public URL is configured
+func defaultBase(addr net.Addr) string {
+	host, _ := os.Hostname()
+	if host == "" {
+		host = "localhost"
+	}
+	port := ""
+	if tcp, ok := addr.(*net.TCPAddr); ok {
+		port = strconv.Itoa(tcp.Port)
+		if tcp.IP != nil && !tcp.IP.IsUnspecified() {
+			host = tcp.IP.String()
+		}
+	}
+	return "http://" + net.JoinHostPort(host, port)
 }
 
 func (a *App) postBootReport(ctx context.Context) {

@@ -1,0 +1,14 @@
+{
+  "$defs": {
+    "discoflix.discord.v1.SetApprovalsChannelResponse.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {},
+      "title": "Set Approvals Channel Response",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.discord.v1.SetApprovalsChannelResponse.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.discord.v1.SetApprovalsChannelResponse.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

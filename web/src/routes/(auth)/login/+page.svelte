@@ -1,6 +1,7 @@
 <script lang="ts">
 	import KeyRound from '@lucide/svelte/icons/key-round';
 	import { onMount } from 'svelte';
+	import { page } from '$app/state';
 	import { identityClient } from '#lib/api/clients';
 	import { errorText } from '#lib/api/errors';
 	import { session } from '#lib/identity/session.svelte';
@@ -18,6 +19,20 @@
 	const info = $derived(session.info);
 	const passwordEnabled = $derived(info?.passwordLogin ?? false);
 	const passkeyEnabled = $derived((info?.passkeyLogin ?? false) && passkeysSupported());
+	const discordEnabled = $derived(info?.discordLogin ?? false);
+	const next = $derived(page.url.searchParams.get('next') ?? '');
+	const discordHref = $derived('/auth/discord/start' + (next ? `?next=${encodeURIComponent(next)}` : ''));
+
+	const providerErrors: Record<string, string> = {
+		not_a_member: 'Your Discord account is not in any server this DiscoFlix mirrors, so it cannot sign in yet',
+		discord_unavailable: 'Discord sign-in is not configured on this server',
+		discord_state: 'The Discord sign-in attempt expired, try again',
+		discord_exchange: 'Discord did not accept the sign-in, check the redirect URL in the developer portal',
+		discord_profile: 'Discord did not return your profile',
+		discord_login: 'Signing you in after Discord failed',
+		disabled: 'This account is disabled'
+	};
+	const providerError = $derived(providerErrors[page.url.searchParams.get('error') ?? ''] ?? '');
 
 	async function finish(): Promise<void> {
 		conditional?.abort();
@@ -139,7 +154,25 @@
 	</Button>
 {/if}
 
-{#if !passwordEnabled && !passkeyEnabled}
+{#if discordEnabled}
+	<div class="my-4 flex items-center gap-3 text-xs text-faint uppercase">
+		<span class="h-px flex-1 bg-divider"></span>or<span class="h-px flex-1 bg-divider"></span>
+	</div>
+	<Button href={discordHref} class="h-11 w-full bg-[#5865f2] text-base text-white hover:bg-[#4752c4]">
+		<svg viewBox="0 0 24 24" class="size-5 fill-current" aria-hidden="true">
+			<path
+				d="M19.54 5.34A17.3 17.3 0 0 0 15.3 4l-.2.4a16 16 0 0 1 3.9 1.9 13.6 13.6 0 0 0-14 0 16 16 0 0 1 3.9-1.9L8.7 4a17.3 17.3 0 0 0-4.24 1.34C1.8 9.3 1.08 13.1 1.44 16.86A17.4 17.4 0 0 0 6.7 19.5l1.1-1.8a11.3 11.3 0 0 1-1.76-.85l.43-.33a12.4 12.4 0 0 0 11.06 0l.43.33c-.56.33-1.15.62-1.76.85l1.1 1.8a17.3 17.3 0 0 0 5.26-2.64c.43-4.37-.73-8.16-3.02-11.52ZM8.68 14.56c-1.04 0-1.9-.96-1.9-2.13s.84-2.14 1.9-2.14 1.92.97 1.9 2.14c0 1.17-.84 2.13-1.9 2.13Zm6.64 0c-1.04 0-1.9-.96-1.9-2.13s.84-2.14 1.9-2.14 1.92.97 1.9 2.14c0 1.17-.84 2.13-1.9 2.13Z"
+			/>
+		</svg>
+		Continue with Discord
+	</Button>
+{/if}
+
+{#if providerError}
+	<p class="mt-4 rounded bg-dnd/15 p-3 text-sm text-dnd" role="alert">{providerError}</p>
+{/if}
+
+{#if !passwordEnabled && !passkeyEnabled && !discordEnabled}
 	<p class="mt-6 rounded bg-dnd/15 p-3 text-sm text-dnd" role="alert">
 		{info?.passkeyLogin
 			? 'This server only accepts passkeys and this browser cannot use them'

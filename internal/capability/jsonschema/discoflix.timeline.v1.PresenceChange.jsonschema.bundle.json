@@ -1,0 +1,30 @@
+{
+  "$defs": {
+    "discoflix.timeline.v1.PresenceChange.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(user_id)$": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "properties": {
+        "status": {
+          "default": "",
+          "description": "online, idle, dnd, offline",
+          "type": "string"
+        },
+        "userId": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "title": "Presence Change",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.timeline.v1.PresenceChange.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.timeline.v1.PresenceChange.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

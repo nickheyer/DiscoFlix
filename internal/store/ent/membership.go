@@ -26,6 +26,10 @@ type Membership struct {
 	SpaceID string `json:"space_id,omitempty"`
 	// Roles holds the value of the "roles" field.
 	Roles []string `json:"roles,omitempty"`
+	// Nickname holds the value of the "nickname" field.
+	Nickname string `json:"nickname,omitempty"`
+	// Admin holds the value of the "admin" field.
+	Admin bool `json:"admin,omitempty"`
 	// JoinedAt holds the value of the "joined_at" field.
 	JoinedAt time.Time `json:"joined_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -74,7 +78,9 @@ func (*Membership) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case membership.FieldRoles:
 			values[i] = new([]byte)
-		case membership.FieldID, membership.FieldUserID, membership.FieldSpaceID:
+		case membership.FieldAdmin:
+			values[i] = new(sql.NullBool)
+		case membership.FieldID, membership.FieldUserID, membership.FieldSpaceID, membership.FieldNickname:
 			values[i] = new(sql.NullString)
 		case membership.FieldJoinedAt:
 			values[i] = new(sql.NullTime)
@@ -118,6 +124,18 @@ func (_m *Membership) assignValues(columns []string, values []any) error {
 				if err := json.Unmarshal(*value, &_m.Roles); err != nil {
 					return fmt.Errorf("unmarshal field roles: %w", err)
 				}
+			}
+		case membership.FieldNickname:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field nickname", values[i])
+			} else if value.Valid {
+				_m.Nickname = value.String
+			}
+		case membership.FieldAdmin:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field admin", values[i])
+			} else if value.Valid {
+				_m.Admin = value.Bool
 			}
 		case membership.FieldJoinedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -179,6 +197,12 @@ func (_m *Membership) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("roles=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Roles))
+	builder.WriteString(", ")
+	builder.WriteString("nickname=")
+	builder.WriteString(_m.Nickname)
+	builder.WriteString(", ")
+	builder.WriteString("admin=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Admin))
 	builder.WriteString(", ")
 	builder.WriteString("joined_at=")
 	builder.WriteString(_m.JoinedAt.Format(time.ANSIC))

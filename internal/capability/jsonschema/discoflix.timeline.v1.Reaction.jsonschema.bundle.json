@@ -1,0 +1,38 @@
+{
+  "$defs": {
+    "discoflix.timeline.v1.Reaction.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "description": "One emoji on a message with how many users added it",
+      "properties": {
+        "count": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "emoji": {
+          "default": "",
+          "description": "Unicode emoji, or name:id for a custom Discord emoji",
+          "type": "string"
+        },
+        "me": {
+          "default": false,
+          "description": "True when the caller is among the reactors",
+          "type": "boolean"
+        }
+      },
+      "title": "Reaction",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.timeline.v1.Reaction.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.timeline.v1.Reaction.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

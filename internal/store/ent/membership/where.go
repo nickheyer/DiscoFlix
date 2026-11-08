@@ -75,6 +75,16 @@ func SpaceID(v string) predicate.Membership {
 	return predicate.Membership(sql.FieldEQ(FieldSpaceID, v))
 }
 
+// Nickname applies equality check predicate on the "nickname" field. It's identical to NicknameEQ.
+func Nickname(v string) predicate.Membership {
+	return predicate.Membership(sql.FieldEQ(FieldNickname, v))
+}
+
+// Admin applies equality check predicate on the "admin" field. It's identical to AdminEQ.
+func Admin(v bool) predicate.Membership {
+	return predicate.Membership(sql.FieldEQ(FieldAdmin, v))
+}
+
 // JoinedAt applies equality check predicate on the "joined_at" field. It's identical to JoinedAtEQ.
 func JoinedAt(v time.Time) predicate.Membership {
 	return predicate.Membership(sql.FieldEQ(FieldJoinedAt, v))
@@ -208,6 +218,81 @@ func SpaceIDEqualFold(v string) predicate.Membership {
 // SpaceIDContainsFold applies the ContainsFold predicate on the "space_id" field.
 func SpaceIDContainsFold(v string) predicate.Membership {
 	return predicate.Membership(sql.FieldContainsFold(FieldSpaceID, v))
+}
+
+// NicknameEQ applies the EQ predicate on the "nickname" field.
+func NicknameEQ(v string) predicate.Membership {
+	return predicate.Membership(sql.FieldEQ(FieldNickname, v))
+}
+
+// NicknameNEQ applies the NEQ predicate on the "nickname" field.
+func NicknameNEQ(v string) predicate.Membership {
+	return predicate.Membership(sql.FieldNEQ(FieldNickname, v))
+}
+
+// NicknameIn applies the In predicate on the "nickname" field.
+func NicknameIn(vs ...string) predicate.Membership {
+	return predicate.Membership(sql.FieldIn(FieldNickname, vs...))
+}
+
+// NicknameNotIn applies the NotIn predicate on the "nickname" field.
+func NicknameNotIn(vs ...string) predicate.Membership {
+	return predicate.Membership(sql.FieldNotIn(FieldNickname, vs...))
+}
+
+// NicknameGT applies the GT predicate on the "nickname" field.
+func NicknameGT(v string) predicate.Membership {
+	return predicate.Membership(sql.FieldGT(FieldNickname, v))
+}
+
+// NicknameGTE applies the GTE predicate on the "nickname" field.
+func NicknameGTE(v string) predicate.Membership {
+	return predicate.Membership(sql.FieldGTE(FieldNickname, v))
+}
+
+// NicknameLT applies the LT predicate on the "nickname" field.
+func NicknameLT(v string) predicate.Membership {
+	return predicate.Membership(sql.FieldLT(FieldNickname, v))
+}
+
+// NicknameLTE applies the LTE predicate on the "nickname" field.
+func NicknameLTE(v string) predicate.Membership {
+	return predicate.Membership(sql.FieldLTE(FieldNickname, v))
+}
+
+// NicknameContains applies the Contains predicate on the "nickname" field.
+func NicknameContains(v string) predicate.Membership {
+	return predicate.Membership(sql.FieldContains(FieldNickname, v))
+}
+
+// NicknameHasPrefix applies the HasPrefix predicate on the "nickname" field.
+func NicknameHasPrefix(v string) predicate.Membership {
+	return predicate.Membership(sql.FieldHasPrefix(FieldNickname, v))
+}
+
+// NicknameHasSuffix applies the HasSuffix predicate on the "nickname" field.
+func NicknameHasSuffix(v string) predicate.Membership {
+	return predicate.Membership(sql.FieldHasSuffix(FieldNickname, v))
+}
+
+// NicknameEqualFold applies the EqualFold predicate on the "nickname" field.
+func NicknameEqualFold(v string) predicate.Membership {
+	return predicate.Membership(sql.FieldEqualFold(FieldNickname, v))
+}
+
+// NicknameContainsFold applies the ContainsFold predicate on the "nickname" field.
+func NicknameContainsFold(v string) predicate.Membership {
+	return predicate.Membership(sql.FieldContainsFold(FieldNickname, v))
+}
+
+// AdminEQ applies the EQ predicate on the "admin" field.
+func AdminEQ(v bool) predicate.Membership {
+	return predicate.Membership(sql.FieldEQ(FieldAdmin, v))
+}
+
+// AdminNEQ applies the NEQ predicate on the "admin" field.
+func AdminNEQ(v bool) predicate.Membership {
+	return predicate.Membership(sql.FieldNEQ(FieldAdmin, v))
 }
 
 // JoinedAtEQ applies the EQ predicate on the "joined_at" field.

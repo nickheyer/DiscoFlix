@@ -1,0 +1,82 @@
+{
+  "$defs": {
+    "discoflix.discord.v1.DiscordGuild.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(approvals_channel_id)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(icon_url)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(member_count)$": {
+          "anyOf": [
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "^(space_id)$": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "properties": {
+        "approvalsChannelId": {
+          "default": "",
+          "type": "string"
+        },
+        "available": {
+          "default": false,
+          "description": "False while Discord reports the guild unavailable",
+          "type": "boolean"
+        },
+        "iconUrl": {
+          "default": "",
+          "type": "string"
+        },
+        "id": {
+          "default": "",
+          "type": "string"
+        },
+        "memberCount": {
+          "anyOf": [
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "name": {
+          "default": "",
+          "type": "string"
+        },
+        "spaceId": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "title": "Discord Guild",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.discord.v1.DiscordGuild.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.discord.v1.DiscordGuild.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

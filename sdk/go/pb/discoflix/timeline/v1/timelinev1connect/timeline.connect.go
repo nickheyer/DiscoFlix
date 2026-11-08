@@ -29,6 +29,9 @@ const (
 	// TimelineServiceListChannelsProcedure is the procedure name of the TimelineService's ListChannels
 	// RPC.
 	TimelineServiceListChannelsProcedure = "/discoflix.timeline.v1.TimelineService/ListChannels"
+	// TimelineServiceListMembersProcedure is the procedure name of the TimelineService's ListMembers
+	// RPC.
+	TimelineServiceListMembersProcedure = "/discoflix.timeline.v1.TimelineService/ListMembers"
 	// TimelineServiceListMessagesProcedure is the procedure name of the TimelineService's ListMessages
 	// RPC.
 	TimelineServiceListMessagesProcedure = "/discoflix.timeline.v1.TimelineService/ListMessages"
@@ -41,6 +44,20 @@ const (
 	// TimelineServiceDeleteMessageProcedure is the procedure name of the TimelineService's
 	// DeleteMessage RPC.
 	TimelineServiceDeleteMessageProcedure = "/discoflix.timeline.v1.TimelineService/DeleteMessage"
+	// TimelineServiceAddReactionProcedure is the procedure name of the TimelineService's AddReaction
+	// RPC.
+	TimelineServiceAddReactionProcedure = "/discoflix.timeline.v1.TimelineService/AddReaction"
+	// TimelineServiceRemoveReactionProcedure is the procedure name of the TimelineService's
+	// RemoveReaction RPC.
+	TimelineServiceRemoveReactionProcedure = "/discoflix.timeline.v1.TimelineService/RemoveReaction"
+	// TimelineServiceInteractCardProcedure is the procedure name of the TimelineService's InteractCard
+	// RPC.
+	TimelineServiceInteractCardProcedure = "/discoflix.timeline.v1.TimelineService/InteractCard"
+	// TimelineServiceCreateThreadProcedure is the procedure name of the TimelineService's CreateThread
+	// RPC.
+	TimelineServiceCreateThreadProcedure = "/discoflix.timeline.v1.TimelineService/CreateThread"
+	// TimelineServiceSendTypingProcedure is the procedure name of the TimelineService's SendTyping RPC.
+	TimelineServiceSendTypingProcedure = "/discoflix.timeline.v1.TimelineService/SendTyping"
 	// TimelineServiceMarkReadProcedure is the procedure name of the TimelineService's MarkRead RPC.
 	TimelineServiceMarkReadProcedure = "/discoflix.timeline.v1.TimelineService/MarkRead"
 	// TimelineServiceWatchEventsProcedure is the procedure name of the TimelineService's WatchEvents
@@ -61,6 +78,13 @@ var (
 			StreamType: connect.StreamTypeUnary,
 			Schema:     v1.File_discoflix_timeline_v1_timeline_proto.Services().ByName("TimelineService").Methods().ByName("ListChannels"),
 			Procedure:  TimelineServiceListChannelsProcedure,
+		}
+	})
+	timelineServiceListMembersSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_discoflix_timeline_v1_timeline_proto.Services().ByName("TimelineService").Methods().ByName("ListMembers"),
+			Procedure:  TimelineServiceListMembersProcedure,
 		}
 	})
 	timelineServiceListMessagesSpec = sync.OnceValue(func() connect.Spec {
@@ -91,6 +115,41 @@ var (
 			Procedure:  TimelineServiceDeleteMessageProcedure,
 		}
 	})
+	timelineServiceAddReactionSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_discoflix_timeline_v1_timeline_proto.Services().ByName("TimelineService").Methods().ByName("AddReaction"),
+			Procedure:  TimelineServiceAddReactionProcedure,
+		}
+	})
+	timelineServiceRemoveReactionSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_discoflix_timeline_v1_timeline_proto.Services().ByName("TimelineService").Methods().ByName("RemoveReaction"),
+			Procedure:  TimelineServiceRemoveReactionProcedure,
+		}
+	})
+	timelineServiceInteractCardSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_discoflix_timeline_v1_timeline_proto.Services().ByName("TimelineService").Methods().ByName("InteractCard"),
+			Procedure:  TimelineServiceInteractCardProcedure,
+		}
+	})
+	timelineServiceCreateThreadSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_discoflix_timeline_v1_timeline_proto.Services().ByName("TimelineService").Methods().ByName("CreateThread"),
+			Procedure:  TimelineServiceCreateThreadProcedure,
+		}
+	})
+	timelineServiceSendTypingSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_discoflix_timeline_v1_timeline_proto.Services().ByName("TimelineService").Methods().ByName("SendTyping"),
+			Procedure:  TimelineServiceSendTypingProcedure,
+		}
+	})
 	timelineServiceMarkReadSpec = sync.OnceValue(func() connect.Spec {
 		return connect.Spec{
 			StreamType: connect.StreamTypeUnary,
@@ -111,10 +170,16 @@ var (
 type TimelineServiceClient interface {
 	ListSpaces(context.Context, *v1.ListSpacesRequest) (*v1.ListSpacesResponse, error)
 	ListChannels(context.Context, *v1.ListChannelsRequest) (*v1.ListChannelsResponse, error)
+	ListMembers(context.Context, *v1.ListMembersRequest) (*v1.ListMembersResponse, error)
 	ListMessages(context.Context, *v1.ListMessagesRequest) (*v1.ListMessagesResponse, error)
 	PostMessage(context.Context, *v1.PostMessageRequest) (*v1.PostMessageResponse, error)
 	EditMessage(context.Context, *v1.EditMessageRequest) (*v1.EditMessageResponse, error)
 	DeleteMessage(context.Context, *v1.DeleteMessageRequest) (*v1.DeleteMessageResponse, error)
+	AddReaction(context.Context, *v1.AddReactionRequest) (*v1.AddReactionResponse, error)
+	RemoveReaction(context.Context, *v1.RemoveReactionRequest) (*v1.RemoveReactionResponse, error)
+	InteractCard(context.Context, *v1.InteractCardRequest) (*v1.InteractCardResponse, error)
+	CreateThread(context.Context, *v1.CreateThreadRequest) (*v1.CreateThreadResponse, error)
+	SendTyping(context.Context, *v1.SendTypingRequest) (*v1.SendTypingResponse, error)
 	MarkRead(context.Context, *v1.MarkReadRequest) (*v1.MarkReadResponse, error)
 	WatchEvents(context.Context, *v1.WatchEventsRequest) (TimelineServiceWatchEventsClientStream, error)
 }
@@ -150,10 +215,16 @@ func (s TimelineServiceWatchEventsClientStream) Close() error {
 type TimelineServiceHandler interface {
 	ListSpaces(context.Context, *v1.ListSpacesRequest) (*v1.ListSpacesResponse, error)
 	ListChannels(context.Context, *v1.ListChannelsRequest) (*v1.ListChannelsResponse, error)
+	ListMembers(context.Context, *v1.ListMembersRequest) (*v1.ListMembersResponse, error)
 	ListMessages(context.Context, *v1.ListMessagesRequest) (*v1.ListMessagesResponse, error)
 	PostMessage(context.Context, *v1.PostMessageRequest) (*v1.PostMessageResponse, error)
 	EditMessage(context.Context, *v1.EditMessageRequest) (*v1.EditMessageResponse, error)
 	DeleteMessage(context.Context, *v1.DeleteMessageRequest) (*v1.DeleteMessageResponse, error)
+	AddReaction(context.Context, *v1.AddReactionRequest) (*v1.AddReactionResponse, error)
+	RemoveReaction(context.Context, *v1.RemoveReactionRequest) (*v1.RemoveReactionResponse, error)
+	InteractCard(context.Context, *v1.InteractCardRequest) (*v1.InteractCardResponse, error)
+	CreateThread(context.Context, *v1.CreateThreadRequest) (*v1.CreateThreadResponse, error)
+	SendTyping(context.Context, *v1.SendTypingRequest) (*v1.SendTypingResponse, error)
 	MarkRead(context.Context, *v1.MarkReadRequest) (*v1.MarkReadResponse, error)
 	WatchEvents(context.Context, *v1.WatchEventsRequest, TimelineServiceWatchEventsServerStream) error
 }
@@ -165,10 +236,16 @@ func RegisterTimelineServiceHandler(server *connect.Server, svc TimelineServiceH
 	server.Register(
 		connect.Method{Spec: timelineServiceListSpacesSpec(), Handler: adapter.listSpaces},
 		connect.Method{Spec: timelineServiceListChannelsSpec(), Handler: adapter.listChannels},
+		connect.Method{Spec: timelineServiceListMembersSpec(), Handler: adapter.listMembers},
 		connect.Method{Spec: timelineServiceListMessagesSpec(), Handler: adapter.listMessages},
 		connect.Method{Spec: timelineServicePostMessageSpec(), Handler: adapter.postMessage},
 		connect.Method{Spec: timelineServiceEditMessageSpec(), Handler: adapter.editMessage},
 		connect.Method{Spec: timelineServiceDeleteMessageSpec(), Handler: adapter.deleteMessage},
+		connect.Method{Spec: timelineServiceAddReactionSpec(), Handler: adapter.addReaction},
+		connect.Method{Spec: timelineServiceRemoveReactionSpec(), Handler: adapter.removeReaction},
+		connect.Method{Spec: timelineServiceInteractCardSpec(), Handler: adapter.interactCard},
+		connect.Method{Spec: timelineServiceCreateThreadSpec(), Handler: adapter.createThread},
+		connect.Method{Spec: timelineServiceSendTypingSpec(), Handler: adapter.sendTyping},
 		connect.Method{Spec: timelineServiceMarkReadSpec(), Handler: adapter.markRead},
 		connect.Method{Spec: timelineServiceWatchEventsSpec(), Handler: adapter.watchEvents},
 	)
@@ -201,6 +278,10 @@ func (UnimplementedTimelineServiceHandler) ListChannels(context.Context, *v1.Lis
 	return nil, connect.NewError(connect.CodeUnimplemented, "discoflix.timeline.v1.TimelineService.ListChannels is not implemented")
 }
 
+func (UnimplementedTimelineServiceHandler) ListMembers(context.Context, *v1.ListMembersRequest) (*v1.ListMembersResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "discoflix.timeline.v1.TimelineService.ListMembers is not implemented")
+}
+
 func (UnimplementedTimelineServiceHandler) ListMessages(context.Context, *v1.ListMessagesRequest) (*v1.ListMessagesResponse, error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, "discoflix.timeline.v1.TimelineService.ListMessages is not implemented")
 }
@@ -215,6 +296,26 @@ func (UnimplementedTimelineServiceHandler) EditMessage(context.Context, *v1.Edit
 
 func (UnimplementedTimelineServiceHandler) DeleteMessage(context.Context, *v1.DeleteMessageRequest) (*v1.DeleteMessageResponse, error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, "discoflix.timeline.v1.TimelineService.DeleteMessage is not implemented")
+}
+
+func (UnimplementedTimelineServiceHandler) AddReaction(context.Context, *v1.AddReactionRequest) (*v1.AddReactionResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "discoflix.timeline.v1.TimelineService.AddReaction is not implemented")
+}
+
+func (UnimplementedTimelineServiceHandler) RemoveReaction(context.Context, *v1.RemoveReactionRequest) (*v1.RemoveReactionResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "discoflix.timeline.v1.TimelineService.RemoveReaction is not implemented")
+}
+
+func (UnimplementedTimelineServiceHandler) InteractCard(context.Context, *v1.InteractCardRequest) (*v1.InteractCardResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "discoflix.timeline.v1.TimelineService.InteractCard is not implemented")
+}
+
+func (UnimplementedTimelineServiceHandler) CreateThread(context.Context, *v1.CreateThreadRequest) (*v1.CreateThreadResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "discoflix.timeline.v1.TimelineService.CreateThread is not implemented")
+}
+
+func (UnimplementedTimelineServiceHandler) SendTyping(context.Context, *v1.SendTypingRequest) (*v1.SendTypingResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "discoflix.timeline.v1.TimelineService.SendTyping is not implemented")
 }
 
 func (UnimplementedTimelineServiceHandler) MarkRead(context.Context, *v1.MarkReadRequest) (*v1.MarkReadResponse, error) {
@@ -240,6 +341,14 @@ func (c *timelineServiceClient) ListSpaces(ctx context.Context, req *v1.ListSpac
 func (c *timelineServiceClient) ListChannels(ctx context.Context, req *v1.ListChannelsRequest) (*v1.ListChannelsResponse, error) {
 	var res v1.ListChannelsResponse
 	if err := c.client.CallUnary(ctx, timelineServiceListChannelsSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *timelineServiceClient) ListMembers(ctx context.Context, req *v1.ListMembersRequest) (*v1.ListMembersResponse, error) {
+	var res v1.ListMembersResponse
+	if err := c.client.CallUnary(ctx, timelineServiceListMembersSpec(), req, &res); err != nil {
 		return nil, err
 	}
 	return &res, nil
@@ -272,6 +381,46 @@ func (c *timelineServiceClient) EditMessage(ctx context.Context, req *v1.EditMes
 func (c *timelineServiceClient) DeleteMessage(ctx context.Context, req *v1.DeleteMessageRequest) (*v1.DeleteMessageResponse, error) {
 	var res v1.DeleteMessageResponse
 	if err := c.client.CallUnary(ctx, timelineServiceDeleteMessageSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *timelineServiceClient) AddReaction(ctx context.Context, req *v1.AddReactionRequest) (*v1.AddReactionResponse, error) {
+	var res v1.AddReactionResponse
+	if err := c.client.CallUnary(ctx, timelineServiceAddReactionSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *timelineServiceClient) RemoveReaction(ctx context.Context, req *v1.RemoveReactionRequest) (*v1.RemoveReactionResponse, error) {
+	var res v1.RemoveReactionResponse
+	if err := c.client.CallUnary(ctx, timelineServiceRemoveReactionSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *timelineServiceClient) InteractCard(ctx context.Context, req *v1.InteractCardRequest) (*v1.InteractCardResponse, error) {
+	var res v1.InteractCardResponse
+	if err := c.client.CallUnary(ctx, timelineServiceInteractCardSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *timelineServiceClient) CreateThread(ctx context.Context, req *v1.CreateThreadRequest) (*v1.CreateThreadResponse, error) {
+	var res v1.CreateThreadResponse
+	if err := c.client.CallUnary(ctx, timelineServiceCreateThreadSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *timelineServiceClient) SendTyping(ctx context.Context, req *v1.SendTypingRequest) (*v1.SendTypingResponse, error) {
+	var res v1.SendTypingResponse
+	if err := c.client.CallUnary(ctx, timelineServiceSendTypingSpec(), req, &res); err != nil {
 		return nil, err
 	}
 	return &res, nil
@@ -313,6 +462,18 @@ func (h timelineServiceHandler) listChannels(ctx context.Context, _ connect.Spec
 		return err
 	}
 	res, err := h.svc.ListChannels(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h timelineServiceHandler) listMembers(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.ListMembersRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.ListMembers(ctx, &req)
 	if err != nil {
 		return err
 	}
@@ -361,6 +522,66 @@ func (h timelineServiceHandler) deleteMessage(ctx context.Context, _ connect.Spe
 		return err
 	}
 	res, err := h.svc.DeleteMessage(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h timelineServiceHandler) addReaction(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.AddReactionRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.AddReaction(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h timelineServiceHandler) removeReaction(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.RemoveReactionRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.RemoveReaction(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h timelineServiceHandler) interactCard(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.InteractCardRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.InteractCard(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h timelineServiceHandler) createThread(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.CreateThreadRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.CreateThread(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h timelineServiceHandler) sendTyping(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.SendTypingRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.SendTyping(ctx, &req)
 	if err != nil {
 		return err
 	}

@@ -1,0 +1,14 @@
+{
+  "$defs": {
+    "discoflix.timeline.v1.SendTypingResponse.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {},
+      "title": "Send Typing Response",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.timeline.v1.SendTypingResponse.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.timeline.v1.SendTypingResponse.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

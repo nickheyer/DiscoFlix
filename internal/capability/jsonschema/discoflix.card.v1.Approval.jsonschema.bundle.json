@@ -1,0 +1,134 @@
+{
+  "$defs": {
+    "discoflix.card.v1.Approval.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "description": "Asks a space administrator to allow one destructive capability call made by an agent or plugin",
+      "patternProperties": {
+        "^(action_id)$": {
+          "default": "",
+          "description": "Pending action this card decides",
+          "type": "string"
+        },
+        "^(decided_at)$": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "^(decided_by)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(decided_by_name)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(input_json)$": {
+          "default": "",
+          "description": "Request message as protobuf JSON",
+          "type": "string"
+        },
+        "^(requested_by)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(requested_by_name)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(requested_via)$": {
+          "default": "",
+          "description": "apikey, plugin, discord, or session",
+          "type": "string"
+        }
+      },
+      "properties": {
+        "actionId": {
+          "default": "",
+          "description": "Pending action this card decides",
+          "type": "string"
+        },
+        "body": {
+          "default": "",
+          "type": "string"
+        },
+        "decidedAt": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "decidedBy": {
+          "default": "",
+          "type": "string"
+        },
+        "decidedByName": {
+          "default": "",
+          "type": "string"
+        },
+        "inputJson": {
+          "default": "",
+          "description": "Request message as protobuf JSON",
+          "type": "string"
+        },
+        "procedure": {
+          "default": "",
+          "type": "string"
+        },
+        "requestedBy": {
+          "default": "",
+          "type": "string"
+        },
+        "requestedByName": {
+          "default": "",
+          "type": "string"
+        },
+        "requestedVia": {
+          "default": "",
+          "description": "apikey, plugin, discord, or session",
+          "type": "string"
+        },
+        "result": {
+          "default": "",
+          "description": "Outcome of running the call after approval, or the failure",
+          "type": "string"
+        },
+        "state": {
+          "anyOf": [
+            {
+              "pattern": "^APPROVAL_STATE_UNSPECIFIED$",
+              "type": "string"
+            },
+            {
+              "enum": [
+                "APPROVAL_STATE_PENDING",
+                "APPROVAL_STATE_APPROVED",
+                "APPROVAL_STATE_DENIED",
+                "APPROVAL_STATE_EXECUTED",
+                "APPROVAL_STATE_FAILED"
+              ],
+              "type": "string"
+            },
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            }
+          ],
+          "default": 0,
+          "title": "Approval State"
+        },
+        "title": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "title": "Approval",
+      "type": "object"
+    },
+    "google.protobuf.Timestamp.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "format": "date-time",
+      "title": "Timestamp",
+      "type": "string"
+    }
+  },
+  "$id": "discoflix.card.v1.Approval.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.card.v1.Approval.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

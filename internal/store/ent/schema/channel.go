@@ -22,6 +22,8 @@ func (Channel) Fields() []ent.Field {
 		field.Int32("position").Default(0),
 		field.String("external_id").Default(""),
 		field.Int64("last_seq").Default(0),
+		field.Bool("archived").Default(false),
+		field.Time("deleted_at").Optional().Nillable(),
 	}
 }
 
@@ -37,6 +39,7 @@ func (Channel) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("space_id", "position"),
 		index.Fields("space_id", "external_id"),
+		index.Fields("external_id"),
 		index.Fields("parent_id"),
 	}
 }

@@ -21,10 +21,13 @@ import (
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/identity"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/membership"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/message"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/pendingaction"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/reaction"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/readstate"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/setting"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/space"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/user"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/usermerge"
 
 	stdsql "database/sql"
 )
@@ -46,6 +49,10 @@ type Client struct {
 	Membership *MembershipClient
 	// Message is the client for interacting with the Message builders.
 	Message *MessageClient
+	// PendingAction is the client for interacting with the PendingAction builders.
+	PendingAction *PendingActionClient
+	// Reaction is the client for interacting with the Reaction builders.
+	Reaction *ReactionClient
 	// ReadState is the client for interacting with the ReadState builders.
 	ReadState *ReadStateClient
 	// Setting is the client for interacting with the Setting builders.
@@ -54,6 +61,8 @@ type Client struct {
 	Space *SpaceClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
+	// UserMerge is the client for interacting with the UserMerge builders.
+	UserMerge *UserMergeClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -71,10 +80,13 @@ func (c *Client) init() {
 	c.Identity = NewIdentityClient(c.config)
 	c.Membership = NewMembershipClient(c.config)
 	c.Message = NewMessageClient(c.config)
+	c.PendingAction = NewPendingActionClient(c.config)
+	c.Reaction = NewReactionClient(c.config)
 	c.ReadState = NewReadStateClient(c.config)
 	c.Setting = NewSettingClient(c.config)
 	c.Space = NewSpaceClient(c.config)
 	c.User = NewUserClient(c.config)
+	c.UserMerge = NewUserMergeClient(c.config)
 }
 
 type (
@@ -165,18 +177,21 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:         ctx,
-		config:      cfg,
-		AuthzOutbox: NewAuthzOutboxClient(cfg),
-		Channel:     NewChannelClient(cfg),
-		Credential:  NewCredentialClient(cfg),
-		Identity:    NewIdentityClient(cfg),
-		Membership:  NewMembershipClient(cfg),
-		Message:     NewMessageClient(cfg),
-		ReadState:   NewReadStateClient(cfg),
-		Setting:     NewSettingClient(cfg),
-		Space:       NewSpaceClient(cfg),
-		User:        NewUserClient(cfg),
+		ctx:           ctx,
+		config:        cfg,
+		AuthzOutbox:   NewAuthzOutboxClient(cfg),
+		Channel:       NewChannelClient(cfg),
+		Credential:    NewCredentialClient(cfg),
+		Identity:      NewIdentityClient(cfg),
+		Membership:    NewMembershipClient(cfg),
+		Message:       NewMessageClient(cfg),
+		PendingAction: NewPendingActionClient(cfg),
+		Reaction:      NewReactionClient(cfg),
+		ReadState:     NewReadStateClient(cfg),
+		Setting:       NewSettingClient(cfg),
+		Space:         NewSpaceClient(cfg),
+		User:          NewUserClient(cfg),
+		UserMerge:     NewUserMergeClient(cfg),
 	}, nil
 }
 
@@ -194,18 +209,21 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:         ctx,
-		config:      cfg,
-		AuthzOutbox: NewAuthzOutboxClient(cfg),
-		Channel:     NewChannelClient(cfg),
-		Credential:  NewCredentialClient(cfg),
-		Identity:    NewIdentityClient(cfg),
-		Membership:  NewMembershipClient(cfg),
-		Message:     NewMessageClient(cfg),
-		ReadState:   NewReadStateClient(cfg),
-		Setting:     NewSettingClient(cfg),
-		Space:       NewSpaceClient(cfg),
-		User:        NewUserClient(cfg),
+		ctx:           ctx,
+		config:        cfg,
+		AuthzOutbox:   NewAuthzOutboxClient(cfg),
+		Channel:       NewChannelClient(cfg),
+		Credential:    NewCredentialClient(cfg),
+		Identity:      NewIdentityClient(cfg),
+		Membership:    NewMembershipClient(cfg),
+		Message:       NewMessageClient(cfg),
+		PendingAction: NewPendingActionClient(cfg),
+		Reaction:      NewReactionClient(cfg),
+		ReadState:     NewReadStateClient(cfg),
+		Setting:       NewSettingClient(cfg),
+		Space:         NewSpaceClient(cfg),
+		User:          NewUserClient(cfg),
+		UserMerge:     NewUserMergeClient(cfg),
 	}, nil
 }
 
@@ -236,7 +254,8 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.AuthzOutbox, c.Channel, c.Credential, c.Identity, c.Membership, c.Message,
-		c.ReadState, c.Setting, c.Space, c.User,
+		c.PendingAction, c.Reaction, c.ReadState, c.Setting, c.Space, c.User,
+		c.UserMerge,
 	} {
 		n.Use(hooks...)
 	}
@@ -247,7 +266,8 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.AuthzOutbox, c.Channel, c.Credential, c.Identity, c.Membership, c.Message,
-		c.ReadState, c.Setting, c.Space, c.User,
+		c.PendingAction, c.Reaction, c.ReadState, c.Setting, c.Space, c.User,
+		c.UserMerge,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -268,6 +288,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Membership.mutate(ctx, m)
 	case *MessageMutation:
 		return c.Message.mutate(ctx, m)
+	case *PendingActionMutation:
+		return c.PendingAction.mutate(ctx, m)
+	case *ReactionMutation:
+		return c.Reaction.mutate(ctx, m)
 	case *ReadStateMutation:
 		return c.ReadState.mutate(ctx, m)
 	case *SettingMutation:
@@ -276,6 +300,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Space.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
+	case *UserMergeMutation:
+		return c.UserMerge.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
 	}
@@ -1214,6 +1240,22 @@ func (c *MessageClient) QueryAuthor(_m *Message) *UserQuery {
 	return query
 }
 
+// QueryReactions queries the reactions edge of a Message.
+func (c *MessageClient) QueryReactions(_m *Message) *ReactionQuery {
+	query := (&ReactionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(message.Table, message.FieldID, id),
+			sqlgraph.To(reaction.Table, reaction.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, message.ReactionsTable, message.ReactionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *MessageClient) Hooks() []Hook {
 	return c.hooks.Message
@@ -1236,6 +1278,304 @@ func (c *MessageClient) mutate(ctx context.Context, m *MessageMutation) (Value, 
 		return (&MessageDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Message mutation op: %q", m.Op())
+	}
+}
+
+// PendingActionClient is a client for the PendingAction schema.
+type PendingActionClient struct {
+	config
+}
+
+// NewPendingActionClient returns a client for the PendingAction from the given config.
+func NewPendingActionClient(c config) *PendingActionClient {
+	return &PendingActionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `pendingaction.Hooks(f(g(h())))`.
+func (c *PendingActionClient) Use(hooks ...Hook) {
+	c.hooks.PendingAction = append(c.hooks.PendingAction, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `pendingaction.Intercept(f(g(h())))`.
+func (c *PendingActionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.PendingAction = append(c.inters.PendingAction, interceptors...)
+}
+
+// Create returns a builder for creating a PendingAction entity.
+func (c *PendingActionClient) Create() *PendingActionCreate {
+	mutation := newPendingActionMutation(c.config, OpCreate)
+	return &PendingActionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of PendingAction entities.
+func (c *PendingActionClient) CreateBulk(builders ...*PendingActionCreate) *PendingActionCreateBulk {
+	return &PendingActionCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *PendingActionClient) MapCreateBulk(slice any, setFunc func(*PendingActionCreate, int)) *PendingActionCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &PendingActionCreateBulk{err: fmt.Errorf("calling to PendingActionClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*PendingActionCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &PendingActionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for PendingAction.
+func (c *PendingActionClient) Update() *PendingActionUpdate {
+	mutation := newPendingActionMutation(c.config, OpUpdate)
+	return &PendingActionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PendingActionClient) UpdateOne(_m *PendingAction) *PendingActionUpdateOne {
+	mutation := newPendingActionMutation(c.config, OpUpdateOne, withPendingAction(_m))
+	return &PendingActionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PendingActionClient) UpdateOneID(id string) *PendingActionUpdateOne {
+	mutation := newPendingActionMutation(c.config, OpUpdateOne, withPendingActionID(id))
+	return &PendingActionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PendingAction.
+func (c *PendingActionClient) Delete() *PendingActionDelete {
+	mutation := newPendingActionMutation(c.config, OpDelete)
+	return &PendingActionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PendingActionClient) DeleteOne(_m *PendingAction) *PendingActionDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PendingActionClient) DeleteOneID(id string) *PendingActionDeleteOne {
+	builder := c.Delete().Where(pendingaction.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PendingActionDeleteOne{builder}
+}
+
+// Query returns a query builder for PendingAction.
+func (c *PendingActionClient) Query() *PendingActionQuery {
+	return &PendingActionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePendingAction},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a PendingAction entity by its id.
+func (c *PendingActionClient) Get(ctx context.Context, id string) (*PendingAction, error) {
+	return c.Query().Where(pendingaction.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PendingActionClient) GetX(ctx context.Context, id string) *PendingAction {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *PendingActionClient) Hooks() []Hook {
+	return c.hooks.PendingAction
+}
+
+// Interceptors returns the client interceptors.
+func (c *PendingActionClient) Interceptors() []Interceptor {
+	return c.inters.PendingAction
+}
+
+func (c *PendingActionClient) mutate(ctx context.Context, m *PendingActionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PendingActionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PendingActionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PendingActionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PendingActionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown PendingAction mutation op: %q", m.Op())
+	}
+}
+
+// ReactionClient is a client for the Reaction schema.
+type ReactionClient struct {
+	config
+}
+
+// NewReactionClient returns a client for the Reaction from the given config.
+func NewReactionClient(c config) *ReactionClient {
+	return &ReactionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `reaction.Hooks(f(g(h())))`.
+func (c *ReactionClient) Use(hooks ...Hook) {
+	c.hooks.Reaction = append(c.hooks.Reaction, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `reaction.Intercept(f(g(h())))`.
+func (c *ReactionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Reaction = append(c.inters.Reaction, interceptors...)
+}
+
+// Create returns a builder for creating a Reaction entity.
+func (c *ReactionClient) Create() *ReactionCreate {
+	mutation := newReactionMutation(c.config, OpCreate)
+	return &ReactionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Reaction entities.
+func (c *ReactionClient) CreateBulk(builders ...*ReactionCreate) *ReactionCreateBulk {
+	return &ReactionCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ReactionClient) MapCreateBulk(slice any, setFunc func(*ReactionCreate, int)) *ReactionCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ReactionCreateBulk{err: fmt.Errorf("calling to ReactionClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ReactionCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ReactionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Reaction.
+func (c *ReactionClient) Update() *ReactionUpdate {
+	mutation := newReactionMutation(c.config, OpUpdate)
+	return &ReactionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ReactionClient) UpdateOne(_m *Reaction) *ReactionUpdateOne {
+	mutation := newReactionMutation(c.config, OpUpdateOne, withReaction(_m))
+	return &ReactionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ReactionClient) UpdateOneID(id string) *ReactionUpdateOne {
+	mutation := newReactionMutation(c.config, OpUpdateOne, withReactionID(id))
+	return &ReactionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Reaction.
+func (c *ReactionClient) Delete() *ReactionDelete {
+	mutation := newReactionMutation(c.config, OpDelete)
+	return &ReactionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ReactionClient) DeleteOne(_m *Reaction) *ReactionDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ReactionClient) DeleteOneID(id string) *ReactionDeleteOne {
+	builder := c.Delete().Where(reaction.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ReactionDeleteOne{builder}
+}
+
+// Query returns a query builder for Reaction.
+func (c *ReactionClient) Query() *ReactionQuery {
+	return &ReactionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeReaction},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Reaction entity by its id.
+func (c *ReactionClient) Get(ctx context.Context, id string) (*Reaction, error) {
+	return c.Query().Where(reaction.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ReactionClient) GetX(ctx context.Context, id string) *Reaction {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryMessage queries the message edge of a Reaction.
+func (c *ReactionClient) QueryMessage(_m *Reaction) *MessageQuery {
+	query := (&MessageClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(reaction.Table, reaction.FieldID, id),
+			sqlgraph.To(message.Table, message.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, reaction.MessageTable, reaction.MessageColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUser queries the user edge of a Reaction.
+func (c *ReactionClient) QueryUser(_m *Reaction) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(reaction.Table, reaction.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, reaction.UserTable, reaction.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ReactionClient) Hooks() []Hook {
+	return c.hooks.Reaction
+}
+
+// Interceptors returns the client interceptors.
+func (c *ReactionClient) Interceptors() []Interceptor {
+	return c.inters.Reaction
+}
+
+func (c *ReactionClient) mutate(ctx context.Context, m *ReactionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ReactionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ReactionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ReactionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ReactionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Reaction mutation op: %q", m.Op())
 	}
 }
 
@@ -1906,6 +2246,54 @@ func (c *UserClient) QueryReadStates(_m *User) *ReadStateQuery {
 	return query
 }
 
+// QueryReactions queries the reactions edge of a User.
+func (c *UserClient) QueryReactions(_m *User) *ReactionQuery {
+	query := (&ReactionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(reaction.Table, reaction.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.ReactionsTable, user.ReactionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMergedInto queries the merged_into edge of a User.
+func (c *UserClient) QueryMergedInto(_m *User) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, user.MergedIntoTable, user.MergedIntoColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAbsorbed queries the absorbed edge of a User.
+func (c *UserClient) QueryAbsorbed(_m *User) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.AbsorbedTable, user.AbsorbedColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
 	return c.hooks.User
@@ -1931,15 +2319,148 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 	}
 }
 
+// UserMergeClient is a client for the UserMerge schema.
+type UserMergeClient struct {
+	config
+}
+
+// NewUserMergeClient returns a client for the UserMerge from the given config.
+func NewUserMergeClient(c config) *UserMergeClient {
+	return &UserMergeClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `usermerge.Hooks(f(g(h())))`.
+func (c *UserMergeClient) Use(hooks ...Hook) {
+	c.hooks.UserMerge = append(c.hooks.UserMerge, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `usermerge.Intercept(f(g(h())))`.
+func (c *UserMergeClient) Intercept(interceptors ...Interceptor) {
+	c.inters.UserMerge = append(c.inters.UserMerge, interceptors...)
+}
+
+// Create returns a builder for creating a UserMerge entity.
+func (c *UserMergeClient) Create() *UserMergeCreate {
+	mutation := newUserMergeMutation(c.config, OpCreate)
+	return &UserMergeCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of UserMerge entities.
+func (c *UserMergeClient) CreateBulk(builders ...*UserMergeCreate) *UserMergeCreateBulk {
+	return &UserMergeCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *UserMergeClient) MapCreateBulk(slice any, setFunc func(*UserMergeCreate, int)) *UserMergeCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &UserMergeCreateBulk{err: fmt.Errorf("calling to UserMergeClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*UserMergeCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &UserMergeCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for UserMerge.
+func (c *UserMergeClient) Update() *UserMergeUpdate {
+	mutation := newUserMergeMutation(c.config, OpUpdate)
+	return &UserMergeUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *UserMergeClient) UpdateOne(_m *UserMerge) *UserMergeUpdateOne {
+	mutation := newUserMergeMutation(c.config, OpUpdateOne, withUserMerge(_m))
+	return &UserMergeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *UserMergeClient) UpdateOneID(id string) *UserMergeUpdateOne {
+	mutation := newUserMergeMutation(c.config, OpUpdateOne, withUserMergeID(id))
+	return &UserMergeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for UserMerge.
+func (c *UserMergeClient) Delete() *UserMergeDelete {
+	mutation := newUserMergeMutation(c.config, OpDelete)
+	return &UserMergeDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *UserMergeClient) DeleteOne(_m *UserMerge) *UserMergeDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *UserMergeClient) DeleteOneID(id string) *UserMergeDeleteOne {
+	builder := c.Delete().Where(usermerge.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &UserMergeDeleteOne{builder}
+}
+
+// Query returns a query builder for UserMerge.
+func (c *UserMergeClient) Query() *UserMergeQuery {
+	return &UserMergeQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeUserMerge},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a UserMerge entity by its id.
+func (c *UserMergeClient) Get(ctx context.Context, id string) (*UserMerge, error) {
+	return c.Query().Where(usermerge.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *UserMergeClient) GetX(ctx context.Context, id string) *UserMerge {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *UserMergeClient) Hooks() []Hook {
+	return c.hooks.UserMerge
+}
+
+// Interceptors returns the client interceptors.
+func (c *UserMergeClient) Interceptors() []Interceptor {
+	return c.inters.UserMerge
+}
+
+func (c *UserMergeClient) mutate(ctx context.Context, m *UserMergeMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&UserMergeCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&UserMergeUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&UserMergeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&UserMergeDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown UserMerge mutation op: %q", m.Op())
+	}
+}
+
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		AuthzOutbox, Channel, Credential, Identity, Membership, Message, ReadState,
-		Setting, Space, User []ent.Hook
+		AuthzOutbox, Channel, Credential, Identity, Membership, Message, PendingAction,
+		Reaction, ReadState, Setting, Space, User, UserMerge []ent.Hook
 	}
 	inters struct {
-		AuthzOutbox, Channel, Credential, Identity, Membership, Message, ReadState,
-		Setting, Space, User []ent.Interceptor
+		AuthzOutbox, Channel, Credential, Identity, Membership, Message, PendingAction,
+		Reaction, ReadState, Setting, Space, User, UserMerge []ent.Interceptor
 	}
 )
 

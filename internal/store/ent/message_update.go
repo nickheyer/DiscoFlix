@@ -10,10 +10,13 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/channel"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/message"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/predicate"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/reaction"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/schema"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/space"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/user"
 )
@@ -163,6 +166,44 @@ func (_u *MessageUpdate) SetNillableExternalID(v *string) *MessageUpdate {
 	return _u
 }
 
+// SetOrigin sets the "origin" field.
+func (_u *MessageUpdate) SetOrigin(v string) *MessageUpdate {
+	_u.mutation.SetOrigin(v)
+	return _u
+}
+
+// SetNillableOrigin sets the "origin" field if the given value is not nil.
+func (_u *MessageUpdate) SetNillableOrigin(v *string) *MessageUpdate {
+	if v != nil {
+		_u.SetOrigin(*v)
+	}
+	return _u
+}
+
+// SetAttachments sets the "attachments" field.
+func (_u *MessageUpdate) SetAttachments(v []schema.Attachment) *MessageUpdate {
+	_u.mutation.SetAttachments(v)
+	return _u
+}
+
+// AppendAttachments appends value to the "attachments" field.
+func (_u *MessageUpdate) AppendAttachments(v []schema.Attachment) *MessageUpdate {
+	_u.mutation.AppendAttachments(v)
+	return _u
+}
+
+// ClearAttachments clears the value of the "attachments" field.
+func (_u *MessageUpdate) ClearAttachments() *MessageUpdate {
+	_u.mutation.ClearAttachments()
+	return _u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (_u *MessageUpdate) SetUpdatedAt(v time.Time) *MessageUpdate {
+	_u.mutation.SetUpdatedAt(v)
+	return _u
+}
+
 // SetEditedAt sets the "edited_at" field.
 func (_u *MessageUpdate) SetEditedAt(v time.Time) *MessageUpdate {
 	_u.mutation.SetEditedAt(v)
@@ -203,6 +244,26 @@ func (_u *MessageUpdate) ClearDeletedAt() *MessageUpdate {
 	return _u
 }
 
+// SetSyncedAt sets the "synced_at" field.
+func (_u *MessageUpdate) SetSyncedAt(v time.Time) *MessageUpdate {
+	_u.mutation.SetSyncedAt(v)
+	return _u
+}
+
+// SetNillableSyncedAt sets the "synced_at" field if the given value is not nil.
+func (_u *MessageUpdate) SetNillableSyncedAt(v *time.Time) *MessageUpdate {
+	if v != nil {
+		_u.SetSyncedAt(*v)
+	}
+	return _u
+}
+
+// ClearSyncedAt clears the value of the "synced_at" field.
+func (_u *MessageUpdate) ClearSyncedAt() *MessageUpdate {
+	_u.mutation.ClearSyncedAt()
+	return _u
+}
+
 // SetSpace sets the "space" edge to the Space entity.
 func (_u *MessageUpdate) SetSpace(v *Space) *MessageUpdate {
 	return _u.SetSpaceID(v.ID)
@@ -216,6 +277,21 @@ func (_u *MessageUpdate) SetChannel(v *Channel) *MessageUpdate {
 // SetAuthor sets the "author" edge to the User entity.
 func (_u *MessageUpdate) SetAuthor(v *User) *MessageUpdate {
 	return _u.SetAuthorID(v.ID)
+}
+
+// AddReactionIDs adds the "reactions" edge to the Reaction entity by IDs.
+func (_u *MessageUpdate) AddReactionIDs(ids ...string) *MessageUpdate {
+	_u.mutation.AddReactionIDs(ids...)
+	return _u
+}
+
+// AddReactions adds the "reactions" edges to the Reaction entity.
+func (_u *MessageUpdate) AddReactions(v ...*Reaction) *MessageUpdate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddReactionIDs(ids...)
 }
 
 // Mutation returns the MessageMutation object of the builder.
@@ -241,8 +317,30 @@ func (_u *MessageUpdate) ClearAuthor() *MessageUpdate {
 	return _u
 }
 
+// ClearReactions clears all "reactions" edges to the Reaction entity.
+func (_u *MessageUpdate) ClearReactions() *MessageUpdate {
+	_u.mutation.ClearReactions()
+	return _u
+}
+
+// RemoveReactionIDs removes the "reactions" edge to Reaction entities by IDs.
+func (_u *MessageUpdate) RemoveReactionIDs(ids ...string) *MessageUpdate {
+	_u.mutation.RemoveReactionIDs(ids...)
+	return _u
+}
+
+// RemoveReactions removes "reactions" edges to Reaction entities.
+func (_u *MessageUpdate) RemoveReactions(v ...*Reaction) *MessageUpdate {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveReactionIDs(ids...)
+}
+
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *MessageUpdate) Save(ctx context.Context) (int, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -265,6 +363,14 @@ func (_u *MessageUpdate) Exec(ctx context.Context) error {
 func (_u *MessageUpdate) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *MessageUpdate) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := message.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -344,6 +450,23 @@ func (_u *MessageUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.ExternalID(); ok {
 		_spec.SetField(message.FieldExternalID, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.Origin(); ok {
+		_spec.SetField(message.FieldOrigin, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Attachments(); ok {
+		_spec.SetField(message.FieldAttachments, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedAttachments(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, message.FieldAttachments, value)
+		})
+	}
+	if _u.mutation.AttachmentsCleared() {
+		_spec.ClearField(message.FieldAttachments, field.TypeJSON)
+	}
+	if value, ok := _u.mutation.UpdatedAt(); ok {
+		_spec.SetField(message.FieldUpdatedAt, field.TypeTime, value)
+	}
 	if value, ok := _u.mutation.EditedAt(); ok {
 		_spec.SetField(message.FieldEditedAt, field.TypeTime, value)
 	}
@@ -355,6 +478,12 @@ func (_u *MessageUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.DeletedAtCleared() {
 		_spec.ClearField(message.FieldDeletedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.SyncedAt(); ok {
+		_spec.SetField(message.FieldSyncedAt, field.TypeTime, value)
+	}
+	if _u.mutation.SyncedAtCleared() {
+		_spec.ClearField(message.FieldSyncedAt, field.TypeTime)
 	}
 	if _u.mutation.SpaceCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -436,6 +565,51 @@ func (_u *MessageUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ReactionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   message.ReactionsTable,
+			Columns: []string{message.ReactionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reaction.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedReactionsIDs(); len(nodes) > 0 && !_u.mutation.ReactionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   message.ReactionsTable,
+			Columns: []string{message.ReactionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reaction.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ReactionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   message.ReactionsTable,
+			Columns: []string{message.ReactionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reaction.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -596,6 +770,44 @@ func (_u *MessageUpdateOne) SetNillableExternalID(v *string) *MessageUpdateOne {
 	return _u
 }
 
+// SetOrigin sets the "origin" field.
+func (_u *MessageUpdateOne) SetOrigin(v string) *MessageUpdateOne {
+	_u.mutation.SetOrigin(v)
+	return _u
+}
+
+// SetNillableOrigin sets the "origin" field if the given value is not nil.
+func (_u *MessageUpdateOne) SetNillableOrigin(v *string) *MessageUpdateOne {
+	if v != nil {
+		_u.SetOrigin(*v)
+	}
+	return _u
+}
+
+// SetAttachments sets the "attachments" field.
+func (_u *MessageUpdateOne) SetAttachments(v []schema.Attachment) *MessageUpdateOne {
+	_u.mutation.SetAttachments(v)
+	return _u
+}
+
+// AppendAttachments appends value to the "attachments" field.
+func (_u *MessageUpdateOne) AppendAttachments(v []schema.Attachment) *MessageUpdateOne {
+	_u.mutation.AppendAttachments(v)
+	return _u
+}
+
+// ClearAttachments clears the value of the "attachments" field.
+func (_u *MessageUpdateOne) ClearAttachments() *MessageUpdateOne {
+	_u.mutation.ClearAttachments()
+	return _u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (_u *MessageUpdateOne) SetUpdatedAt(v time.Time) *MessageUpdateOne {
+	_u.mutation.SetUpdatedAt(v)
+	return _u
+}
+
 // SetEditedAt sets the "edited_at" field.
 func (_u *MessageUpdateOne) SetEditedAt(v time.Time) *MessageUpdateOne {
 	_u.mutation.SetEditedAt(v)
@@ -636,6 +848,26 @@ func (_u *MessageUpdateOne) ClearDeletedAt() *MessageUpdateOne {
 	return _u
 }
 
+// SetSyncedAt sets the "synced_at" field.
+func (_u *MessageUpdateOne) SetSyncedAt(v time.Time) *MessageUpdateOne {
+	_u.mutation.SetSyncedAt(v)
+	return _u
+}
+
+// SetNillableSyncedAt sets the "synced_at" field if the given value is not nil.
+func (_u *MessageUpdateOne) SetNillableSyncedAt(v *time.Time) *MessageUpdateOne {
+	if v != nil {
+		_u.SetSyncedAt(*v)
+	}
+	return _u
+}
+
+// ClearSyncedAt clears the value of the "synced_at" field.
+func (_u *MessageUpdateOne) ClearSyncedAt() *MessageUpdateOne {
+	_u.mutation.ClearSyncedAt()
+	return _u
+}
+
 // SetSpace sets the "space" edge to the Space entity.
 func (_u *MessageUpdateOne) SetSpace(v *Space) *MessageUpdateOne {
 	return _u.SetSpaceID(v.ID)
@@ -649,6 +881,21 @@ func (_u *MessageUpdateOne) SetChannel(v *Channel) *MessageUpdateOne {
 // SetAuthor sets the "author" edge to the User entity.
 func (_u *MessageUpdateOne) SetAuthor(v *User) *MessageUpdateOne {
 	return _u.SetAuthorID(v.ID)
+}
+
+// AddReactionIDs adds the "reactions" edge to the Reaction entity by IDs.
+func (_u *MessageUpdateOne) AddReactionIDs(ids ...string) *MessageUpdateOne {
+	_u.mutation.AddReactionIDs(ids...)
+	return _u
+}
+
+// AddReactions adds the "reactions" edges to the Reaction entity.
+func (_u *MessageUpdateOne) AddReactions(v ...*Reaction) *MessageUpdateOne {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddReactionIDs(ids...)
 }
 
 // Mutation returns the MessageMutation object of the builder.
@@ -674,6 +921,27 @@ func (_u *MessageUpdateOne) ClearAuthor() *MessageUpdateOne {
 	return _u
 }
 
+// ClearReactions clears all "reactions" edges to the Reaction entity.
+func (_u *MessageUpdateOne) ClearReactions() *MessageUpdateOne {
+	_u.mutation.ClearReactions()
+	return _u
+}
+
+// RemoveReactionIDs removes the "reactions" edge to Reaction entities by IDs.
+func (_u *MessageUpdateOne) RemoveReactionIDs(ids ...string) *MessageUpdateOne {
+	_u.mutation.RemoveReactionIDs(ids...)
+	return _u
+}
+
+// RemoveReactions removes "reactions" edges to Reaction entities.
+func (_u *MessageUpdateOne) RemoveReactions(v ...*Reaction) *MessageUpdateOne {
+	ids := make([]string, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveReactionIDs(ids...)
+}
+
 // Where appends a list predicates to the MessageUpdate builder.
 func (_u *MessageUpdateOne) Where(ps ...predicate.Message) *MessageUpdateOne {
 	_u.mutation.Where(ps...)
@@ -689,6 +957,7 @@ func (_u *MessageUpdateOne) Select(field string, fields ...string) *MessageUpdat
 
 // Save executes the query and returns the updated Message entity.
 func (_u *MessageUpdateOne) Save(ctx context.Context) (*Message, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -711,6 +980,14 @@ func (_u *MessageUpdateOne) Exec(ctx context.Context) error {
 func (_u *MessageUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *MessageUpdateOne) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := message.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -807,6 +1084,23 @@ func (_u *MessageUpdateOne) sqlSave(ctx context.Context) (_node *Message, err er
 	if value, ok := _u.mutation.ExternalID(); ok {
 		_spec.SetField(message.FieldExternalID, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.Origin(); ok {
+		_spec.SetField(message.FieldOrigin, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Attachments(); ok {
+		_spec.SetField(message.FieldAttachments, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedAttachments(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, message.FieldAttachments, value)
+		})
+	}
+	if _u.mutation.AttachmentsCleared() {
+		_spec.ClearField(message.FieldAttachments, field.TypeJSON)
+	}
+	if value, ok := _u.mutation.UpdatedAt(); ok {
+		_spec.SetField(message.FieldUpdatedAt, field.TypeTime, value)
+	}
 	if value, ok := _u.mutation.EditedAt(); ok {
 		_spec.SetField(message.FieldEditedAt, field.TypeTime, value)
 	}
@@ -818,6 +1112,12 @@ func (_u *MessageUpdateOne) sqlSave(ctx context.Context) (_node *Message, err er
 	}
 	if _u.mutation.DeletedAtCleared() {
 		_spec.ClearField(message.FieldDeletedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.SyncedAt(); ok {
+		_spec.SetField(message.FieldSyncedAt, field.TypeTime, value)
+	}
+	if _u.mutation.SyncedAtCleared() {
+		_spec.ClearField(message.FieldSyncedAt, field.TypeTime)
 	}
 	if _u.mutation.SpaceCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -899,6 +1199,51 @@ func (_u *MessageUpdateOne) sqlSave(ctx context.Context) (_node *Message, err er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ReactionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   message.ReactionsTable,
+			Columns: []string{message.ReactionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reaction.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedReactionsIDs(); len(nodes) > 0 && !_u.mutation.ReactionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   message.ReactionsTable,
+			Columns: []string{message.ReactionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reaction.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ReactionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   message.ReactionsTable,
+			Columns: []string{message.ReactionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(reaction.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

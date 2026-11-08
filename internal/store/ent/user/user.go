@@ -33,6 +33,8 @@ const (
 	FieldSystemAdmin = "system_admin"
 	// FieldLastSeenAt holds the string denoting the last_seen_at field in the database.
 	FieldLastSeenAt = "last_seen_at"
+	// FieldMergedIntoID holds the string denoting the merged_into_id field in the database.
+	FieldMergedIntoID = "merged_into_id"
 	// EdgeIdentities holds the string denoting the identities edge name in mutations.
 	EdgeIdentities = "identities"
 	// EdgeCredentials holds the string denoting the credentials edge name in mutations.
@@ -43,6 +45,12 @@ const (
 	EdgeMessages = "messages"
 	// EdgeReadStates holds the string denoting the read_states edge name in mutations.
 	EdgeReadStates = "read_states"
+	// EdgeReactions holds the string denoting the reactions edge name in mutations.
+	EdgeReactions = "reactions"
+	// EdgeMergedInto holds the string denoting the merged_into edge name in mutations.
+	EdgeMergedInto = "merged_into"
+	// EdgeAbsorbed holds the string denoting the absorbed edge name in mutations.
+	EdgeAbsorbed = "absorbed"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// IdentitiesTable is the table that holds the identities relation/edge.
@@ -80,6 +88,21 @@ const (
 	ReadStatesInverseTable = "read_states"
 	// ReadStatesColumn is the table column denoting the read_states relation/edge.
 	ReadStatesColumn = "user_id"
+	// ReactionsTable is the table that holds the reactions relation/edge.
+	ReactionsTable = "reactions"
+	// ReactionsInverseTable is the table name for the Reaction entity.
+	// It exists in this package in order to avoid circular dependency with the "reaction" package.
+	ReactionsInverseTable = "reactions"
+	// ReactionsColumn is the table column denoting the reactions relation/edge.
+	ReactionsColumn = "user_id"
+	// MergedIntoTable is the table that holds the merged_into relation/edge.
+	MergedIntoTable = "users"
+	// MergedIntoColumn is the table column denoting the merged_into relation/edge.
+	MergedIntoColumn = "merged_into_id"
+	// AbsorbedTable is the table that holds the absorbed relation/edge.
+	AbsorbedTable = "users"
+	// AbsorbedColumn is the table column denoting the absorbed relation/edge.
+	AbsorbedColumn = "merged_into_id"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -94,6 +117,7 @@ var Columns = []string{
 	FieldStatus,
 	FieldSystemAdmin,
 	FieldLastSeenAt,
+	FieldMergedIntoID,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -234,6 +258,11 @@ func ByLastSeenAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldLastSeenAt, opts...).ToFunc()
 }
 
+// ByMergedIntoID orders the results by the merged_into_id field.
+func ByMergedIntoID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMergedIntoID, opts...).ToFunc()
+}
+
 // ByIdentitiesCount orders the results by identities count.
 func ByIdentitiesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -303,6 +332,41 @@ func ByReadStates(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newReadStatesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByReactionsCount orders the results by reactions count.
+func ByReactionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newReactionsStep(), opts...)
+	}
+}
+
+// ByReactions orders the results by reactions terms.
+func ByReactions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newReactionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByMergedIntoField orders the results by merged_into field.
+func ByMergedIntoField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newMergedIntoStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByAbsorbedCount orders the results by absorbed count.
+func ByAbsorbedCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newAbsorbedStep(), opts...)
+	}
+}
+
+// ByAbsorbed orders the results by absorbed terms.
+func ByAbsorbed(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAbsorbedStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newIdentitiesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -336,5 +400,26 @@ func newReadStatesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ReadStatesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, ReadStatesTable, ReadStatesColumn),
+	)
+}
+func newReactionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ReactionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ReactionsTable, ReactionsColumn),
+	)
+}
+func newMergedIntoStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(Table, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, MergedIntoTable, MergedIntoColumn),
+	)
+}
+func newAbsorbedStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(Table, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, AbsorbedTable, AbsorbedColumn),
 	)
 }

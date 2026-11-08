@@ -38,6 +38,10 @@ type Channel struct {
 	ExternalID string `json:"external_id,omitempty"`
 	// LastSeq holds the value of the "last_seq" field.
 	LastSeq int64 `json:"last_seq,omitempty"`
+	// Archived holds the value of the "archived" field.
+	Archived bool `json:"archived,omitempty"`
+	// DeletedAt holds the value of the "deleted_at" field.
+	DeletedAt *time.Time `json:"deleted_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ChannelQuery when eager-loading is set.
 	Edges        ChannelEdges `json:"edges"`
@@ -91,11 +95,13 @@ func (*Channel) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case channel.FieldArchived:
+			values[i] = new(sql.NullBool)
 		case channel.FieldPosition, channel.FieldLastSeq:
 			values[i] = new(sql.NullInt64)
 		case channel.FieldID, channel.FieldSpaceID, channel.FieldKind, channel.FieldName, channel.FieldTopic, channel.FieldParentID, channel.FieldExternalID:
 			values[i] = new(sql.NullString)
-		case channel.FieldCreatedAt, channel.FieldUpdatedAt:
+		case channel.FieldCreatedAt, channel.FieldUpdatedAt, channel.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -178,6 +184,19 @@ func (_m *Channel) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.LastSeq = value.Int64
 			}
+		case channel.FieldArchived:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field archived", values[i])
+			} else if value.Valid {
+				_m.Archived = value.Bool
+			}
+		case channel.FieldDeletedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field deleted_at", values[i])
+			} else if value.Valid {
+				_m.DeletedAt = new(time.Time)
+				*_m.DeletedAt = value.Time
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -258,6 +277,14 @@ func (_m *Channel) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("last_seq=")
 	builder.WriteString(fmt.Sprintf("%v", _m.LastSeq))
+	builder.WriteString(", ")
+	builder.WriteString("archived=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Archived))
+	builder.WriteString(", ")
+	if v := _m.DeletedAt; v != nil {
+		builder.WriteString("deleted_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

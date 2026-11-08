@@ -81,6 +81,30 @@ func (f MessageFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, err
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MessageMutation", m)
 }
 
+// The PendingActionFunc type is an adapter to allow the use of ordinary
+// function as PendingAction mutator.
+type PendingActionFunc func(context.Context, *ent.PendingActionMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PendingActionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.PendingActionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PendingActionMutation", m)
+}
+
+// The ReactionFunc type is an adapter to allow the use of ordinary
+// function as Reaction mutator.
+type ReactionFunc func(context.Context, *ent.ReactionMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ReactionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ReactionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ReactionMutation", m)
+}
+
 // The ReadStateFunc type is an adapter to allow the use of ordinary
 // function as ReadState mutator.
 type ReadStateFunc func(context.Context, *ent.ReadStateMutation) (ent.Value, error)
@@ -127,6 +151,18 @@ func (f UserFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error)
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserMutation", m)
+}
+
+// The UserMergeFunc type is an adapter to allow the use of ordinary
+// function as UserMerge mutator.
+type UserMergeFunc func(context.Context, *ent.UserMergeMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f UserMergeFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.UserMergeMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserMergeMutation", m)
 }
 
 // Condition is a hook condition function.

@@ -164,6 +164,40 @@ func (_u *ChannelUpdate) AddLastSeq(v int64) *ChannelUpdate {
 	return _u
 }
 
+// SetArchived sets the "archived" field.
+func (_u *ChannelUpdate) SetArchived(v bool) *ChannelUpdate {
+	_u.mutation.SetArchived(v)
+	return _u
+}
+
+// SetNillableArchived sets the "archived" field if the given value is not nil.
+func (_u *ChannelUpdate) SetNillableArchived(v *bool) *ChannelUpdate {
+	if v != nil {
+		_u.SetArchived(*v)
+	}
+	return _u
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (_u *ChannelUpdate) SetDeletedAt(v time.Time) *ChannelUpdate {
+	_u.mutation.SetDeletedAt(v)
+	return _u
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (_u *ChannelUpdate) SetNillableDeletedAt(v *time.Time) *ChannelUpdate {
+	if v != nil {
+		_u.SetDeletedAt(*v)
+	}
+	return _u
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (_u *ChannelUpdate) ClearDeletedAt() *ChannelUpdate {
+	_u.mutation.ClearDeletedAt()
+	return _u
+}
+
 // SetSpace sets the "space" edge to the Space entity.
 func (_u *ChannelUpdate) SetSpace(v *Space) *ChannelUpdate {
 	return _u.SetSpaceID(v.ID)
@@ -358,6 +392,15 @@ func (_u *ChannelUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.AddedLastSeq(); ok {
 		_spec.AddField(channel.FieldLastSeq, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.Archived(); ok {
+		_spec.SetField(channel.FieldArchived, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.DeletedAt(); ok {
+		_spec.SetField(channel.FieldDeletedAt, field.TypeTime, value)
+	}
+	if _u.mutation.DeletedAtCleared() {
+		_spec.ClearField(channel.FieldDeletedAt, field.TypeTime)
 	}
 	if _u.mutation.SpaceCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -632,6 +675,40 @@ func (_u *ChannelUpdateOne) AddLastSeq(v int64) *ChannelUpdateOne {
 	return _u
 }
 
+// SetArchived sets the "archived" field.
+func (_u *ChannelUpdateOne) SetArchived(v bool) *ChannelUpdateOne {
+	_u.mutation.SetArchived(v)
+	return _u
+}
+
+// SetNillableArchived sets the "archived" field if the given value is not nil.
+func (_u *ChannelUpdateOne) SetNillableArchived(v *bool) *ChannelUpdateOne {
+	if v != nil {
+		_u.SetArchived(*v)
+	}
+	return _u
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (_u *ChannelUpdateOne) SetDeletedAt(v time.Time) *ChannelUpdateOne {
+	_u.mutation.SetDeletedAt(v)
+	return _u
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (_u *ChannelUpdateOne) SetNillableDeletedAt(v *time.Time) *ChannelUpdateOne {
+	if v != nil {
+		_u.SetDeletedAt(*v)
+	}
+	return _u
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (_u *ChannelUpdateOne) ClearDeletedAt() *ChannelUpdateOne {
+	_u.mutation.ClearDeletedAt()
+	return _u
+}
+
 // SetSpace sets the "space" edge to the Space entity.
 func (_u *ChannelUpdateOne) SetSpace(v *Space) *ChannelUpdateOne {
 	return _u.SetSpaceID(v.ID)
@@ -856,6 +933,15 @@ func (_u *ChannelUpdateOne) sqlSave(ctx context.Context) (_node *Channel, err er
 	}
 	if value, ok := _u.mutation.AddedLastSeq(); ok {
 		_spec.AddField(channel.FieldLastSeq, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.Archived(); ok {
+		_spec.SetField(channel.FieldArchived, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.DeletedAt(); ok {
+		_spec.SetField(channel.FieldDeletedAt, field.TypeTime, value)
+	}
+	if _u.mutation.DeletedAtCleared() {
+		_spec.ClearField(channel.FieldDeletedAt, field.TypeTime)
 	}
 	if _u.mutation.SpaceCleared() {
 		edge := &sqlgraph.EdgeSpec{

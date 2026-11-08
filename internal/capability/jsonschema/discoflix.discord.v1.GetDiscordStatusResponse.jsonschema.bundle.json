@@ -1,0 +1,196 @@
+{
+  "$defs": {
+    "discoflix.discord.v1.DiscordGuild.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(approvals_channel_id)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(icon_url)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(member_count)$": {
+          "anyOf": [
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "^(space_id)$": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "properties": {
+        "approvalsChannelId": {
+          "default": "",
+          "type": "string"
+        },
+        "available": {
+          "default": false,
+          "description": "False while Discord reports the guild unavailable",
+          "type": "boolean"
+        },
+        "iconUrl": {
+          "default": "",
+          "type": "string"
+        },
+        "id": {
+          "default": "",
+          "type": "string"
+        },
+        "memberCount": {
+          "anyOf": [
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "name": {
+          "default": "",
+          "type": "string"
+        },
+        "spaceId": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "title": "Discord Guild",
+      "type": "object"
+    },
+    "discoflix.discord.v1.DiscordStatus.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(application_id)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(bot_avatar_url)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(bot_username)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(connected_at)$": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "^(invite_url)$": {
+          "default": "",
+          "description": "OAuth2 URL that adds the bot to a guild with the permissions the mirror needs",
+          "type": "string"
+        },
+        "^(login_enabled)$": {
+          "default": false,
+          "description": "A client secret is stored so Discord sign-in and linking work",
+          "type": "boolean"
+        },
+        "^(redirect_url)$": {
+          "default": "",
+          "description": "Redirect URI to register in the Discord developer portal for sign-in and linking",
+          "type": "string"
+        }
+      },
+      "properties": {
+        "applicationId": {
+          "default": "",
+          "type": "string"
+        },
+        "botAvatarUrl": {
+          "default": "",
+          "type": "string"
+        },
+        "botUsername": {
+          "default": "",
+          "type": "string"
+        },
+        "commands": {
+          "description": "Slash commands registered from the capability registry",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "configured": {
+          "default": false,
+          "description": "A bot token is stored",
+          "type": "boolean"
+        },
+        "connectedAt": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "error": {
+          "default": "",
+          "type": "string"
+        },
+        "guilds": {
+          "items": {
+            "$ref": "#/$defs/discoflix.discord.v1.DiscordGuild.jsonschema.json"
+          },
+          "type": "array"
+        },
+        "inviteUrl": {
+          "default": "",
+          "description": "OAuth2 URL that adds the bot to a guild with the permissions the mirror needs",
+          "type": "string"
+        },
+        "loginEnabled": {
+          "default": false,
+          "description": "A client secret is stored so Discord sign-in and linking work",
+          "type": "boolean"
+        },
+        "redirectUrl": {
+          "default": "",
+          "description": "Redirect URI to register in the Discord developer portal for sign-in and linking",
+          "type": "string"
+        },
+        "state": {
+          "default": "",
+          "description": "disconnected, connecting, connected, failed",
+          "type": "string"
+        }
+      },
+      "title": "Discord Status",
+      "type": "object"
+    },
+    "discoflix.discord.v1.GetDiscordStatusResponse.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "$ref": "#/$defs/discoflix.discord.v1.DiscordStatus.jsonschema.json"
+        }
+      },
+      "title": "Get Discord Status Response",
+      "type": "object"
+    },
+    "google.protobuf.Timestamp.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "format": "date-time",
+      "title": "Timestamp",
+      "type": "string"
+    }
+  },
+  "$id": "discoflix.discord.v1.GetDiscordStatusResponse.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.discord.v1.GetDiscordStatusResponse.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

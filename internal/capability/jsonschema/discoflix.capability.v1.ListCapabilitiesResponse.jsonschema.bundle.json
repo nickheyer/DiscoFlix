@@ -26,6 +26,11 @@
         }
       },
       "properties": {
+        "command": {
+          "default": "",
+          "description": "Discord slash command name, empty when the entry is not a command",
+          "type": "string"
+        },
         "description": {
           "default": "",
           "type": "string"
@@ -90,10 +95,6 @@
           "type": "string"
         },
         "serverStreaming": {
-          "default": false,
-          "type": "boolean"
-        },
-        "slash": {
           "default": false,
           "type": "boolean"
         },

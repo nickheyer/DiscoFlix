@@ -20,12 +20,19 @@ import (
 func main() {
 	name := flag.String("name", "", "migration name")
 	dirPath := flag.String("dir", "internal/store/migrations", "migration directory")
+	rehash := flag.Bool("rehash", false, "rewrite atlas.sum after editing a migration by hand")
 	flag.Parse()
-	if *name == "" {
-		fmt.Fprintln(os.Stderr, "migratediff: -name is required")
+	var err error
+	switch {
+	case *rehash:
+		err = hash(*dirPath)
+	case *name == "":
+		fmt.Fprintln(os.Stderr, "migratediff: -name or -rehash is required")
 		os.Exit(2)
+	default:
+		err = run(context.Background(), *name, *dirPath)
 	}
-	if err := run(context.Background(), *name, *dirPath); err != nil {
+	if err != nil {
 		fmt.Fprintln(os.Stderr, "migratediff:", err)
 		os.Exit(1)
 	}
@@ -55,4 +62,17 @@ func run(ctx context.Context, name, dirPath string) error {
 		return err
 	}
 	return m.NamedDiff(ctx, name, migrate.Tables...)
+}
+
+// hash recomputes the directory checksum file so a hand-edited migration is accepted at boot
+func hash(dirPath string) error {
+	dir, err := atlasmigrate.NewLocalDir(dirPath)
+	if err != nil {
+		return err
+	}
+	sum, err := dir.Checksum()
+	if err != nil {
+		return err
+	}
+	return atlasmigrate.WriteSumFile(dir, sum)
 }

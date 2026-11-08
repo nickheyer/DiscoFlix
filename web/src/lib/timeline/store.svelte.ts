@@ -11,21 +11,23 @@ import {
 	type ListSpacesResponse,
 	type Message
 } from '#lib/gen/discoflix/timeline/v1/timeline_pb';
-import { channelsKey, spacesKey } from '#lib/spaces/queries';
+import { channelsKey, membersKey, spacesKey } from '#lib/spaces/queries';
 import {
 	clearStale,
 	emptyTimeline,
+	expireTyping,
 	mergeActivity,
 	mergeLatest,
 	mergeOlder,
 	openChannel,
 	reduceEvent,
+	replaceLoaded,
 	seedChannel,
 	seedChannels,
 	seedSpaces,
 	type TimelineState
 } from './reducer';
-import { channelTopic, decodeEvent, realtime, userTopic } from './realtime.svelte';
+import { channelTopic, decodeEvent, realtime, spaceTopic, userTopic } from './realtime.svelte';
 
 export const PAGE_SIZE = 50;
 const HISTORY_SIZE = 100;
@@ -45,6 +47,11 @@ class TimelineStore {
 	#queries: QueryClient | null = null;
 	#latest = new Map<string, Load>();
 	#detach: (() => void)[] = [];
+	#typingTimer: ReturnType<typeof setInterval> | null = null;
+
+	get selfId(): string {
+		return this.#selfId;
+	}
 
 	#set(next: TimelineState): void {
 		if (next.stale.size > 0) {
@@ -54,13 +61,47 @@ class TimelineStore {
 			for (const spaceId of stale) void this.#queries?.invalidateQueries({ queryKey: channelsKey(spaceId) });
 		}
 		this.state = next;
+		this.#watchTyping();
+	}
+
+	// Keeps a one second sweep running only while someone is shown as typing
+	#watchTyping(): void {
+		const active = this.state.typing.size > 0;
+		if (active && this.#typingTimer === null) {
+			this.#typingTimer = setInterval(() => {
+				const next = expireTyping(this.state, Date.now());
+				if (next !== this.state) this.#set(next);
+			}, 1000);
+		} else if (!active && this.#typingTimer !== null) {
+			clearInterval(this.#typingTimer);
+			this.#typingTimer = null;
+		}
 	}
 
 	// Applies an event without letting a calling effect subscribe to the whole store
 	dispatch(event: Event): void {
-		untrack(() =>
-			this.#set(reduceEvent(this.state, event, { selfId: this.#selfId, readingChannelId: this.readingChannelId }))
-		);
+		untrack(() => {
+			this.#invalidateFor(event);
+			this.#set(reduceEvent(this.state, event, { selfId: this.#selfId, readingChannelId: this.readingChannelId }));
+		});
+	}
+
+	// Refetches the list queries a structure event makes stale
+	#invalidateFor(event: Event): void {
+		const q = this.#queries;
+		if (!q) return;
+		switch (event.kind) {
+			case EventKind.CHANNELS_CHANGED:
+				void q.invalidateQueries({ queryKey: channelsKey(event.spaceId) });
+				break;
+			case EventKind.MEMBERS_CHANGED:
+				void q.invalidateQueries({ queryKey: membersKey(event.spaceId) });
+				break;
+			case EventKind.SPACES_CHANGED:
+				void q.invalidateQueries({ queryKey: spacesKey() });
+				if (event.spaceId) void q.invalidateQueries({ queryKey: channelsKey(event.spaceId) });
+				break;
+		}
 	}
 
 	// Connects realtime for a signed-in user and keeps counters in sync with cached list queries
@@ -99,6 +140,7 @@ class TimelineStore {
 		for (const detach of this.#detach.splice(0)) detach();
 		realtime.disconnect();
 		this.state = emptyTimeline();
+		this.#watchTyping();
 		this.readingChannelId = null;
 		this.activityError = '';
 		this.streamError = '';
@@ -144,6 +186,22 @@ class TimelineStore {
 		} catch (err) {
 			this.activityError = errorText(err);
 		}
+	}
+
+	// Follows a space's presence, member, and channel changes while it is on screen
+	openSpace(spaceId: string): () => void {
+		return untrack(() => {
+			const stream = realtime.subscribe(spaceTopic(spaceId), {
+				onEvent: (event) => this.dispatch(event),
+				onSubscribed: ({ first, resumed }) => {
+					if (first || resumed) return;
+					void this.#queries?.invalidateQueries({ queryKey: membersKey(spaceId) });
+					void this.#queries?.invalidateQueries({ queryKey: channelsKey(spaceId) });
+				},
+				onError: (message) => (this.streamError = message)
+			});
+			return stream.close;
+		});
 	}
 
 	// Follows one channel live and loads its newest page, reloading after any unrecovered reconnect
@@ -208,6 +266,23 @@ class TimelineStore {
 	async markRead(channelId: string, seq: bigint): Promise<void> {
 		const res = await timelineClient.markRead({ channelId, seq });
 		if (res.channel) this.#set(seedChannel(this.state, res.channel));
+	}
+
+	// Toggles the caller's reaction and applies the server copy, which knows which emojis are theirs
+	async react(message: Message, emoji: string, on: boolean): Promise<void> {
+		const res = on
+			? await timelineClient.addReaction({ seq: message.seq, emoji })
+			: await timelineClient.removeReaction({ seq: message.seq, emoji });
+		if (res.message) untrack(() => this.#set(replaceLoaded(this.state, res.message!)));
+	}
+
+	typingIn(channelId: string): { id: string; name: string }[] {
+		const users = this.state.typing.get(channelId);
+		return users ? [...users].map(([id, entry]) => ({ id, name: entry.name })) : [];
+	}
+
+	presenceOf(userId: string): string {
+		return this.state.presence.get(userId) ?? '';
 	}
 }
 
