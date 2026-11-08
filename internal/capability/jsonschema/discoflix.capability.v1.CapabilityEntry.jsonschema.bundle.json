@@ -1,0 +1,131 @@
+{
+  "$defs": {
+    "discoflix.capability.v1.CapabilityEntry.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(input_schema_json)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(input_type)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(output_schema_json)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(output_type)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(server_streaming)$": {
+          "default": false,
+          "type": "boolean"
+        }
+      },
+      "properties": {
+        "description": {
+          "default": "",
+          "type": "string"
+        },
+        "effect": {
+          "anyOf": [
+            {
+              "pattern": "^EFFECT_UNSPECIFIED$",
+              "type": "string"
+            },
+            {
+              "enum": [
+                "EFFECT_READ",
+                "EFFECT_WRITE",
+                "EFFECT_DESTRUCTIVE"
+              ],
+              "type": "string"
+            },
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            }
+          ],
+          "default": 0,
+          "title": "Effect"
+        },
+        "inputSchemaJson": {
+          "default": "",
+          "type": "string"
+        },
+        "inputType": {
+          "default": "",
+          "type": "string"
+        },
+        "name": {
+          "default": "",
+          "type": "string"
+        },
+        "object": {
+          "$ref": "#/$defs/discoflix.capability.v1.ObjectRef.jsonschema.json"
+        },
+        "outputSchemaJson": {
+          "default": "",
+          "type": "string"
+        },
+        "outputType": {
+          "default": "",
+          "type": "string"
+        },
+        "procedure": {
+          "default": "",
+          "description": "Fully qualified procedure such as /discoflix.timeline.v1.TimelineService/ListMessages",
+          "type": "string"
+        },
+        "public": {
+          "default": false,
+          "type": "boolean"
+        },
+        "scope": {
+          "default": "",
+          "type": "string"
+        },
+        "serverStreaming": {
+          "default": false,
+          "type": "boolean"
+        },
+        "slash": {
+          "default": false,
+          "type": "boolean"
+        },
+        "title": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "title": "Capability Entry",
+      "type": "object"
+    },
+    "discoflix.capability.v1.ObjectRef.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "description": "Names the authorization object a request targets",
+      "properties": {
+        "field": {
+          "default": "",
+          "description": "Request field that carries the object id",
+          "type": "string"
+        },
+        "type": {
+          "default": "",
+          "description": "OpenFGA object type such as space, channel, user",
+          "type": "string"
+        }
+      },
+      "title": "Object Ref",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.capability.v1.CapabilityEntry.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.capability.v1.CapabilityEntry.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

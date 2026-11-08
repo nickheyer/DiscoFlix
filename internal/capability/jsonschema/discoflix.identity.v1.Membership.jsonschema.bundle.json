@@ -1,0 +1,31 @@
+{
+  "$defs": {
+    "discoflix.identity.v1.Membership.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(space_id)$": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "properties": {
+        "roles": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "spaceId": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "title": "Membership",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.identity.v1.Membership.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.identity.v1.Membership.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

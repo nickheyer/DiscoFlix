@@ -1,0 +1,59 @@
+{
+  "$defs": {
+    "discoflix.identity.v1.Session.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(created_at)$": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "^(expires_at)$": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "^(remote_addr)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(user_agent)$": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "properties": {
+        "createdAt": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "current": {
+          "default": false,
+          "type": "boolean"
+        },
+        "expiresAt": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "id": {
+          "default": "",
+          "type": "string"
+        },
+        "remoteAddr": {
+          "default": "",
+          "type": "string"
+        },
+        "userAgent": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "title": "Session",
+      "type": "object"
+    },
+    "google.protobuf.Timestamp.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "format": "date-time",
+      "title": "Timestamp",
+      "type": "string"
+    }
+  },
+  "$id": "discoflix.identity.v1.Session.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.identity.v1.Session.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

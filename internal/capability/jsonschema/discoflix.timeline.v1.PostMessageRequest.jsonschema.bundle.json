@@ -1,0 +1,69 @@
+{
+  "$defs": {
+    "discoflix.timeline.v1.PostMessageRequest.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(channel_id)$": {
+          "default": "",
+          "minLength": 1,
+          "type": "string"
+        },
+        "^(reply_to)$": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        }
+      },
+      "properties": {
+        "card": {
+          "$ref": "#/$defs/google.protobuf.Any.jsonschema.json"
+        },
+        "channelId": {
+          "default": "",
+          "minLength": 1,
+          "type": "string"
+        },
+        "content": {
+          "default": "",
+          "maxLength": 4000,
+          "type": "string"
+        },
+        "replyTo": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        }
+      },
+      "title": "Post Message Request",
+      "type": "object"
+    },
+    "google.protobuf.Any.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "title": "Any",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.timeline.v1.PostMessageRequest.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.timeline.v1.PostMessageRequest.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

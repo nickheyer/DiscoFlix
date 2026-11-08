@@ -1,0 +1,267 @@
+{
+  "$defs": {
+    "discoflix.timeline.v1.Author.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(accent_color)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(avatar_url)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(display_name)$": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "properties": {
+        "accentColor": {
+          "default": "",
+          "type": "string"
+        },
+        "avatarUrl": {
+          "default": "",
+          "type": "string"
+        },
+        "displayName": {
+          "default": "",
+          "type": "string"
+        },
+        "id": {
+          "default": "",
+          "type": "string"
+        },
+        "kind": {
+          "default": "",
+          "description": "person, bot, plugin, agent",
+          "type": "string"
+        }
+      },
+      "title": "Author",
+      "type": "object"
+    },
+    "discoflix.timeline.v1.Event.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(channel_id)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(space_id)$": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "properties": {
+        "at": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "channelId": {
+          "default": "",
+          "type": "string"
+        },
+        "kind": {
+          "anyOf": [
+            {
+              "pattern": "^EVENT_KIND_UNSPECIFIED$",
+              "type": "string"
+            },
+            {
+              "enum": [
+                "EVENT_KIND_MESSAGE_CREATED",
+                "EVENT_KIND_MESSAGE_EDITED",
+                "EVENT_KIND_MESSAGE_DELETED",
+                "EVENT_KIND_CARD_UPDATED",
+                "EVENT_KIND_CHANNEL_READ"
+              ],
+              "type": "string"
+            },
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            }
+          ],
+          "default": 0,
+          "title": "Event Kind"
+        },
+        "message": {
+          "$ref": "#/$defs/discoflix.timeline.v1.Message.jsonschema.json"
+        },
+        "seq": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "spaceId": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "title": "Event",
+      "type": "object"
+    },
+    "discoflix.timeline.v1.Message.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(channel_id)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(created_at)$": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "^(deleted_at)$": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "^(edited_at)$": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "^(external_id)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(reply_to)$": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "^(space_id)$": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "properties": {
+        "author": {
+          "$ref": "#/$defs/discoflix.timeline.v1.Author.jsonschema.json"
+        },
+        "card": {
+          "$ref": "#/$defs/google.protobuf.Any.jsonschema.json"
+        },
+        "channelId": {
+          "default": "",
+          "type": "string"
+        },
+        "content": {
+          "default": "",
+          "type": "string"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "deletedAt": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "editedAt": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "externalId": {
+          "default": "",
+          "type": "string"
+        },
+        "kind": {
+          "anyOf": [
+            {
+              "pattern": "^MESSAGE_KIND_UNSPECIFIED$",
+              "type": "string"
+            },
+            {
+              "enum": [
+                "MESSAGE_KIND_USER",
+                "MESSAGE_KIND_SYSTEM",
+                "MESSAGE_KIND_CARD"
+              ],
+              "type": "string"
+            },
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            }
+          ],
+          "default": 0,
+          "title": "Message Kind"
+        },
+        "replyTo": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "seq": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "spaceId": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "title": "Message",
+      "type": "object"
+    },
+    "discoflix.timeline.v1.WatchEventsResponse.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "event": {
+          "$ref": "#/$defs/discoflix.timeline.v1.Event.jsonschema.json"
+        }
+      },
+      "title": "Watch Events Response",
+      "type": "object"
+    },
+    "google.protobuf.Any.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "title": "Any",
+      "type": "object"
+    },
+    "google.protobuf.Timestamp.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "format": "date-time",
+      "title": "Timestamp",
+      "type": "string"
+    }
+  },
+  "$id": "discoflix.timeline.v1.WatchEventsResponse.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.timeline.v1.WatchEventsResponse.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

@@ -1,0 +1,139 @@
+// Interfaces a plugin exports for each role declared in its manifest
+package discoflix:plugin@0.1.0;
+
+interface lifecycle {
+    record descriptor {
+        id: string,
+        name: string,
+        version: string,
+        roles: list<string>,
+    }
+    describe: func() -> descriptor;
+    /// Called once after linking, settings are protobuf JSON matching the manifest schema
+    start: func(settings-json: string) -> result<_, string>;
+    stop: func();
+}
+
+interface card-schema {
+    record schema {
+        type-url: string,
+        json-schema: string,
+        title: string,
+    }
+    schemas: func() -> list<schema>;
+    /// Renders a card for a transport such as discord or text
+    render: func(type-url: string, payload: list<u8>, target: string) -> result<string, string>;
+}
+
+interface notifier {
+    record notification {
+        title: string,
+        body: string,
+        url: string,
+        severity: string,
+        user-id: string,
+    }
+    notify: func(n: notification) -> result<_, string>;
+}
+
+interface indexer {
+    record query {
+        media-type: string,
+        text: string,
+        imdb-id: option<string>,
+        tmdb-id: option<string>,
+        tvdb-id: option<string>,
+        season: option<u32>,
+        episode: option<u32>,
+        limit: u32,
+    }
+    record release {
+        title: string,
+        guid: string,
+        download-url: string,
+        magnet: option<string>,
+        info-url: option<string>,
+        size: u64,
+        published-at: s64,
+        seeders: option<u32>,
+        leechers: option<u32>,
+        grabs: option<u32>,
+        indexer: string,
+        protocol: string,
+        categories: list<u32>,
+    }
+    search: func(q: query) -> result<list<release>, string>;
+    test: func() -> result<_, string>;
+}
+
+interface download-client {
+    record grab {
+        release-guid: string,
+        download-url: string,
+        magnet: option<string>,
+        category: string,
+    }
+    record status {
+        id: string,
+        state: string,
+        progress: f32,
+        bytes-total: u64,
+        bytes-done: u64,
+        eta-seconds: option<u32>,
+        path: option<string>,
+        message: option<string>,
+    }
+    add: func(g: grab) -> result<string, string>;
+    list: func() -> result<list<status>, string>;
+    remove: func(id: string, delete-files: bool) -> result<_, string>;
+}
+
+interface metadata-source {
+    record claim {
+        entity-kind: string,
+        external-ns: string,
+        external-id: string,
+        field: string,
+        value-json: string,
+        confidence: f32,
+    }
+    lookup: func(entity-kind: string, external-ns: string, external-id: string) -> result<list<claim>, string>;
+    search: func(entity-kind: string, text: string, year: option<u32>) -> result<list<claim>, string>;
+}
+
+interface ai-tool {
+    record tool {
+        name: string,
+        description: string,
+        input-schema: string,
+        effect: string,
+    }
+    tools: func() -> list<tool>;
+    invoke: func(name: string, input-json: string) -> result<string, string>;
+}
+
+interface job {
+    /// Cron expression or interval the host schedules the job on
+    schedule: func() -> string;
+    run: func() -> result<string, string>;
+}
+
+world plugin {
+    import discoflix:host/log@0.1.0;
+    import discoflix:host/http@0.1.0;
+    import discoflix:host/fs@0.1.0;
+    import discoflix:host/exec@0.1.0;
+    import discoflix:host/kv@0.1.0;
+    import discoflix:host/db@0.1.0;
+    import discoflix:host/events@0.1.0;
+    import discoflix:host/capabilities@0.1.0;
+
+    export lifecycle;
+    export card-schema;
+    export notifier;
+    export indexer;
+    export download-client;
+    export metadata-source;
+    export ai-tool;
+    export job;
+}

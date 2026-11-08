@@ -1,0 +1,52 @@
+edition = "2023";
+
+package discoflix.card.v1;
+
+option features.field_presence = IMPLICIT;
+
+enum Severity {
+  SEVERITY_UNSPECIFIED = 0;
+  SEVERITY_INFO = 1;
+  SEVERITY_SUCCESS = 2;
+  SEVERITY_WARNING = 3;
+  SEVERITY_ERROR = 4;
+}
+
+// Short operator-facing notice posted by the system
+message SystemNotice {
+  string title = 1;
+  string body = 2;
+  Severity severity = 3;
+}
+
+// Posted to #audit on every boot
+message BootReport {
+  string version = 1;
+  string commit = 2;
+  string go_version = 3;
+  string os = 4;
+  string arch = 5;
+  // headless, desktop, or tray
+  string mode = 6;
+  int32 migrations_applied = 7;
+  string data_dir = 8;
+}
+
+// Posted to #audit when a user signs in, links an identity, or changes credentials
+message SecurityEvent {
+  string user_id = 1;
+  // login, logout, bootstrap, password_changed, passkey_added, passkey_removed, apikey_created, apikey_revoked, session_revoked
+  string action = 2;
+  string via = 3;
+  string remote_addr = 4;
+  string user_agent = 5;
+}
+
+// Posted to #audit when a self-update is checked, applied, or declined
+message UpdateEvent {
+  string current_version = 1;
+  string available_version = 2;
+  // checked, downloaded, verified, applied, failed
+  string stage = 3;
+  string detail = 4;
+}

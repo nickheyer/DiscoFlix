@@ -1,0 +1,372 @@
+edition = "2023";
+
+package discoflix.identity.v1;
+
+import "buf/validate/validate.proto";
+import "discoflix/capability/v1/options.proto";
+import "google/protobuf/timestamp.proto";
+
+option features.field_presence = IMPLICIT;
+
+enum UserKind {
+  USER_KIND_UNSPECIFIED = 0;
+  USER_KIND_PERSON = 1;
+  USER_KIND_BOT = 2;
+  USER_KIND_PLUGIN = 3;
+  USER_KIND_AGENT = 4;
+}
+
+enum UserStatus {
+  USER_STATUS_UNSPECIFIED = 0;
+  USER_STATUS_ACTIVE = 1;
+  USER_STATUS_DISABLED = 2;
+}
+
+message User {
+  string id = 1;
+  string display_name = 2;
+  string avatar_url = 3;
+  string accent_color = 4;
+  UserKind kind = 5;
+  UserStatus status = 6;
+  bool system_admin = 7;
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp last_seen_at = 9;
+}
+
+message Identity {
+  string id = 1;
+  // discord, plex, jellyfin, emby, oidc:<issuer>, local, email
+  string provider = 2;
+  string subject = 3;
+  string display = 4;
+  google.protobuf.Timestamp verified_at = 5;
+  google.protobuf.Timestamp linked_at = 6;
+}
+
+message Membership {
+  string space_id = 1;
+  repeated string roles = 2;
+}
+
+message Passkey {
+  string id = 1;
+  string name = 2;
+  google.protobuf.Timestamp created_at = 3;
+  google.protobuf.Timestamp last_used_at = 4;
+  bool backup_eligible = 5;
+}
+
+message ApiKey {
+  string id = 1;
+  string name = 2;
+  // First characters of the key for recognition
+  string prefix = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp last_used_at = 5;
+  google.protobuf.Timestamp expires_at = 6;
+}
+
+message Session {
+  string id = 1;
+  string user_agent = 2;
+  string remote_addr = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp expires_at = 5;
+  bool current = 6;
+}
+
+message GetServerInfoRequest {}
+
+message GetServerInfoResponse {
+  string version = 1;
+  string commit = 2;
+  // True until the first admin has been created
+  bool setup_required = 3;
+  bool password_login = 4;
+  bool passkey_login = 5;
+  string instance_name = 6;
+}
+
+message BootstrapRequest {
+  string username = 1 [(buf.validate.field).string = {min_len: 2, max_len: 32, pattern: "^[a-z0-9._-]+$"}];
+  string display_name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  string password = 3 [(buf.validate.field).string = {min_len: 12, max_len: 256}];
+  string instance_name = 4 [(buf.validate.field).string = {max_len: 64}];
+}
+
+message BootstrapResponse {
+  User user = 1;
+}
+
+message LoginWithPasswordRequest {
+  string username = 1 [(buf.validate.field).string = {min_len: 1, max_len: 32}];
+  string password = 2 [(buf.validate.field).string = {min_len: 1, max_len: 256}];
+}
+
+message LoginWithPasswordResponse {
+  User user = 1;
+}
+
+message LogoutRequest {}
+
+message LogoutResponse {}
+
+message GetMeRequest {}
+
+message GetMeResponse {
+  User user = 1;
+  repeated Identity identities = 2;
+  repeated Membership memberships = 3;
+}
+
+message ChangePasswordRequest {
+  string current_password = 1 [(buf.validate.field).string = {min_len: 1, max_len: 256}];
+  string new_password = 2 [(buf.validate.field).string = {min_len: 12, max_len: 256}];
+}
+
+message ChangePasswordResponse {}
+
+message BeginPasskeyRegistrationRequest {}
+
+message BeginPasskeyRegistrationResponse {
+  // WebAuthn PublicKeyCredentialCreationOptions as JSON
+  bytes options_json = 1;
+}
+
+message FinishPasskeyRegistrationRequest {
+  string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // navigator.credentials.create result as JSON
+  bytes credential_json = 2 [(buf.validate.field).bytes.min_len = 1];
+}
+
+message FinishPasskeyRegistrationResponse {
+  Passkey passkey = 1;
+}
+
+message BeginPasskeyLoginRequest {}
+
+message BeginPasskeyLoginResponse {
+  // WebAuthn PublicKeyCredentialRequestOptions as JSON
+  bytes options_json = 1;
+  // Opaque token binding this ceremony to its challenge
+  string ceremony = 2;
+}
+
+message FinishPasskeyLoginRequest {
+  string ceremony = 1 [(buf.validate.field).string.min_len = 1];
+  // navigator.credentials.get result as JSON
+  bytes credential_json = 2 [(buf.validate.field).bytes.min_len = 1];
+}
+
+message FinishPasskeyLoginResponse {
+  User user = 1;
+}
+
+message ListPasskeysRequest {}
+
+message ListPasskeysResponse {
+  repeated Passkey passkeys = 1;
+}
+
+message DeletePasskeyRequest {
+  string id = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+message DeletePasskeyResponse {}
+
+message ListApiKeysRequest {}
+
+message ListApiKeysResponse {
+  repeated ApiKey api_keys = 1;
+}
+
+message CreateApiKeyRequest {
+  string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  google.protobuf.Timestamp expires_at = 2;
+}
+
+message CreateApiKeyResponse {
+  ApiKey api_key = 1;
+  // Shown once
+  string secret = 2;
+}
+
+message RevokeApiKeyRequest {
+  string id = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+message RevokeApiKeyResponse {}
+
+message ListSessionsRequest {}
+
+message ListSessionsResponse {
+  repeated Session sessions = 1;
+}
+
+message RevokeSessionRequest {
+  string id = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+message RevokeSessionResponse {}
+
+message ListUsersRequest {}
+
+message ListUsersResponse {
+  repeated User users = 1;
+}
+
+message UpdateUserRequest {
+  string id = 1 [(buf.validate.field).string.min_len = 1];
+  string display_name = 2 [(buf.validate.field).string = {max_len: 64}];
+  UserStatus status = 3;
+  bool system_admin = 4;
+}
+
+message UpdateUserResponse {
+  User user = 1;
+}
+
+service IdentityService {
+  rpc GetServerInfo(GetServerInfoRequest) returns (GetServerInfoResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "server.info"
+      effect: EFFECT_READ
+      public: true
+      title: "Server info"
+      description: "Version and sign-in methods, readable before signing in"
+    };
+  }
+  rpc Bootstrap(BootstrapRequest) returns (BootstrapResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "server.bootstrap"
+      effect: EFFECT_WRITE
+      public: true
+      title: "Bootstrap"
+      description: "Create the first administrator, allowed only while no user exists"
+    };
+  }
+  rpc LoginWithPassword(LoginWithPasswordRequest) returns (LoginWithPasswordResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "session.create"
+      effect: EFFECT_WRITE
+      public: true
+      title: "Sign in with password"
+    };
+  }
+  rpc BeginPasskeyLogin(BeginPasskeyLoginRequest) returns (BeginPasskeyLoginResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "session.create"
+      effect: EFFECT_READ
+      public: true
+      title: "Begin passkey sign-in"
+    };
+  }
+  rpc FinishPasskeyLogin(FinishPasskeyLoginRequest) returns (FinishPasskeyLoginResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "session.create"
+      effect: EFFECT_WRITE
+      public: true
+      title: "Finish passkey sign-in"
+    };
+  }
+  rpc Logout(LogoutRequest) returns (LogoutResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "session.self"
+      effect: EFFECT_WRITE
+      title: "Sign out"
+    };
+  }
+  rpc GetMe(GetMeRequest) returns (GetMeResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "session.self"
+      effect: EFFECT_READ
+      title: "Who am I"
+      description: "The caller's user, identities, and memberships"
+    };
+  }
+  rpc ChangePassword(ChangePasswordRequest) returns (ChangePasswordResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "credentials.self"
+      effect: EFFECT_WRITE
+      title: "Change password"
+    };
+  }
+  rpc BeginPasskeyRegistration(BeginPasskeyRegistrationRequest) returns (BeginPasskeyRegistrationResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "credentials.self"
+      effect: EFFECT_READ
+      title: "Begin passkey registration"
+    };
+  }
+  rpc FinishPasskeyRegistration(FinishPasskeyRegistrationRequest) returns (FinishPasskeyRegistrationResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "credentials.self"
+      effect: EFFECT_WRITE
+      title: "Finish passkey registration"
+    };
+  }
+  rpc ListPasskeys(ListPasskeysRequest) returns (ListPasskeysResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "credentials.self"
+      effect: EFFECT_READ
+      title: "List passkeys"
+    };
+  }
+  rpc DeletePasskey(DeletePasskeyRequest) returns (DeletePasskeyResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "credentials.self"
+      effect: EFFECT_DESTRUCTIVE
+      title: "Delete passkey"
+    };
+  }
+  rpc ListApiKeys(ListApiKeysRequest) returns (ListApiKeysResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "credentials.self"
+      effect: EFFECT_READ
+      title: "List API keys"
+    };
+  }
+  rpc CreateApiKey(CreateApiKeyRequest) returns (CreateApiKeyResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "credentials.self"
+      effect: EFFECT_WRITE
+      title: "Create API key"
+    };
+  }
+  rpc RevokeApiKey(RevokeApiKeyRequest) returns (RevokeApiKeyResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "credentials.self"
+      effect: EFFECT_DESTRUCTIVE
+      title: "Revoke API key"
+    };
+  }
+  rpc ListSessions(ListSessionsRequest) returns (ListSessionsResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "session.self"
+      effect: EFFECT_READ
+      title: "List sessions"
+    };
+  }
+  rpc RevokeSession(RevokeSessionRequest) returns (RevokeSessionResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "session.self"
+      effect: EFFECT_DESTRUCTIVE
+      title: "Revoke session"
+    };
+  }
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "users.admin"
+      effect: EFFECT_READ
+      title: "List users"
+    };
+  }
+  rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "users.admin"
+      effect: EFFECT_WRITE
+      title: "Update user"
+    };
+  }
+}

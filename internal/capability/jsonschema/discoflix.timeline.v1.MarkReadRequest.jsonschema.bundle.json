@@ -1,0 +1,39 @@
+{
+  "$defs": {
+    "discoflix.timeline.v1.MarkReadRequest.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(channel_id)$": {
+          "default": "",
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "properties": {
+        "channelId": {
+          "default": "",
+          "minLength": 1,
+          "type": "string"
+        },
+        "seq": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        }
+      },
+      "title": "Mark Read Request",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.timeline.v1.MarkReadRequest.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.timeline.v1.MarkReadRequest.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

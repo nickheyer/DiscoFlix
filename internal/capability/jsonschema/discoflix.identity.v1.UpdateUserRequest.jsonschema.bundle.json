@@ -1,0 +1,62 @@
+{
+  "$defs": {
+    "discoflix.identity.v1.UpdateUserRequest.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(display_name)$": {
+          "default": "",
+          "maxLength": 64,
+          "type": "string"
+        },
+        "^(system_admin)$": {
+          "default": false,
+          "type": "boolean"
+        }
+      },
+      "properties": {
+        "displayName": {
+          "default": "",
+          "maxLength": 64,
+          "type": "string"
+        },
+        "id": {
+          "default": "",
+          "minLength": 1,
+          "type": "string"
+        },
+        "status": {
+          "anyOf": [
+            {
+              "pattern": "^USER_STATUS_UNSPECIFIED$",
+              "type": "string"
+            },
+            {
+              "enum": [
+                "USER_STATUS_ACTIVE",
+                "USER_STATUS_DISABLED"
+              ],
+              "type": "string"
+            },
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            }
+          ],
+          "default": 0,
+          "title": "User Status"
+        },
+        "systemAdmin": {
+          "default": false,
+          "type": "boolean"
+        }
+      },
+      "title": "Update User Request",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.identity.v1.UpdateUserRequest.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.identity.v1.UpdateUserRequest.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

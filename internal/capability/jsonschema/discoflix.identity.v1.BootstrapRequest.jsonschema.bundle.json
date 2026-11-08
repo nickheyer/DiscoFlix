@@ -1,0 +1,52 @@
+{
+  "$defs": {
+    "discoflix.identity.v1.BootstrapRequest.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(display_name)$": {
+          "default": "",
+          "maxLength": 64,
+          "minLength": 1,
+          "type": "string"
+        },
+        "^(instance_name)$": {
+          "default": "",
+          "maxLength": 64,
+          "type": "string"
+        }
+      },
+      "properties": {
+        "displayName": {
+          "default": "",
+          "maxLength": 64,
+          "minLength": 1,
+          "type": "string"
+        },
+        "instanceName": {
+          "default": "",
+          "maxLength": 64,
+          "type": "string"
+        },
+        "password": {
+          "default": "",
+          "maxLength": 256,
+          "minLength": 12,
+          "type": "string"
+        },
+        "username": {
+          "default": "",
+          "maxLength": 32,
+          "minLength": 2,
+          "pattern": "^[a-z0-9._-]+$",
+          "type": "string"
+        }
+      },
+      "title": "Bootstrap Request",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.identity.v1.BootstrapRequest.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.identity.v1.BootstrapRequest.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

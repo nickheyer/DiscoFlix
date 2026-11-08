@@ -1,0 +1,14 @@
+{
+  "$defs": {
+    "discoflix.identity.v1.GetServerInfoRequest.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {},
+      "title": "Get Server Info Request",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.identity.v1.GetServerInfoRequest.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.identity.v1.GetServerInfoRequest.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

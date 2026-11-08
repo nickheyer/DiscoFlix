@@ -1,0 +1,14 @@
+{
+  "$defs": {
+    "discoflix.capability.v1.ListCapabilitiesRequest.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {},
+      "title": "List Capabilities Request",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.capability.v1.ListCapabilitiesRequest.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.capability.v1.ListCapabilitiesRequest.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

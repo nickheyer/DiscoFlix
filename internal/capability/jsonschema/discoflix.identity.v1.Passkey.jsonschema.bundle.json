@@ -1,0 +1,51 @@
+{
+  "$defs": {
+    "discoflix.identity.v1.Passkey.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(backup_eligible)$": {
+          "default": false,
+          "type": "boolean"
+        },
+        "^(created_at)$": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "^(last_used_at)$": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        }
+      },
+      "properties": {
+        "backupEligible": {
+          "default": false,
+          "type": "boolean"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "id": {
+          "default": "",
+          "type": "string"
+        },
+        "lastUsedAt": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "name": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "title": "Passkey",
+      "type": "object"
+    },
+    "google.protobuf.Timestamp.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "format": "date-time",
+      "title": "Timestamp",
+      "type": "string"
+    }
+  },
+  "$id": "discoflix.identity.v1.Passkey.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.identity.v1.Passkey.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

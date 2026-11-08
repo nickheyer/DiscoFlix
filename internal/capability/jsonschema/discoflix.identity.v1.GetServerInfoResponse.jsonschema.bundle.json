@@ -1,0 +1,59 @@
+{
+  "$defs": {
+    "discoflix.identity.v1.GetServerInfoResponse.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(instance_name)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(passkey_login)$": {
+          "default": false,
+          "type": "boolean"
+        },
+        "^(password_login)$": {
+          "default": false,
+          "type": "boolean"
+        },
+        "^(setup_required)$": {
+          "default": false,
+          "description": "True until the first admin has been created",
+          "type": "boolean"
+        }
+      },
+      "properties": {
+        "commit": {
+          "default": "",
+          "type": "string"
+        },
+        "instanceName": {
+          "default": "",
+          "type": "string"
+        },
+        "passkeyLogin": {
+          "default": false,
+          "type": "boolean"
+        },
+        "passwordLogin": {
+          "default": false,
+          "type": "boolean"
+        },
+        "setupRequired": {
+          "default": false,
+          "description": "True until the first admin has been created",
+          "type": "boolean"
+        },
+        "version": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "title": "Get Server Info Response",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.identity.v1.GetServerInfoResponse.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.identity.v1.GetServerInfoResponse.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

@@ -1,0 +1,12 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", ":semanticCommitsDisabled"],
+  "enabledManagers": ["gomod", "npm", "github-actions", "dockerfile"],
+  "gomod": { "enabled": true },
+  "postUpdateOptions": ["gomodTidy", "gomodUpdateImportPaths"],
+  "packageRules": [
+    { "matchManagers": ["gomod"], "groupName": "go modules", "schedule": ["before 6am on monday"] },
+    { "matchManagers": ["npm"], "groupName": "web packages", "schedule": ["before 6am on monday"] },
+    { "matchPackageNames": ["github.com/wailsapp/wails/v3"], "groupName": "wails" }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "$defs": {
+    "discoflix.timeline.v1.Author.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(accent_color)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(avatar_url)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(display_name)$": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "properties": {
+        "accentColor": {
+          "default": "",
+          "type": "string"
+        },
+        "avatarUrl": {
+          "default": "",
+          "type": "string"
+        },
+        "displayName": {
+          "default": "",
+          "type": "string"
+        },
+        "id": {
+          "default": "",
+          "type": "string"
+        },
+        "kind": {
+          "default": "",
+          "description": "person, bot, plugin, agent",
+          "type": "string"
+        }
+      },
+      "title": "Author",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.timeline.v1.Author.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.timeline.v1.Author.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

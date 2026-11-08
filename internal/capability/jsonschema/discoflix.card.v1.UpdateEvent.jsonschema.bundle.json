@@ -1,0 +1,43 @@
+{
+  "$defs": {
+    "discoflix.card.v1.UpdateEvent.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "description": "Posted to #audit when a self-update is checked, applied, or declined",
+      "patternProperties": {
+        "^(available_version)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(current_version)$": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "properties": {
+        "availableVersion": {
+          "default": "",
+          "type": "string"
+        },
+        "currentVersion": {
+          "default": "",
+          "type": "string"
+        },
+        "detail": {
+          "default": "",
+          "type": "string"
+        },
+        "stage": {
+          "default": "",
+          "description": "checked, downloaded, verified, applied, failed",
+          "type": "string"
+        }
+      },
+      "title": "Update Event",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.card.v1.UpdateEvent.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.card.v1.UpdateEvent.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

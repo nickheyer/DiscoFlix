@@ -1,0 +1,98 @@
+version: "3"
+
+vars:
+  VERSION:
+    sh: git describe --tags --always --dirty 2>/dev/null || echo dev
+  COMMIT:
+    sh: git rev-parse --short HEAD 2>/dev/null || echo none
+  LDFLAGS: -s -w -X main.version={{.VERSION}} -X main.commit={{.COMMIT}}
+
+tasks:
+  default:
+    cmds:
+      - task: build
+
+  gen:
+    desc: Regenerate protos, Ent code, and JSON schemas
+    cmds:
+      - go tool buf generate
+      - go tool ent generate --feature sql/upsert,sql/execquery,sql/modifier,sql/lock ./internal/store/ent/schema
+
+  migrate:diff:
+    desc: Write a new migration from the Ent schema, NAME=...
+    cmds:
+      - go run ./internal/store/migratediff -name {{.NAME}}
+    requires:
+      vars: [NAME]
+
+  web:install:
+    dir: web
+    cmds:
+      - bun install --frozen-lockfile
+    sources:
+      - package.json
+      - bun.lock
+    generates:
+      - node_modules/.bin/vite
+
+  web:build:
+    dir: web
+    deps: [web:install]
+    cmds:
+      - bun run build
+    sources:
+      - src/**/*
+      - static/**/*
+      - package.json
+      - svelte.config.js
+      - vite.config.ts
+    generates:
+      - build/200.html
+
+  web:dev:
+    dir: web
+    deps: [web:install]
+    cmds:
+      - bun run dev
+
+  build:
+    desc: Build the desktop-capable binary for this platform
+    deps: [web:build]
+    cmds:
+      - CGO_ENABLED=0 go build -tags purego,production -ldflags "{{.LDFLAGS}}" -o bin/discoflix ./cmd/discoflix
+
+  build:headless:
+    desc: Build the fully static headless binary
+    deps: [web:build]
+    cmds:
+      - CGO_ENABLED=0 go build -tags headless,production -ldflags "{{.LDFLAGS}}" -o bin/discoflix-headless ./cmd/discoflix
+
+  run:
+    deps: [build]
+    cmds:
+      - ./bin/discoflix serve --data-dir ./data --log-level debug
+
+  test:
+    deps: [web:build]
+    cmds:
+      - go test ./...
+      - cd web && bun run test
+
+  lint:
+    cmds:
+      - go vet ./...
+      - go tool buf lint
+      - golangci-lint run
+      - cd web && bun run check
+
+  cross:
+    desc: Cross-compile every release target without packaging
+    deps: [web:build]
+    cmds:
+      - for: [linux/amd64, linux/arm64, windows/amd64, darwin/arm64, darwin/amd64]
+        cmd: CGO_ENABLED=0 GOOS={{splitList "/" .ITEM | first}} GOARCH={{splitList "/" .ITEM | last}} go build -tags purego,production -ldflags "{{.LDFLAGS}}" -o bin/cross/{{.ITEM}}/discoflix{{if eq (splitList "/" .ITEM | first) "windows"}}.exe{{end}} ./cmd/discoflix
+
+  release:snapshot:
+    deps: [web:build]
+    cmds:
+      - go tool goreleaser release --snapshot --clean

@@ -1,0 +1,14 @@
+{
+  "$defs": {
+    "discoflix.identity.v1.BeginPasskeyLoginRequest.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {},
+      "title": "Begin Passkey Login Request",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.identity.v1.BeginPasskeyLoginRequest.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.identity.v1.BeginPasskeyLoginRequest.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

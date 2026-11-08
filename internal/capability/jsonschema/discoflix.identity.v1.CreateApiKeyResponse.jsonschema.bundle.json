@@ -1,0 +1,75 @@
+{
+  "$defs": {
+    "discoflix.identity.v1.ApiKey.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(created_at)$": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "^(expires_at)$": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "^(last_used_at)$": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        }
+      },
+      "properties": {
+        "createdAt": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "expiresAt": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "id": {
+          "default": "",
+          "type": "string"
+        },
+        "lastUsedAt": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "name": {
+          "default": "",
+          "type": "string"
+        },
+        "prefix": {
+          "default": "",
+          "description": "First characters of the key for recognition",
+          "type": "string"
+        }
+      },
+      "title": "Api Key",
+      "type": "object"
+    },
+    "discoflix.identity.v1.CreateApiKeyResponse.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(api_key)$": {
+          "$ref": "#/$defs/discoflix.identity.v1.ApiKey.jsonschema.json"
+        }
+      },
+      "properties": {
+        "apiKey": {
+          "$ref": "#/$defs/discoflix.identity.v1.ApiKey.jsonschema.json"
+        },
+        "secret": {
+          "default": "",
+          "description": "Shown once",
+          "type": "string"
+        }
+      },
+      "title": "Create Api Key Response",
+      "type": "object"
+    },
+    "google.protobuf.Timestamp.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "format": "date-time",
+      "title": "Timestamp",
+      "type": "string"
+    }
+  },
+  "$id": "discoflix.identity.v1.CreateApiKeyResponse.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.identity.v1.CreateApiKeyResponse.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

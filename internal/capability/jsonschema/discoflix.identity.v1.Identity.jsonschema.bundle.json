@@ -1,0 +1,52 @@
+{
+  "$defs": {
+    "discoflix.identity.v1.Identity.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(linked_at)$": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "^(verified_at)$": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        }
+      },
+      "properties": {
+        "display": {
+          "default": "",
+          "type": "string"
+        },
+        "id": {
+          "default": "",
+          "type": "string"
+        },
+        "linkedAt": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "provider": {
+          "default": "",
+          "description": "discord, plex, jellyfin, emby, oidc:\u003cissuer\u003e, local, email",
+          "type": "string"
+        },
+        "subject": {
+          "default": "",
+          "type": "string"
+        },
+        "verifiedAt": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        }
+      },
+      "title": "Identity",
+      "type": "object"
+    },
+    "google.protobuf.Timestamp.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "format": "date-time",
+      "title": "Timestamp",
+      "type": "string"
+    }
+  },
+  "$id": "discoflix.identity.v1.Identity.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.identity.v1.Identity.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

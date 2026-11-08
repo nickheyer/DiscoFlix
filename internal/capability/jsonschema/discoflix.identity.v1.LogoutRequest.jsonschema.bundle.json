@@ -1,0 +1,14 @@
+{
+  "$defs": {
+    "discoflix.identity.v1.LogoutRequest.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {},
+      "title": "Logout Request",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.identity.v1.LogoutRequest.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.identity.v1.LogoutRequest.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

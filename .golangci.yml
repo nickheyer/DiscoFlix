@@ -1,0 +1,54 @@
+version: "2"
+run:
+  build-tags:
+    - purego
+    - production
+linters:
+  default: standard
+  enable:
+    - bodyclose
+    - copyloopvar
+    - errorlint
+    - gocritic
+    - gosec
+    - misspell
+    - modernize
+    - nilerr
+    - noctx
+    - revive
+    - unconvert
+    - unparam
+  settings:
+    revive:
+      rules:
+        - name: exported
+          disabled: true
+        - name: blank-imports
+          disabled: true
+        - name: package-comments
+          disabled: true
+    gosec:
+      excludes:
+        - G115
+        - G304
+        - G703
+  exclusions:
+    paths:
+      - internal/store/ent
+      - sdk/go/pb
+    rules:
+      - path: _test\.go
+        linters:
+          - noctx
+          - bodyclose
+          - gosec
+formatters:
+  enable:
+    - gofumpt
+    - gci
+  settings:
+    gci:
+      sections:
+        - standard
+        - default
+        - prefix(github.com/nickheyer/DiscoFlix)

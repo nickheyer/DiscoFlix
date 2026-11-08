@@ -1,0 +1,26 @@
+{
+  "$defs": {
+    "discoflix.capability.v1.ObjectRef.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "description": "Names the authorization object a request targets",
+      "properties": {
+        "field": {
+          "default": "",
+          "description": "Request field that carries the object id",
+          "type": "string"
+        },
+        "type": {
+          "default": "",
+          "description": "OpenFGA object type such as space, channel, user",
+          "type": "string"
+        }
+      },
+      "title": "Object Ref",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.capability.v1.ObjectRef.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.capability.v1.ObjectRef.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

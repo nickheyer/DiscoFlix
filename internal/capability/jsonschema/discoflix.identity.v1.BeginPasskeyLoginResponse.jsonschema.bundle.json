@@ -1,0 +1,34 @@
+{
+  "$defs": {
+    "discoflix.identity.v1.BeginPasskeyLoginResponse.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(options_json)$": {
+          "default": null,
+          "description": "WebAuthn PublicKeyCredentialRequestOptions as JSON",
+          "pattern": "^[A-Za-z0-9+/]*={0,2}$",
+          "type": "string"
+        }
+      },
+      "properties": {
+        "ceremony": {
+          "default": "",
+          "description": "Opaque token binding this ceremony to its challenge",
+          "type": "string"
+        },
+        "optionsJson": {
+          "default": null,
+          "description": "WebAuthn PublicKeyCredentialRequestOptions as JSON",
+          "pattern": "^[A-Za-z0-9+/]*={0,2}$",
+          "type": "string"
+        }
+      },
+      "title": "Begin Passkey Login Response",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.identity.v1.BeginPasskeyLoginResponse.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.identity.v1.BeginPasskeyLoginResponse.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

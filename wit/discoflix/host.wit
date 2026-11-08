@@ -1,0 +1,108 @@
+// Host interfaces every DiscoFlix plugin may import, linked only when the capability was granted
+package discoflix:host@0.1.0;
+
+interface types {
+    record error-detail {
+        code: string,
+        message: string,
+    }
+
+    variant severity {
+        info,
+        success,
+        warning,
+        %error,
+    }
+
+    record principal {
+        user-id: string,
+        display-name: string,
+        kind: string,
+        system-admin: bool,
+    }
+
+    /// A Card is a protobuf payload addressed by its Any type url
+    record card {
+        type-url: string,
+        payload: list<u8>,
+    }
+
+    record message {
+        seq: s64,
+        space-id: string,
+        channel-id: string,
+        author-id: string,
+        content: string,
+        card: option<card>,
+        created-at: s64,
+    }
+}
+
+interface log {
+    use types.{severity};
+    log: func(level: severity, message: string, fields: list<tuple<string, string>>);
+}
+
+interface http {
+    record request {
+        method: string,
+        url: string,
+        headers: list<tuple<string, string>>,
+        body: option<list<u8>>,
+        timeout-ms: u32,
+    }
+    record response {
+        status: u16,
+        headers: list<tuple<string, string>>,
+        body: list<u8>,
+    }
+    /// Only hosts named in the plugin manifest resolve
+    fetch: func(req: request) -> result<response, string>;
+}
+
+interface fs {
+    /// Paths are relative to a root granted in the manifest
+    read: func(root: string, path: string) -> result<list<u8>, string>;
+    write: func(root: string, path: string, data: list<u8>) -> result<_, string>;
+    list: func(root: string, path: string) -> result<list<string>, string>;
+    remove: func(root: string, path: string) -> result<_, string>;
+}
+
+interface exec {
+    record outcome {
+        exit-code: s32,
+        stdout: list<u8>,
+        stderr: list<u8>,
+    }
+    /// Only commands matching a granted pattern run, with the managed ffmpeg and ffprobe on the path
+    run: func(argv: list<string>, stdin: option<list<u8>>, timeout-ms: u32) -> result<outcome, string>;
+}
+
+interface kv {
+    get: func(key: string) -> option<list<u8>>;
+    set: func(key: string, value: list<u8>) -> result<_, string>;
+    delete: func(key: string) -> result<_, string>;
+    list: func(prefix: string) -> list<string>;
+}
+
+interface db {
+    /// Runs against the plugin's own SQLite file, schema applied from the manifest
+    query: func(sql: string, args: list<string>) -> result<list<list<string>>, string>;
+    exec: func(sql: string, args: list<string>) -> result<u64, string>;
+}
+
+interface events {
+    use types.{message, card};
+    /// Posts to a channel the plugin's identity may write to
+    post: func(channel-id: string, content: string, card: option<card>) -> result<message, string>;
+    update-card: func(seq: s64, card: card) -> result<message, string>;
+    /// Delivers events the plugin subscribed to in its manifest
+    subscribe: func(space-id: option<string>, after-seq: s64) -> result<_, string>;
+}
+
+interface capabilities {
+    use types.{principal};
+    /// Invokes any registered capability as the plugin's identity, input and output as protobuf JSON
+    call: func(procedure: string, input-json: string) -> result<string, string>;
+    me: func() -> principal;
+}

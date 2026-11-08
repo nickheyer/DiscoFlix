@@ -1,0 +1,48 @@
+{
+  "$defs": {
+    "discoflix.card.v1.SystemNotice.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "description": "Short operator-facing notice posted by the system",
+      "properties": {
+        "body": {
+          "default": "",
+          "type": "string"
+        },
+        "severity": {
+          "anyOf": [
+            {
+              "pattern": "^SEVERITY_UNSPECIFIED$",
+              "type": "string"
+            },
+            {
+              "enum": [
+                "SEVERITY_INFO",
+                "SEVERITY_SUCCESS",
+                "SEVERITY_WARNING",
+                "SEVERITY_ERROR"
+              ],
+              "type": "string"
+            },
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            }
+          ],
+          "default": 0,
+          "title": "Severity"
+        },
+        "title": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "title": "System Notice",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.card.v1.SystemNotice.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.card.v1.SystemNotice.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

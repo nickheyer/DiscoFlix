@@ -1,0 +1,67 @@
+{
+  "$defs": {
+    "discoflix.timeline.v1.ListMessagesRequest.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(before_seq)$": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0,
+          "description": "Return messages with seq strictly below this value, 0 means newest"
+        },
+        "^(channel_id)$": {
+          "default": "",
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "properties": {
+        "beforeSeq": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0,
+          "description": "Return messages with seq strictly below this value, 0 means newest"
+        },
+        "channelId": {
+          "default": "",
+          "minLength": 1,
+          "type": "string"
+        },
+        "limit": {
+          "anyOf": [
+            {
+              "maximum": 200,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        }
+      },
+      "title": "List Messages Request",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.timeline.v1.ListMessagesRequest.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.timeline.v1.ListMessagesRequest.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

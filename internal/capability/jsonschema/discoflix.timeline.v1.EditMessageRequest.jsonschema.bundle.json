@@ -1,0 +1,33 @@
+{
+  "$defs": {
+    "discoflix.timeline.v1.EditMessageRequest.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "content": {
+          "default": "",
+          "maxLength": 4000,
+          "type": "string"
+        },
+        "seq": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        }
+      },
+      "title": "Edit Message Request",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.timeline.v1.EditMessageRequest.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.timeline.v1.EditMessageRequest.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

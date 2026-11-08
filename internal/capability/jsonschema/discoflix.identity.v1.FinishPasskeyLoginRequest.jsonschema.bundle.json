@@ -1,0 +1,36 @@
+{
+  "$defs": {
+    "discoflix.identity.v1.FinishPasskeyLoginRequest.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(credential_json)$": {
+          "default": null,
+          "description": "navigator.credentials.get result as JSON",
+          "minLength": 2,
+          "pattern": "^[A-Za-z0-9+/]*={0,2}$",
+          "type": "string"
+        }
+      },
+      "properties": {
+        "ceremony": {
+          "default": "",
+          "minLength": 1,
+          "type": "string"
+        },
+        "credentialJson": {
+          "default": null,
+          "description": "navigator.credentials.get result as JSON",
+          "minLength": 2,
+          "pattern": "^[A-Za-z0-9+/]*={0,2}$",
+          "type": "string"
+        }
+      },
+      "title": "Finish Passkey Login Request",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.identity.v1.FinishPasskeyLoginRequest.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.identity.v1.FinishPasskeyLoginRequest.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

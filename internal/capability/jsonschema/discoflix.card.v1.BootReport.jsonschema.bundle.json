@@ -1,0 +1,83 @@
+{
+  "$defs": {
+    "discoflix.card.v1.BootReport.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "description": "Posted to #audit on every boot",
+      "patternProperties": {
+        "^(data_dir)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(go_version)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(migrations_applied)$": {
+          "anyOf": [
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        }
+      },
+      "properties": {
+        "arch": {
+          "default": "",
+          "type": "string"
+        },
+        "commit": {
+          "default": "",
+          "type": "string"
+        },
+        "dataDir": {
+          "default": "",
+          "type": "string"
+        },
+        "goVersion": {
+          "default": "",
+          "type": "string"
+        },
+        "migrationsApplied": {
+          "anyOf": [
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "mode": {
+          "default": "",
+          "description": "headless, desktop, or tray",
+          "type": "string"
+        },
+        "os": {
+          "default": "",
+          "type": "string"
+        },
+        "version": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "title": "Boot Report",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.card.v1.BootReport.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.card.v1.BootReport.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

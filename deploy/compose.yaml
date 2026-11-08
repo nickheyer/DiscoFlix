@@ -1,0 +1,14 @@
+services:
+  discoflix:
+    image: ghcr.io/nickheyer/discoflix:latest
+    container_name: discoflix
+    restart: unless-stopped
+    ports:
+      - "5001:5001"
+    volumes:
+      - discoflix_data:/data
+    environment:
+      DISCOFLIX_LOG_LEVEL: info
+
+volumes:
+  discoflix_data:

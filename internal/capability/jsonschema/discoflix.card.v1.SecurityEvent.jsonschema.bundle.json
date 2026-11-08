@@ -1,0 +1,51 @@
+{
+  "$defs": {
+    "discoflix.card.v1.SecurityEvent.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "description": "Posted to #audit when a user signs in, links an identity, or changes credentials",
+      "patternProperties": {
+        "^(remote_addr)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(user_agent)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(user_id)$": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "properties": {
+        "action": {
+          "default": "",
+          "description": "login, logout, bootstrap, password_changed, passkey_added, passkey_removed, apikey_created, apikey_revoked, session_revoked",
+          "type": "string"
+        },
+        "remoteAddr": {
+          "default": "",
+          "type": "string"
+        },
+        "userAgent": {
+          "default": "",
+          "type": "string"
+        },
+        "userId": {
+          "default": "",
+          "type": "string"
+        },
+        "via": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "title": "Security Event",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.card.v1.SecurityEvent.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.card.v1.SecurityEvent.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

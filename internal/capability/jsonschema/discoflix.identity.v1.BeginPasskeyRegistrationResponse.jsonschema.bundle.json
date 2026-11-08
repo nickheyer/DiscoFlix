@@ -1,0 +1,29 @@
+{
+  "$defs": {
+    "discoflix.identity.v1.BeginPasskeyRegistrationResponse.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(options_json)$": {
+          "default": null,
+          "description": "WebAuthn PublicKeyCredentialCreationOptions as JSON",
+          "pattern": "^[A-Za-z0-9+/]*={0,2}$",
+          "type": "string"
+        }
+      },
+      "properties": {
+        "optionsJson": {
+          "default": null,
+          "description": "WebAuthn PublicKeyCredentialCreationOptions as JSON",
+          "pattern": "^[A-Za-z0-9+/]*={0,2}$",
+          "type": "string"
+        }
+      },
+      "title": "Begin Passkey Registration Response",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.identity.v1.BeginPasskeyRegistrationResponse.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.identity.v1.BeginPasskeyRegistrationResponse.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

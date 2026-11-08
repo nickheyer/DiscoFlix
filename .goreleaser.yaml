@@ -1,0 +1,134 @@
+version: 2
+
+project_name: discoflix
+
+before:
+  hooks:
+    - go mod tidy
+    - sh -c "cd web && bun install --frozen-lockfile && bun run build"
+
+builds:
+  - id: desktop
+    main: ./cmd/discoflix
+    binary: discoflix
+    env:
+      - CGO_ENABLED=0
+    tags:
+      - purego
+      - production
+    ldflags:
+      - -s -w -X main.version={{.Version}} -X main.commit={{.ShortCommit}}
+    goos: [linux, windows, darwin]
+    goarch: [amd64, arm64]
+    ignore:
+      - goos: windows
+        goarch: arm64
+  - id: headless
+    main: ./cmd/discoflix
+    binary: discoflix
+    env:
+      - CGO_ENABLED=0
+    tags:
+      - headless
+      - production
+    ldflags:
+      - -s -w -X main.version={{.Version}} -X main.commit={{.ShortCommit}}
+    goos: [linux]
+    goarch: [amd64, arm64]
+
+archives:
+  - id: desktop
+    ids: [desktop]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    files:
+      - LICENSE
+      - README.md
+  - id: headless
+    ids: [headless]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}_headless"
+    formats: [tar.gz]
+    files:
+      - LICENSE
+
+checksum:
+  name_template: checksums.txt
+
+signs:
+  - id: checksums
+    cmd: cosign
+    certificate: "${artifact}.pem"
+    signature: "${artifact}.sigstore.json"
+    args:
+      - sign-blob
+      - "--bundle=${signature}"
+      - "${artifact}"
+      - "--yes"
+    artifacts: checksum
+    output: true
+
+sboms:
+  - artifacts: archive
+
+dockers_v2:
+  - id: headless
+    ids: [headless]
+    images:
+      - ghcr.io/nickheyer/discoflix
+    dockerfile: deploy/Dockerfile
+    tags:
+      - "{{ .Version }}"
+      - latest
+    platforms:
+      - linux/amd64
+      - linux/arm64
+    labels:
+      org.opencontainers.image.source: https://github.com/nickheyer/DiscoFlix
+      org.opencontainers.image.licenses: AGPL-3.0
+
+homebrew_casks:
+  - name: discoflix
+    ids: [desktop]
+    repository:
+      owner: nickheyer
+      name: homebrew-tap
+    homepage: https://github.com/nickheyer/DiscoFlix
+    description: One binary that searches, downloads, catalogs, transcodes, and takes requests for a home media collection
+    license: AGPL-3.0
+
+scoops:
+  - name: discoflix
+    ids: [desktop]
+    repository:
+      owner: nickheyer
+      name: scoop-bucket
+    homepage: https://github.com/nickheyer/DiscoFlix
+    description: One binary that searches, downloads, catalogs, transcodes, and takes requests for a home media collection
+    license: AGPL-3.0
+
+nfpms:
+  - ids: [desktop]
+    package_name: discoflix
+    vendor: Nicholas Heyer
+    homepage: https://github.com/nickheyer/DiscoFlix
+    maintainer: Nicholas Heyer
+    description: One binary that searches, downloads, catalogs, transcodes, and takes requests for a home media collection
+    license: AGPL-3.0
+    formats: [deb, rpm, apk, archlinux]
+    contents:
+      - src: deploy/discoflix.service
+        dst: /usr/lib/systemd/system/discoflix.service
+
+release:
+  github:
+    owner: nickheyer
+    name: DiscoFlix
+  draft: false
+  prerelease: auto
+
+changelog:
+  use: github
+  sort: asc

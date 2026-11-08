@@ -1,0 +1,27 @@
+version: v2
+managed:
+  enabled: true
+  override:
+    - file_option: go_package_prefix
+      value: github.com/nickheyer/DiscoFlix/sdk/go/pb
+  disable:
+    - file_option: go_package_prefix
+      module: buf.build/bufbuild/protovalidate
+plugins:
+  - local: ["go", "tool", "protoc-gen-go"]
+    out: sdk/go/pb
+    opt: paths=source_relative
+  - local: ["go", "tool", "protoc-gen-connect-go"]
+    out: sdk/go/pb
+    opt: paths=source_relative
+  - local: ["go", "tool", "protoc-gen-jsonschema"]
+    out: internal/capability/jsonschema
+    opt: target=json-bundle
+  - remote: buf.build/bufbuild/es:v2.17.0
+    out: web/src/lib/gen
+    include_imports: true
+    opt:
+      - target=ts
+      - json_types=true
+inputs:
+  - directory: proto

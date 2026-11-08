@@ -1,0 +1,42 @@
+edition = "2023";
+
+package discoflix.capability.v1;
+
+import "discoflix/capability/v1/options.proto";
+
+option features.field_presence = IMPLICIT;
+
+message CapabilityEntry {
+  // Fully qualified procedure such as /discoflix.timeline.v1.TimelineService/ListMessages
+  string procedure = 1;
+  string name = 2;
+  string scope = 3;
+  Effect effect = 4;
+  ObjectRef object = 5;
+  bool slash = 6;
+  bool public = 7;
+  string title = 8;
+  string description = 9;
+  string input_type = 10;
+  string output_type = 11;
+  string input_schema_json = 12;
+  string output_schema_json = 13;
+  bool server_streaming = 14;
+}
+
+message ListCapabilitiesRequest {}
+
+message ListCapabilitiesResponse {
+  repeated CapabilityEntry capabilities = 1;
+}
+
+service CapabilityService {
+  rpc ListCapabilities(ListCapabilitiesRequest) returns (ListCapabilitiesResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "capabilities.read"
+      effect: EFFECT_READ
+      title: "List capabilities"
+      description: "Every action this server exposes, with its schema and authorization scope"
+    };
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "$defs": {
+    "discoflix.capability.v1.Capability.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "description": "Declares how one RPC is exposed through every transport",
+      "properties": {
+        "description": {
+          "default": "",
+          "type": "string"
+        },
+        "effect": {
+          "anyOf": [
+            {
+              "pattern": "^EFFECT_UNSPECIFIED$",
+              "type": "string"
+            },
+            {
+              "enum": [
+                "EFFECT_READ",
+                "EFFECT_WRITE",
+                "EFFECT_DESTRUCTIVE"
+              ],
+              "type": "string"
+            },
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            }
+          ],
+          "default": 0,
+          "title": "Effect"
+        },
+        "object": {
+          "$ref": "#/$defs/discoflix.capability.v1.ObjectRef.jsonschema.json"
+        },
+        "public": {
+          "default": false,
+          "description": "Callable without a principal",
+          "type": "boolean"
+        },
+        "scope": {
+          "default": "",
+          "description": "Relation checked on the object, or on the system object when no object is named",
+          "type": "string"
+        },
+        "slash": {
+          "default": false,
+          "description": "Safe to expose as a Discord slash command",
+          "type": "boolean"
+        },
+        "title": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "title": "Capability",
+      "type": "object"
+    },
+    "discoflix.capability.v1.ObjectRef.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "description": "Names the authorization object a request targets",
+      "properties": {
+        "field": {
+          "default": "",
+          "description": "Request field that carries the object id",
+          "type": "string"
+        },
+        "type": {
+          "default": "",
+          "description": "OpenFGA object type such as space, channel, user",
+          "type": "string"
+        }
+      },
+      "title": "Object Ref",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.capability.v1.Capability.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.capability.v1.Capability.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

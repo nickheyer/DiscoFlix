@@ -1,0 +1,20 @@
+[Unit]
+Description=DiscoFlix
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/discoflix serve --headless
+Restart=on-failure
+RestartSec=5
+DynamicUser=yes
+StateDirectory=discoflix
+Environment=DISCOFLIX_DATA_DIR=/var/lib/discoflix
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target

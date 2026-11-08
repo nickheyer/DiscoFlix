@@ -1,0 +1,20 @@
+{
+  "$defs": {
+    "discoflix.identity.v1.RevokeApiKeyRequest.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "default": "",
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "title": "Revoke Api Key Request",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.identity.v1.RevokeApiKeyRequest.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.identity.v1.RevokeApiKeyRequest.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

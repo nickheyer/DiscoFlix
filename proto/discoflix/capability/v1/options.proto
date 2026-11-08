@@ -1,0 +1,41 @@
+edition = "2023";
+
+package discoflix.capability.v1;
+
+import "google/protobuf/descriptor.proto";
+
+option features.field_presence = IMPLICIT;
+
+// Side-effect class of a capability, used to gate agent and plugin calls
+enum Effect {
+  EFFECT_UNSPECIFIED = 0;
+  EFFECT_READ = 1;
+  EFFECT_WRITE = 2;
+  EFFECT_DESTRUCTIVE = 3;
+}
+
+// Names the authorization object a request targets
+message ObjectRef {
+  // OpenFGA object type such as space, channel, user
+  string type = 1;
+  // Request field that carries the object id
+  string field = 2;
+}
+
+// Declares how one RPC is exposed through every transport
+message Capability {
+  // Relation checked on the object, or on the system object when no object is named
+  string scope = 1;
+  Effect effect = 2;
+  ObjectRef object = 3;
+  // Safe to expose as a Discord slash command
+  bool slash = 4;
+  // Callable without a principal
+  bool public = 5;
+  string title = 6;
+  string description = 7;
+}
+
+extend google.protobuf.MethodOptions {
+  Capability capability = 50100;
+}
