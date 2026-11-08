@@ -12,6 +12,7 @@ export const settingsLinks: SettingsLink[] = [
 	{ href: '/settings/sessions', label: 'Sessions', admin: false },
 	{ href: '/settings/users', label: 'Users', admin: true },
 	{ href: '/settings/discord', label: 'Discord', admin: true },
+	{ href: '/settings/catalog', label: 'Catalog', admin: true },
 	{ href: '/settings/capabilities', label: 'Capabilities', admin: true }
 ];
 

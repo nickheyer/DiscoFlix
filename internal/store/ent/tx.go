@@ -14,14 +14,40 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// Artwork is the client for interacting with the Artwork builders.
+	Artwork *ArtworkClient
 	// AuthzOutbox is the client for interacting with the AuthzOutbox builders.
 	AuthzOutbox *AuthzOutboxClient
 	// Channel is the client for interacting with the Channel builders.
 	Channel *ChannelClient
+	// Claim is the client for interacting with the Claim builders.
+	Claim *ClaimClient
 	// Credential is the client for interacting with the Credential builders.
 	Credential *CredentialClient
+	// DatasetImport is the client for interacting with the DatasetImport builders.
+	DatasetImport *DatasetImportClient
+	// Entity is the client for interacting with the Entity builders.
+	Entity *EntityClient
+	// EntityField is the client for interacting with the EntityField builders.
+	EntityField *EntityFieldClient
+	// EntityTitle is the client for interacting with the EntityTitle builders.
+	EntityTitle *EntityTitleClient
+	// ExtID is the client for interacting with the ExtID builders.
+	ExtID *ExtIDClient
+	// IMDbAka is the client for interacting with the IMDbAka builders.
+	IMDbAka *IMDbAkaClient
+	// IMDbEpisode is the client for interacting with the IMDbEpisode builders.
+	IMDbEpisode *IMDbEpisodeClient
+	// IMDbRating is the client for interacting with the IMDbRating builders.
+	IMDbRating *IMDbRatingClient
+	// IMDbTitle is the client for interacting with the IMDbTitle builders.
+	IMDbTitle *IMDbTitleClient
 	// Identity is the client for interacting with the Identity builders.
 	Identity *IdentityClient
+	// MatchEdge is the client for interacting with the MatchEdge builders.
+	MatchEdge *MatchEdgeClient
+	// MatchModel is the client for interacting with the MatchModel builders.
+	MatchModel *MatchModelClient
 	// Membership is the client for interacting with the Membership builders.
 	Membership *MembershipClient
 	// Message is the client for interacting with the Message builders.
@@ -34,8 +60,14 @@ type Tx struct {
 	ReadState *ReadStateClient
 	// Setting is the client for interacting with the Setting builders.
 	Setting *SettingClient
+	// SourceRecord is the client for interacting with the SourceRecord builders.
+	SourceRecord *SourceRecordClient
+	// SourceState is the client for interacting with the SourceState builders.
+	SourceState *SourceStateClient
 	// Space is the client for interacting with the Space builders.
 	Space *SpaceClient
+	// TMDBExport is the client for interacting with the TMDBExport builders.
+	TMDBExport *TMDBExportClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 	// UserMerge is the client for interacting with the UserMerge builders.
@@ -171,17 +203,33 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.Artwork = NewArtworkClient(tx.config)
 	tx.AuthzOutbox = NewAuthzOutboxClient(tx.config)
 	tx.Channel = NewChannelClient(tx.config)
+	tx.Claim = NewClaimClient(tx.config)
 	tx.Credential = NewCredentialClient(tx.config)
+	tx.DatasetImport = NewDatasetImportClient(tx.config)
+	tx.Entity = NewEntityClient(tx.config)
+	tx.EntityField = NewEntityFieldClient(tx.config)
+	tx.EntityTitle = NewEntityTitleClient(tx.config)
+	tx.ExtID = NewExtIDClient(tx.config)
+	tx.IMDbAka = NewIMDbAkaClient(tx.config)
+	tx.IMDbEpisode = NewIMDbEpisodeClient(tx.config)
+	tx.IMDbRating = NewIMDbRatingClient(tx.config)
+	tx.IMDbTitle = NewIMDbTitleClient(tx.config)
 	tx.Identity = NewIdentityClient(tx.config)
+	tx.MatchEdge = NewMatchEdgeClient(tx.config)
+	tx.MatchModel = NewMatchModelClient(tx.config)
 	tx.Membership = NewMembershipClient(tx.config)
 	tx.Message = NewMessageClient(tx.config)
 	tx.PendingAction = NewPendingActionClient(tx.config)
 	tx.Reaction = NewReactionClient(tx.config)
 	tx.ReadState = NewReadStateClient(tx.config)
 	tx.Setting = NewSettingClient(tx.config)
+	tx.SourceRecord = NewSourceRecordClient(tx.config)
+	tx.SourceState = NewSourceStateClient(tx.config)
 	tx.Space = NewSpaceClient(tx.config)
+	tx.TMDBExport = NewTMDBExportClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 	tx.UserMerge = NewUserMergeClient(tx.config)
 }
@@ -193,7 +241,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: AuthzOutbox.QueryXXX(), the query will be executed
+// applies a query, for example: Artwork.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

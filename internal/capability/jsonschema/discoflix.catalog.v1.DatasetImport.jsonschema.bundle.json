@@ -1,0 +1,94 @@
+{
+  "$defs": {
+    "discoflix.catalog.v1.DatasetImport.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(finished_at)$": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "^(last_modified)$": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "^(started_at)$": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        }
+      },
+      "properties": {
+        "bytes": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "dataset": {
+          "default": "",
+          "type": "string"
+        },
+        "enabled": {
+          "default": false,
+          "type": "boolean"
+        },
+        "error": {
+          "default": "",
+          "type": "string"
+        },
+        "etag": {
+          "default": "",
+          "type": "string"
+        },
+        "finishedAt": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "lastModified": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "license": {
+          "default": "",
+          "type": "string"
+        },
+        "rows": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "startedAt": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "state": {
+          "default": "",
+          "description": "idle, downloading, loading, done, failed",
+          "type": "string"
+        },
+        "title": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "title": "Dataset Import",
+      "type": "object"
+    },
+    "google.protobuf.Timestamp.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "format": "date-time",
+      "title": "Timestamp",
+      "type": "string"
+    }
+  },
+  "$id": "discoflix.catalog.v1.DatasetImport.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.catalog.v1.DatasetImport.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

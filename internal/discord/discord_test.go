@@ -28,6 +28,7 @@ import (
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/message"
 	capabilityv1 "github.com/nickheyer/DiscoFlix/sdk/go/pb/discoflix/capability/v1"
 	cardv1 "github.com/nickheyer/DiscoFlix/sdk/go/pb/discoflix/card/v1"
+	catalogv1 "github.com/nickheyer/DiscoFlix/sdk/go/pb/discoflix/catalog/v1"
 	discordv1 "github.com/nickheyer/DiscoFlix/sdk/go/pb/discoflix/discord/v1"
 	identityv1 "github.com/nickheyer/DiscoFlix/sdk/go/pb/discoflix/identity/v1"
 	timelinev1 "github.com/nickheyer/DiscoFlix/sdk/go/pb/discoflix/timeline/v1"
@@ -521,5 +522,117 @@ func TestErrorText(t *testing.T) {
 	}
 	if got := errorText(errors.New("plain failure")); got != "plain failure" {
 		t.Fatalf("plain error = %q", got)
+	}
+}
+
+func TestPendingSeed(t *testing.T) {
+	seed := Seed{BotToken: " tok ", ClientSecret: " sec "}
+	for _, c := range []struct {
+		haveToken, haveSecret bool
+		seed                  Seed
+		token, secret         string
+	}{
+		{false, false, seed, "tok", "sec"},
+		{true, false, seed, "", "sec"},
+		{false, true, seed, "tok", ""},
+		{true, true, seed, "", ""},
+		{false, false, Seed{ClientSecret: "sec"}, "", ""},
+		{false, false, Seed{}, "", ""},
+	} {
+		token, secret := pendingSeed(c.haveToken, c.haveSecret, c.seed)
+		if token != c.token || secret != c.secret {
+			t.Errorf("pendingSeed(%v, %v, %+v) = %q %q, want %q %q", c.haveToken, c.haveSecret, c.seed, token, secret, c.token, c.secret)
+		}
+	}
+}
+
+func catalogCardService(t *testing.T) *Service {
+	t.Helper()
+	cards := extension.NewRegistry()
+	for _, card := range []proto.Message{&cardv1.EntityCard{}, &cardv1.MatchReview{}, &cardv1.CatalogReport{}} {
+		if err := cards.Register(extension.BuiltinCard(card)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	return &Service{Cards: cards}
+}
+
+func TestRenderEntityCard(t *testing.T) {
+	s := catalogCardService(t)
+	card := &cardv1.EntityCard{
+		EntityId: "e1", Kind: "movie", Title: "Heat", OriginalTitle: "Heat", Year: 1995, Overview: "A crew of thieves and the cop chasing them.",
+		PosterUrl: "http://lan:5001/blobs/abc/342.webp", PosterSourceUrl: "https://image.tmdb.org/t/p/original/heat.jpg",
+		ExternalIds: []*cardv1.ExternalRef{{Namespace: "imdb", Value: "tt0113277", Url: "https://www.imdb.com/title/tt0113277/"}, {Namespace: "tmdb", Value: "movie/949"}},
+		Confidence:  0.93, Explanation: "title matches exactly, year matches", Fields: 12, Sources: []string{"imdb", "tmdb"}, Url: "http://lan:5001/catalog/e/e1",
+	}
+	cs, _ := s.Cards.CardSchema(extension.TypeURLOf(card.ProtoReflect().Descriptor()))
+	c := s.renderCard(0, card, cs)
+	if c.AccentColor != colorInfo {
+		t.Fatalf("color = %x", c.AccentColor)
+	}
+	section, ok := c.Components[0].(dg.SectionComponent)
+	if !ok {
+		t.Fatalf("first component = %T", c.Components[0])
+	}
+	thumb, ok := section.Accessory.(dg.ThumbnailComponent)
+	if !ok || thumb.Media.URL != "https://image.tmdb.org/t/p/original/heat.jpg" {
+		t.Fatalf("thumbnail = %+v", section.Accessory)
+	}
+	if len(section.Components) != 2 || section.Components[0].(dg.TextDisplayComponent).Content != "## Heat (1995)" || !strings.Contains(section.Components[1].(dg.TextDisplayComponent).Content, "A crew of thieves") {
+		t.Fatalf("section = %+v", section.Components)
+	}
+	body := texts(c)
+	for _, want := range []string{"[imdb tt0113277](https://www.imdb.com/title/tt0113277/)", "tmdb movie/949", "**Match confidence 93%** title matches exactly", "12 fields with provenance from imdb, tmdb", "-# discoflix.card.v1.EntityCard"} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("entity text lacks %q in %q", want, body)
+		}
+	}
+	rows := actionRows(c)
+	if len(rows) != 1 || rows[0].Components[0].(dg.ButtonComponent).URL != "http://lan:5001/catalog/e/e1" || rows[0].Components[0].(dg.ButtonComponent).Style != dg.ButtonStyleLink {
+		t.Fatalf("link row = %+v", rows)
+	}
+	plain := s.renderCard(0, &cardv1.EntityCard{Title: "Heat"}, cs)
+	if _, ok := plain.Components[0].(dg.TextDisplayComponent); !ok || len(actionRows(plain)) != 0 {
+		t.Fatalf("plain card = %+v", plain.Components)
+	}
+}
+
+func TestRenderReviewAndReport(t *testing.T) {
+	s := catalogCardService(t)
+	review := &cardv1.MatchReview{EdgeId: "m1", EntityKind: "movie", EntityTitle: "Heat", EntityYear: 1996, CandidateSource: "tmdb", CandidateNamespace: "entity", CandidateValue: "e2", CandidateTitle: "Heat", CandidateYear: 1995, Probability: 0.7, Evidence: "title matches, released a year apart", State: cardv1.MatchState_MATCH_STATE_PENDING}
+	cs, _ := s.Cards.CardSchema(extension.TypeURLOf(review.ProtoReflect().Descriptor()))
+	c := s.renderCard(7, review, cs)
+	body := texts(c)
+	if c.AccentColor != colorWarning || !strings.Contains(body, "**Heat (1996)** Movie") || !strings.Contains(body, "**Heat (1995)** entity e2 from tmdb") || !strings.Contains(body, "at **70%**, title matches") || !strings.Contains(body, "⏳ Waiting for a catalog editor") {
+		t.Fatalf("review = %x %q", c.AccentColor, body)
+	}
+	review.State, review.DecidedByName, review.DecidedAt = cardv1.MatchState_MATCH_STATE_ACCEPTED, "Nick", timestamppb.New(time.Unix(1_700_000_000, 0))
+	if body := texts(s.renderCard(7, review, cs)); !strings.Contains(body, "✅ Merged by Nick <t:1700000000:R>") {
+		t.Fatalf("accepted = %q", body)
+	}
+	report := &cardv1.CatalogReport{Kind: "snapshot", Name: "crosswalk", State: "done", Version: "20261108T041700Z", Bytes: 150 << 20, DurationMs: 42000, Detail: "Fetched via peer"}
+	rcs, _ := s.Cards.CardSchema(extension.TypeURLOf(report.ProtoReflect().Descriptor()))
+	r := s.renderCard(8, report, rcs)
+	if body := texts(r); r.AccentColor != colorSuccess || !strings.Contains(body, "## ✅ Snapshot crosswalk") || !strings.Contains(body, "version 20261108T041700Z · 150.0 MB · 42s") || !strings.Contains(body, "Fetched via peer") {
+		t.Fatalf("report = %x %q", r.AccentColor, body)
+	}
+	report.State, report.Error = "failed", "mirror answered 503"
+	if f := s.renderCard(8, report, rcs); f.AccentColor != colorDanger || !strings.Contains(texts(f), "```\nmirror answered 503\n```") {
+		t.Fatalf("failed report = %+v", f)
+	}
+}
+
+func TestCardOutput(t *testing.T) {
+	s := catalogCardService(t)
+	out := &catalogv1.ResolveTitleResponse{Confidence: 0.9, Card: &cardv1.EntityCard{Title: "Heat"}}
+	card, cs, ok := s.cardOutput(out)
+	if !ok || cs.TypeURL() != extension.TypeURLOf((&cardv1.EntityCard{}).ProtoReflect().Descriptor()) || card.(*cardv1.EntityCard).GetTitle() != "Heat" {
+		t.Fatalf("card output = %v %v %v", card, cs, ok)
+	}
+	if _, _, ok := s.cardOutput(&catalogv1.ResolveTitleResponse{Confidence: 0.9}); ok {
+		t.Fatal("unset card field rendered")
+	}
+	if _, _, ok := s.cardOutput(&identityv1.GetServerInfoResponse{Version: "1"}); ok {
+		t.Fatal("plain response treated as card")
 	}
 }

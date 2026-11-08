@@ -1,0 +1,84 @@
+edition = "2023";
+
+package discoflix.card.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option features.field_presence = IMPLICIT;
+
+// One external identifier shown on an entity card with a link to its source page
+message ExternalRef {
+  string namespace = 1;
+  string value = 2;
+  string url = 3;
+}
+
+// A resolved catalog entity, posted when a title is identified from Discord or the web
+message EntityCard {
+  string entity_id = 1;
+  // movie, series, season, episode
+  string kind = 2;
+  string title = 3;
+  string original_title = 4;
+  int32 year = 5;
+  string overview = 6;
+  string poster_url = 7;
+  // Base64 thumbhash placeholder for the poster
+  string thumbhash = 8;
+  repeated ExternalRef external_ids = 9;
+  // Probability the resolver assigned to this match
+  float confidence = 10;
+  string explanation = 11;
+  // Resolved fields carrying provenance
+  int32 fields = 12;
+  repeated string sources = 13;
+  // Web link to the entity page
+  string url = 14;
+  // Public address of the poster at its source, for transports that fetch media themselves
+  string poster_source_url = 15;
+}
+
+enum MatchState {
+  MATCH_STATE_UNSPECIFIED = 0;
+  MATCH_STATE_PENDING = 1;
+  MATCH_STATE_ACCEPTED = 2;
+  MATCH_STATE_REJECTED = 3;
+}
+
+// Asks a person whether a low-probability candidate is the same title as an entity
+message MatchReview {
+  string edge_id = 1;
+  string entity_id = 2;
+  string entity_kind = 3;
+  string entity_title = 4;
+  int32 entity_year = 5;
+  string candidate_source = 6;
+  string candidate_namespace = 7;
+  string candidate_value = 8;
+  string candidate_title = 9;
+  int32 candidate_year = 10;
+  float probability = 11;
+  // Feature by feature breakdown behind the probability
+  string evidence = 12;
+  MatchState state = 13;
+  string decided_by = 14;
+  string decided_by_name = 15;
+  google.protobuf.Timestamp decided_at = 16;
+  // Page of the candidate id on its source site, empty for a catalog entity
+  string candidate_url = 17;
+}
+
+// Progress and outcome of a snapshot update, dataset import, entity refresh, or source failure
+message CatalogReport {
+  // snapshot, dataset, refresh, source
+  string kind = 1;
+  string name = 2;
+  // started, done, failed, skipped
+  string state = 3;
+  string version = 4;
+  int64 rows = 5;
+  int64 bytes = 6;
+  int64 duration_ms = 7;
+  string detail = 8;
+  string error = 9;
+}

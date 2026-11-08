@@ -1,0 +1,25 @@
+{
+  "$defs": {
+    "discoflix.catalog.v1.ImportDatasetRequest.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "dataset": {
+          "default": "",
+          "maxLength": 32,
+          "minLength": 1,
+          "type": "string"
+        },
+        "enabled": {
+          "default": false,
+          "type": "boolean"
+        }
+      },
+      "title": "Import Dataset Request",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.catalog.v1.ImportDatasetRequest.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.catalog.v1.ImportDatasetRequest.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

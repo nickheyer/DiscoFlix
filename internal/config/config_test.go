@@ -15,6 +15,8 @@ func TestLoadLayers(t *testing.T) {
 	}
 	t.Setenv("DISCOFLIX_DATA_DIR", dir)
 	t.Setenv("DISCOFLIX_SERVER_PUBLIC_URL", "https://flix.example")
+	t.Setenv("DISCOFLIX_DISCORD_BOT_TOKEN", "bot-token")
+	t.Setenv("DISCOFLIX_DISCORD_CLIENT_SECRET", "client-secret")
 	fs := pflag.NewFlagSet("test", pflag.ContinueOnError)
 	Flags(fs)
 	if err := fs.Parse([]string{"--log-level", "warn", "--headless"}); err != nil {
@@ -26,5 +28,8 @@ func TestLoadLayers(t *testing.T) {
 	}
 	if c.DataDir != dir || c.Addr != ":7000" || c.PublicURL != "https://flix.example" || c.LogLevel != "warn" || !c.Headless {
 		t.Fatalf("config = %+v", c)
+	}
+	if c.DiscordBotToken != "bot-token" || c.DiscordClientSecret != "client-secret" {
+		t.Fatalf("seed = %q %q", c.DiscordBotToken, c.DiscordClientSecret)
 	}
 }

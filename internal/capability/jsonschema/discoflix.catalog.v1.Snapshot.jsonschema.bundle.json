@@ -1,0 +1,115 @@
+{
+  "$defs": {
+    "discoflix.catalog.v1.Snapshot.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(built_at)$": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "^(checked_at)$": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "^(external_ids)$": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "^(last_error)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(updated_at)$": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        }
+      },
+      "properties": {
+        "builtAt": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "bytes": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "checkedAt": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "externalIds": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "items": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "lastError": {
+          "default": "",
+          "type": "string"
+        },
+        "mirror": {
+          "default": "",
+          "type": "string"
+        },
+        "state": {
+          "default": "",
+          "description": "ready, missing, updating, failed",
+          "type": "string"
+        },
+        "updatedAt": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "version": {
+          "default": "",
+          "type": "string"
+        },
+        "via": {
+          "default": "",
+          "description": "http or peer",
+          "type": "string"
+        }
+      },
+      "title": "Snapshot",
+      "type": "object"
+    },
+    "google.protobuf.Timestamp.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "format": "date-time",
+      "title": "Timestamp",
+      "type": "string"
+    }
+  },
+  "$id": "discoflix.catalog.v1.Snapshot.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.catalog.v1.Snapshot.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

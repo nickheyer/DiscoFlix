@@ -1,0 +1,28 @@
+{
+  "$defs": {
+    "discoflix.card.v1.ExternalRef.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "description": "One external identifier shown on an entity card with a link to its source page",
+      "properties": {
+        "namespace": {
+          "default": "",
+          "type": "string"
+        },
+        "url": {
+          "default": "",
+          "type": "string"
+        },
+        "value": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "title": "External Ref",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.card.v1.ExternalRef.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.card.v1.ExternalRef.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

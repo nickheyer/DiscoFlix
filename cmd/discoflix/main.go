@@ -75,6 +75,7 @@ func usage() {
 Flags for serve and service install:
   --data-dir, --addr, --public-url, --log-level, --log-format, --headless
 Environment: DISCOFLIX_DATA_DIR, DISCOFLIX_SERVER_ADDR, DISCOFLIX_SERVER_PUBLIC_URL, DISCOFLIX_LOG_LEVEL, DISCOFLIX_LOG_FORMAT, DISCOFLIX_HEADLESS
+            DISCOFLIX_DISCORD_BOT_TOKEN and DISCOFLIX_DISCORD_CLIENT_SECRET fill the encrypted secrets store at boot when it holds none
 `)
 }
 

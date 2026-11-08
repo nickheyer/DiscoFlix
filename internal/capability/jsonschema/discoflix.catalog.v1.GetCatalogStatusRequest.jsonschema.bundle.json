@@ -1,0 +1,14 @@
+{
+  "$defs": {
+    "discoflix.catalog.v1.GetCatalogStatusRequest.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {},
+      "title": "Get Catalog Status Request",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.catalog.v1.GetCatalogStatusRequest.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.catalog.v1.GetCatalogStatusRequest.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

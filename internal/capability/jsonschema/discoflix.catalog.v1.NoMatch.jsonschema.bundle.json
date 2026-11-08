@@ -1,0 +1,88 @@
+{
+  "$defs": {
+    "discoflix.catalog.v1.NoMatch.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "description": "Attached as an error detail when no entity matched, so callers still see how each source fared",
+      "properties": {
+        "sources": {
+          "items": {
+            "$ref": "#/$defs/discoflix.catalog.v1.SourceOutcome.jsonschema.json"
+          },
+          "type": "array"
+        },
+        "title": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "title": "No Match",
+      "type": "object"
+    },
+    "discoflix.catalog.v1.SourceOutcome.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "description": "How one source fared while answering a request",
+      "patternProperties": {
+        "^(duration_ms)$": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        }
+      },
+      "properties": {
+        "detail": {
+          "default": "",
+          "type": "string"
+        },
+        "durationMs": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "results": {
+          "anyOf": [
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "source": {
+          "default": "",
+          "type": "string"
+        },
+        "state": {
+          "default": "",
+          "description": "answered, empty, disabled, unconfigured, unreachable, missing, budget, open, skipped",
+          "type": "string"
+        }
+      },
+      "title": "Source Outcome",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.catalog.v1.NoMatch.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.catalog.v1.NoMatch.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

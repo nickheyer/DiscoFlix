@@ -3,6 +3,7 @@ import { Code, ConnectError, type Interceptor } from '@connectrpc/connect';
 import { createConnectTransport } from '@connectrpc/connect-web';
 import { CapabilityService } from '#lib/gen/discoflix/capability/v1/capability_pb';
 import { capability } from '#lib/gen/discoflix/capability/v1/options_pb';
+import { CatalogService } from '#lib/gen/discoflix/catalog/v1/catalog_pb';
 import { DiscordService } from '#lib/gen/discoflix/discord/v1/discord_pb';
 import { IdentityService } from '#lib/gen/discoflix/identity/v1/identity_pb';
 import { TimelineService } from '#lib/gen/discoflix/timeline/v1/timeline_pb';
@@ -10,7 +11,13 @@ import { reachesAny, wrapUnknownAny } from './any-json';
 import { emitUnauthenticated } from './auth-signal';
 import { typeRegistry } from './types';
 
-export const services: readonly DescService[] = [IdentityService, TimelineService, CapabilityService, DiscordService];
+export const services: readonly DescService[] = [
+	IdentityService,
+	TimelineService,
+	CapabilityService,
+	DiscordService,
+	CatalogService
+];
 
 const anyOutputs = new Map<string, DescMessage>();
 for (const service of services) {

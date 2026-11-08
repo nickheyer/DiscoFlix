@@ -5,10 +5,23 @@ package ent
 import (
 	"time"
 
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/artwork"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/authzoutbox"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/channel"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/claim"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/credential"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/datasetimport"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/entity"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/entityfield"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/entitytitle"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/extid"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/identity"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/imdbaka"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/imdbepisode"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/imdbrating"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/imdbtitle"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/matchedge"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/matchmodel"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/membership"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/message"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/pendingaction"
@@ -16,7 +29,10 @@ import (
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/readstate"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/schema"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/setting"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/sourcerecord"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/sourcestate"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/space"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/tmdbexport"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/user"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/usermerge"
 )
@@ -25,6 +41,79 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	artworkMixin := schema.Artwork{}.Mixin()
+	artworkMixinFields0 := artworkMixin[0].Fields()
+	_ = artworkMixinFields0
+	artworkFields := schema.Artwork{}.Fields()
+	_ = artworkFields
+	// artworkDescEntityID is the schema descriptor for entity_id field.
+	artworkDescEntityID := artworkFields[0].Descriptor()
+	// artwork.EntityIDValidator is a validator for the "entity_id" field. It is called by the builders before save.
+	artwork.EntityIDValidator = artworkDescEntityID.Validators[0].(func(string) error)
+	// artworkDescSource is the schema descriptor for source field.
+	artworkDescSource := artworkFields[2].Descriptor()
+	// artwork.SourceValidator is a validator for the "source" field. It is called by the builders before save.
+	artwork.SourceValidator = func() func(string) error {
+		validators := artworkDescSource.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(source string) error {
+			for _, fn := range fns {
+				if err := fn(source); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// artworkDescSourceURL is the schema descriptor for source_url field.
+	artworkDescSourceURL := artworkFields[3].Descriptor()
+	// artwork.SourceURLValidator is a validator for the "source_url" field. It is called by the builders before save.
+	artwork.SourceURLValidator = artworkDescSourceURL.Validators[0].(func(string) error)
+	// artworkDescHash is the schema descriptor for hash field.
+	artworkDescHash := artworkFields[4].Descriptor()
+	// artwork.DefaultHash holds the default value on creation for the hash field.
+	artwork.DefaultHash = artworkDescHash.Default.(string)
+	// artworkDescWidth is the schema descriptor for width field.
+	artworkDescWidth := artworkFields[5].Descriptor()
+	// artwork.DefaultWidth holds the default value on creation for the width field.
+	artwork.DefaultWidth = artworkDescWidth.Default.(int32)
+	// artworkDescHeight is the schema descriptor for height field.
+	artworkDescHeight := artworkFields[6].Descriptor()
+	// artwork.DefaultHeight holds the default value on creation for the height field.
+	artwork.DefaultHeight = artworkDescHeight.Default.(int32)
+	// artworkDescMime is the schema descriptor for mime field.
+	artworkDescMime := artworkFields[7].Descriptor()
+	// artwork.DefaultMime holds the default value on creation for the mime field.
+	artwork.DefaultMime = artworkDescMime.Default.(string)
+	// artworkDescBytes is the schema descriptor for bytes field.
+	artworkDescBytes := artworkFields[8].Descriptor()
+	// artwork.DefaultBytes holds the default value on creation for the bytes field.
+	artwork.DefaultBytes = artworkDescBytes.Default.(int64)
+	// artworkDescLanguage is the schema descriptor for language field.
+	artworkDescLanguage := artworkFields[11].Descriptor()
+	// artwork.DefaultLanguage holds the default value on creation for the language field.
+	artwork.DefaultLanguage = artworkDescLanguage.Default.(string)
+	// artworkDescScore is the schema descriptor for score field.
+	artworkDescScore := artworkFields[12].Descriptor()
+	// artwork.DefaultScore holds the default value on creation for the score field.
+	artwork.DefaultScore = artworkDescScore.Default.(float64)
+	// artworkDescError is the schema descriptor for error field.
+	artworkDescError := artworkFields[14].Descriptor()
+	// artwork.DefaultError holds the default value on creation for the error field.
+	artwork.DefaultError = artworkDescError.Default.(string)
+	// artworkDescCreatedAt is the schema descriptor for created_at field.
+	artworkDescCreatedAt := artworkFields[15].Descriptor()
+	// artwork.DefaultCreatedAt holds the default value on creation for the created_at field.
+	artwork.DefaultCreatedAt = artworkDescCreatedAt.Default.(func() time.Time)
+	// artworkDescID is the schema descriptor for id field.
+	artworkDescID := artworkMixinFields0[0].Descriptor()
+	// artwork.DefaultID holds the default value on creation for the id field.
+	artwork.DefaultID = artworkDescID.Default.(func() string)
+	// artwork.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	artwork.IDValidator = artworkDescID.Validators[0].(func(string) error)
 	authzoutboxFields := schema.AuthzOutbox{}.Fields()
 	_ = authzoutboxFields
 	// authzoutboxDescObject is the schema descriptor for object field.
@@ -124,6 +213,103 @@ func init() {
 	channel.DefaultID = channelDescID.Default.(func() string)
 	// channel.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	channel.IDValidator = channelDescID.Validators[0].(func(string) error)
+	claimMixin := schema.Claim{}.Mixin()
+	claimMixinFields0 := claimMixin[0].Fields()
+	_ = claimMixinFields0
+	claimFields := schema.Claim{}.Fields()
+	_ = claimFields
+	// claimDescEntityID is the schema descriptor for entity_id field.
+	claimDescEntityID := claimFields[0].Descriptor()
+	// claim.EntityIDValidator is a validator for the "entity_id" field. It is called by the builders before save.
+	claim.EntityIDValidator = claimDescEntityID.Validators[0].(func(string) error)
+	// claimDescField is the schema descriptor for field field.
+	claimDescField := claimFields[1].Descriptor()
+	// claim.FieldValidator is a validator for the "field" field. It is called by the builders before save.
+	claim.FieldValidator = func() func(string) error {
+		validators := claimDescField.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(field string) error {
+			for _, fn := range fns {
+				if err := fn(field); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// claimDescValueHash is the schema descriptor for value_hash field.
+	claimDescValueHash := claimFields[3].Descriptor()
+	// claim.ValueHashValidator is a validator for the "value_hash" field. It is called by the builders before save.
+	claim.ValueHashValidator = func() func(string) error {
+		validators := claimDescValueHash.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(value_hash string) error {
+			for _, fn := range fns {
+				if err := fn(value_hash); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// claimDescSource is the schema descriptor for source field.
+	claimDescSource := claimFields[4].Descriptor()
+	// claim.SourceValidator is a validator for the "source" field. It is called by the builders before save.
+	claim.SourceValidator = func() func(string) error {
+		validators := claimDescSource.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(source string) error {
+			for _, fn := range fns {
+				if err := fn(source); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// claimDescRecordID is the schema descriptor for record_id field.
+	claimDescRecordID := claimFields[5].Descriptor()
+	// claim.DefaultRecordID holds the default value on creation for the record_id field.
+	claim.DefaultRecordID = claimDescRecordID.Default.(string)
+	// claimDescUserID is the schema descriptor for user_id field.
+	claimDescUserID := claimFields[6].Descriptor()
+	// claim.DefaultUserID holds the default value on creation for the user_id field.
+	claim.DefaultUserID = claimDescUserID.Default.(string)
+	// claimDescConfidence is the schema descriptor for confidence field.
+	claimDescConfidence := claimFields[7].Descriptor()
+	// claim.DefaultConfidence holds the default value on creation for the confidence field.
+	claim.DefaultConfidence = claimDescConfidence.Default.(float32)
+	// claimDescRank is the schema descriptor for rank field.
+	claimDescRank := claimFields[8].Descriptor()
+	// claim.DefaultRank holds the default value on creation for the rank field.
+	claim.DefaultRank = claimDescRank.Default.(int32)
+	// claimDescPinned is the schema descriptor for pinned field.
+	claimDescPinned := claimFields[9].Descriptor()
+	// claim.DefaultPinned holds the default value on creation for the pinned field.
+	claim.DefaultPinned = claimDescPinned.Default.(bool)
+	// claimDescObservedAt is the schema descriptor for observed_at field.
+	claimDescObservedAt := claimFields[10].Descriptor()
+	// claim.DefaultObservedAt holds the default value on creation for the observed_at field.
+	claim.DefaultObservedAt = claimDescObservedAt.Default.(func() time.Time)
+	// claimDescCreatedAt is the schema descriptor for created_at field.
+	claimDescCreatedAt := claimFields[11].Descriptor()
+	// claim.DefaultCreatedAt holds the default value on creation for the created_at field.
+	claim.DefaultCreatedAt = claimDescCreatedAt.Default.(func() time.Time)
+	// claimDescID is the schema descriptor for id field.
+	claimDescID := claimMixinFields0[0].Descriptor()
+	// claim.DefaultID holds the default value on creation for the id field.
+	claim.DefaultID = claimDescID.Default.(func() string)
+	// claim.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	claim.IDValidator = claimDescID.Validators[0].(func(string) error)
 	credentialMixin := schema.Credential{}.Mixin()
 	credentialMixinFields0 := credentialMixin[0].Fields()
 	_ = credentialMixinFields0
@@ -175,6 +361,393 @@ func init() {
 	credential.DefaultID = credentialDescID.Default.(func() string)
 	// credential.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	credential.IDValidator = credentialDescID.Validators[0].(func(string) error)
+	datasetimportFields := schema.DatasetImport{}.Fields()
+	_ = datasetimportFields
+	// datasetimportDescEnabled is the schema descriptor for enabled field.
+	datasetimportDescEnabled := datasetimportFields[1].Descriptor()
+	// datasetimport.DefaultEnabled holds the default value on creation for the enabled field.
+	datasetimport.DefaultEnabled = datasetimportDescEnabled.Default.(bool)
+	// datasetimportDescRows is the schema descriptor for rows field.
+	datasetimportDescRows := datasetimportFields[3].Descriptor()
+	// datasetimport.DefaultRows holds the default value on creation for the rows field.
+	datasetimport.DefaultRows = datasetimportDescRows.Default.(int64)
+	// datasetimportDescBytes is the schema descriptor for bytes field.
+	datasetimportDescBytes := datasetimportFields[4].Descriptor()
+	// datasetimport.DefaultBytes holds the default value on creation for the bytes field.
+	datasetimport.DefaultBytes = datasetimportDescBytes.Default.(int64)
+	// datasetimportDescError is the schema descriptor for error field.
+	datasetimportDescError := datasetimportFields[5].Descriptor()
+	// datasetimport.DefaultError holds the default value on creation for the error field.
+	datasetimport.DefaultError = datasetimportDescError.Default.(string)
+	// datasetimportDescEtag is the schema descriptor for etag field.
+	datasetimportDescEtag := datasetimportFields[8].Descriptor()
+	// datasetimport.DefaultEtag holds the default value on creation for the etag field.
+	datasetimport.DefaultEtag = datasetimportDescEtag.Default.(string)
+	// datasetimportDescWorkflowID is the schema descriptor for workflow_id field.
+	datasetimportDescWorkflowID := datasetimportFields[10].Descriptor()
+	// datasetimport.DefaultWorkflowID holds the default value on creation for the workflow_id field.
+	datasetimport.DefaultWorkflowID = datasetimportDescWorkflowID.Default.(string)
+	// datasetimportDescUpdatedAt is the schema descriptor for updated_at field.
+	datasetimportDescUpdatedAt := datasetimportFields[11].Descriptor()
+	// datasetimport.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	datasetimport.DefaultUpdatedAt = datasetimportDescUpdatedAt.Default.(func() time.Time)
+	// datasetimport.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	datasetimport.UpdateDefaultUpdatedAt = datasetimportDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// datasetimportDescID is the schema descriptor for id field.
+	datasetimportDescID := datasetimportFields[0].Descriptor()
+	// datasetimport.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	datasetimport.IDValidator = datasetimportDescID.Validators[0].(func(string) error)
+	entityMixin := schema.Entity{}.Mixin()
+	entityMixinFields0 := entityMixin[0].Fields()
+	_ = entityMixinFields0
+	entityMixinFields1 := entityMixin[1].Fields()
+	_ = entityMixinFields1
+	entityFields := schema.Entity{}.Fields()
+	_ = entityFields
+	// entityDescCreatedAt is the schema descriptor for created_at field.
+	entityDescCreatedAt := entityMixinFields1[0].Descriptor()
+	// entity.DefaultCreatedAt holds the default value on creation for the created_at field.
+	entity.DefaultCreatedAt = entityDescCreatedAt.Default.(func() time.Time)
+	// entityDescUpdatedAt is the schema descriptor for updated_at field.
+	entityDescUpdatedAt := entityMixinFields1[1].Descriptor()
+	// entity.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	entity.DefaultUpdatedAt = entityDescUpdatedAt.Default.(func() time.Time)
+	// entity.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	entity.UpdateDefaultUpdatedAt = entityDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// entityDescKind is the schema descriptor for kind field.
+	entityDescKind := entityFields[0].Descriptor()
+	// entity.KindValidator is a validator for the "kind" field. It is called by the builders before save.
+	entity.KindValidator = func() func(string) error {
+		validators := entityDescKind.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(kind string) error {
+			for _, fn := range fns {
+				if err := fn(kind); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// entityDescTitle is the schema descriptor for title field.
+	entityDescTitle := entityFields[1].Descriptor()
+	// entity.DefaultTitle holds the default value on creation for the title field.
+	entity.DefaultTitle = entityDescTitle.Default.(string)
+	// entityDescYear is the schema descriptor for year field.
+	entityDescYear := entityFields[2].Descriptor()
+	// entity.DefaultYear holds the default value on creation for the year field.
+	entity.DefaultYear = entityDescYear.Default.(int32)
+	// entityDescOrdinal is the schema descriptor for ordinal field.
+	entityDescOrdinal := entityFields[4].Descriptor()
+	// entity.DefaultOrdinal holds the default value on creation for the ordinal field.
+	entity.DefaultOrdinal = entityDescOrdinal.Default.(int32)
+	// entityDescID is the schema descriptor for id field.
+	entityDescID := entityMixinFields0[0].Descriptor()
+	// entity.DefaultID holds the default value on creation for the id field.
+	entity.DefaultID = entityDescID.Default.(func() string)
+	// entity.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	entity.IDValidator = entityDescID.Validators[0].(func(string) error)
+	entityfieldMixin := schema.EntityField{}.Mixin()
+	entityfieldMixinFields0 := entityfieldMixin[0].Fields()
+	_ = entityfieldMixinFields0
+	entityfieldFields := schema.EntityField{}.Fields()
+	_ = entityfieldFields
+	// entityfieldDescEntityID is the schema descriptor for entity_id field.
+	entityfieldDescEntityID := entityfieldFields[0].Descriptor()
+	// entityfield.EntityIDValidator is a validator for the "entity_id" field. It is called by the builders before save.
+	entityfield.EntityIDValidator = entityfieldDescEntityID.Validators[0].(func(string) error)
+	// entityfieldDescField is the schema descriptor for field field.
+	entityfieldDescField := entityfieldFields[1].Descriptor()
+	// entityfield.FieldValidator is a validator for the "field" field. It is called by the builders before save.
+	entityfield.FieldValidator = func() func(string) error {
+		validators := entityfieldDescField.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(field string) error {
+			for _, fn := range fns {
+				if err := fn(field); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// entityfieldDescClaimID is the schema descriptor for claim_id field.
+	entityfieldDescClaimID := entityfieldFields[3].Descriptor()
+	// entityfield.ClaimIDValidator is a validator for the "claim_id" field. It is called by the builders before save.
+	entityfield.ClaimIDValidator = entityfieldDescClaimID.Validators[0].(func(string) error)
+	// entityfieldDescSource is the schema descriptor for source field.
+	entityfieldDescSource := entityfieldFields[4].Descriptor()
+	// entityfield.SourceValidator is a validator for the "source" field. It is called by the builders before save.
+	entityfield.SourceValidator = func() func(string) error {
+		validators := entityfieldDescSource.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(source string) error {
+			for _, fn := range fns {
+				if err := fn(source); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// entityfieldDescAgreement is the schema descriptor for agreement field.
+	entityfieldDescAgreement := entityfieldFields[6].Descriptor()
+	// entityfield.DefaultAgreement holds the default value on creation for the agreement field.
+	entityfield.DefaultAgreement = entityfieldDescAgreement.Default.(int32)
+	// entityfieldDescClaims is the schema descriptor for claims field.
+	entityfieldDescClaims := entityfieldFields[7].Descriptor()
+	// entityfield.DefaultClaims holds the default value on creation for the claims field.
+	entityfield.DefaultClaims = entityfieldDescClaims.Default.(int32)
+	// entityfieldDescConfidence is the schema descriptor for confidence field.
+	entityfieldDescConfidence := entityfieldFields[8].Descriptor()
+	// entityfield.DefaultConfidence holds the default value on creation for the confidence field.
+	entityfield.DefaultConfidence = entityfieldDescConfidence.Default.(float32)
+	// entityfieldDescObservedAt is the schema descriptor for observed_at field.
+	entityfieldDescObservedAt := entityfieldFields[9].Descriptor()
+	// entityfield.DefaultObservedAt holds the default value on creation for the observed_at field.
+	entityfield.DefaultObservedAt = entityfieldDescObservedAt.Default.(func() time.Time)
+	// entityfieldDescResolvedAt is the schema descriptor for resolved_at field.
+	entityfieldDescResolvedAt := entityfieldFields[10].Descriptor()
+	// entityfield.DefaultResolvedAt holds the default value on creation for the resolved_at field.
+	entityfield.DefaultResolvedAt = entityfieldDescResolvedAt.Default.(func() time.Time)
+	// entityfield.UpdateDefaultResolvedAt holds the default value on update for the resolved_at field.
+	entityfield.UpdateDefaultResolvedAt = entityfieldDescResolvedAt.UpdateDefault.(func() time.Time)
+	// entityfieldDescID is the schema descriptor for id field.
+	entityfieldDescID := entityfieldMixinFields0[0].Descriptor()
+	// entityfield.DefaultID holds the default value on creation for the id field.
+	entityfield.DefaultID = entityfieldDescID.Default.(func() string)
+	// entityfield.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	entityfield.IDValidator = entityfieldDescID.Validators[0].(func(string) error)
+	entitytitleFields := schema.EntityTitle{}.Fields()
+	_ = entitytitleFields
+	// entitytitleDescEntityID is the schema descriptor for entity_id field.
+	entitytitleDescEntityID := entitytitleFields[1].Descriptor()
+	// entitytitle.EntityIDValidator is a validator for the "entity_id" field. It is called by the builders before save.
+	entitytitle.EntityIDValidator = entitytitleDescEntityID.Validators[0].(func(string) error)
+	// entitytitleDescTitle is the schema descriptor for title field.
+	entitytitleDescTitle := entitytitleFields[2].Descriptor()
+	// entitytitle.TitleValidator is a validator for the "title" field. It is called by the builders before save.
+	entitytitle.TitleValidator = func() func(string) error {
+		validators := entitytitleDescTitle.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(title string) error {
+			for _, fn := range fns {
+				if err := fn(title); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// entitytitleDescNormalized is the schema descriptor for normalized field.
+	entitytitleDescNormalized := entitytitleFields[3].Descriptor()
+	// entitytitle.NormalizedValidator is a validator for the "normalized" field. It is called by the builders before save.
+	entitytitle.NormalizedValidator = func() func(string) error {
+		validators := entitytitleDescNormalized.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(normalized string) error {
+			for _, fn := range fns {
+				if err := fn(normalized); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// entitytitleDescLang is the schema descriptor for lang field.
+	entitytitleDescLang := entitytitleFields[4].Descriptor()
+	// entitytitle.DefaultLang holds the default value on creation for the lang field.
+	entitytitle.DefaultLang = entitytitleDescLang.Default.(string)
+	// entitytitleDescSource is the schema descriptor for source field.
+	entitytitleDescSource := entitytitleFields[6].Descriptor()
+	// entitytitle.DefaultSource holds the default value on creation for the source field.
+	entitytitle.DefaultSource = entitytitleDescSource.Default.(string)
+	extidMixin := schema.ExtID{}.Mixin()
+	extidMixinFields0 := extidMixin[0].Fields()
+	_ = extidMixinFields0
+	extidFields := schema.ExtID{}.Fields()
+	_ = extidFields
+	// extidDescEntityID is the schema descriptor for entity_id field.
+	extidDescEntityID := extidFields[0].Descriptor()
+	// extid.EntityIDValidator is a validator for the "entity_id" field. It is called by the builders before save.
+	extid.EntityIDValidator = extidDescEntityID.Validators[0].(func(string) error)
+	// extidDescNamespace is the schema descriptor for namespace field.
+	extidDescNamespace := extidFields[1].Descriptor()
+	// extid.NamespaceValidator is a validator for the "namespace" field. It is called by the builders before save.
+	extid.NamespaceValidator = func() func(string) error {
+		validators := extidDescNamespace.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(namespace string) error {
+			for _, fn := range fns {
+				if err := fn(namespace); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// extidDescValue is the schema descriptor for value field.
+	extidDescValue := extidFields[2].Descriptor()
+	// extid.ValueValidator is a validator for the "value" field. It is called by the builders before save.
+	extid.ValueValidator = func() func(string) error {
+		validators := extidDescValue.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(value string) error {
+			for _, fn := range fns {
+				if err := fn(value); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// extidDescPMatch is the schema descriptor for p_match field.
+	extidDescPMatch := extidFields[3].Descriptor()
+	// extid.DefaultPMatch holds the default value on creation for the p_match field.
+	extid.DefaultPMatch = extidDescPMatch.Default.(float64)
+	// extidDescSource is the schema descriptor for source field.
+	extidDescSource := extidFields[4].Descriptor()
+	// extid.DefaultSource holds the default value on creation for the source field.
+	extid.DefaultSource = extidDescSource.Default.(string)
+	// extidDescCreatedAt is the schema descriptor for created_at field.
+	extidDescCreatedAt := extidFields[5].Descriptor()
+	// extid.DefaultCreatedAt holds the default value on creation for the created_at field.
+	extid.DefaultCreatedAt = extidDescCreatedAt.Default.(func() time.Time)
+	// extidDescID is the schema descriptor for id field.
+	extidDescID := extidMixinFields0[0].Descriptor()
+	// extid.DefaultID holds the default value on creation for the id field.
+	extid.DefaultID = extidDescID.Default.(func() string)
+	// extid.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	extid.IDValidator = extidDescID.Validators[0].(func(string) error)
+	imdbakaFields := schema.IMDbAka{}.Fields()
+	_ = imdbakaFields
+	// imdbakaDescTconst is the schema descriptor for tconst field.
+	imdbakaDescTconst := imdbakaFields[1].Descriptor()
+	// imdbaka.TconstValidator is a validator for the "tconst" field. It is called by the builders before save.
+	imdbaka.TconstValidator = imdbakaDescTconst.Validators[0].(func(string) error)
+	// imdbakaDescOrdering is the schema descriptor for ordering field.
+	imdbakaDescOrdering := imdbakaFields[2].Descriptor()
+	// imdbaka.DefaultOrdering holds the default value on creation for the ordering field.
+	imdbaka.DefaultOrdering = imdbakaDescOrdering.Default.(int32)
+	// imdbakaDescTitle is the schema descriptor for title field.
+	imdbakaDescTitle := imdbakaFields[3].Descriptor()
+	// imdbaka.DefaultTitle holds the default value on creation for the title field.
+	imdbaka.DefaultTitle = imdbakaDescTitle.Default.(string)
+	// imdbakaDescNormalized is the schema descriptor for normalized field.
+	imdbakaDescNormalized := imdbakaFields[4].Descriptor()
+	// imdbaka.DefaultNormalized holds the default value on creation for the normalized field.
+	imdbaka.DefaultNormalized = imdbakaDescNormalized.Default.(string)
+	// imdbakaDescRegion is the schema descriptor for region field.
+	imdbakaDescRegion := imdbakaFields[5].Descriptor()
+	// imdbaka.DefaultRegion holds the default value on creation for the region field.
+	imdbaka.DefaultRegion = imdbakaDescRegion.Default.(string)
+	// imdbakaDescLanguage is the schema descriptor for language field.
+	imdbakaDescLanguage := imdbakaFields[6].Descriptor()
+	// imdbaka.DefaultLanguage holds the default value on creation for the language field.
+	imdbaka.DefaultLanguage = imdbakaDescLanguage.Default.(string)
+	// imdbakaDescTypes is the schema descriptor for types field.
+	imdbakaDescTypes := imdbakaFields[7].Descriptor()
+	// imdbaka.DefaultTypes holds the default value on creation for the types field.
+	imdbaka.DefaultTypes = imdbakaDescTypes.Default.(string)
+	// imdbakaDescOriginal is the schema descriptor for original field.
+	imdbakaDescOriginal := imdbakaFields[8].Descriptor()
+	// imdbaka.DefaultOriginal holds the default value on creation for the original field.
+	imdbaka.DefaultOriginal = imdbakaDescOriginal.Default.(bool)
+	imdbepisodeFields := schema.IMDbEpisode{}.Fields()
+	_ = imdbepisodeFields
+	// imdbepisodeDescParent is the schema descriptor for parent field.
+	imdbepisodeDescParent := imdbepisodeFields[1].Descriptor()
+	// imdbepisode.ParentValidator is a validator for the "parent" field. It is called by the builders before save.
+	imdbepisode.ParentValidator = imdbepisodeDescParent.Validators[0].(func(string) error)
+	// imdbepisodeDescSeason is the schema descriptor for season field.
+	imdbepisodeDescSeason := imdbepisodeFields[2].Descriptor()
+	// imdbepisode.DefaultSeason holds the default value on creation for the season field.
+	imdbepisode.DefaultSeason = imdbepisodeDescSeason.Default.(int32)
+	// imdbepisodeDescEpisode is the schema descriptor for episode field.
+	imdbepisodeDescEpisode := imdbepisodeFields[3].Descriptor()
+	// imdbepisode.DefaultEpisode holds the default value on creation for the episode field.
+	imdbepisode.DefaultEpisode = imdbepisodeDescEpisode.Default.(int32)
+	// imdbepisodeDescID is the schema descriptor for id field.
+	imdbepisodeDescID := imdbepisodeFields[0].Descriptor()
+	// imdbepisode.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	imdbepisode.IDValidator = imdbepisodeDescID.Validators[0].(func(string) error)
+	imdbratingFields := schema.IMDbRating{}.Fields()
+	_ = imdbratingFields
+	// imdbratingDescRating is the schema descriptor for rating field.
+	imdbratingDescRating := imdbratingFields[1].Descriptor()
+	// imdbrating.DefaultRating holds the default value on creation for the rating field.
+	imdbrating.DefaultRating = imdbratingDescRating.Default.(float32)
+	// imdbratingDescVotes is the schema descriptor for votes field.
+	imdbratingDescVotes := imdbratingFields[2].Descriptor()
+	// imdbrating.DefaultVotes holds the default value on creation for the votes field.
+	imdbrating.DefaultVotes = imdbratingDescVotes.Default.(int32)
+	// imdbratingDescID is the schema descriptor for id field.
+	imdbratingDescID := imdbratingFields[0].Descriptor()
+	// imdbrating.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	imdbrating.IDValidator = imdbratingDescID.Validators[0].(func(string) error)
+	imdbtitleFields := schema.IMDbTitle{}.Fields()
+	_ = imdbtitleFields
+	// imdbtitleDescTitleType is the schema descriptor for title_type field.
+	imdbtitleDescTitleType := imdbtitleFields[1].Descriptor()
+	// imdbtitle.DefaultTitleType holds the default value on creation for the title_type field.
+	imdbtitle.DefaultTitleType = imdbtitleDescTitleType.Default.(string)
+	// imdbtitleDescPrimaryTitle is the schema descriptor for primary_title field.
+	imdbtitleDescPrimaryTitle := imdbtitleFields[2].Descriptor()
+	// imdbtitle.DefaultPrimaryTitle holds the default value on creation for the primary_title field.
+	imdbtitle.DefaultPrimaryTitle = imdbtitleDescPrimaryTitle.Default.(string)
+	// imdbtitleDescOriginalTitle is the schema descriptor for original_title field.
+	imdbtitleDescOriginalTitle := imdbtitleFields[3].Descriptor()
+	// imdbtitle.DefaultOriginalTitle holds the default value on creation for the original_title field.
+	imdbtitle.DefaultOriginalTitle = imdbtitleDescOriginalTitle.Default.(string)
+	// imdbtitleDescNormalized is the schema descriptor for normalized field.
+	imdbtitleDescNormalized := imdbtitleFields[4].Descriptor()
+	// imdbtitle.DefaultNormalized holds the default value on creation for the normalized field.
+	imdbtitle.DefaultNormalized = imdbtitleDescNormalized.Default.(string)
+	// imdbtitleDescAdult is the schema descriptor for adult field.
+	imdbtitleDescAdult := imdbtitleFields[5].Descriptor()
+	// imdbtitle.DefaultAdult holds the default value on creation for the adult field.
+	imdbtitle.DefaultAdult = imdbtitleDescAdult.Default.(bool)
+	// imdbtitleDescStartYear is the schema descriptor for start_year field.
+	imdbtitleDescStartYear := imdbtitleFields[6].Descriptor()
+	// imdbtitle.DefaultStartYear holds the default value on creation for the start_year field.
+	imdbtitle.DefaultStartYear = imdbtitleDescStartYear.Default.(int32)
+	// imdbtitleDescEndYear is the schema descriptor for end_year field.
+	imdbtitleDescEndYear := imdbtitleFields[7].Descriptor()
+	// imdbtitle.DefaultEndYear holds the default value on creation for the end_year field.
+	imdbtitle.DefaultEndYear = imdbtitleDescEndYear.Default.(int32)
+	// imdbtitleDescRuntime is the schema descriptor for runtime field.
+	imdbtitleDescRuntime := imdbtitleFields[8].Descriptor()
+	// imdbtitle.DefaultRuntime holds the default value on creation for the runtime field.
+	imdbtitle.DefaultRuntime = imdbtitleDescRuntime.Default.(int32)
+	// imdbtitleDescGenres is the schema descriptor for genres field.
+	imdbtitleDescGenres := imdbtitleFields[9].Descriptor()
+	// imdbtitle.DefaultGenres holds the default value on creation for the genres field.
+	imdbtitle.DefaultGenres = imdbtitleDescGenres.Default.(string)
+	// imdbtitleDescID is the schema descriptor for id field.
+	imdbtitleDescID := imdbtitleFields[0].Descriptor()
+	// imdbtitle.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	imdbtitle.IDValidator = imdbtitleDescID.Validators[0].(func(string) error)
 	identityMixin := schema.Identity{}.Mixin()
 	identityMixinFields0 := identityMixin[0].Fields()
 	_ = identityMixinFields0
@@ -214,6 +787,113 @@ func init() {
 	identity.DefaultID = identityDescID.Default.(func() string)
 	// identity.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	identity.IDValidator = identityDescID.Validators[0].(func(string) error)
+	matchedgeMixin := schema.MatchEdge{}.Mixin()
+	matchedgeMixinFields0 := matchedgeMixin[0].Fields()
+	_ = matchedgeMixinFields0
+	matchedgeMixinFields1 := matchedgeMixin[1].Fields()
+	_ = matchedgeMixinFields1
+	matchedgeFields := schema.MatchEdge{}.Fields()
+	_ = matchedgeFields
+	// matchedgeDescCreatedAt is the schema descriptor for created_at field.
+	matchedgeDescCreatedAt := matchedgeMixinFields1[0].Descriptor()
+	// matchedge.DefaultCreatedAt holds the default value on creation for the created_at field.
+	matchedge.DefaultCreatedAt = matchedgeDescCreatedAt.Default.(func() time.Time)
+	// matchedgeDescUpdatedAt is the schema descriptor for updated_at field.
+	matchedgeDescUpdatedAt := matchedgeMixinFields1[1].Descriptor()
+	// matchedge.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	matchedge.DefaultUpdatedAt = matchedgeDescUpdatedAt.Default.(func() time.Time)
+	// matchedge.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	matchedge.UpdateDefaultUpdatedAt = matchedgeDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// matchedgeDescEntityID is the schema descriptor for entity_id field.
+	matchedgeDescEntityID := matchedgeFields[0].Descriptor()
+	// matchedge.EntityIDValidator is a validator for the "entity_id" field. It is called by the builders before save.
+	matchedge.EntityIDValidator = matchedgeDescEntityID.Validators[0].(func(string) error)
+	// matchedgeDescNamespace is the schema descriptor for namespace field.
+	matchedgeDescNamespace := matchedgeFields[1].Descriptor()
+	// matchedge.NamespaceValidator is a validator for the "namespace" field. It is called by the builders before save.
+	matchedge.NamespaceValidator = func() func(string) error {
+		validators := matchedgeDescNamespace.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(namespace string) error {
+			for _, fn := range fns {
+				if err := fn(namespace); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// matchedgeDescValue is the schema descriptor for value field.
+	matchedgeDescValue := matchedgeFields[2].Descriptor()
+	// matchedge.ValueValidator is a validator for the "value" field. It is called by the builders before save.
+	matchedge.ValueValidator = func() func(string) error {
+		validators := matchedgeDescValue.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(value string) error {
+			for _, fn := range fns {
+				if err := fn(value); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// matchedgeDescSource is the schema descriptor for source field.
+	matchedgeDescSource := matchedgeFields[3].Descriptor()
+	// matchedge.DefaultSource holds the default value on creation for the source field.
+	matchedge.DefaultSource = matchedgeDescSource.Default.(string)
+	// matchedgeDescCandidateTitle is the schema descriptor for candidate_title field.
+	matchedgeDescCandidateTitle := matchedgeFields[4].Descriptor()
+	// matchedge.DefaultCandidateTitle holds the default value on creation for the candidate_title field.
+	matchedge.DefaultCandidateTitle = matchedgeDescCandidateTitle.Default.(string)
+	// matchedgeDescCandidateYear is the schema descriptor for candidate_year field.
+	matchedgeDescCandidateYear := matchedgeFields[5].Descriptor()
+	// matchedge.DefaultCandidateYear holds the default value on creation for the candidate_year field.
+	matchedge.DefaultCandidateYear = matchedgeDescCandidateYear.Default.(int32)
+	// matchedgeDescProbability is the schema descriptor for probability field.
+	matchedgeDescProbability := matchedgeFields[6].Descriptor()
+	// matchedge.DefaultProbability holds the default value on creation for the probability field.
+	matchedge.DefaultProbability = matchedgeDescProbability.Default.(float64)
+	// matchedgeDescTier is the schema descriptor for tier field.
+	matchedgeDescTier := matchedgeFields[8].Descriptor()
+	// matchedge.DefaultTier holds the default value on creation for the tier field.
+	matchedge.DefaultTier = matchedgeDescTier.Default.(int32)
+	// matchedgeDescDecidedBy is the schema descriptor for decided_by field.
+	matchedgeDescDecidedBy := matchedgeFields[10].Descriptor()
+	// matchedge.DefaultDecidedBy holds the default value on creation for the decided_by field.
+	matchedge.DefaultDecidedBy = matchedgeDescDecidedBy.Default.(string)
+	// matchedgeDescMessageSeq is the schema descriptor for message_seq field.
+	matchedgeDescMessageSeq := matchedgeFields[12].Descriptor()
+	// matchedge.DefaultMessageSeq holds the default value on creation for the message_seq field.
+	matchedge.DefaultMessageSeq = matchedgeDescMessageSeq.Default.(int64)
+	// matchedgeDescID is the schema descriptor for id field.
+	matchedgeDescID := matchedgeMixinFields0[0].Descriptor()
+	// matchedge.DefaultID holds the default value on creation for the id field.
+	matchedge.DefaultID = matchedgeDescID.Default.(func() string)
+	// matchedge.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	matchedge.IDValidator = matchedgeDescID.Validators[0].(func(string) error)
+	matchmodelFields := schema.MatchModel{}.Fields()
+	_ = matchmodelFields
+	// matchmodelDescPairs is the schema descriptor for pairs field.
+	matchmodelDescPairs := matchmodelFields[2].Descriptor()
+	// matchmodel.DefaultPairs holds the default value on creation for the pairs field.
+	matchmodel.DefaultPairs = matchmodelDescPairs.Default.(int64)
+	// matchmodelDescTrainedAt is the schema descriptor for trained_at field.
+	matchmodelDescTrainedAt := matchmodelFields[3].Descriptor()
+	// matchmodel.DefaultTrainedAt holds the default value on creation for the trained_at field.
+	matchmodel.DefaultTrainedAt = matchmodelDescTrainedAt.Default.(func() time.Time)
+	// matchmodel.UpdateDefaultTrainedAt holds the default value on update for the trained_at field.
+	matchmodel.UpdateDefaultTrainedAt = matchmodelDescTrainedAt.UpdateDefault.(func() time.Time)
+	// matchmodelDescID is the schema descriptor for id field.
+	matchmodelDescID := matchmodelFields[0].Descriptor()
+	// matchmodel.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	matchmodel.IDValidator = matchmodelDescID.Validators[0].(func(string) error)
 	membershipMixin := schema.Membership{}.Mixin()
 	membershipMixinFields0 := membershipMixin[0].Fields()
 	_ = membershipMixinFields0
@@ -422,6 +1102,95 @@ func init() {
 	settingDescID := settingFields[0].Descriptor()
 	// setting.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	setting.IDValidator = settingDescID.Validators[0].(func(string) error)
+	sourcerecordMixin := schema.SourceRecord{}.Mixin()
+	sourcerecordMixinFields0 := sourcerecordMixin[0].Fields()
+	_ = sourcerecordMixinFields0
+	sourcerecordFields := schema.SourceRecord{}.Fields()
+	_ = sourcerecordFields
+	// sourcerecordDescSource is the schema descriptor for source field.
+	sourcerecordDescSource := sourcerecordFields[0].Descriptor()
+	// sourcerecord.SourceValidator is a validator for the "source" field. It is called by the builders before save.
+	sourcerecord.SourceValidator = func() func(string) error {
+		validators := sourcerecordDescSource.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(source string) error {
+			for _, fn := range fns {
+				if err := fn(source); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// sourcerecordDescNamespace is the schema descriptor for namespace field.
+	sourcerecordDescNamespace := sourcerecordFields[1].Descriptor()
+	// sourcerecord.DefaultNamespace holds the default value on creation for the namespace field.
+	sourcerecord.DefaultNamespace = sourcerecordDescNamespace.Default.(string)
+	// sourcerecordDescExtValue is the schema descriptor for ext_value field.
+	sourcerecordDescExtValue := sourcerecordFields[2].Descriptor()
+	// sourcerecord.DefaultExtValue holds the default value on creation for the ext_value field.
+	sourcerecord.DefaultExtValue = sourcerecordDescExtValue.Default.(string)
+	// sourcerecordDescKind is the schema descriptor for kind field.
+	sourcerecordDescKind := sourcerecordFields[3].Descriptor()
+	// sourcerecord.DefaultKind holds the default value on creation for the kind field.
+	sourcerecord.DefaultKind = sourcerecordDescKind.Default.(string)
+	// sourcerecordDescURL is the schema descriptor for url field.
+	sourcerecordDescURL := sourcerecordFields[4].Descriptor()
+	// sourcerecord.DefaultURL holds the default value on creation for the url field.
+	sourcerecord.DefaultURL = sourcerecordDescURL.Default.(string)
+	// sourcerecordDescStatus is the schema descriptor for status field.
+	sourcerecordDescStatus := sourcerecordFields[5].Descriptor()
+	// sourcerecord.DefaultStatus holds the default value on creation for the status field.
+	sourcerecord.DefaultStatus = sourcerecordDescStatus.Default.(int32)
+	// sourcerecordDescEtag is the schema descriptor for etag field.
+	sourcerecordDescEtag := sourcerecordFields[6].Descriptor()
+	// sourcerecord.DefaultEtag holds the default value on creation for the etag field.
+	sourcerecord.DefaultEtag = sourcerecordDescEtag.Default.(string)
+	// sourcerecordDescLicense is the schema descriptor for license field.
+	sourcerecordDescLicense := sourcerecordFields[8].Descriptor()
+	// sourcerecord.DefaultLicense holds the default value on creation for the license field.
+	sourcerecord.DefaultLicense = sourcerecordDescLicense.Default.(string)
+	// sourcerecordDescFetchedAt is the schema descriptor for fetched_at field.
+	sourcerecordDescFetchedAt := sourcerecordFields[9].Descriptor()
+	// sourcerecord.DefaultFetchedAt holds the default value on creation for the fetched_at field.
+	sourcerecord.DefaultFetchedAt = sourcerecordDescFetchedAt.Default.(func() time.Time)
+	// sourcerecordDescID is the schema descriptor for id field.
+	sourcerecordDescID := sourcerecordMixinFields0[0].Descriptor()
+	// sourcerecord.DefaultID holds the default value on creation for the id field.
+	sourcerecord.DefaultID = sourcerecordDescID.Default.(func() string)
+	// sourcerecord.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	sourcerecord.IDValidator = sourcerecordDescID.Validators[0].(func(string) error)
+	sourcestateFields := schema.SourceState{}.Fields()
+	_ = sourcestateFields
+	// sourcestateDescEnabled is the schema descriptor for enabled field.
+	sourcestateDescEnabled := sourcestateFields[1].Descriptor()
+	// sourcestate.DefaultEnabled holds the default value on creation for the enabled field.
+	sourcestate.DefaultEnabled = sourcestateDescEnabled.Default.(bool)
+	// sourcestateDescLastError is the schema descriptor for last_error field.
+	sourcestateDescLastError := sourcestateFields[3].Descriptor()
+	// sourcestate.DefaultLastError holds the default value on creation for the last_error field.
+	sourcestate.DefaultLastError = sourcestateDescLastError.Default.(string)
+	// sourcestateDescCallsToday is the schema descriptor for calls_today field.
+	sourcestateDescCallsToday := sourcestateFields[5].Descriptor()
+	// sourcestate.DefaultCallsToday holds the default value on creation for the calls_today field.
+	sourcestate.DefaultCallsToday = sourcestateDescCallsToday.Default.(int32)
+	// sourcestateDescCallsResetAt is the schema descriptor for calls_reset_at field.
+	sourcestateDescCallsResetAt := sourcestateFields[6].Descriptor()
+	// sourcestate.DefaultCallsResetAt holds the default value on creation for the calls_reset_at field.
+	sourcestate.DefaultCallsResetAt = sourcestateDescCallsResetAt.Default.(func() time.Time)
+	// sourcestateDescUpdatedAt is the schema descriptor for updated_at field.
+	sourcestateDescUpdatedAt := sourcestateFields[8].Descriptor()
+	// sourcestate.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	sourcestate.DefaultUpdatedAt = sourcestateDescUpdatedAt.Default.(func() time.Time)
+	// sourcestate.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	sourcestate.UpdateDefaultUpdatedAt = sourcestateDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// sourcestateDescID is the schema descriptor for id field.
+	sourcestateDescID := sourcestateFields[0].Descriptor()
+	// sourcestate.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	sourcestate.IDValidator = sourcestateDescID.Validators[0].(func(string) error)
 	spaceMixin := schema.Space{}.Mixin()
 	spaceMixinFields0 := spaceMixin[0].Fields()
 	_ = spaceMixinFields0
@@ -479,6 +1248,28 @@ func init() {
 	space.DefaultID = spaceDescID.Default.(func() string)
 	// space.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	space.IDValidator = spaceDescID.Validators[0].(func(string) error)
+	tmdbexportFields := schema.TMDBExport{}.Fields()
+	_ = tmdbexportFields
+	// tmdbexportDescOriginalTitle is the schema descriptor for original_title field.
+	tmdbexportDescOriginalTitle := tmdbexportFields[3].Descriptor()
+	// tmdbexport.DefaultOriginalTitle holds the default value on creation for the original_title field.
+	tmdbexport.DefaultOriginalTitle = tmdbexportDescOriginalTitle.Default.(string)
+	// tmdbexportDescNormalized is the schema descriptor for normalized field.
+	tmdbexportDescNormalized := tmdbexportFields[4].Descriptor()
+	// tmdbexport.DefaultNormalized holds the default value on creation for the normalized field.
+	tmdbexport.DefaultNormalized = tmdbexportDescNormalized.Default.(string)
+	// tmdbexportDescPopularity is the schema descriptor for popularity field.
+	tmdbexportDescPopularity := tmdbexportFields[5].Descriptor()
+	// tmdbexport.DefaultPopularity holds the default value on creation for the popularity field.
+	tmdbexport.DefaultPopularity = tmdbexportDescPopularity.Default.(float64)
+	// tmdbexportDescAdult is the schema descriptor for adult field.
+	tmdbexportDescAdult := tmdbexportFields[6].Descriptor()
+	// tmdbexport.DefaultAdult holds the default value on creation for the adult field.
+	tmdbexport.DefaultAdult = tmdbexportDescAdult.Default.(bool)
+	// tmdbexportDescVideo is the schema descriptor for video field.
+	tmdbexportDescVideo := tmdbexportFields[7].Descriptor()
+	// tmdbexport.DefaultVideo holds the default value on creation for the video field.
+	tmdbexport.DefaultVideo = tmdbexportDescVideo.Default.(bool)
 	userMixin := schema.User{}.Mixin()
 	userMixinFields0 := userMixin[0].Fields()
 	_ = userMixinFields0

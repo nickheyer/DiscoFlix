@@ -1,0 +1,483 @@
+{
+  "$defs": {
+    "discoflix.catalog.v1.DatasetImport.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(finished_at)$": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "^(last_modified)$": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "^(started_at)$": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        }
+      },
+      "properties": {
+        "bytes": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "dataset": {
+          "default": "",
+          "type": "string"
+        },
+        "enabled": {
+          "default": false,
+          "type": "boolean"
+        },
+        "error": {
+          "default": "",
+          "type": "string"
+        },
+        "etag": {
+          "default": "",
+          "type": "string"
+        },
+        "finishedAt": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "lastModified": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "license": {
+          "default": "",
+          "type": "string"
+        },
+        "rows": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "startedAt": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "state": {
+          "default": "",
+          "description": "idle, downloading, loading, done, failed",
+          "type": "string"
+        },
+        "title": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "title": "Dataset Import",
+      "type": "object"
+    },
+    "discoflix.catalog.v1.GetCatalogStatusResponse.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "artworks": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "claims": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "datasets": {
+          "items": {
+            "$ref": "#/$defs/discoflix.catalog.v1.DatasetImport.jsonschema.json"
+          },
+          "type": "array"
+        },
+        "entities": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "language": {
+          "default": "",
+          "type": "string"
+        },
+        "model": {
+          "$ref": "#/$defs/discoflix.catalog.v1.MatchModel.jsonschema.json"
+        },
+        "peers": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "snapshot": {
+          "$ref": "#/$defs/discoflix.catalog.v1.Snapshot.jsonschema.json"
+        },
+        "sources": {
+          "items": {
+            "$ref": "#/$defs/discoflix.catalog.v1.Source.jsonschema.json"
+          },
+          "type": "array"
+        }
+      },
+      "title": "Get Catalog Status Response",
+      "type": "object"
+    },
+    "discoflix.catalog.v1.MatchModel.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(pending_reviews)$": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "^(trained_at)$": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        }
+      },
+      "properties": {
+        "accepted": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "pairs": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "pendingReviews": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "rejected": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "trainedAt": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        }
+      },
+      "title": "Match Model",
+      "type": "object"
+    },
+    "discoflix.catalog.v1.Snapshot.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(built_at)$": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "^(checked_at)$": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "^(external_ids)$": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "^(last_error)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(updated_at)$": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        }
+      },
+      "properties": {
+        "builtAt": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "bytes": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "checkedAt": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "externalIds": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "items": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "lastError": {
+          "default": "",
+          "type": "string"
+        },
+        "mirror": {
+          "default": "",
+          "type": "string"
+        },
+        "state": {
+          "default": "",
+          "description": "ready, missing, updating, failed",
+          "type": "string"
+        },
+        "updatedAt": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "version": {
+          "default": "",
+          "type": "string"
+        },
+        "via": {
+          "default": "",
+          "description": "http or peer",
+          "type": "string"
+        }
+      },
+      "title": "Snapshot",
+      "type": "object"
+    },
+    "discoflix.catalog.v1.Source.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(calls_today)$": {
+          "anyOf": [
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "^(has_client_key)$": {
+          "default": false,
+          "type": "boolean"
+        },
+        "^(key_hint)$": {
+          "default": "",
+          "description": "Where the administrator obtains the key",
+          "type": "string"
+        },
+        "^(last_error)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(last_error_at)$": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "^(last_ok_at)$": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "^(needs_key)$": {
+          "default": false,
+          "type": "boolean"
+        }
+      },
+      "properties": {
+        "budget": {
+          "anyOf": [
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "callsToday": {
+          "anyOf": [
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "configured": {
+          "default": false,
+          "description": "A key is stored, or none is needed",
+          "type": "boolean"
+        },
+        "enabled": {
+          "default": false,
+          "type": "boolean"
+        },
+        "hasClientKey": {
+          "default": false,
+          "type": "boolean"
+        },
+        "keyHint": {
+          "default": "",
+          "description": "Where the administrator obtains the key",
+          "type": "string"
+        },
+        "lastError": {
+          "default": "",
+          "type": "string"
+        },
+        "lastErrorAt": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "lastOkAt": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "license": {
+          "default": "",
+          "type": "string"
+        },
+        "name": {
+          "default": "",
+          "type": "string"
+        },
+        "namespaces": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "needsKey": {
+          "default": false,
+          "type": "boolean"
+        },
+        "options": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "state": {
+          "default": "",
+          "description": "ok, failing, open, disabled, unconfigured, idle",
+          "type": "string"
+        },
+        "title": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "title": "Source",
+      "type": "object"
+    },
+    "google.protobuf.Timestamp.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "format": "date-time",
+      "title": "Timestamp",
+      "type": "string"
+    }
+  },
+  "$id": "discoflix.catalog.v1.GetCatalogStatusResponse.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.catalog.v1.GetCatalogStatusResponse.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

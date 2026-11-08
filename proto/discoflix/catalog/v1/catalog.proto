@@ -1,0 +1,428 @@
+edition = "2023";
+
+package discoflix.catalog.v1;
+
+import "buf/validate/validate.proto";
+import "discoflix/capability/v1/options.proto";
+import "discoflix/card/v1/catalog.proto";
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+
+option features.field_presence = IMPLICIT;
+
+enum EntityKind {
+  ENTITY_KIND_UNSPECIFIED = 0;
+  ENTITY_KIND_MOVIE = 1;
+  ENTITY_KIND_SERIES = 2;
+  ENTITY_KIND_SEASON = 3;
+  ENTITY_KIND_EPISODE = 4;
+}
+
+message ExternalId {
+  // imdb, tmdb, tvdb, wikidata, trakt, letterboxd, tvmaze, netflix, rottentomatoes, metacritic
+  string namespace = 1;
+  string value = 2;
+  // Probability this id belongs to the entity, 1 for hard links
+  float p_match = 3;
+  string source = 4;
+  // Page of this id on the source site, empty when the namespace has none
+  string url = 5;
+}
+
+// Winning value of one field with the trail behind it
+message FieldValue {
+  string field = 1;
+  google.protobuf.Value value = 2;
+  string source = 3;
+  // pin, priority, agreement, recency
+  string reason = 4;
+  // Sources whose claim equals the winning value
+  int32 agreement = 5;
+  // Claims considered for this field
+  int32 claims = 6;
+  google.protobuf.Timestamp observed_at = 7;
+  bool pinned = 8;
+  float confidence = 9;
+}
+
+message Claim {
+  string id = 1;
+  string field = 2;
+  google.protobuf.Value value = 3;
+  string source = 4;
+  float confidence = 5;
+  // Source priority at the time of the claim, lower wins
+  int32 rank = 6;
+  google.protobuf.Timestamp observed_at = 7;
+  bool pinned = 8;
+  string record_id = 9;
+}
+
+message ArtworkVariant {
+  int32 width = 1;
+  // avif or webp
+  string format = 2;
+  string url = 3;
+  int64 bytes = 4;
+}
+
+message Artwork {
+  string id = 1;
+  // poster, backdrop, logo, still, banner
+  string kind = 2;
+  string url = 3;
+  int32 width = 4;
+  int32 height = 5;
+  // Base64 thumbhash placeholder
+  string thumbhash = 6;
+  string source = 7;
+  string language = 8;
+  repeated ArtworkVariant variants = 9;
+}
+
+message Entity {
+  string id = 1;
+  EntityKind kind = 2;
+  string title = 3;
+  string original_title = 4;
+  int32 year = 5;
+  string overview = 6;
+  // Series of a season, season of an episode
+  string parent_id = 7;
+  // Season or episode number
+  int32 ordinal = 8;
+  repeated ExternalId external_ids = 9;
+  repeated FieldValue fields = 10;
+  Artwork poster = 11;
+  Artwork backdrop = 12;
+  google.protobuf.Timestamp created_at = 13;
+  google.protobuf.Timestamp updated_at = 14;
+  // Set when this entity was merged into another
+  string merged_into_id = 15;
+  string parent_title = 16;
+}
+
+// How one source fared while answering a request
+message SourceOutcome {
+  string source = 1;
+  // answered, empty, disabled, unconfigured, unreachable, missing, budget, open, skipped
+  string state = 2;
+  string detail = 3;
+  int32 results = 4;
+  int64 duration_ms = 5;
+}
+
+message Candidate {
+  Entity entity = 1;
+  float score = 2;
+  string explanation = 3;
+  repeated string matched_on = 4;
+  // Came from the local graph or the snapshot rather than a live source
+  bool local = 5;
+}
+
+message SearchEntitiesRequest {
+  string query = 1 [(buf.validate.field).string = {min_len: 1, max_len: 200}];
+  EntityKind kind = 2;
+  int32 year = 3 [(buf.validate.field).int32 = {gte: 0, lte: 2200}];
+  int32 limit = 4 [(buf.validate.field).int32 = {gte: 0, lte: 50}];
+  // Skip live sources and answer from the graph and the snapshot only
+  bool local_only = 5;
+}
+
+message SearchEntitiesResponse {
+  repeated Candidate candidates = 1;
+  repeated SourceOutcome sources = 2;
+}
+
+message ResolveTitleRequest {
+  string title = 1 [(buf.validate.field).string = {min_len: 1, max_len: 200}];
+  EntityKind kind = 2;
+  int32 year = 3 [(buf.validate.field).int32 = {gte: 0, lte: 2200}];
+  // Skip live sources and answer from the graph and the snapshot only
+  bool local_only = 4;
+}
+
+// Attached as an error detail when no entity matched, so callers still see how each source fared
+message NoMatch {
+  string title = 1;
+  repeated SourceOutcome sources = 2;
+}
+
+message ResolveTitleResponse {
+  Entity entity = 1;
+  float confidence = 2;
+  string explanation = 3;
+  repeated Candidate alternatives = 4;
+  repeated SourceOutcome sources = 5;
+  discoflix.card.v1.EntityCard card = 6;
+}
+
+message GetEntityRequest {
+  string id = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+message GetEntityResponse {
+  Entity entity = 1;
+  repeated Claim claims = 2;
+  repeated Artwork artwork = 3;
+  repeated Entity children = 4;
+}
+
+message LookupExternalRequest {
+  string namespace = 1 [(buf.validate.field).string = {min_len: 1, max_len: 32}];
+  string value = 2 [(buf.validate.field).string = {min_len: 1, max_len: 128}];
+  EntityKind kind = 3;
+}
+
+message LookupExternalResponse {
+  Entity entity = 1;
+  bool created = 2;
+  repeated SourceOutcome sources = 3;
+}
+
+message PinFieldRequest {
+  string entity_id = 1 [(buf.validate.field).string.min_len = 1];
+  string field = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  google.protobuf.Value value = 3;
+}
+
+message PinFieldResponse {
+  Entity entity = 1;
+}
+
+message UnpinFieldRequest {
+  string entity_id = 1 [(buf.validate.field).string.min_len = 1];
+  string field = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+}
+
+message UnpinFieldResponse {
+  Entity entity = 1;
+}
+
+message RefreshEntityRequest {
+  string entity_id = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+message RefreshEntityResponse {
+  string workflow_id = 1;
+}
+
+message Source {
+  string name = 1;
+  string title = 2;
+  bool enabled = 3;
+  // A key is stored, or none is needed
+  bool configured = 4;
+  bool needs_key = 5;
+  // Where the administrator obtains the key
+  string key_hint = 6;
+  // ok, failing, open, disabled, unconfigured, idle
+  string state = 7;
+  string last_error = 8;
+  google.protobuf.Timestamp last_ok_at = 9;
+  google.protobuf.Timestamp last_error_at = 10;
+  int32 calls_today = 11;
+  int32 budget = 12;
+  string license = 13;
+  repeated string namespaces = 14;
+  map<string, string> options = 15;
+  bool has_client_key = 16;
+}
+
+message Snapshot {
+  string version = 1;
+  google.protobuf.Timestamp built_at = 2;
+  int64 items = 3;
+  int64 external_ids = 4;
+  int64 bytes = 5;
+  string mirror = 6;
+  // ready, missing, updating, failed
+  string state = 7;
+  string last_error = 8;
+  google.protobuf.Timestamp checked_at = 9;
+  google.protobuf.Timestamp updated_at = 10;
+  // http or peer
+  string via = 11;
+}
+
+message DatasetImport {
+  string dataset = 1;
+  string title = 2;
+  bool enabled = 3;
+  // idle, downloading, loading, done, failed
+  string state = 4;
+  int64 rows = 5;
+  int64 bytes = 6;
+  string error = 7;
+  google.protobuf.Timestamp started_at = 8;
+  google.protobuf.Timestamp finished_at = 9;
+  string etag = 10;
+  google.protobuf.Timestamp last_modified = 11;
+  string license = 12;
+}
+
+message MatchModel {
+  google.protobuf.Timestamp trained_at = 1;
+  int64 pairs = 2;
+  int64 accepted = 3;
+  int64 rejected = 4;
+  int64 pending_reviews = 5;
+}
+
+message GetCatalogStatusRequest {}
+
+message GetCatalogStatusResponse {
+  Snapshot snapshot = 1;
+  repeated Source sources = 2;
+  repeated DatasetImport datasets = 3;
+  MatchModel model = 4;
+  int64 entities = 5;
+  int64 claims = 6;
+  int64 artworks = 7;
+  repeated string peers = 8;
+  string language = 9;
+}
+
+message ConfigureSourceRequest {
+  string source = 1 [(buf.validate.field).string = {min_len: 1, max_len: 32}];
+  bool enabled = 2;
+  // Empty keeps the stored key
+  string api_key = 3 [(buf.validate.field).string.max_len = 256];
+  // Empty keeps the stored client key
+  string client_key = 4 [(buf.validate.field).string.max_len = 256];
+  map<string, string> options = 5;
+  bool clear_keys = 6;
+}
+
+message ConfigureSourceResponse {
+  Source source = 1;
+}
+
+message ConfigureCatalogRequest {
+  string mirror_url = 1 [(buf.validate.field).string.max_len = 512];
+  repeated string peers = 2 [(buf.validate.field).repeated = {max_items: 16, items: {string: {max_len: 512}}}];
+  string language = 3 [(buf.validate.field).string.max_len = 8];
+}
+
+message ConfigureCatalogResponse {
+  Snapshot snapshot = 1;
+  repeated string peers = 2;
+  string language = 3;
+}
+
+message UpdateSnapshotRequest {}
+
+message UpdateSnapshotResponse {
+  string workflow_id = 1;
+}
+
+message ImportDatasetRequest {
+  string dataset = 1 [(buf.validate.field).string = {min_len: 1, max_len: 32}];
+  bool enabled = 2;
+}
+
+message ImportDatasetResponse {
+  DatasetImport dataset = 1;
+  string workflow_id = 2;
+}
+
+service CatalogService {
+  rpc SearchEntities(SearchEntitiesRequest) returns (SearchEntitiesResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "catalog.read"
+      effect: EFFECT_READ
+      title: "Search the catalog"
+      description: "Rank movies and series matching a title from the local graph, the snapshot, and live sources"
+    };
+  }
+  rpc ResolveTitle(ResolveTitleRequest) returns (ResolveTitleResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "catalog.read"
+      effect: EFFECT_READ
+      title: "Find a title"
+      description: "Resolve a typed title to one canonical entity with field provenance"
+      command: "find"
+    };
+  }
+  rpc GetEntity(GetEntityRequest) returns (GetEntityResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "catalog.read"
+      effect: EFFECT_READ
+      title: "Get entity"
+      description: "One entity with every resolved field, its claims, artwork, and children"
+    };
+  }
+  rpc LookupExternal(LookupExternalRequest) returns (LookupExternalResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "catalog.read"
+      effect: EFFECT_READ
+      title: "Look up an external id"
+      description: "Resolve an IMDb, TMDB, TVDB, or other identifier to its entity, creating it when unknown"
+    };
+  }
+  rpc PinField(PinFieldRequest) returns (PinFieldResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "catalog.edit"
+      effect: EFFECT_WRITE
+      title: "Pin a field"
+      description: "Fix one field of an entity to a value no source may overwrite"
+    };
+  }
+  rpc UnpinField(UnpinFieldRequest) returns (UnpinFieldResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "catalog.edit"
+      effect: EFFECT_WRITE
+      title: "Unpin a field"
+      description: "Let sources decide a field again"
+    };
+  }
+  rpc RefreshEntity(RefreshEntityRequest) returns (RefreshEntityResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "catalog.edit"
+      effect: EFFECT_WRITE
+      title: "Refresh entity"
+      description: "Fetch the entity again from every enabled source as a durable workflow"
+    };
+  }
+  rpc GetCatalogStatus(GetCatalogStatusRequest) returns (GetCatalogStatusResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "catalog.admin"
+      effect: EFFECT_READ
+      title: "Catalog status"
+      description: "Snapshot, sources, dataset imports, and matcher state"
+    };
+  }
+  rpc ConfigureSource(ConfigureSourceRequest) returns (ConfigureSourceResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "catalog.admin"
+      effect: EFFECT_WRITE
+      title: "Configure source"
+      description: "Enable or disable a metadata source and store its keys"
+    };
+  }
+  rpc ConfigureCatalog(ConfigureCatalogRequest) returns (ConfigureCatalogResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "catalog.admin"
+      effect: EFFECT_WRITE
+      title: "Configure catalog"
+      description: "Set the snapshot mirror, peers, and preferred language"
+    };
+  }
+  rpc UpdateSnapshot(UpdateSnapshotRequest) returns (UpdateSnapshotResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "catalog.admin"
+      effect: EFFECT_WRITE
+      title: "Update snapshot"
+      description: "Check the mirror and peers for a newer crosswalk snapshot now"
+    };
+  }
+  rpc ImportDataset(ImportDatasetRequest) returns (ImportDatasetResponse) {
+    option (discoflix.capability.v1.capability) = {
+      scope: "catalog.admin"
+      effect: EFFECT_WRITE
+      title: "Import dataset"
+      description: "Enable a bulk dataset and download it now as a durable workflow"
+    };
+  }
+}

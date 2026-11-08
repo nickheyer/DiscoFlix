@@ -8,6 +8,63 @@ import (
 )
 
 var (
+	// ArtworksColumns holds the columns for the "artworks" table.
+	ArtworksColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString},
+		{Name: "kind", Type: field.TypeEnum, Enums: []string{"poster", "backdrop", "logo", "still", "banner", "thumb"}},
+		{Name: "source", Type: field.TypeString, Size: 32},
+		{Name: "source_url", Type: field.TypeString},
+		{Name: "hash", Type: field.TypeString, Default: ""},
+		{Name: "width", Type: field.TypeInt32, Default: 0},
+		{Name: "height", Type: field.TypeInt32, Default: 0},
+		{Name: "mime", Type: field.TypeString, Default: ""},
+		{Name: "bytes", Type: field.TypeInt64, Default: 0},
+		{Name: "thumbhash", Type: field.TypeBytes, Nullable: true},
+		{Name: "variants", Type: field.TypeJSON, Nullable: true},
+		{Name: "language", Type: field.TypeString, Default: ""},
+		{Name: "score", Type: field.TypeFloat64, Default: 0},
+		{Name: "state", Type: field.TypeEnum, Enums: []string{"pending", "ready", "failed"}, Default: "pending"},
+		{Name: "error", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "fetched_at", Type: field.TypeTime, Nullable: true},
+		{Name: "entity_id", Type: field.TypeString},
+	}
+	// ArtworksTable holds the schema information for the "artworks" table.
+	ArtworksTable = &schema.Table{
+		Name:       "artworks",
+		Columns:    ArtworksColumns,
+		PrimaryKey: []*schema.Column{ArtworksColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "artworks_entities_artworks",
+				Columns:    []*schema.Column{ArtworksColumns[17]},
+				RefColumns: []*schema.Column{EntitiesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "artwork_entity_id_source_url",
+				Unique:  true,
+				Columns: []*schema.Column{ArtworksColumns[17], ArtworksColumns[3]},
+			},
+			{
+				Name:    "artwork_entity_id_kind_score",
+				Unique:  false,
+				Columns: []*schema.Column{ArtworksColumns[17], ArtworksColumns[1], ArtworksColumns[12]},
+			},
+			{
+				Name:    "artwork_hash",
+				Unique:  false,
+				Columns: []*schema.Column{ArtworksColumns[4]},
+			},
+			{
+				Name:    "artwork_state",
+				Unique:  false,
+				Columns: []*schema.Column{ArtworksColumns[13]},
+			},
+		},
+	}
 	// AuthzOutboxesColumns holds the columns for the "authz_outboxes" table.
 	AuthzOutboxesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -87,6 +144,53 @@ var (
 			},
 		},
 	}
+	// ClaimsColumns holds the columns for the "claims" table.
+	ClaimsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString},
+		{Name: "field", Type: field.TypeString, Size: 64},
+		{Name: "value", Type: field.TypeBytes},
+		{Name: "value_hash", Type: field.TypeString, Size: 32},
+		{Name: "source", Type: field.TypeString, Size: 32},
+		{Name: "record_id", Type: field.TypeString, Default: ""},
+		{Name: "user_id", Type: field.TypeString, Default: ""},
+		{Name: "confidence", Type: field.TypeFloat32, Default: 1},
+		{Name: "rank", Type: field.TypeInt32, Default: 100},
+		{Name: "pinned", Type: field.TypeBool, Default: false},
+		{Name: "observed_at", Type: field.TypeTime},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "entity_id", Type: field.TypeString},
+	}
+	// ClaimsTable holds the schema information for the "claims" table.
+	ClaimsTable = &schema.Table{
+		Name:       "claims",
+		Columns:    ClaimsColumns,
+		PrimaryKey: []*schema.Column{ClaimsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "claims_entities_claims",
+				Columns:    []*schema.Column{ClaimsColumns[12]},
+				RefColumns: []*schema.Column{EntitiesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "claim_entity_id_field_source_value_hash",
+				Unique:  true,
+				Columns: []*schema.Column{ClaimsColumns[12], ClaimsColumns[1], ClaimsColumns[4], ClaimsColumns[3]},
+			},
+			{
+				Name:    "claim_entity_id_field",
+				Unique:  false,
+				Columns: []*schema.Column{ClaimsColumns[12], ClaimsColumns[1]},
+			},
+			{
+				Name:    "claim_source_observed_at",
+				Unique:  false,
+				Columns: []*schema.Column{ClaimsColumns[4], ClaimsColumns[10]},
+			},
+		},
+	}
 	// CredentialsColumns holds the columns for the "credentials" table.
 	CredentialsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString},
@@ -139,6 +243,278 @@ var (
 			},
 		},
 	}
+	// DatasetImportsColumns holds the columns for the "dataset_imports" table.
+	DatasetImportsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString},
+		{Name: "enabled", Type: field.TypeBool, Default: false},
+		{Name: "state", Type: field.TypeEnum, Enums: []string{"idle", "downloading", "loading", "done", "failed"}, Default: "idle"},
+		{Name: "rows", Type: field.TypeInt64, Default: 0},
+		{Name: "bytes", Type: field.TypeInt64, Default: 0},
+		{Name: "error", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "started_at", Type: field.TypeTime, Nullable: true},
+		{Name: "finished_at", Type: field.TypeTime, Nullable: true},
+		{Name: "etag", Type: field.TypeString, Default: ""},
+		{Name: "last_modified", Type: field.TypeTime, Nullable: true},
+		{Name: "workflow_id", Type: field.TypeString, Default: ""},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// DatasetImportsTable holds the schema information for the "dataset_imports" table.
+	DatasetImportsTable = &schema.Table{
+		Name:       "dataset_imports",
+		Columns:    DatasetImportsColumns,
+		PrimaryKey: []*schema.Column{DatasetImportsColumns[0]},
+	}
+	// EntitiesColumns holds the columns for the "entities" table.
+	EntitiesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "kind", Type: field.TypeString, Size: 32},
+		{Name: "title", Type: field.TypeString, Default: ""},
+		{Name: "year", Type: field.TypeInt32, Default: 0},
+		{Name: "ordinal", Type: field.TypeInt32, Default: 0},
+		{Name: "merged_into_id", Type: field.TypeString, Nullable: true},
+		{Name: "resolved_at", Type: field.TypeTime, Nullable: true},
+		{Name: "refreshed_at", Type: field.TypeTime, Nullable: true},
+		{Name: "parent_id", Type: field.TypeString, Nullable: true},
+	}
+	// EntitiesTable holds the schema information for the "entities" table.
+	EntitiesTable = &schema.Table{
+		Name:       "entities",
+		Columns:    EntitiesColumns,
+		PrimaryKey: []*schema.Column{EntitiesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "entities_entities_children",
+				Columns:    []*schema.Column{EntitiesColumns[10]},
+				RefColumns: []*schema.Column{EntitiesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "entity_kind_title",
+				Unique:  false,
+				Columns: []*schema.Column{EntitiesColumns[3], EntitiesColumns[4]},
+			},
+			{
+				Name:    "entity_parent_id_ordinal",
+				Unique:  false,
+				Columns: []*schema.Column{EntitiesColumns[10], EntitiesColumns[6]},
+			},
+			{
+				Name:    "entity_merged_into_id",
+				Unique:  false,
+				Columns: []*schema.Column{EntitiesColumns[7]},
+			},
+		},
+	}
+	// EntityFieldsColumns holds the columns for the "entity_fields" table.
+	EntityFieldsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString},
+		{Name: "field", Type: field.TypeString, Size: 64},
+		{Name: "value", Type: field.TypeBytes},
+		{Name: "claim_id", Type: field.TypeString},
+		{Name: "source", Type: field.TypeString, Size: 32},
+		{Name: "reason", Type: field.TypeEnum, Enums: []string{"pin", "priority", "agreement", "recency", "only"}},
+		{Name: "agreement", Type: field.TypeInt32, Default: 1},
+		{Name: "claims", Type: field.TypeInt32, Default: 1},
+		{Name: "confidence", Type: field.TypeFloat32, Default: 1},
+		{Name: "observed_at", Type: field.TypeTime},
+		{Name: "resolved_at", Type: field.TypeTime},
+		{Name: "entity_id", Type: field.TypeString},
+	}
+	// EntityFieldsTable holds the schema information for the "entity_fields" table.
+	EntityFieldsTable = &schema.Table{
+		Name:       "entity_fields",
+		Columns:    EntityFieldsColumns,
+		PrimaryKey: []*schema.Column{EntityFieldsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "entity_fields_entities_fields",
+				Columns:    []*schema.Column{EntityFieldsColumns[11]},
+				RefColumns: []*schema.Column{EntitiesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "entityfield_entity_id_field",
+				Unique:  true,
+				Columns: []*schema.Column{EntityFieldsColumns[11], EntityFieldsColumns[1]},
+			},
+			{
+				Name:    "entityfield_field_source",
+				Unique:  false,
+				Columns: []*schema.Column{EntityFieldsColumns[1], EntityFieldsColumns[4]},
+			},
+		},
+	}
+	// EntityTitlesColumns holds the columns for the "entity_titles" table.
+	EntityTitlesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "title", Type: field.TypeString, Size: 500},
+		{Name: "normalized", Type: field.TypeString, Size: 500},
+		{Name: "lang", Type: field.TypeString, Default: ""},
+		{Name: "kind", Type: field.TypeEnum, Enums: []string{"primary", "original", "alias"}, Default: "alias"},
+		{Name: "source", Type: field.TypeString, Default: ""},
+		{Name: "entity_id", Type: field.TypeString},
+	}
+	// EntityTitlesTable holds the schema information for the "entity_titles" table.
+	EntityTitlesTable = &schema.Table{
+		Name:       "entity_titles",
+		Columns:    EntityTitlesColumns,
+		PrimaryKey: []*schema.Column{EntityTitlesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "entity_titles_entities_titles",
+				Columns:    []*schema.Column{EntityTitlesColumns[6]},
+				RefColumns: []*schema.Column{EntitiesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "entitytitle_entity_id_normalized_lang",
+				Unique:  true,
+				Columns: []*schema.Column{EntityTitlesColumns[6], EntityTitlesColumns[2], EntityTitlesColumns[3]},
+			},
+			{
+				Name:    "entitytitle_normalized",
+				Unique:  false,
+				Columns: []*schema.Column{EntityTitlesColumns[2]},
+			},
+		},
+	}
+	// ExtIdsColumns holds the columns for the "ext_ids" table.
+	ExtIdsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString},
+		{Name: "namespace", Type: field.TypeString, Size: 32},
+		{Name: "value", Type: field.TypeString, Size: 128},
+		{Name: "p_match", Type: field.TypeFloat64, Default: 1},
+		{Name: "source", Type: field.TypeString, Default: ""},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "entity_id", Type: field.TypeString},
+	}
+	// ExtIdsTable holds the schema information for the "ext_ids" table.
+	ExtIdsTable = &schema.Table{
+		Name:       "ext_ids",
+		Columns:    ExtIdsColumns,
+		PrimaryKey: []*schema.Column{ExtIdsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "ext_ids_entities_ext_ids",
+				Columns:    []*schema.Column{ExtIdsColumns[6]},
+				RefColumns: []*schema.Column{EntitiesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "extid_namespace_value",
+				Unique:  true,
+				Columns: []*schema.Column{ExtIdsColumns[1], ExtIdsColumns[2]},
+			},
+			{
+				Name:    "extid_entity_id",
+				Unique:  false,
+				Columns: []*schema.Column{ExtIdsColumns[6]},
+			},
+		},
+	}
+	// ImDbAkasColumns holds the columns for the "im_db_akas" table.
+	ImDbAkasColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "tconst", Type: field.TypeString},
+		{Name: "ordering", Type: field.TypeInt32, Default: 0},
+		{Name: "title", Type: field.TypeString, Default: ""},
+		{Name: "normalized", Type: field.TypeString, Default: ""},
+		{Name: "region", Type: field.TypeString, Default: ""},
+		{Name: "language", Type: field.TypeString, Default: ""},
+		{Name: "types", Type: field.TypeString, Default: ""},
+		{Name: "original", Type: field.TypeBool, Default: false},
+	}
+	// ImDbAkasTable holds the schema information for the "im_db_akas" table.
+	ImDbAkasTable = &schema.Table{
+		Name:       "im_db_akas",
+		Columns:    ImDbAkasColumns,
+		PrimaryKey: []*schema.Column{ImDbAkasColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "imdbaka_tconst_ordering",
+				Unique:  true,
+				Columns: []*schema.Column{ImDbAkasColumns[1], ImDbAkasColumns[2]},
+			},
+			{
+				Name:    "imdbaka_normalized",
+				Unique:  false,
+				Columns: []*schema.Column{ImDbAkasColumns[4]},
+			},
+		},
+	}
+	// ImDbEpisodesColumns holds the columns for the "im_db_episodes" table.
+	ImDbEpisodesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString},
+		{Name: "parent", Type: field.TypeString},
+		{Name: "season", Type: field.TypeInt32, Default: 0},
+		{Name: "episode", Type: field.TypeInt32, Default: 0},
+	}
+	// ImDbEpisodesTable holds the schema information for the "im_db_episodes" table.
+	ImDbEpisodesTable = &schema.Table{
+		Name:       "im_db_episodes",
+		Columns:    ImDbEpisodesColumns,
+		PrimaryKey: []*schema.Column{ImDbEpisodesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "imdbepisode_parent_season_episode",
+				Unique:  false,
+				Columns: []*schema.Column{ImDbEpisodesColumns[1], ImDbEpisodesColumns[2], ImDbEpisodesColumns[3]},
+			},
+		},
+	}
+	// ImDbRatingsColumns holds the columns for the "im_db_ratings" table.
+	ImDbRatingsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString},
+		{Name: "rating", Type: field.TypeFloat32, Default: 0},
+		{Name: "votes", Type: field.TypeInt32, Default: 0},
+	}
+	// ImDbRatingsTable holds the schema information for the "im_db_ratings" table.
+	ImDbRatingsTable = &schema.Table{
+		Name:       "im_db_ratings",
+		Columns:    ImDbRatingsColumns,
+		PrimaryKey: []*schema.Column{ImDbRatingsColumns[0]},
+	}
+	// ImDbTitlesColumns holds the columns for the "im_db_titles" table.
+	ImDbTitlesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString},
+		{Name: "title_type", Type: field.TypeString, Default: ""},
+		{Name: "primary_title", Type: field.TypeString, Default: ""},
+		{Name: "original_title", Type: field.TypeString, Default: ""},
+		{Name: "normalized", Type: field.TypeString, Default: ""},
+		{Name: "adult", Type: field.TypeBool, Default: false},
+		{Name: "start_year", Type: field.TypeInt32, Default: 0},
+		{Name: "end_year", Type: field.TypeInt32, Default: 0},
+		{Name: "runtime", Type: field.TypeInt32, Default: 0},
+		{Name: "genres", Type: field.TypeString, Default: ""},
+	}
+	// ImDbTitlesTable holds the schema information for the "im_db_titles" table.
+	ImDbTitlesTable = &schema.Table{
+		Name:       "im_db_titles",
+		Columns:    ImDbTitlesColumns,
+		PrimaryKey: []*schema.Column{ImDbTitlesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "imdbtitle_normalized_start_year",
+				Unique:  false,
+				Columns: []*schema.Column{ImDbTitlesColumns[4], ImDbTitlesColumns[6]},
+			},
+			{
+				Name:    "imdbtitle_title_type",
+				Unique:  false,
+				Columns: []*schema.Column{ImDbTitlesColumns[1]},
+			},
+		},
+	}
 	// IdentitiesColumns holds the columns for the "identities" table.
 	IdentitiesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString},
@@ -176,6 +552,66 @@ var (
 				Columns: []*schema.Column{IdentitiesColumns[8]},
 			},
 		},
+	}
+	// MatchEdgesColumns holds the columns for the "match_edges" table.
+	MatchEdgesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "entity_id", Type: field.TypeString},
+		{Name: "namespace", Type: field.TypeString, Size: 32},
+		{Name: "value", Type: field.TypeString, Size: 128},
+		{Name: "source", Type: field.TypeString, Default: ""},
+		{Name: "candidate_title", Type: field.TypeString, Default: ""},
+		{Name: "candidate_year", Type: field.TypeInt32, Default: 0},
+		{Name: "probability", Type: field.TypeFloat64, Default: 0},
+		{Name: "features", Type: field.TypeJSON, Nullable: true},
+		{Name: "tier", Type: field.TypeInt32, Default: 1},
+		{Name: "state", Type: field.TypeEnum, Enums: []string{"auto", "review", "accepted", "rejected"}, Default: "auto"},
+		{Name: "decided_by", Type: field.TypeString, Default: ""},
+		{Name: "decided_at", Type: field.TypeTime, Nullable: true},
+		{Name: "message_seq", Type: field.TypeInt64, Default: 0},
+	}
+	// MatchEdgesTable holds the schema information for the "match_edges" table.
+	MatchEdgesTable = &schema.Table{
+		Name:       "match_edges",
+		Columns:    MatchEdgesColumns,
+		PrimaryKey: []*schema.Column{MatchEdgesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "matchedge_entity_id",
+				Unique:  false,
+				Columns: []*schema.Column{MatchEdgesColumns[3]},
+			},
+			{
+				Name:    "matchedge_namespace_value",
+				Unique:  false,
+				Columns: []*schema.Column{MatchEdgesColumns[4], MatchEdgesColumns[5]},
+			},
+			{
+				Name:    "matchedge_state_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{MatchEdgesColumns[12], MatchEdgesColumns[1]},
+			},
+			{
+				Name:    "matchedge_message_seq",
+				Unique:  false,
+				Columns: []*schema.Column{MatchEdgesColumns[15]},
+			},
+		},
+	}
+	// MatchModelsColumns holds the columns for the "match_models" table.
+	MatchModelsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString},
+		{Name: "weights", Type: field.TypeBytes},
+		{Name: "pairs", Type: field.TypeInt64, Default: 0},
+		{Name: "trained_at", Type: field.TypeTime},
+	}
+	// MatchModelsTable holds the schema information for the "match_models" table.
+	MatchModelsTable = &schema.Table{
+		Name:       "match_models",
+		Columns:    MatchModelsColumns,
+		PrimaryKey: []*schema.Column{MatchModelsColumns[0]},
 	}
 	// MembershipsColumns holds the columns for the "memberships" table.
 	MembershipsColumns = []*schema.Column{
@@ -419,6 +855,62 @@ var (
 		Columns:    SettingsColumns,
 		PrimaryKey: []*schema.Column{SettingsColumns[0]},
 	}
+	// SourceRecordsColumns holds the columns for the "source_records" table.
+	SourceRecordsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString},
+		{Name: "source", Type: field.TypeString, Size: 32},
+		{Name: "namespace", Type: field.TypeString, Default: ""},
+		{Name: "ext_value", Type: field.TypeString, Default: ""},
+		{Name: "kind", Type: field.TypeString, Default: ""},
+		{Name: "url", Type: field.TypeString, Default: ""},
+		{Name: "status", Type: field.TypeInt32, Default: 0},
+		{Name: "etag", Type: field.TypeString, Default: ""},
+		{Name: "payload", Type: field.TypeBytes, Nullable: true},
+		{Name: "license", Type: field.TypeString, Default: ""},
+		{Name: "fetched_at", Type: field.TypeTime},
+		{Name: "expires_at", Type: field.TypeTime, Nullable: true},
+	}
+	// SourceRecordsTable holds the schema information for the "source_records" table.
+	SourceRecordsTable = &schema.Table{
+		Name:       "source_records",
+		Columns:    SourceRecordsColumns,
+		PrimaryKey: []*schema.Column{SourceRecordsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "sourcerecord_source_namespace_ext_value_fetched_at",
+				Unique:  false,
+				Columns: []*schema.Column{SourceRecordsColumns[1], SourceRecordsColumns[2], SourceRecordsColumns[3], SourceRecordsColumns[10]},
+			},
+			{
+				Name:    "sourcerecord_source_url_fetched_at",
+				Unique:  false,
+				Columns: []*schema.Column{SourceRecordsColumns[1], SourceRecordsColumns[5], SourceRecordsColumns[10]},
+			},
+			{
+				Name:    "sourcerecord_fetched_at",
+				Unique:  false,
+				Columns: []*schema.Column{SourceRecordsColumns[10]},
+			},
+		},
+	}
+	// SourceStatesColumns holds the columns for the "source_states" table.
+	SourceStatesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString},
+		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "last_ok_at", Type: field.TypeTime, Nullable: true},
+		{Name: "last_error", Type: field.TypeString, Default: ""},
+		{Name: "last_error_at", Type: field.TypeTime, Nullable: true},
+		{Name: "calls_today", Type: field.TypeInt32, Default: 0},
+		{Name: "calls_reset_at", Type: field.TypeTime},
+		{Name: "options", Type: field.TypeJSON, Nullable: true},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// SourceStatesTable holds the schema information for the "source_states" table.
+	SourceStatesTable = &schema.Table{
+		Name:       "source_states",
+		Columns:    SourceStatesColumns,
+		PrimaryKey: []*schema.Column{SourceStatesColumns[0]},
+	}
 	// SpacesColumns holds the columns for the "spaces" table.
 	SpacesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString},
@@ -447,6 +939,40 @@ var (
 				Name:    "space_position",
 				Unique:  false,
 				Columns: []*schema.Column{SpacesColumns[7]},
+			},
+		},
+	}
+	// TmdbExportsColumns holds the columns for the "tmdb_exports" table.
+	TmdbExportsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "kind", Type: field.TypeEnum, Enums: []string{"movie", "series"}},
+		{Name: "tmdb_id", Type: field.TypeInt64},
+		{Name: "original_title", Type: field.TypeString, Default: ""},
+		{Name: "normalized", Type: field.TypeString, Default: ""},
+		{Name: "popularity", Type: field.TypeFloat64, Default: 0},
+		{Name: "adult", Type: field.TypeBool, Default: false},
+		{Name: "video", Type: field.TypeBool, Default: false},
+	}
+	// TmdbExportsTable holds the schema information for the "tmdb_exports" table.
+	TmdbExportsTable = &schema.Table{
+		Name:       "tmdb_exports",
+		Columns:    TmdbExportsColumns,
+		PrimaryKey: []*schema.Column{TmdbExportsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "tmdbexport_kind_tmdb_id",
+				Unique:  true,
+				Columns: []*schema.Column{TmdbExportsColumns[1], TmdbExportsColumns[2]},
+			},
+			{
+				Name:    "tmdbexport_normalized",
+				Unique:  false,
+				Columns: []*schema.Column{TmdbExportsColumns[4]},
+			},
+			{
+				Name:    "tmdbexport_kind_popularity",
+				Unique:  false,
+				Columns: []*schema.Column{TmdbExportsColumns[1], TmdbExportsColumns[5]},
 			},
 		},
 	}
@@ -517,25 +1043,47 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		ArtworksTable,
 		AuthzOutboxesTable,
 		ChannelsTable,
+		ClaimsTable,
 		CredentialsTable,
+		DatasetImportsTable,
+		EntitiesTable,
+		EntityFieldsTable,
+		EntityTitlesTable,
+		ExtIdsTable,
+		ImDbAkasTable,
+		ImDbEpisodesTable,
+		ImDbRatingsTable,
+		ImDbTitlesTable,
 		IdentitiesTable,
+		MatchEdgesTable,
+		MatchModelsTable,
 		MembershipsTable,
 		MessagesTable,
 		PendingActionsTable,
 		ReactionsTable,
 		ReadStatesTable,
 		SettingsTable,
+		SourceRecordsTable,
+		SourceStatesTable,
 		SpacesTable,
+		TmdbExportsTable,
 		UsersTable,
 		UserMergesTable,
 	}
 )
 
 func init() {
+	ArtworksTable.ForeignKeys[0].RefTable = EntitiesTable
 	ChannelsTable.ForeignKeys[0].RefTable = SpacesTable
+	ClaimsTable.ForeignKeys[0].RefTable = EntitiesTable
 	CredentialsTable.ForeignKeys[0].RefTable = UsersTable
+	EntitiesTable.ForeignKeys[0].RefTable = EntitiesTable
+	EntityFieldsTable.ForeignKeys[0].RefTable = EntitiesTable
+	EntityTitlesTable.ForeignKeys[0].RefTable = EntitiesTable
+	ExtIdsTable.ForeignKeys[0].RefTable = EntitiesTable
 	IdentitiesTable.ForeignKeys[0].RefTable = UsersTable
 	MembershipsTable.ForeignKeys[0].RefTable = SpacesTable
 	MembershipsTable.ForeignKeys[1].RefTable = UsersTable

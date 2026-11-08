@@ -1,0 +1,118 @@
+{
+  "$defs": {
+    "discoflix.catalog.v1.Artwork.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "height": {
+          "anyOf": [
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "id": {
+          "default": "",
+          "type": "string"
+        },
+        "kind": {
+          "default": "",
+          "description": "poster, backdrop, logo, still, banner",
+          "type": "string"
+        },
+        "language": {
+          "default": "",
+          "type": "string"
+        },
+        "source": {
+          "default": "",
+          "type": "string"
+        },
+        "thumbhash": {
+          "default": "",
+          "description": "Base64 thumbhash placeholder",
+          "type": "string"
+        },
+        "url": {
+          "default": "",
+          "type": "string"
+        },
+        "variants": {
+          "items": {
+            "$ref": "#/$defs/discoflix.catalog.v1.ArtworkVariant.jsonschema.json"
+          },
+          "type": "array"
+        },
+        "width": {
+          "anyOf": [
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        }
+      },
+      "title": "Artwork",
+      "type": "object"
+    },
+    "discoflix.catalog.v1.ArtworkVariant.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "bytes": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "format": {
+          "default": "",
+          "description": "avif or webp",
+          "type": "string"
+        },
+        "url": {
+          "default": "",
+          "type": "string"
+        },
+        "width": {
+          "anyOf": [
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        }
+      },
+      "title": "Artwork Variant",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.catalog.v1.Artwork.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.catalog.v1.Artwork.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

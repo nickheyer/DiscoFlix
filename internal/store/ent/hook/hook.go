@@ -9,6 +9,18 @@ import (
 	"github.com/nickheyer/DiscoFlix/internal/store/ent"
 )
 
+// The ArtworkFunc type is an adapter to allow the use of ordinary
+// function as Artwork mutator.
+type ArtworkFunc func(context.Context, *ent.ArtworkMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ArtworkFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ArtworkMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ArtworkMutation", m)
+}
+
 // The AuthzOutboxFunc type is an adapter to allow the use of ordinary
 // function as AuthzOutbox mutator.
 type AuthzOutboxFunc func(context.Context, *ent.AuthzOutboxMutation) (ent.Value, error)
@@ -33,6 +45,18 @@ func (f ChannelFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, err
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ChannelMutation", m)
 }
 
+// The ClaimFunc type is an adapter to allow the use of ordinary
+// function as Claim mutator.
+type ClaimFunc func(context.Context, *ent.ClaimMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ClaimFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ClaimMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ClaimMutation", m)
+}
+
 // The CredentialFunc type is an adapter to allow the use of ordinary
 // function as Credential mutator.
 type CredentialFunc func(context.Context, *ent.CredentialMutation) (ent.Value, error)
@@ -45,6 +69,114 @@ func (f CredentialFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, 
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CredentialMutation", m)
 }
 
+// The DatasetImportFunc type is an adapter to allow the use of ordinary
+// function as DatasetImport mutator.
+type DatasetImportFunc func(context.Context, *ent.DatasetImportMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f DatasetImportFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.DatasetImportMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DatasetImportMutation", m)
+}
+
+// The EntityFunc type is an adapter to allow the use of ordinary
+// function as Entity mutator.
+type EntityFunc func(context.Context, *ent.EntityMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f EntityFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.EntityMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.EntityMutation", m)
+}
+
+// The EntityFieldFunc type is an adapter to allow the use of ordinary
+// function as EntityField mutator.
+type EntityFieldFunc func(context.Context, *ent.EntityFieldMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f EntityFieldFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.EntityFieldMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.EntityFieldMutation", m)
+}
+
+// The EntityTitleFunc type is an adapter to allow the use of ordinary
+// function as EntityTitle mutator.
+type EntityTitleFunc func(context.Context, *ent.EntityTitleMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f EntityTitleFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.EntityTitleMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.EntityTitleMutation", m)
+}
+
+// The ExtIDFunc type is an adapter to allow the use of ordinary
+// function as ExtID mutator.
+type ExtIDFunc func(context.Context, *ent.ExtIDMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ExtIDFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ExtIDMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ExtIDMutation", m)
+}
+
+// The IMDbAkaFunc type is an adapter to allow the use of ordinary
+// function as IMDbAka mutator.
+type IMDbAkaFunc func(context.Context, *ent.IMDbAkaMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f IMDbAkaFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.IMDbAkaMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.IMDbAkaMutation", m)
+}
+
+// The IMDbEpisodeFunc type is an adapter to allow the use of ordinary
+// function as IMDbEpisode mutator.
+type IMDbEpisodeFunc func(context.Context, *ent.IMDbEpisodeMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f IMDbEpisodeFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.IMDbEpisodeMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.IMDbEpisodeMutation", m)
+}
+
+// The IMDbRatingFunc type is an adapter to allow the use of ordinary
+// function as IMDbRating mutator.
+type IMDbRatingFunc func(context.Context, *ent.IMDbRatingMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f IMDbRatingFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.IMDbRatingMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.IMDbRatingMutation", m)
+}
+
+// The IMDbTitleFunc type is an adapter to allow the use of ordinary
+// function as IMDbTitle mutator.
+type IMDbTitleFunc func(context.Context, *ent.IMDbTitleMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f IMDbTitleFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.IMDbTitleMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.IMDbTitleMutation", m)
+}
+
 // The IdentityFunc type is an adapter to allow the use of ordinary
 // function as Identity mutator.
 type IdentityFunc func(context.Context, *ent.IdentityMutation) (ent.Value, error)
@@ -55,6 +187,30 @@ func (f IdentityFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, er
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.IdentityMutation", m)
+}
+
+// The MatchEdgeFunc type is an adapter to allow the use of ordinary
+// function as MatchEdge mutator.
+type MatchEdgeFunc func(context.Context, *ent.MatchEdgeMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f MatchEdgeFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.MatchEdgeMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MatchEdgeMutation", m)
+}
+
+// The MatchModelFunc type is an adapter to allow the use of ordinary
+// function as MatchModel mutator.
+type MatchModelFunc func(context.Context, *ent.MatchModelMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f MatchModelFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.MatchModelMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MatchModelMutation", m)
 }
 
 // The MembershipFunc type is an adapter to allow the use of ordinary
@@ -129,6 +285,30 @@ func (f SettingFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, err
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SettingMutation", m)
 }
 
+// The SourceRecordFunc type is an adapter to allow the use of ordinary
+// function as SourceRecord mutator.
+type SourceRecordFunc func(context.Context, *ent.SourceRecordMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SourceRecordFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.SourceRecordMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SourceRecordMutation", m)
+}
+
+// The SourceStateFunc type is an adapter to allow the use of ordinary
+// function as SourceState mutator.
+type SourceStateFunc func(context.Context, *ent.SourceStateMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SourceStateFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.SourceStateMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SourceStateMutation", m)
+}
+
 // The SpaceFunc type is an adapter to allow the use of ordinary
 // function as Space mutator.
 type SpaceFunc func(context.Context, *ent.SpaceMutation) (ent.Value, error)
@@ -139,6 +319,18 @@ func (f SpaceFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SpaceMutation", m)
+}
+
+// The TMDBExportFunc type is an adapter to allow the use of ordinary
+// function as TMDBExport mutator.
+type TMDBExportFunc func(context.Context, *ent.TMDBExportMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f TMDBExportFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.TMDBExportMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TMDBExportMutation", m)
 }
 
 // The UserFunc type is an adapter to allow the use of ordinary

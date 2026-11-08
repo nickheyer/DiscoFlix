@@ -12,17 +12,33 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/artwork"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/authzoutbox"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/channel"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/claim"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/credential"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/datasetimport"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/entity"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/entityfield"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/entitytitle"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/extid"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/identity"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/imdbaka"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/imdbepisode"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/imdbrating"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/imdbtitle"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/matchedge"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/matchmodel"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/membership"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/message"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/pendingaction"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/reaction"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/readstate"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/setting"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/sourcerecord"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/sourcestate"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/space"
+	"github.com/nickheyer/DiscoFlix/internal/store/ent/tmdbexport"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/user"
 	"github.com/nickheyer/DiscoFlix/internal/store/ent/usermerge"
 )
@@ -85,17 +101,33 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
+			artwork.Table:       artwork.ValidColumn,
 			authzoutbox.Table:   authzoutbox.ValidColumn,
 			channel.Table:       channel.ValidColumn,
+			claim.Table:         claim.ValidColumn,
 			credential.Table:    credential.ValidColumn,
+			datasetimport.Table: datasetimport.ValidColumn,
+			entity.Table:        entity.ValidColumn,
+			entityfield.Table:   entityfield.ValidColumn,
+			entitytitle.Table:   entitytitle.ValidColumn,
+			extid.Table:         extid.ValidColumn,
+			imdbaka.Table:       imdbaka.ValidColumn,
+			imdbepisode.Table:   imdbepisode.ValidColumn,
+			imdbrating.Table:    imdbrating.ValidColumn,
+			imdbtitle.Table:     imdbtitle.ValidColumn,
 			identity.Table:      identity.ValidColumn,
+			matchedge.Table:     matchedge.ValidColumn,
+			matchmodel.Table:    matchmodel.ValidColumn,
 			membership.Table:    membership.ValidColumn,
 			message.Table:       message.ValidColumn,
 			pendingaction.Table: pendingaction.ValidColumn,
 			reaction.Table:      reaction.ValidColumn,
 			readstate.Table:     readstate.ValidColumn,
 			setting.Table:       setting.ValidColumn,
+			sourcerecord.Table:  sourcerecord.ValidColumn,
+			sourcestate.Table:   sourcestate.ValidColumn,
 			space.Table:         space.ValidColumn,
+			tmdbexport.Table:    tmdbexport.ValidColumn,
 			user.Table:          user.ValidColumn,
 			usermerge.Table:     usermerge.ValidColumn,
 		})

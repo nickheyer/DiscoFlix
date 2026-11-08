@@ -1,0 +1,79 @@
+{
+  "$defs": {
+    "discoflix.catalog.v1.ExternalId.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(p_match)$": {
+          "anyOf": [
+            {
+              "maximum": 3.4028234663852886e+38,
+              "minimum": -3.4028234663852886e+38,
+              "type": "number"
+            },
+            {
+              "enum": [
+                "Infinity",
+                "-Infinity",
+                "NaN"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "default": 0,
+          "description": "Probability this id belongs to the entity, 1 for hard links"
+        }
+      },
+      "properties": {
+        "namespace": {
+          "default": "",
+          "description": "imdb, tmdb, tvdb, wikidata, trakt, letterboxd, tvmaze, netflix, rottentomatoes, metacritic",
+          "type": "string"
+        },
+        "pMatch": {
+          "anyOf": [
+            {
+              "maximum": 3.4028234663852886e+38,
+              "minimum": -3.4028234663852886e+38,
+              "type": "number"
+            },
+            {
+              "enum": [
+                "Infinity",
+                "-Infinity",
+                "NaN"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "default": 0,
+          "description": "Probability this id belongs to the entity, 1 for hard links"
+        },
+        "source": {
+          "default": "",
+          "type": "string"
+        },
+        "url": {
+          "default": "",
+          "description": "Page of this id on the source site, empty when the namespace has none",
+          "type": "string"
+        },
+        "value": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "title": "External Id",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.catalog.v1.ExternalId.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.catalog.v1.ExternalId.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

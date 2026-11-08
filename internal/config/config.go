@@ -27,6 +27,9 @@ type Config struct {
 	LogLevel  string
 	LogFormat string
 	Headless  bool
+	// Credentials that fill the encrypted secrets store at boot when it holds none
+	DiscordBotToken     string
+	DiscordClientSecret string
 }
 
 // DefaultDataDir follows each platform's convention for application data
@@ -123,6 +126,9 @@ func Load(fs *pflag.FlagSet) (Config, error) {
 		LogLevel:  k.String("log.level"),
 		LogFormat: k.String("log.format"),
 		Headless:  k.Bool("headless"),
+
+		DiscordBotToken:     k.String("discord.bot_token"),
+		DiscordClientSecret: k.String("discord.client_secret"),
 	}
 	if c.DataDir == "" {
 		c.DataDir = dataDir

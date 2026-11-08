@@ -1,0 +1,543 @@
+{
+  "$defs": {
+    "discoflix.catalog.v1.Artwork.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "height": {
+          "anyOf": [
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "id": {
+          "default": "",
+          "type": "string"
+        },
+        "kind": {
+          "default": "",
+          "description": "poster, backdrop, logo, still, banner",
+          "type": "string"
+        },
+        "language": {
+          "default": "",
+          "type": "string"
+        },
+        "source": {
+          "default": "",
+          "type": "string"
+        },
+        "thumbhash": {
+          "default": "",
+          "description": "Base64 thumbhash placeholder",
+          "type": "string"
+        },
+        "url": {
+          "default": "",
+          "type": "string"
+        },
+        "variants": {
+          "items": {
+            "$ref": "#/$defs/discoflix.catalog.v1.ArtworkVariant.jsonschema.json"
+          },
+          "type": "array"
+        },
+        "width": {
+          "anyOf": [
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        }
+      },
+      "title": "Artwork",
+      "type": "object"
+    },
+    "discoflix.catalog.v1.ArtworkVariant.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "bytes": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "format": {
+          "default": "",
+          "description": "avif or webp",
+          "type": "string"
+        },
+        "url": {
+          "default": "",
+          "type": "string"
+        },
+        "width": {
+          "anyOf": [
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        }
+      },
+      "title": "Artwork Variant",
+      "type": "object"
+    },
+    "discoflix.catalog.v1.Claim.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(observed_at)$": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "^(record_id)$": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "properties": {
+        "confidence": {
+          "anyOf": [
+            {
+              "maximum": 3.4028234663852886e+38,
+              "minimum": -3.4028234663852886e+38,
+              "type": "number"
+            },
+            {
+              "enum": [
+                "Infinity",
+                "-Infinity",
+                "NaN"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "field": {
+          "default": "",
+          "type": "string"
+        },
+        "id": {
+          "default": "",
+          "type": "string"
+        },
+        "observedAt": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "pinned": {
+          "default": false,
+          "type": "boolean"
+        },
+        "rank": {
+          "anyOf": [
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0,
+          "description": "Source priority at the time of the claim, lower wins"
+        },
+        "recordId": {
+          "default": "",
+          "type": "string"
+        },
+        "source": {
+          "default": "",
+          "type": "string"
+        },
+        "value": {
+          "$ref": "#/$defs/google.protobuf.Value.jsonschema.json"
+        }
+      },
+      "title": "Claim",
+      "type": "object"
+    },
+    "discoflix.catalog.v1.Entity.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(created_at)$": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "^(external_ids)$": {
+          "items": {
+            "$ref": "#/$defs/discoflix.catalog.v1.ExternalId.jsonschema.json"
+          },
+          "type": "array"
+        },
+        "^(merged_into_id)$": {
+          "default": "",
+          "description": "Set when this entity was merged into another",
+          "type": "string"
+        },
+        "^(original_title)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(parent_id)$": {
+          "default": "",
+          "description": "Series of a season, season of an episode",
+          "type": "string"
+        },
+        "^(parent_title)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(updated_at)$": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        }
+      },
+      "properties": {
+        "backdrop": {
+          "$ref": "#/$defs/discoflix.catalog.v1.Artwork.jsonschema.json"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "externalIds": {
+          "items": {
+            "$ref": "#/$defs/discoflix.catalog.v1.ExternalId.jsonschema.json"
+          },
+          "type": "array"
+        },
+        "fields": {
+          "items": {
+            "$ref": "#/$defs/discoflix.catalog.v1.FieldValue.jsonschema.json"
+          },
+          "type": "array"
+        },
+        "id": {
+          "default": "",
+          "type": "string"
+        },
+        "kind": {
+          "anyOf": [
+            {
+              "pattern": "^ENTITY_KIND_UNSPECIFIED$",
+              "type": "string"
+            },
+            {
+              "enum": [
+                "ENTITY_KIND_MOVIE",
+                "ENTITY_KIND_SERIES",
+                "ENTITY_KIND_SEASON",
+                "ENTITY_KIND_EPISODE"
+              ],
+              "type": "string"
+            },
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            }
+          ],
+          "default": 0,
+          "title": "Entity Kind"
+        },
+        "mergedIntoId": {
+          "default": "",
+          "description": "Set when this entity was merged into another",
+          "type": "string"
+        },
+        "ordinal": {
+          "anyOf": [
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0,
+          "description": "Season or episode number"
+        },
+        "originalTitle": {
+          "default": "",
+          "type": "string"
+        },
+        "overview": {
+          "default": "",
+          "type": "string"
+        },
+        "parentId": {
+          "default": "",
+          "description": "Series of a season, season of an episode",
+          "type": "string"
+        },
+        "parentTitle": {
+          "default": "",
+          "type": "string"
+        },
+        "poster": {
+          "$ref": "#/$defs/discoflix.catalog.v1.Artwork.jsonschema.json"
+        },
+        "title": {
+          "default": "",
+          "type": "string"
+        },
+        "updatedAt": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "year": {
+          "anyOf": [
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        }
+      },
+      "title": "Entity",
+      "type": "object"
+    },
+    "discoflix.catalog.v1.ExternalId.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(p_match)$": {
+          "anyOf": [
+            {
+              "maximum": 3.4028234663852886e+38,
+              "minimum": -3.4028234663852886e+38,
+              "type": "number"
+            },
+            {
+              "enum": [
+                "Infinity",
+                "-Infinity",
+                "NaN"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "default": 0,
+          "description": "Probability this id belongs to the entity, 1 for hard links"
+        }
+      },
+      "properties": {
+        "namespace": {
+          "default": "",
+          "description": "imdb, tmdb, tvdb, wikidata, trakt, letterboxd, tvmaze, netflix, rottentomatoes, metacritic",
+          "type": "string"
+        },
+        "pMatch": {
+          "anyOf": [
+            {
+              "maximum": 3.4028234663852886e+38,
+              "minimum": -3.4028234663852886e+38,
+              "type": "number"
+            },
+            {
+              "enum": [
+                "Infinity",
+                "-Infinity",
+                "NaN"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "default": 0,
+          "description": "Probability this id belongs to the entity, 1 for hard links"
+        },
+        "source": {
+          "default": "",
+          "type": "string"
+        },
+        "url": {
+          "default": "",
+          "description": "Page of this id on the source site, empty when the namespace has none",
+          "type": "string"
+        },
+        "value": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "title": "External Id",
+      "type": "object"
+    },
+    "discoflix.catalog.v1.FieldValue.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "description": "Winning value of one field with the trail behind it",
+      "patternProperties": {
+        "^(observed_at)$": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        }
+      },
+      "properties": {
+        "agreement": {
+          "anyOf": [
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0,
+          "description": "Sources whose claim equals the winning value"
+        },
+        "claims": {
+          "anyOf": [
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0,
+          "description": "Claims considered for this field"
+        },
+        "confidence": {
+          "anyOf": [
+            {
+              "maximum": 3.4028234663852886e+38,
+              "minimum": -3.4028234663852886e+38,
+              "type": "number"
+            },
+            {
+              "enum": [
+                "Infinity",
+                "-Infinity",
+                "NaN"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "field": {
+          "default": "",
+          "type": "string"
+        },
+        "observedAt": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "pinned": {
+          "default": false,
+          "type": "boolean"
+        },
+        "reason": {
+          "default": "",
+          "description": "pin, priority, agreement, recency",
+          "type": "string"
+        },
+        "source": {
+          "default": "",
+          "type": "string"
+        },
+        "value": {
+          "$ref": "#/$defs/google.protobuf.Value.jsonschema.json"
+        }
+      },
+      "title": "Field Value",
+      "type": "object"
+    },
+    "discoflix.catalog.v1.GetEntityResponse.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "artwork": {
+          "items": {
+            "$ref": "#/$defs/discoflix.catalog.v1.Artwork.jsonschema.json"
+          },
+          "type": "array"
+        },
+        "children": {
+          "items": {
+            "$ref": "#/$defs/discoflix.catalog.v1.Entity.jsonschema.json"
+          },
+          "type": "array"
+        },
+        "claims": {
+          "items": {
+            "$ref": "#/$defs/discoflix.catalog.v1.Claim.jsonschema.json"
+          },
+          "type": "array"
+        },
+        "entity": {
+          "$ref": "#/$defs/discoflix.catalog.v1.Entity.jsonschema.json"
+        }
+      },
+      "title": "Get Entity Response",
+      "type": "object"
+    },
+    "google.protobuf.Timestamp.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "format": "date-time",
+      "title": "Timestamp",
+      "type": "string"
+    },
+    "google.protobuf.Value.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "title": "Value"
+    }
+  },
+  "$id": "discoflix.catalog.v1.GetEntityResponse.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.catalog.v1.GetEntityResponse.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

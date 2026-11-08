@@ -1,0 +1,92 @@
+{
+  "$defs": {
+    "discoflix.card.v1.CatalogReport.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "description": "Progress and outcome of a snapshot update, dataset import, entity refresh, or source failure",
+      "patternProperties": {
+        "^(duration_ms)$": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        }
+      },
+      "properties": {
+        "bytes": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "detail": {
+          "default": "",
+          "type": "string"
+        },
+        "durationMs": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "error": {
+          "default": "",
+          "type": "string"
+        },
+        "kind": {
+          "default": "",
+          "description": "snapshot, dataset, refresh, source",
+          "type": "string"
+        },
+        "name": {
+          "default": "",
+          "type": "string"
+        },
+        "rows": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "state": {
+          "default": "",
+          "description": "started, done, failed, skipped",
+          "type": "string"
+        },
+        "version": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "title": "Catalog Report",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.card.v1.CatalogReport.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.card.v1.CatalogReport.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

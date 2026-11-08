@@ -1,0 +1,225 @@
+{
+  "$defs": {
+    "discoflix.card.v1.MatchReview.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "description": "Asks a person whether a low-probability candidate is the same title as an entity",
+      "patternProperties": {
+        "^(candidate_namespace)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(candidate_source)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(candidate_title)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(candidate_url)$": {
+          "default": "",
+          "description": "Page of the candidate id on its source site, empty for a catalog entity",
+          "type": "string"
+        },
+        "^(candidate_value)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(candidate_year)$": {
+          "anyOf": [
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "^(decided_at)$": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "^(decided_by)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(decided_by_name)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(edge_id)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(entity_id)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(entity_kind)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(entity_title)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(entity_year)$": {
+          "anyOf": [
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        }
+      },
+      "properties": {
+        "candidateNamespace": {
+          "default": "",
+          "type": "string"
+        },
+        "candidateSource": {
+          "default": "",
+          "type": "string"
+        },
+        "candidateTitle": {
+          "default": "",
+          "type": "string"
+        },
+        "candidateUrl": {
+          "default": "",
+          "description": "Page of the candidate id on its source site, empty for a catalog entity",
+          "type": "string"
+        },
+        "candidateValue": {
+          "default": "",
+          "type": "string"
+        },
+        "candidateYear": {
+          "anyOf": [
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "decidedAt": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "decidedBy": {
+          "default": "",
+          "type": "string"
+        },
+        "decidedByName": {
+          "default": "",
+          "type": "string"
+        },
+        "edgeId": {
+          "default": "",
+          "type": "string"
+        },
+        "entityId": {
+          "default": "",
+          "type": "string"
+        },
+        "entityKind": {
+          "default": "",
+          "type": "string"
+        },
+        "entityTitle": {
+          "default": "",
+          "type": "string"
+        },
+        "entityYear": {
+          "anyOf": [
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "evidence": {
+          "default": "",
+          "description": "Feature by feature breakdown behind the probability",
+          "type": "string"
+        },
+        "probability": {
+          "anyOf": [
+            {
+              "maximum": 3.4028234663852886e+38,
+              "minimum": -3.4028234663852886e+38,
+              "type": "number"
+            },
+            {
+              "enum": [
+                "Infinity",
+                "-Infinity",
+                "NaN"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "state": {
+          "anyOf": [
+            {
+              "pattern": "^MATCH_STATE_UNSPECIFIED$",
+              "type": "string"
+            },
+            {
+              "enum": [
+                "MATCH_STATE_PENDING",
+                "MATCH_STATE_ACCEPTED",
+                "MATCH_STATE_REJECTED"
+              ],
+              "type": "string"
+            },
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            }
+          ],
+          "default": 0,
+          "title": "Match State"
+        }
+      },
+      "title": "Match Review",
+      "type": "object"
+    },
+    "google.protobuf.Timestamp.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "format": "date-time",
+      "title": "Timestamp",
+      "type": "string"
+    }
+  },
+  "$id": "discoflix.card.v1.MatchReview.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.card.v1.MatchReview.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

@@ -17,6 +17,9 @@ type system
     define session_self: member or admin
     define credentials_self: member or admin
     define identity_link: member or admin
+    define catalog_read: member or admin
+    define catalog_edit: admin
+    define catalog_admin: admin
 
 type space
   relations

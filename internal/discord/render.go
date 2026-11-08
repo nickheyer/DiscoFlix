@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"time"
 
 	dg "github.com/disgoorg/disgo/discord"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -62,6 +63,12 @@ func (s *Service) renderCard(seq int64, card proto.Message, cs extension.CardSch
 	switch c := card.(type) {
 	case *cardv1.Approval:
 		color, parts = renderApproval(c)
+	case *cardv1.EntityCard:
+		color, parts = renderEntity(c)
+	case *cardv1.MatchReview:
+		color, parts = renderReview(c)
+	case *cardv1.CatalogReport:
+		color, parts = renderReport(c)
 	case *cardv1.SystemNotice:
 		color = severityColor(c.GetSeverity())
 		parts = append(parts, dg.NewTextDisplay(heading(c.GetTitle(), "Notice")))
@@ -75,7 +82,7 @@ func (s *Service) renderCard(seq int64, card proto.Message, cs extension.CardSch
 			parts = append(parts, dg.NewTextDisplay(clip(fields, maxBlock)))
 		}
 	}
-	if actions, ok := cs.(extension.CardActions); ok {
+	if actions, ok := cs.(extension.CardActions); ok && seq > 0 {
 		if buttons := actionButtons(seq, actions.Actions(card)); len(buttons) > 0 {
 			parts = append(parts, dg.NewSmallSeparator(), dg.NewActionRow(buttons...))
 		}
@@ -117,6 +124,145 @@ func renderApproval(c *cardv1.Approval) (int, []dg.ContainerSubComponent) {
 		parts = append(parts, dg.NewTextDisplay("```\n"+clip(c.GetResult(), 900)+"\n```"))
 	}
 	return color, parts
+}
+
+// renderEntity lays out a resolved title with its poster, ids, and how sure the catalog is
+func renderEntity(c *cardv1.EntityCard) (int, []dg.ContainerSubComponent) {
+	title := c.GetTitle()
+	if title == "" {
+		title = "Untitled"
+	}
+	if c.GetYear() > 0 {
+		title = fmt.Sprintf("%s (%d)", title, c.GetYear())
+	}
+	var lines []string
+	if c.GetKind() != "" {
+		lines = append(lines, "-# "+humanize(c.GetKind()))
+	}
+	if c.GetOriginalTitle() != "" && c.GetOriginalTitle() != c.GetTitle() {
+		lines = append(lines, "*"+clip(c.GetOriginalTitle(), 200)+"*")
+	}
+	if c.GetOverview() != "" {
+		lines = append(lines, clip(c.GetOverview(), 600))
+	}
+	body := dg.NewTextDisplay(heading(title, "Title"))
+	parts := []dg.ContainerSubComponent{}
+	switch {
+	case c.GetPosterSourceUrl() != "" && len(lines) > 0:
+		parts = append(parts, dg.NewSection(body, dg.NewTextDisplay(strings.Join(lines, "\n"))).WithAccessory(dg.NewThumbnail(c.GetPosterSourceUrl())))
+	case c.GetPosterSourceUrl() != "":
+		parts = append(parts, dg.NewSection(body).WithAccessory(dg.NewThumbnail(c.GetPosterSourceUrl())))
+	default:
+		parts = append(parts, body)
+		if len(lines) > 0 {
+			parts = append(parts, dg.NewTextDisplay(strings.Join(lines, "\n")))
+		}
+	}
+	if len(c.GetExternalIds()) > 0 {
+		var refs []string
+		for _, ref := range c.GetExternalIds() {
+			label := ref.GetNamespace() + " " + ref.GetValue()
+			if ref.GetUrl() != "" {
+				refs = append(refs, fmt.Sprintf("[%s](%s)", label, ref.GetUrl()))
+			} else {
+				refs = append(refs, label)
+			}
+		}
+		parts = append(parts, dg.NewTextDisplay(clip(strings.Join(refs, " · "), maxBlock)))
+	}
+	if c.GetConfidence() > 0 {
+		parts = append(parts, dg.NewTextDisplay(fmt.Sprintf("**Match confidence %.0f%%** %s", c.GetConfidence()*100, clip(c.GetExplanation(), 400))))
+	}
+	if c.GetFields() > 0 || len(c.GetSources()) > 0 {
+		parts = append(parts, dg.NewTextDisplay(fmt.Sprintf("-# %d fields with provenance from %s", c.GetFields(), strings.Join(c.GetSources(), ", "))))
+	}
+	if strings.HasPrefix(c.GetUrl(), "http") {
+		parts = append(parts, dg.NewActionRow(dg.NewLinkButton("Open in DiscoFlix", c.GetUrl())))
+	}
+	return colorInfo, parts
+}
+
+// renderReview lays out two titles the matcher could not tell apart and the decision so far
+func renderReview(c *cardv1.MatchReview) (int, []dg.ContainerSubComponent) {
+	parts := []dg.ContainerSubComponent{
+		dg.NewTextDisplay(heading("Same title?", "Review")),
+		dg.NewTextDisplay(fmt.Sprintf("**%s** %s\n**%s** %s from %s", describeTitle(c.GetEntityTitle(), c.GetEntityYear()), humanize(c.GetEntityKind()), describeTitle(c.GetCandidateTitle(), c.GetCandidateYear()), c.GetCandidateNamespace()+" "+c.GetCandidateValue(), c.GetCandidateSource())),
+		dg.NewTextDisplay(fmt.Sprintf("The matcher puts them at **%.0f%%**, %s", c.GetProbability()*100, clip(c.GetEvidence(), 600))),
+	}
+	color := colorWarning
+	state := "⏳ Waiting for a catalog editor"
+	by := c.GetDecidedByName()
+	if by == "" {
+		by = c.GetDecidedBy()
+	}
+	switch c.GetState() {
+	case cardv1.MatchState_MATCH_STATE_ACCEPTED:
+		color, state = colorSuccess, "✅ Merged by "+by
+	case cardv1.MatchState_MATCH_STATE_REJECTED:
+		color, state = colorNeutral, "↔️ Kept apart by "+by
+	}
+	if at := c.GetDecidedAt(); at != nil {
+		state += fmt.Sprintf(" <t:%d:R>", at.AsTime().Unix())
+	}
+	return color, append(parts, dg.NewTextDisplay(state))
+}
+
+func describeTitle(title string, year int32) string {
+	if title == "" {
+		title = "an untitled entry"
+	}
+	if year > 0 {
+		return fmt.Sprintf("%s (%d)", title, year)
+	}
+	return title
+}
+
+// renderReport lays out the progress of a snapshot update, dataset import, or refresh
+func renderReport(c *cardv1.CatalogReport) (int, []dg.ContainerSubComponent) {
+	icons := map[string]string{"started": "⏳", "done": "✅", "failed": "❌", "skipped": "⏭️"}
+	colors := map[string]int{"started": colorInfo, "done": colorSuccess, "failed": colorDanger, "skipped": colorNeutral}
+	parts := []dg.ContainerSubComponent{dg.NewTextDisplay(heading(fmt.Sprintf("%s %s %s", icons[c.GetState()], humanize(c.GetKind()), c.GetName()), "Catalog"))}
+	var facts []string
+	if c.GetVersion() != "" {
+		facts = append(facts, "version "+c.GetVersion())
+	}
+	if c.GetRows() > 0 {
+		facts = append(facts, fmt.Sprintf("%d rows", c.GetRows()))
+	}
+	if c.GetBytes() > 0 {
+		facts = append(facts, humanBytes(c.GetBytes()))
+	}
+	if c.GetDurationMs() > 0 {
+		facts = append(facts, (time.Duration(c.GetDurationMs()) * time.Millisecond).Round(time.Second).String())
+	}
+	if len(facts) > 0 {
+		parts = append(parts, dg.NewTextDisplay(strings.Join(facts, " · ")))
+	}
+	if c.GetDetail() != "" {
+		parts = append(parts, dg.NewTextDisplay(clip(c.GetDetail(), maxBlock)))
+	}
+	if c.GetError() != "" {
+		parts = append(parts, dg.NewTextDisplay("```\n"+clip(c.GetError(), 900)+"\n```"))
+	}
+	color, ok := colors[c.GetState()]
+	if !ok {
+		color = colorNeutral
+	}
+	return color, parts
+}
+
+func humanBytes(n int64) string {
+	units := []string{"B", "KB", "MB", "GB", "TB"}
+	v := float64(n)
+	i := 0
+	for v >= 1024 && i < len(units)-1 {
+		v /= 1024
+		i++
+	}
+	if i == 0 {
+		return fmt.Sprintf("%d B", n)
+	}
+	return fmt.Sprintf("%.1f %s", v, units[i])
 }
 
 func severityColor(sv cardv1.Severity) int {

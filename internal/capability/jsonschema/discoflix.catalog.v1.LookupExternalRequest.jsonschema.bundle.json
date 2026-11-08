@@ -1,0 +1,51 @@
+{
+  "$defs": {
+    "discoflix.catalog.v1.LookupExternalRequest.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "anyOf": [
+            {
+              "pattern": "^ENTITY_KIND_UNSPECIFIED$",
+              "type": "string"
+            },
+            {
+              "enum": [
+                "ENTITY_KIND_MOVIE",
+                "ENTITY_KIND_SERIES",
+                "ENTITY_KIND_SEASON",
+                "ENTITY_KIND_EPISODE"
+              ],
+              "type": "string"
+            },
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            }
+          ],
+          "default": 0,
+          "title": "Entity Kind"
+        },
+        "namespace": {
+          "default": "",
+          "maxLength": 32,
+          "minLength": 1,
+          "type": "string"
+        },
+        "value": {
+          "default": "",
+          "maxLength": 128,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "title": "Lookup External Request",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.catalog.v1.LookupExternalRequest.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.catalog.v1.LookupExternalRequest.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

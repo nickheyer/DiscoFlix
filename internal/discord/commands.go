@@ -13,6 +13,8 @@ import (
 	"github.com/disgoorg/disgo/rest"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
+
+	"github.com/nickheyer/DiscoFlix/internal/extension"
 )
 
 const maxOptions = 25
@@ -253,7 +255,37 @@ func (s *Service) onCommand(ctx context.Context, e *events.ApplicationCommandInt
 		reply("⚠️ " + errorText(err))
 		return
 	}
+	if card, cs, ok := s.cardOutput(out); ok {
+		client, err := s.Client()
+		if err != nil {
+			return
+		}
+		update := dg.NewMessageUpdateV2(s.renderCard(0, card, cs))
+		if _, err := client.Rest.UpdateInteractionResponse(e.ApplicationID(), e.Token(), update, rest.WithCtx(ctx)); err != nil {
+			s.Log.Warn("reply with card", "command", data.CommandName(), "error", err)
+			reply(renderReply(out))
+		}
+		return
+	}
 	reply(renderReply(out))
+}
+
+// cardOutput finds the first field of a command result that is a registered card, so the reply renders it
+func (s *Service) cardOutput(out proto.Message) (proto.Message, extension.CardSchema, bool) {
+	m := out.ProtoReflect()
+	fields := m.Descriptor().Fields()
+	for i := range fields.Len() {
+		fd := fields.Get(i)
+		if fd.Kind() != protoreflect.MessageKind || fd.IsList() || fd.IsMap() || !m.Has(fd) {
+			continue
+		}
+		cs, ok := s.Cards.CardSchema(extension.TypeURLOf(fd.Message()))
+		if !ok {
+			continue
+		}
+		return m.Get(fd).Message().Interface(), cs, true
+	}
+	return nil, nil, false
 }
 
 // errorText strips the Connect code prefix so Discord users read the sentence the server wrote

@@ -19,3 +19,10 @@ type Role struct {
 	Position int32  `json:"position"`
 	Hoist    bool   `json:"hoist,omitempty"`
 }
+
+// ArtworkVariant is one encoded rendition of an artwork, stored as JSON on the row
+type ArtworkVariant struct {
+	Width  int32  `json:"width"`
+	Format string `json:"format"`
+	Bytes  int64  `json:"bytes"`
+}

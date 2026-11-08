@@ -65,12 +65,24 @@ tasks:
     desc: Build the fully static headless binary
     deps: [web:build]
     cmds:
-      - CGO_ENABLED=0 go build -tags headless,production -ldflags "{{.LDFLAGS}}" -o bin/discoflix-headless ./cmd/discoflix
+      - CGO_ENABLED=0 go build -tags headless,production,nodynamic -ldflags "{{.LDFLAGS}}" -o bin/discoflix-headless ./cmd/discoflix
 
   run:
     deps: [build]
     cmds:
       - ./bin/discoflix serve --data-dir ./data --log-level debug
+
+  crosswalk:build:
+    desc: Build the Wikidata crosswalk snapshot into bin/crosswalk.sqlite
+    cmds:
+      - go run ./snapshot/cmd/crosswalk build --out bin/crosswalk.sqlite
+
+  crosswalk:publish:
+    desc: Sign a built crosswalk into a mirror layout, ONLINE_KEY=path/to/online.key
+    cmds:
+      - go run ./snapshot/cmd/crosswalk publish --repo bin/crosswalk-repo --root snapshot/root.json --online-key {{.ONLINE_KEY}} --sqlite bin/crosswalk.sqlite
+    requires:
+      vars: [ONLINE_KEY]
 
   test:
     deps: [web:build]

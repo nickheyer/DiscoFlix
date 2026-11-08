@@ -23,18 +23,32 @@ import (
 	"github.com/nickheyer/DiscoFlix/internal/approval"
 	"github.com/nickheyer/DiscoFlix/internal/authz"
 	"github.com/nickheyer/DiscoFlix/internal/capability"
+	"github.com/nickheyer/DiscoFlix/internal/catalog"
+	"github.com/nickheyer/DiscoFlix/internal/catalog/artwork"
+	"github.com/nickheyer/DiscoFlix/internal/catalog/datasets"
+	"github.com/nickheyer/DiscoFlix/internal/catalog/match"
+	"github.com/nickheyer/DiscoFlix/internal/catalog/snapshot"
+	"github.com/nickheyer/DiscoFlix/internal/catalog/source/fanart"
+	"github.com/nickheyer/DiscoFlix/internal/catalog/source/tmdb"
+	"github.com/nickheyer/DiscoFlix/internal/catalog/source/trakt"
+	"github.com/nickheyer/DiscoFlix/internal/catalog/source/tvdb"
+	"github.com/nickheyer/DiscoFlix/internal/catalog/source/wikidata"
 	"github.com/nickheyer/DiscoFlix/internal/config"
 	"github.com/nickheyer/DiscoFlix/internal/discord"
 	"github.com/nickheyer/DiscoFlix/internal/extension"
 	"github.com/nickheyer/DiscoFlix/internal/gateway"
 	"github.com/nickheyer/DiscoFlix/internal/identity"
+	"github.com/nickheyer/DiscoFlix/internal/outbound"
 	"github.com/nickheyer/DiscoFlix/internal/presence"
 	"github.com/nickheyer/DiscoFlix/internal/realtime"
 	"github.com/nickheyer/DiscoFlix/internal/store"
 	"github.com/nickheyer/DiscoFlix/internal/timeline"
+	"github.com/nickheyer/DiscoFlix/internal/workflow"
 	capabilityv1 "github.com/nickheyer/DiscoFlix/sdk/go/pb/discoflix/capability/v1"
 	"github.com/nickheyer/DiscoFlix/sdk/go/pb/discoflix/capability/v1/capabilityv1connect"
 	cardv1 "github.com/nickheyer/DiscoFlix/sdk/go/pb/discoflix/card/v1"
+	catalogv1 "github.com/nickheyer/DiscoFlix/sdk/go/pb/discoflix/catalog/v1"
+	"github.com/nickheyer/DiscoFlix/sdk/go/pb/discoflix/catalog/v1/catalogv1connect"
 	discordv1 "github.com/nickheyer/DiscoFlix/sdk/go/pb/discoflix/discord/v1"
 	"github.com/nickheyer/DiscoFlix/sdk/go/pb/discoflix/discord/v1/discordv1connect"
 	identityv1 "github.com/nickheyer/DiscoFlix/sdk/go/pb/discoflix/identity/v1"
@@ -66,6 +80,8 @@ type App struct {
 	exts      *extension.Registry
 	approvals *approval.Service
 	discord   *discord.Service
+	workflows *workflow.Service
+	catalog   *catalog.Service
 	handler   http.Handler
 	migrated  store.MigrateReport
 	token     *identity.ShellToken
@@ -134,6 +150,7 @@ func New(ctx context.Context, opts Options) (*App, error) {
 		timelinev1.File_discoflix_timeline_v1_timeline_proto.Services().ByName("TimelineService"),
 		identityv1.File_discoflix_identity_v1_identity_proto.Services().ByName("IdentityService"),
 		discordv1.File_discoflix_discord_v1_discord_proto.Services().ByName("DiscordService"),
+		catalogv1.File_discoflix_catalog_v1_catalog_proto.Services().ByName("CatalogService"),
 	} {
 		if err := a.reg.AddService(sd); err != nil {
 			a.Close()
@@ -159,6 +176,42 @@ func New(ctx context.Context, opts Options) (*App, error) {
 		a.Close()
 		return nil, err
 	}
+	if a.workflows, err = workflow.Open(ctx, cfg.DataDir, log); err != nil {
+		a.Close()
+		return nil, err
+	}
+	client := outbound.New(catalog.NewRecorder(st.Ent), "DiscoFlix/"+opts.Version+" (+https://github.com/nickheyer/DiscoFlix)", log.With("component", "outbound"))
+	snapshots, err := snapshot.New(cfg.DataDir, client, log.With("component", "snapshot"))
+	if err != nil {
+		a.Close()
+		return nil, err
+	}
+	bulk := datasets.New(st.DB, st.Ent, client, cfg.DataDir, log.With("component", "datasets"))
+	matcher := match.New()
+	sources := append([]catalog.Source{snapshots, tmdb.New(client), tvdb.New(client), trakt.New(client), fanart.New(client), wikidata.New(client)}, bulk.Sources()...)
+	art := artwork.New(cfg.DataDir, client, st.Ent, log.With("component", "artwork"))
+	if a.catalog, err = catalog.New(ctx, catalog.Deps{
+		Ent:        st.Ent,
+		DB:         st.DB,
+		Timeline:   a.tl,
+		Check:      check,
+		Secrets:    secrets,
+		Settings:   store.NewSettings(st.Ent),
+		Workflows:  a.workflows,
+		Outbound:   client,
+		Extensions: a.exts,
+		Scorer:     matcher,
+		Trainer:    matcher,
+		Artworks:   art,
+		Snapshots:  snapshots,
+		Datasets:   bulk,
+		Sources:    sources,
+		LinkBase:   a.ids.LinkBase,
+		Log:        log.With("component", "catalog"),
+	}); err != nil {
+		a.Close()
+		return nil, err
+	}
 	a.discord = discord.New(discord.Deps{
 		Ent:      st.Ent,
 		Timeline: a.tl,
@@ -170,12 +223,14 @@ func New(ctx context.Context, opts Options) (*App, error) {
 		Registry: a.reg,
 		Cards:    a.exts,
 		Presence: tracker,
+		Seed:     discord.Seed{BotToken: cfg.DiscordBotToken, ClientSecret: cfg.DiscordClientSecret},
 		Log:      log.With("component", "discord"),
 	})
 	capabilityv1connect.RegisterCapabilityServiceHandler(srv, capability.NewHandler(a.reg))
 	timelinev1connect.RegisterTimelineServiceHandler(srv, tlHandler)
 	identityv1connect.RegisterIdentityServiceHandler(srv, identity.NewHandler(a.ids))
 	discordv1connect.RegisterDiscordServiceHandler(srv, discord.NewHandler(a.discord))
+	catalogv1connect.RegisterCatalogServiceHandler(srv, catalog.NewHandler(a.catalog))
 	if a.token, err = identity.NewShellToken(); err != nil {
 		a.Close()
 		return nil, err
@@ -195,8 +250,11 @@ func New(ctx context.Context, opts Options) (*App, error) {
 		}),
 		ShellLogin: a.ids.ShellLoginHandler(a.token),
 		Routes: map[string]http.Handler{
-			"GET /auth/discord/start":    a.discord.StartHandler(),
-			"GET /auth/discord/callback": a.discord.CallbackHandler(),
+			"GET /auth/discord/start":       a.discord.StartHandler(),
+			"GET /auth/discord/callback":    a.discord.CallbackHandler(),
+			"GET /blobs/":                   art.Handler(),
+			"GET /catalog/snapshot/version": snapshots.Handler(),
+			"GET /catalog/snapshot/rsync":   snapshots.Handler(),
 		},
 		IsAdmin: func(r *http.Request) bool {
 			p, err := a.ids.AuthenticateHTTP(r)
@@ -251,6 +309,10 @@ func (a *App) Run(ctx context.Context) error {
 		close(a.ready)
 		a.postBootReport(ctx)
 		a.discord.Start(ctx)
+		if err := a.catalog.Start(ctx); err != nil {
+			a.opts.Log.Error("catalog start failed", "error", err)
+			a.postCatalogFailure(ctx, err)
+		}
 	})
 	cancel()
 	wg.Wait()
@@ -296,6 +358,13 @@ func (a *App) postBootReport(ctx context.Context) {
 	}
 }
 
+// postCatalogFailure tells #audit that durable catalog work is not running and why
+func (a *App) postCatalogFailure(ctx context.Context, err error) {
+	if _, perr := a.tl.PostSystem(ctx, "audit", "The catalog workflow runtime failed to start", &cardv1.SystemNotice{Title: "Catalog workflows stopped", Body: "Snapshot updates, dataset imports, and entity refreshes are not running: " + err.Error(), Severity: cardv1.Severity_SEVERITY_ERROR}); perr != nil {
+		a.opts.Log.Error("catalog failure notice failed", "error", perr)
+	}
+}
+
 // Ready closes once the HTTP listener is bound
 func (a *App) Ready() <-chan struct{} { return a.ready }
 
@@ -319,6 +388,9 @@ func (a *App) ShellURL() string {
 // Close releases every subsystem
 func (a *App) Close() {
 	a.closeOnce.Do(func() {
+		if a.workflows != nil {
+			_ = a.workflows.Close()
+		}
 		if a.ids != nil {
 			_ = a.ids.Close()
 		}

@@ -68,6 +68,12 @@ var (
 	ErrNoLogin       = errors.New("discord: Discord sign-in needs the application's client secret")
 )
 
+// Seed holds credentials from the environment or config file that fill the secrets store when it has none
+type Seed struct {
+	BotToken     string
+	ClientSecret string
+}
+
 // Deps are the subsystems the mirror reads from and writes to
 type Deps struct {
 	Ent      *ent.Client
@@ -80,6 +86,7 @@ type Deps struct {
 	Registry *capability.Registry
 	Cards    *extension.Registry
 	Presence *presence.Tracker
+	Seed     Seed
 	Log      *slog.Logger
 }
 
@@ -129,17 +136,47 @@ func New(d Deps) *Service {
 }
 
 func (s *Service) loginConfigured() bool {
-	_, hasToken := s.Secrets.Get(SecretBotToken)
-	_, hasSecret := s.Secrets.Get(SecretClientSecret)
-	return hasToken && hasSecret
+	return s.tokenPresent() && s.secretPresent()
 }
 
-// Start connects when a token is stored, otherwise stays disconnected until Configure
+// Start stores seeded credentials the secrets file lacks, then connects when a token is stored
 func (s *Service) Start(ctx context.Context) {
-	if _, ok := s.Secrets.Get(SecretBotToken); !ok {
+	token, secret := pendingSeed(s.tokenPresent(), s.secretPresent(), s.Seed)
+	if token != "" || secret != "" {
+		go s.applySeed(ctx, token, secret)
+		return
+	}
+	if !s.tokenPresent() {
 		return
 	}
 	go s.connect(ctx)
+}
+
+// pendingSeed picks the seeded values that fill an empty slot, a seed never replaces a stored credential
+func pendingSeed(haveToken, haveSecret bool, seed Seed) (token, secret string) {
+	if !haveToken {
+		token = strings.TrimSpace(seed.BotToken)
+	}
+	if !haveSecret && (haveToken || token != "") {
+		secret = strings.TrimSpace(seed.ClientSecret)
+	}
+	return token, secret
+}
+
+// applySeed validates and stores seeded credentials through Configure, reporting a rejected token in status and the audit channel
+func (s *Service) applySeed(ctx context.Context, token, secret string) {
+	if err := s.Configure(ctx, token, secret); err != nil {
+		text := "The bot token from DISCOFLIX_DISCORD_BOT_TOKEN was rejected: " + err.Error()
+		s.setState(StateFailed, text)
+		s.audit(ctx, "seed", "Discord seed rejected", text, cardv1.Severity_SEVERITY_ERROR)
+		return
+	}
+	s.Log.Info("discord credentials seeded from the environment", "token", token != "", "client_secret", secret != "")
+}
+
+func (s *Service) secretPresent() bool {
+	v, ok := s.Secrets.Get(SecretClientSecret)
+	return ok && v != ""
 }
 
 // Run drives outbound mirroring from timeline events and a periodic full pass until ctx ends
@@ -182,7 +219,7 @@ func (s *Service) setState(state, errText string) {
 // connect opens the gateway with every listener attached, reporting portal problems in status
 func (s *Service) connect(ctx context.Context) {
 	token, ok := s.Secrets.Get(SecretBotToken)
-	if !ok {
+	if !ok || token == "" {
 		s.setState(StateDisconnected, "")
 		return
 	}

@@ -1,0 +1,169 @@
+{
+  "$defs": {
+    "discoflix.card.v1.EntityCard.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "description": "A resolved catalog entity, posted when a title is identified from Discord or the web",
+      "patternProperties": {
+        "^(entity_id)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(external_ids)$": {
+          "items": {
+            "$ref": "#/$defs/discoflix.card.v1.ExternalRef.jsonschema.json"
+          },
+          "type": "array"
+        },
+        "^(original_title)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(poster_source_url)$": {
+          "default": "",
+          "description": "Public address of the poster at its source, for transports that fetch media themselves",
+          "type": "string"
+        },
+        "^(poster_url)$": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "properties": {
+        "confidence": {
+          "anyOf": [
+            {
+              "maximum": 3.4028234663852886e+38,
+              "minimum": -3.4028234663852886e+38,
+              "type": "number"
+            },
+            {
+              "enum": [
+                "Infinity",
+                "-Infinity",
+                "NaN"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "default": 0,
+          "description": "Probability the resolver assigned to this match"
+        },
+        "entityId": {
+          "default": "",
+          "type": "string"
+        },
+        "explanation": {
+          "default": "",
+          "type": "string"
+        },
+        "externalIds": {
+          "items": {
+            "$ref": "#/$defs/discoflix.card.v1.ExternalRef.jsonschema.json"
+          },
+          "type": "array"
+        },
+        "fields": {
+          "anyOf": [
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0,
+          "description": "Resolved fields carrying provenance"
+        },
+        "kind": {
+          "default": "",
+          "description": "movie, series, season, episode",
+          "type": "string"
+        },
+        "originalTitle": {
+          "default": "",
+          "type": "string"
+        },
+        "overview": {
+          "default": "",
+          "type": "string"
+        },
+        "posterSourceUrl": {
+          "default": "",
+          "description": "Public address of the poster at its source, for transports that fetch media themselves",
+          "type": "string"
+        },
+        "posterUrl": {
+          "default": "",
+          "type": "string"
+        },
+        "sources": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "thumbhash": {
+          "default": "",
+          "description": "Base64 thumbhash placeholder for the poster",
+          "type": "string"
+        },
+        "title": {
+          "default": "",
+          "type": "string"
+        },
+        "url": {
+          "default": "",
+          "description": "Web link to the entity page",
+          "type": "string"
+        },
+        "year": {
+          "anyOf": [
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        }
+      },
+      "title": "Entity Card",
+      "type": "object"
+    },
+    "discoflix.card.v1.ExternalRef.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "description": "One external identifier shown on an entity card with a link to its source page",
+      "properties": {
+        "namespace": {
+          "default": "",
+          "type": "string"
+        },
+        "url": {
+          "default": "",
+          "type": "string"
+        },
+        "value": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "title": "External Ref",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.card.v1.EntityCard.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.card.v1.EntityCard.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

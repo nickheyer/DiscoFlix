@@ -6,17 +6,56 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// Artwork is the predicate function for artwork builders.
+type Artwork func(*sql.Selector)
+
 // AuthzOutbox is the predicate function for authzoutbox builders.
 type AuthzOutbox func(*sql.Selector)
 
 // Channel is the predicate function for channel builders.
 type Channel func(*sql.Selector)
 
+// Claim is the predicate function for claim builders.
+type Claim func(*sql.Selector)
+
 // Credential is the predicate function for credential builders.
 type Credential func(*sql.Selector)
 
+// DatasetImport is the predicate function for datasetimport builders.
+type DatasetImport func(*sql.Selector)
+
+// Entity is the predicate function for entity builders.
+type Entity func(*sql.Selector)
+
+// EntityField is the predicate function for entityfield builders.
+type EntityField func(*sql.Selector)
+
+// EntityTitle is the predicate function for entitytitle builders.
+type EntityTitle func(*sql.Selector)
+
+// ExtID is the predicate function for extid builders.
+type ExtID func(*sql.Selector)
+
+// IMDbAka is the predicate function for imdbaka builders.
+type IMDbAka func(*sql.Selector)
+
+// IMDbEpisode is the predicate function for imdbepisode builders.
+type IMDbEpisode func(*sql.Selector)
+
+// IMDbRating is the predicate function for imdbrating builders.
+type IMDbRating func(*sql.Selector)
+
+// IMDbTitle is the predicate function for imdbtitle builders.
+type IMDbTitle func(*sql.Selector)
+
 // Identity is the predicate function for identity builders.
 type Identity func(*sql.Selector)
+
+// MatchEdge is the predicate function for matchedge builders.
+type MatchEdge func(*sql.Selector)
+
+// MatchModel is the predicate function for matchmodel builders.
+type MatchModel func(*sql.Selector)
 
 // Membership is the predicate function for membership builders.
 type Membership func(*sql.Selector)
@@ -36,8 +75,17 @@ type ReadState func(*sql.Selector)
 // Setting is the predicate function for setting builders.
 type Setting func(*sql.Selector)
 
+// SourceRecord is the predicate function for sourcerecord builders.
+type SourceRecord func(*sql.Selector)
+
+// SourceState is the predicate function for sourcestate builders.
+type SourceState func(*sql.Selector)
+
 // Space is the predicate function for space builders.
 type Space func(*sql.Selector)
+
+// TMDBExport is the predicate function for tmdbexport builders.
+type TMDBExport func(*sql.Selector)
 
 // User is the predicate function for user builders.
 type User func(*sql.Selector)

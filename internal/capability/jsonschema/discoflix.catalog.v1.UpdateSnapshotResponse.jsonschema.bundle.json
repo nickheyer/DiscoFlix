@@ -1,0 +1,25 @@
+{
+  "$defs": {
+    "discoflix.catalog.v1.UpdateSnapshotResponse.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(workflow_id)$": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "properties": {
+        "workflowId": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "title": "Update Snapshot Response",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.catalog.v1.UpdateSnapshotResponse.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.catalog.v1.UpdateSnapshotResponse.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

@@ -1,0 +1,40 @@
+{
+  "$defs": {
+    "discoflix.catalog.v1.ConfigureCatalogRequest.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(mirror_url)$": {
+          "default": "",
+          "maxLength": 512,
+          "type": "string"
+        }
+      },
+      "properties": {
+        "language": {
+          "default": "",
+          "maxLength": 8,
+          "type": "string"
+        },
+        "mirrorUrl": {
+          "default": "",
+          "maxLength": 512,
+          "type": "string"
+        },
+        "peers": {
+          "items": {
+            "maxLength": 512,
+            "type": "string"
+          },
+          "maxItems": 16,
+          "type": "array"
+        }
+      },
+      "title": "Configure Catalog Request",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.catalog.v1.ConfigureCatalogRequest.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.catalog.v1.ConfigureCatalogRequest.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

@@ -1,0 +1,20 @@
+{
+  "$defs": {
+    "discoflix.catalog.v1.GetEntityRequest.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "default": "",
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "title": "Get Entity Request",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.catalog.v1.GetEntityRequest.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.catalog.v1.GetEntityRequest.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

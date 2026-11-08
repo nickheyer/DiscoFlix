@@ -45,7 +45,7 @@ type ThreadCreator interface {
 }
 
 // SystemChannels are created in the system space in this order
-var SystemChannels = []string{"general", "requests", "queue", "imports", "transcodes", "audit"}
+var SystemChannels = []string{"general", "requests", "queue", "imports", "transcodes", "audit", "catalog"}
 
 // SystemBotName is the display name of the user that authors system messages
 const SystemBotName = "DiscoFlix"
@@ -204,6 +204,7 @@ var systemTopics = map[string]string{
 	"imports":    "Files landing in libraries",
 	"transcodes": "Transcode jobs and reports",
 	"audit":      "Sign-ins, settings, updates, and plugin changes",
+	"catalog":    "Metadata snapshots, dataset imports, and match reviews",
 }
 
 // RenameSystemSpace sets the system space name to the instance name

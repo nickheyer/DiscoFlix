@@ -1,0 +1,27 @@
+{
+  "$defs": {
+    "discoflix.catalog.v1.RefreshEntityRequest.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(entity_id)$": {
+          "default": "",
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "properties": {
+        "entityId": {
+          "default": "",
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "title": "Refresh Entity Request",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.catalog.v1.RefreshEntityRequest.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.catalog.v1.RefreshEntityRequest.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

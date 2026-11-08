@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/state';
+	import { isCatalogPath } from '#lib/catalog/routes';
 	import ChannelSidebar from '#lib/spaces/ChannelSidebar.svelte';
 	import RightRail from '#lib/spaces/RightRail.svelte';
 	import { shell } from '#lib/spaces/shell.svelte';
@@ -13,6 +14,7 @@
 
 	const spaceId = $derived(page.params.spaceId ?? '');
 	const channelId = $derived(page.params.channelId ?? '');
+	const catalog = $derived(isCatalogPath(page.url.pathname));
 
 	$effect(() => {
 		if (spaceId === '') return;
@@ -28,7 +30,9 @@
 {#snippet navigation()}
 	<div class="flex h-full">
 		<SpaceRail selectedId={spaceId} />
-		<ChannelSidebar {spaceId} {channelId} />
+		{#if !catalog}
+			<ChannelSidebar {spaceId} {channelId} />
+		{/if}
 	</div>
 {/snippet}
 
@@ -44,19 +48,21 @@
 				{@render navigation()}
 			</Sheet.Content>
 		</Sheet.Root>
-		<Sheet.Root bind:open={shell.rightOpen}>
-			<Sheet.Content side="right" showCloseButton={false} class="w-auto max-w-none gap-0 border-0 p-0 sm:max-w-none">
-				<Sheet.Title class="sr-only">Activity and members</Sheet.Title>
-				<RightRail {spaceId} />
-			</Sheet.Content>
-		</Sheet.Root>
+		{#if !catalog}
+			<Sheet.Root bind:open={shell.rightOpen}>
+				<Sheet.Content side="right" showCloseButton={false} class="w-auto max-w-none gap-0 border-0 p-0 sm:max-w-none">
+					<Sheet.Title class="sr-only">Activity and members</Sheet.Title>
+					<RightRail {spaceId} />
+				</Sheet.Content>
+			</Sheet.Root>
+		{/if}
 	{:else}
 		{@render navigation()}
 	{/if}
 	<div class="flex min-w-0 flex-1">
 		{@render children()}
 	</div>
-	{#if !mobile.current && shell.rightDocked}
+	{#if !mobile.current && shell.rightDocked && !catalog}
 		<RightRail {spaceId} />
 	{/if}
 </div>

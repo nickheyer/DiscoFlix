@@ -25,7 +25,7 @@ jobs:
       - run: go tool buf generate && git diff --exit-code -- sdk/go web/src/lib/gen internal/capability/jsonschema
       - run: go vet -tags purego,production ./...
       - run: go test -tags purego,production ./...
-      - run: CGO_ENABLED=0 go build -tags headless,production ./cmd/discoflix
+      - run: CGO_ENABLED=0 go build -tags headless,production,nodynamic -o bin/discoflix-headless ./cmd/discoflix && ! readelf -l bin/discoflix-headless | grep -q INTERP
       - name: cross-compile
         run: |
           for t in linux/amd64 linux/arm64 windows/amd64 darwin/arm64 darwin/amd64; do

@@ -1,0 +1,40 @@
+{
+  "$defs": {
+    "discoflix.catalog.v1.PinFieldRequest.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(entity_id)$": {
+          "default": "",
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "properties": {
+        "entityId": {
+          "default": "",
+          "minLength": 1,
+          "type": "string"
+        },
+        "field": {
+          "default": "",
+          "maxLength": 64,
+          "minLength": 1,
+          "type": "string"
+        },
+        "value": {
+          "$ref": "#/$defs/google.protobuf.Value.jsonschema.json"
+        }
+      },
+      "title": "Pin Field Request",
+      "type": "object"
+    },
+    "google.protobuf.Value.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "title": "Value"
+    }
+  },
+  "$id": "discoflix.catalog.v1.PinFieldRequest.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.catalog.v1.PinFieldRequest.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

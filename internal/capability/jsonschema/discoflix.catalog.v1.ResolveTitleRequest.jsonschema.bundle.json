@@ -1,0 +1,71 @@
+{
+  "$defs": {
+    "discoflix.catalog.v1.ResolveTitleRequest.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(local_only)$": {
+          "default": false,
+          "description": "Skip live sources and answer from the graph and the snapshot only",
+          "type": "boolean"
+        }
+      },
+      "properties": {
+        "kind": {
+          "anyOf": [
+            {
+              "pattern": "^ENTITY_KIND_UNSPECIFIED$",
+              "type": "string"
+            },
+            {
+              "enum": [
+                "ENTITY_KIND_MOVIE",
+                "ENTITY_KIND_SERIES",
+                "ENTITY_KIND_SEASON",
+                "ENTITY_KIND_EPISODE"
+              ],
+              "type": "string"
+            },
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            }
+          ],
+          "default": 0,
+          "title": "Entity Kind"
+        },
+        "localOnly": {
+          "default": false,
+          "description": "Skip live sources and answer from the graph and the snapshot only",
+          "type": "boolean"
+        },
+        "title": {
+          "default": "",
+          "maxLength": 200,
+          "minLength": 1,
+          "type": "string"
+        },
+        "year": {
+          "anyOf": [
+            {
+              "maximum": 2200,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        }
+      },
+      "title": "Resolve Title Request",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.catalog.v1.ResolveTitleRequest.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.catalog.v1.ResolveTitleRequest.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

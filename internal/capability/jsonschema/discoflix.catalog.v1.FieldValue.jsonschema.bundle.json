@@ -1,0 +1,105 @@
+{
+  "$defs": {
+    "discoflix.catalog.v1.FieldValue.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "description": "Winning value of one field with the trail behind it",
+      "patternProperties": {
+        "^(observed_at)$": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        }
+      },
+      "properties": {
+        "agreement": {
+          "anyOf": [
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0,
+          "description": "Sources whose claim equals the winning value"
+        },
+        "claims": {
+          "anyOf": [
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0,
+          "description": "Claims considered for this field"
+        },
+        "confidence": {
+          "anyOf": [
+            {
+              "maximum": 3.4028234663852886e+38,
+              "minimum": -3.4028234663852886e+38,
+              "type": "number"
+            },
+            {
+              "enum": [
+                "Infinity",
+                "-Infinity",
+                "NaN"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "field": {
+          "default": "",
+          "type": "string"
+        },
+        "observedAt": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
+        },
+        "pinned": {
+          "default": false,
+          "type": "boolean"
+        },
+        "reason": {
+          "default": "",
+          "description": "pin, priority, agreement, recency",
+          "type": "string"
+        },
+        "source": {
+          "default": "",
+          "type": "string"
+        },
+        "value": {
+          "$ref": "#/$defs/google.protobuf.Value.jsonschema.json"
+        }
+      },
+      "title": "Field Value",
+      "type": "object"
+    },
+    "google.protobuf.Timestamp.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "format": "date-time",
+      "title": "Timestamp",
+      "type": "string"
+    },
+    "google.protobuf.Value.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "title": "Value"
+    }
+  },
+  "$id": "discoflix.catalog.v1.FieldValue.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.catalog.v1.FieldValue.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

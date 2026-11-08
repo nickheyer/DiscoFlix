@@ -1,0 +1,139 @@
+#query kinds
+?item	?p
+<http://www.wikidata.org/entity/Q83495>	<http://www.wikidata.org/prop/direct/P4947>
+<http://www.wikidata.org/entity/Q83495>	<http://www.wikidata.org/prop/direct/P12196>
+<http://www.wikidata.org/entity/Q83495>	<http://www.wikidata.org/prop/direct/P6127>
+<http://www.wikidata.org/entity/Q99999>	<http://www.wikidata.org/prop/direct/P4947>
+<http://www.wikidata.org/entity/Q55>	<http://www.wikidata.org/prop/direct/P4947>
+<http://www.wikidata.org/entity/Q1079>	<http://www.wikidata.org/prop/direct/P4983>
+<http://www.wikidata.org/entity/Q1079>	<http://www.wikidata.org/prop/direct/P4835>
+<http://www.wikidata.org/entity/Q1079>	<http://www.wikidata.org/prop/direct/P8600>
+#query classes
+?item	?class
+<http://www.wikidata.org/entity/Q83495>	<http://www.wikidata.org/entity/Q11424>
+<http://www.wikidata.org/entity/Q55>	<http://www.wikidata.org/entity/Q11424>
+<http://www.wikidata.org/entity/Q3000>	<http://www.wikidata.org/entity/Q93204>
+<http://www.wikidata.org/entity/Q3001>	<http://www.wikidata.org/entity/Q15416>
+<http://www.wikidata.org/entity/Q2002>	<http://www.wikidata.org/entity/Q15416>
+<http://www.wikidata.org/entity/Q1079>	<http://www.wikidata.org/entity/Q5398426>
+#query parts
+?item	?type	?series	?ord	?season	?sord	?dord
+<http://www.wikidata.org/entity/Q2001>	<http://www.wikidata.org/entity/Q3464665>	<http://www.wikidata.org/entity/Q1079>	"1"			
+<http://www.wikidata.org/entity/Q2002>	<http://www.wikidata.org/entity/Q21191270>	<http://www.wikidata.org/entity/Q1079>	"1"	<http://www.wikidata.org/entity/Q2001>	"1"	
+<http://www.wikidata.org/entity/Q4000>	<http://www.wikidata.org/entity/Q21191270>	<http://www.wikidata.org/entity/Q1079>	"62"			
+#query xid.imdb
+?item	?p	?value
+<http://www.wikidata.org/entity/Q83495>	<http://www.wikidata.org/prop/direct/P345>	"tt0133093"
+<http://www.wikidata.org/entity/Q99999>	<http://www.wikidata.org/prop/direct/P345>	"tt0234215"
+<http://www.wikidata.org/entity/Q55>	<http://www.wikidata.org/prop/direct/P345>	"tt0211915"
+<http://www.wikidata.org/entity/Q1079>	<http://www.wikidata.org/prop/direct/P345>	"tt0903747"
+<http://www.wikidata.org/entity/Q2002>	<http://www.wikidata.org/prop/direct/P345>	"tt0959621"
+<http://www.wikidata.org/entity/Q3000>	<http://www.wikidata.org/prop/direct/P345>	"tt9999990"
+<http://www.wikidata.org/entity/Q3001>	<http://www.wikidata.org/prop/direct/P345>	"tt9999991"
+<http://www.wikidata.org/entity/Q4000>	<http://www.wikidata.org/prop/direct/P345>	"tt2301451"
+<http://www.wikidata.org/entity/Q77777>	<http://www.wikidata.org/prop/direct/P345>	"tt0000001"
+#query xid.tmdb
+?item	?p	?value
+<http://www.wikidata.org/entity/Q83495>	<http://www.wikidata.org/prop/direct/P4947>	"603"
+<http://www.wikidata.org/entity/Q99999>	<http://www.wikidata.org/prop/direct/P4947>	"603"
+<http://www.wikidata.org/entity/Q99999>	<http://www.wikidata.org/prop/direct/P4947>	"604"
+<http://www.wikidata.org/entity/Q55>	<http://www.wikidata.org/prop/direct/P4947>	"194"
+<http://www.wikidata.org/entity/Q1079>	<http://www.wikidata.org/prop/direct/P4983>	"1396"
+#query xid.tvdb
+?item	?p	?value
+<http://www.wikidata.org/entity/Q83495>	<http://www.wikidata.org/prop/direct/P12196>	"169"
+<http://www.wikidata.org/entity/Q1079>	<http://www.wikidata.org/prop/direct/P4835>	"81189"
+#query xid.trakt
+?item	?p	?value
+<http://www.wikidata.org/entity/Q83495>	<http://www.wikidata.org/prop/direct/P8013>	"movies/the-matrix-1999"
+<http://www.wikidata.org/entity/Q1079>	<http://www.wikidata.org/prop/direct/P8013>	"shows/breaking-bad"
+<http://www.wikidata.org/entity/Q2001>	<http://www.wikidata.org/prop/direct/P8013>	"shows/breaking-bad/seasons/1"
+#query xid.letterboxd
+?item	?p	?value
+<http://www.wikidata.org/entity/Q83495>	<http://www.wikidata.org/prop/direct/P6127>	"the-matrix"
+#query xid.tvmaze
+?item	?p	?value
+<http://www.wikidata.org/entity/Q1079>	<http://www.wikidata.org/prop/direct/P8600>	"169"
+#query xid.netflix
+?item	?p	?value
+#query xid.rottentomatoes
+?item	?p	?value
+<http://www.wikidata.org/entity/Q83495>	<http://www.wikidata.org/prop/direct/P1258>	"m/matrix"
+#query xid.metacritic
+?item	?p	?value
+#query xid.anidb
+?item	?p	?value
+#query xid.anilist
+?item	?p	?value
+#query xid.mal
+?item	?p	?value
+#query xid.douban
+?item	?p	?value
+#query xid.kinopoisk
+?item	?p	?value
+#query xid.appletv
+?item	?p	?value
+#query xid.plex
+?item	?p	?value
+#query label.en
+?item	?text
+<http://www.wikidata.org/entity/Q83495>	"The Matrix"@en
+<http://www.wikidata.org/entity/Q99999>	"The Matrix Reloaded"@en
+<http://www.wikidata.org/entity/Q55>	"Amélie"@en
+<http://www.wikidata.org/entity/Q1079>	"Breaking Bad"@en
+<http://www.wikidata.org/entity/Q2001>	"Breaking Bad, season 1"@en
+<http://www.wikidata.org/entity/Q2002>	"Pilot"@en
+<http://www.wikidata.org/entity/Q3000>	"Some Documentary"@en
+<http://www.wikidata.org/entity/Q3001>	"Late Talk"@en
+<http://www.wikidata.org/entity/Q4000>	"Felina"@en
+<http://www.wikidata.org/entity/Q77777>	"Not In Scope"@en
+#query alias.en
+?item	?text
+<http://www.wikidata.org/entity/Q83495>	"Matrix"@en
+<http://www.wikidata.org/entity/Q55>	"Amelie"@en
+<http://www.wikidata.org/entity/Q55>	"Le Fabuleux Destin d'Amélie Poulain"@en
+#query label.mul
+?item	?text
+<http://www.wikidata.org/entity/Q3001>	"Late Talk"@mul
+#query alias.mul
+?item	?text
+#query label.original
+?item	?text
+<http://www.wikidata.org/entity/Q55>	"Le Fabuleux Destin d'Amélie Poulain"@fr
+#query alias.original
+?item	?text
+<http://www.wikidata.org/entity/Q55>	"Amélie Poulain"@fr
+#query year
+?item	?year
+<http://www.wikidata.org/entity/Q83495>	1999
+<http://www.wikidata.org/entity/Q99999>	2003
+<http://www.wikidata.org/entity/Q55>	2001
+<http://www.wikidata.org/entity/Q2002>	2008
+<http://www.wikidata.org/entity/Q3000>	2010
+<http://www.wikidata.org/entity/Q4000>	2013
+#query start
+?item	?year
+<http://www.wikidata.org/entity/Q1079>	2008
+<http://www.wikidata.org/entity/Q2001>	2008
+<http://www.wikidata.org/entity/Q83495>	1998
+#query runtime
+?item	?seconds
+<http://www.wikidata.org/entity/Q83495>	8160.0
+<http://www.wikidata.org/entity/Q55>	7320.0
+<http://www.wikidata.org/entity/Q2002>	3480.0
+#query original
+?item	?title
+<http://www.wikidata.org/entity/Q83495>	"The Matrix"@en
+<http://www.wikidata.org/entity/Q55>	"Le Fabuleux Destin d'Amélie Poulain"@fr
+#query language
+?item	?code
+<http://www.wikidata.org/entity/Q83495>	"en"
+<http://www.wikidata.org/entity/Q55>	"fr"
+<http://www.wikidata.org/entity/Q1079>	"en"
+<http://www.wikidata.org/entity/Q2002>	"en"
+#query country
+?item	?code
+<http://www.wikidata.org/entity/Q83495>	"US"
+<http://www.wikidata.org/entity/Q55>	"FR"
+<http://www.wikidata.org/entity/Q55>	"DE"
+<http://www.wikidata.org/entity/Q1079>	"US"

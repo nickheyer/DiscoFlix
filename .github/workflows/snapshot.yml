@@ -1,0 +1,91 @@
+name: snapshot
+
+on:
+  schedule:
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: snapshot
+  cancel-in-progress: false
+
+jobs:
+  crosswalk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      GH_TOKEN: ${{ github.token }}
+      CGO_ENABLED: "0"
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: require the online signing key
+        env:
+          TUF_ONLINE_KEY: ${{ secrets.TUF_ONLINE_KEY }}
+        run: |
+          if [ -z "$TUF_ONLINE_KEY" ]; then
+            echo "::error::the TUF_ONLINE_KEY repository secret is empty or missing, the crosswalk cannot be signed"
+            exit 1
+          fi
+
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: download the current repository metadata
+        run: |
+          repo="$RUNNER_TEMP/repo"
+          mkdir -p "$repo"
+          if assets=$(gh release view snapshot --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' 2>&1); then
+            if printf '%s\n' "$assets" | grep -qx timestamp.json; then
+              gh release download snapshot --repo "$GITHUB_REPOSITORY" --pattern '*.json' --dir "$repo"
+            fi
+          elif printf '%s\n' "$assets" | grep -q "release not found"; then
+            echo "no snapshot release yet, this run publishes version 1"
+          else
+            printf '%s\n' "$assets"
+            exit 1
+          fi
+          (cd "$repo" && sha256sum -- * 2>/dev/null || true) > "$RUNNER_TEMP/before.sums"
+
+      - name: build the crosswalk from Wikidata
+        run: go run -tags purego,production ./snapshot/cmd/crosswalk build --out "$RUNNER_TEMP/crosswalk.sqlite"
+
+      - name: sign and verify the repository
+        env:
+          TUF_ONLINE_KEY: ${{ secrets.TUF_ONLINE_KEY }}
+        run: |
+          key=$(mktemp)
+          trap 'rm -f "$key"' EXIT
+          printf '%s\n' "$TUF_ONLINE_KEY" > "$key"
+          go run -tags purego,production ./snapshot/cmd/crosswalk publish --repo "$RUNNER_TEMP/repo" --root snapshot/root.json --online-key "$key" --sqlite "$RUNNER_TEMP/crosswalk.sqlite"
+          go run -tags purego,production ./snapshot/cmd/crosswalk verify --repo "$RUNNER_TEMP/repo" --root snapshot/root.json
+
+      - name: upload to the snapshot release
+        run: |
+          repo="$RUNNER_TEMP/repo"
+          if ! gh release view snapshot --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release create snapshot --repo "$GITHUB_REPOSITORY" --title "Crosswalk snapshot" --notes "TUF-signed Wikidata crosswalk, rebuilt every Monday" --latest=false
+          fi
+          cd "$repo"
+          target=$(ls -- *.crosswalk.sqlite.zst)
+          changed=$(sha256sum -- [0-9]*.json | { grep -vxFf "$RUNNER_TEMP/before.sums" || true; } | awk '{print $2}')
+          gh release upload snapshot --repo "$GITHUB_REPOSITORY" --clobber "$target"
+          if [ -n "$changed" ]; then
+            gh release upload snapshot --repo "$GITHUB_REPOSITORY" --clobber $changed
+          fi
+          gh release upload snapshot --repo "$GITHUB_REPOSITORY" --clobber root.json
+          gh release upload snapshot --repo "$GITHUB_REPOSITORY" --clobber timestamp.json
+          targets=$(gh release view snapshot --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name | select(endswith(".crosswalk.sqlite.zst"))')
+          for stale in $targets; do
+            if [ "$stale" != "$target" ]; then
+              gh release delete-asset snapshot "$stale" --repo "$GITHUB_REPOSITORY" --yes
+            fi
+          done

@@ -433,6 +433,10 @@ discoflix/
 ## Build
 
 ```
+make                        # web client plus the desktop-capable binary in bin/discoflix
+make dev                    # build, then serve from ./data with debug logging
+make test fmt gen clean
+
 go tool task gen            # protos, Ent code, JSON schemas
 go tool task build          # web client plus the desktop-capable binary in bin/discoflix
 go tool task build:headless # fully static Linux binary for containers
@@ -440,6 +444,8 @@ go tool task test           # Go and web tests
 go tool task lint           # vet, buf lint, golangci-lint, svelte-check
 go tool task cross          # all five targets into bin/cross
 go tool task migrate:diff NAME=add_thing
+go tool task crosswalk:build    # Wikidata crosswalk snapshot from QLever into bin/crosswalk.sqlite
+go tool task crosswalk:publish ONLINE_KEY=online.key  # TUF-signed mirror layout in bin/crosswalk-repo
 
 bin/discoflix serve --data-dir ./data      # desktop shell when a display is present
 bin/discoflix serve --headless --addr :5001

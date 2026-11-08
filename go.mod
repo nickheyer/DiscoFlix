@@ -13,6 +13,7 @@ tool (
 require (
 	ariga.io/atlas v1.3.0
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.12-20260825204119-511051f7f437.2
+	buf.build/go/protovalidate v1.4.0
 	connectrpc.com/connect/v2 v2.0.2
 	connectrpc.com/validate v0.9.0
 	entgo.io/ent v0.14.6
@@ -20,14 +21,20 @@ require (
 	fyne.io/systray v1.12.2
 	github.com/Masterminds/semver/v3 v3.5.0
 	github.com/alexedwards/scs/v2 v2.9.0
+	github.com/caasmo/go-sqlite-rsync v0.8.0
 	github.com/centrifugal/centrifuge v0.40.1
+	github.com/coder/websocket v1.8.15
 	github.com/creativeprojects/go-selfupdate v1.7.0
+	github.com/dbos-inc/dbos-transact-golang v1.8.0
 	github.com/disgoorg/disgo v0.20.0
 	github.com/disgoorg/snowflake/v2 v2.0.3
 	github.com/ebitengine/purego v0.11.3
+	github.com/gen2brain/avif v0.6.0
+	github.com/gen2brain/webp v0.6.4
 	github.com/go-webauthn/webauthn v0.18.2
 	github.com/godbus/dbus/v5 v5.2.2
 	github.com/kardianos/service v1.3.0
+	github.com/klauspost/compress v1.20.3
 	github.com/knadh/koanf/parsers/yaml v1.1.1
 	github.com/knadh/koanf/providers/confmap v1.0.1
 	github.com/knadh/koanf/providers/env/v2 v2.0.2
@@ -41,14 +48,22 @@ require (
 	github.com/openfga/openfga v1.22.1
 	github.com/prometheus/client_golang v1.25.0
 	github.com/sethvargo/go-limiter v1.2.0
+	github.com/sigstore/sigstore v1.11.1
 	github.com/sigstore/sigstore-go v1.4.0
+	github.com/sony/gobreaker/v2 v2.4.0
 	github.com/spf13/pflag v1.1.0
+	github.com/theupdateframework/go-tuf/v2 v2.4.2
 	github.com/wailsapp/go-webview2 v1.0.23
 	github.com/wailsapp/wails/v3 v3.1.0
+	go.n16f.net/thumbhash v1.1.0
 	go.uber.org/zap v1.28.0
 	golang.org/x/crypto v0.58.0
+	golang.org/x/image v0.47.0
+	golang.org/x/sync v0.24.0
 	golang.org/x/sys v0.49.0
 	golang.org/x/term v0.47.0
+	golang.org/x/text v0.43.0
+	golang.org/x/time v0.16.0
 	google.golang.org/protobuf v1.36.13-0.20261016172727-e9ee2a76ab8e
 	modernc.org/sqlite v1.62.0
 )
@@ -63,7 +78,6 @@ require (
 	buf.build/go/bufplugin v0.11.1 // indirect
 	buf.build/go/bufprivateusage v0.1.0 // indirect
 	buf.build/go/interrupt v1.1.0 // indirect
-	buf.build/go/protovalidate v1.4.0 // indirect
 	buf.build/go/protoyaml v0.7.0 // indirect
 	buf.build/go/spdx v0.3.0 // indirect
 	buf.build/go/standard v0.1.1-0.20260325175353-2b287e071df5 // indirect
@@ -99,7 +113,6 @@ require (
 	github.com/clipperhouse/stringish v0.1.1 // indirect
 	github.com/clipperhouse/uax29/v2 v2.4.0 // indirect
 	github.com/cloudflare/circl v1.6.3 // indirect
-	github.com/coder/websocket v1.8.15 // indirect
 	github.com/containerd/errdefs v1.0.0 // indirect
 	github.com/containerd/errdefs/pkg v0.3.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.7 // indirect
@@ -170,9 +183,13 @@ require (
 	github.com/in-toto/attestation v1.2.0 // indirect
 	github.com/in-toto/in-toto-golang v0.11.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
+	github.com/jackc/pgerrcode v0.0.0-20250907135507-afb5586c32a6 // indirect
+	github.com/jackc/pgpassfile v1.0.0 // indirect
+	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
+	github.com/jackc/pgx/v5 v5.11.0 // indirect
+	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/jchv/go-winloader v0.0.0-20210711035445-715c2860da7e // indirect
 	github.com/jdx/go-netrc v1.0.0 // indirect
-	github.com/klauspost/compress v1.20.3 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/klauspost/pgzip v1.3.0 // indirect
 	github.com/knadh/koanf/maps v0.1.2 // indirect
@@ -213,9 +230,10 @@ require (
 	github.com/redis/rueidis v1.0.79 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
+	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/rs/cors v1.11.1 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
-	github.com/sagikazarmark/locafero v0.11.0 // indirect
+	github.com/sagikazarmark/locafero v0.12.0 // indirect
 	github.com/sasha-s/go-csync v0.0.0-20240107134140-fcbab37b09ad // indirect
 	github.com/secure-systems-lab/go-securesystemslib v0.11.1 // indirect
 	github.com/segmentio/asm v1.2.1 // indirect
@@ -225,7 +243,6 @@ require (
 	github.com/sigstore/protobuf-specs v0.5.2 // indirect
 	github.com/sigstore/rekor v1.5.5 // indirect
 	github.com/sigstore/rekor-tiles/v2 v2.4.0 // indirect
-	github.com/sigstore/sigstore v1.11.1 // indirect
 	github.com/sigstore/timestamp-authority/v2 v2.2.0 // indirect
 	github.com/sirupsen/logrus v1.10.2 // indirect
 	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8 // indirect
@@ -236,7 +253,6 @@ require (
 	github.com/stretchr/testify v1.12.1 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/tetratelabs/wazero v1.12.0 // indirect
-	github.com/theupdateframework/go-tuf/v2 v2.4.2 // indirect
 	github.com/tidwall/btree v1.8.2 // indirect
 	github.com/tinylib/msgp v1.6.4 // indirect
 	github.com/transparency-dev/formats v0.1.1 // indirect
@@ -269,9 +285,6 @@ require (
 	golang.org/x/mod v0.42.0 // indirect
 	golang.org/x/net v0.61.0 // indirect
 	golang.org/x/oauth2 v0.37.0 // indirect
-	golang.org/x/sync v0.24.0 // indirect
-	golang.org/x/text v0.43.0 // indirect
-	golang.org/x/time v0.16.0 // indirect
 	golang.org/x/tools v0.52.0 // indirect
 	gonum.org/v1/gonum v0.17.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20261012220534-4341edf3f941 // indirect

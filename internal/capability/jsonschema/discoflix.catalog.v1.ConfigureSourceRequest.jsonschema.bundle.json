@@ -1,0 +1,68 @@
+{
+  "$defs": {
+    "discoflix.catalog.v1.ConfigureSourceRequest.jsonschema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(api_key)$": {
+          "default": "",
+          "description": "Empty keeps the stored key",
+          "maxLength": 256,
+          "type": "string"
+        },
+        "^(clear_keys)$": {
+          "default": false,
+          "type": "boolean"
+        },
+        "^(client_key)$": {
+          "default": "",
+          "description": "Empty keeps the stored client key",
+          "maxLength": 256,
+          "type": "string"
+        }
+      },
+      "properties": {
+        "apiKey": {
+          "default": "",
+          "description": "Empty keeps the stored key",
+          "maxLength": 256,
+          "type": "string"
+        },
+        "clearKeys": {
+          "default": false,
+          "type": "boolean"
+        },
+        "clientKey": {
+          "default": "",
+          "description": "Empty keeps the stored client key",
+          "maxLength": 256,
+          "type": "string"
+        },
+        "enabled": {
+          "default": false,
+          "type": "boolean"
+        },
+        "options": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "source": {
+          "default": "",
+          "maxLength": 32,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "title": "Configure Source Request",
+      "type": "object"
+    }
+  },
+  "$id": "discoflix.catalog.v1.ConfigureSourceRequest.jsonschema.bundle.json",
+  "$ref": "#/$defs/discoflix.catalog.v1.ConfigureSourceRequest.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}
