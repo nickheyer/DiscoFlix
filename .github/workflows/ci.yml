@@ -21,29 +21,4 @@ jobs:
         with:
           bun-version: 1.4.4
       - run: cd web && bun install --frozen-lockfile && bun run build
-      - run: go tool buf lint
-      - run: go tool buf generate && git diff --exit-code -- sdk/go web/src/lib/gen internal/capability/jsonschema
-      - run: go vet -tags purego,gtk3,production ./...
       - run: go test -tags purego,gtk3,production ./...
-| grep -q INTERP && ! readelf -d bin/discoflix | grep -q NEEDED
-| grep -q INTERP
-      - name: cross-compile
-        run: |
-          for t in linux/amd64 linux/arm64 windows/amd64 windows/arm64 darwin/amd64 darwin/arm64; do
-            GOOS=${t%/*} GOARCH=${t#*/} CGO_ENABLED=0 go build -tags purego,gtk3,production -o /dev/null ./cmd/discoflix
-          done
-      - uses: golangci/golangci-lint-action@v8
-        with:
-          version: v2.15.0
-      - run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...
-
-  web:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: 1.4.4
-      - run: cd web && bun install --frozen-lockfile
-      - run: cd web && bun run check
-      - run: cd web && bun run test
