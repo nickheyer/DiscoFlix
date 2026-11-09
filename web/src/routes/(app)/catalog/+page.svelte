@@ -88,8 +88,8 @@
 	{#if notice.message}
 		<p class="rounded-lg bg-sidebar px-4 py-2.5 text-xs text-interactive">
 			{notice.message}
-			{#if notice.needsKey && session.isAdmin}
-				<a href="/settings/catalog" class="text-link underline">Add one under Settings &gt; Catalog.</a>
+			{#if notice.allDisabled && session.isAdmin}
+				<a href="/settings/catalog" class="text-link underline">Enable one under Settings &gt; Catalog.</a>
 			{/if}
 		</p>
 	{/if}

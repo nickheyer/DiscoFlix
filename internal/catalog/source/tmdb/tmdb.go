@@ -28,23 +28,20 @@ const (
 	castLimit = 20
 )
 
-// Fails every call made before an api key or read access token is configured
-var ErrNoKey = errors.New("tmdb: no api key configured, create one at https://www.themoviedb.org/settings/api")
-
 var imdbID = regexp.MustCompile(`^tt[0-9]+$`)
 
 // Answers catalog lookups and searches from TMDB
 type Source struct {
 	client *outbound.Client
+	key    string
 
 	mu   sync.RWMutex
-	key  string
 	lang language.Tag
 }
 
-// Returns a source that calls TMDB through the outbound client
-func New(client *outbound.Client) *Source {
-	return &Source{client: client, lang: language.English}
+// Returns a source that calls TMDB through the outbound client with the project's v3 api key or v4 read access token
+func New(client *outbound.Client, key string) *Source {
+	return &Source{client: client, key: strings.TrimSpace(key), lang: language.English}
 }
 
 func (s *Source) Describe() extension.Descriptor {
@@ -63,17 +60,13 @@ func (s *Source) Kinds() []string {
 	return []string{model.KindMovie, model.KindSeries, model.KindSeason, model.KindEpisode}
 }
 
-func (s *Source) NeedsKey() bool { return true }
-
 // Posters, backdrops, and logos come with every record
 func (s *Source) Artwork() bool { return true }
 
-func (s *Source) KeyHint() string { return "https://www.themoviedb.org/settings/api" }
-
 func (s *Source) License() string { return license }
 
-// Stores the v3 api key or v4 read access token and the response language
-func (s *Source) Configure(keys catalog.Keys, options map[string]string) error {
+// Stores the response language
+func (s *Source) Configure(options map[string]string) error {
 	lang := language.English
 	if raw := strings.TrimSpace(options["language"]); raw != "" {
 		tag, err := language.Parse(raw)
@@ -84,7 +77,6 @@ func (s *Source) Configure(keys catalog.Keys, options map[string]string) error {
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.key = strings.TrimSpace(keys.APIKey)
 	s.lang = lang
 	return nil
 }
@@ -95,14 +87,11 @@ type settings struct {
 	lang language.Tag
 }
 
-// Snapshots the configuration, failing when no key is set
-func (s *Source) settings() (settings, error) {
+// Snapshots the configuration one call runs with
+func (s *Source) settings() settings {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	if s.key == "" {
-		return settings{}, ErrNoKey
-	}
-	return settings{key: s.key, lang: s.lang}, nil
+	return settings{key: s.key, lang: s.lang}
 }
 
 // Builds the query of a record fetch with appended sub-requests and images in the configured language
@@ -177,10 +166,7 @@ func parseRef(value string) (ref, error) {
 
 // Reads one record by a tmdb id directly or by an imdb or tvdb id through the find endpoint
 func (s *Source) Lookup(ctx context.Context, kind, namespace, id string) ([]model.Claim, error) {
-	cfg, err := s.settings()
-	if err != nil {
-		return nil, err
-	}
+	cfg := s.settings()
 	if !model.ValidKind(kind) {
 		return nil, fmt.Errorf("tmdb: unknown kind %q", kind)
 	}
@@ -329,10 +315,7 @@ func (s *Source) episode(ctx context.Context, cfg settings, series int64, season
 
 // Finds movies, series, or both by title and optional year
 func (s *Source) Search(ctx context.Context, kind, text string, year int) ([]model.Claim, error) {
-	cfg, err := s.settings()
-	if err != nil {
-		return nil, err
-	}
+	cfg := s.settings()
 	var kinds []string
 	switch kind {
 	case "":

@@ -100,7 +100,7 @@ func (s *server) last(path string) *http.Request {
 	return nil
 }
 
-func newSource(t *testing.T, routes map[string]string) (*Source, *memRecorder, *server) {
+func newSource(t *testing.T, key string, routes map[string]string) (*Source, *memRecorder, *server) {
 	t.Helper()
 	log := &server{}
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -128,7 +128,7 @@ func newSource(t *testing.T, routes map[string]string) (*Source, *memRecorder, *
 	rec := &memRecorder{}
 	client := outbound.New(rec, "DiscoFlix/test", slog.New(slog.DiscardHandler))
 	client.SetHTTPClient(&http.Client{Transport: rewrite{target: target}})
-	src := New(client)
+	src := New(client, key)
 	client.Register(src.Policy())
 	return src, rec, log
 }
@@ -146,9 +146,9 @@ func groups(claims []model.Claim) map[string]map[string]any {
 	return out
 }
 
-func configure(t *testing.T, s *Source, key string) {
+func configure(t *testing.T, s *Source) {
 	t.Helper()
-	if err := s.Configure(catalog.Keys{APIKey: key}, map[string]string{"language": "en"}); err != nil {
+	if err := s.Configure(map[string]string{"language": "en"}); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -185,8 +185,8 @@ const episode1 = `{"air_date":"2008-01-20","episode_number":1,"id":62085,"name":
 "images":{"stills":[{"file_path":"/pilot.jpg","width":1920,"height":1080,"iso_639_1":null,"vote_average":5.5,"vote_count":6}]}}`
 
 func TestSearchBothKinds(t *testing.T) {
-	src, rec, log := newSource(t, map[string]string{"/3/search/movie": searchMovie, "/3/search/tv": searchTV})
-	configure(t, src, "v3key")
+	src, rec, log := newSource(t, "v3key", map[string]string{"/3/search/movie": searchMovie, "/3/search/tv": searchTV})
+	configure(t, src)
 	claims, err := src.Search(context.Background(), "", "The Matrix", 1999)
 	if err != nil {
 		t.Fatal(err)
@@ -219,8 +219,8 @@ func TestSearchBothKinds(t *testing.T) {
 }
 
 func TestLookupMovie(t *testing.T) {
-	src, rec, log := newSource(t, map[string]string{"/3/movie/603": movie603})
-	configure(t, src, "v3key")
+	src, rec, log := newSource(t, "v3key", map[string]string{"/3/movie/603": movie603})
+	configure(t, src)
 	claims, err := src.Lookup(context.Background(), model.KindMovie, model.NSTMDB, "movie/603")
 	if err != nil {
 		t.Fatal(err)
@@ -286,8 +286,8 @@ func TestLookupMovie(t *testing.T) {
 }
 
 func TestLookupSeriesWithBearerEmitsSeasons(t *testing.T) {
-	src, _, log := newSource(t, map[string]string{"/3/tv/1396": tv1396})
-	configure(t, src, "eyJhbGciOiJIUzI1NiJ9.token")
+	src, _, log := newSource(t, "eyJhbGciOiJIUzI1NiJ9.token", map[string]string{"/3/tv/1396": tv1396})
+	configure(t, src)
 	claims, err := src.Lookup(context.Background(), model.KindSeries, model.NSTMDB, "tv/1396")
 	if err != nil {
 		t.Fatal(err)
@@ -329,8 +329,8 @@ func TestLookupSeriesWithBearerEmitsSeasons(t *testing.T) {
 }
 
 func TestLookupSeasonAndEpisode(t *testing.T) {
-	src, rec, _ := newSource(t, map[string]string{"/3/tv/1396/season/1": season1, "/3/tv/1396/season/1/episode/1": episode1})
-	configure(t, src, "v3key")
+	src, rec, _ := newSource(t, "v3key", map[string]string{"/3/tv/1396/season/1": season1, "/3/tv/1396/season/1/episode/1": episode1})
+	configure(t, src)
 	claims, err := src.Lookup(context.Background(), model.KindSeason, model.NSTMDB, "tv/1396/1")
 	if err != nil {
 		t.Fatal(err)
@@ -376,13 +376,13 @@ func TestLookupSeasonAndEpisode(t *testing.T) {
 }
 
 func TestLookupThroughFind(t *testing.T) {
-	src, rec, log := newSource(t, map[string]string{
+	src, rec, log := newSource(t, "v3key", map[string]string{
 		"/3/find/tt0133093":             `{"movie_results":[{"id":603,"title":"The Matrix"}],"person_results":[],"tv_results":[],"tv_episode_results":[],"tv_season_results":[]}`,
 		"/3/find/349232":                `{"movie_results":[],"person_results":[],"tv_results":[],"tv_episode_results":[{"id":62085,"show_id":1396,"season_number":1,"episode_number":1}],"tv_season_results":[]}`,
 		"/3/movie/603":                  movie603,
 		"/3/tv/1396/season/1/episode/1": episode1,
 	})
-	configure(t, src, "v3key")
+	configure(t, src)
 	ctx := context.Background()
 	claims, err := src.Lookup(ctx, model.KindMovie, model.NSIMDb, "tt0133093")
 	if err != nil {
@@ -424,26 +424,9 @@ func TestLookupThroughFind(t *testing.T) {
 	}
 }
 
-func TestMissingKeyFailsBeforeCalling(t *testing.T) {
-	src, _, log := newSource(t, map[string]string{"/3/movie/603": movie603})
-	if _, err := src.Lookup(context.Background(), model.KindMovie, model.NSTMDB, "movie/603"); !errors.Is(err, ErrNoKey) {
-		t.Fatalf("lookup = %v", err)
-	}
-	if _, err := src.Search(context.Background(), "", "The Matrix", 0); !errors.Is(err, ErrNoKey) || !strings.Contains(err.Error(), "themoviedb.org/settings/api") {
-		t.Fatalf("search = %v", err)
-	}
-	configure(t, src, "")
-	if _, err := src.Search(context.Background(), "", "The Matrix", 0); !errors.Is(err, ErrNoKey) {
-		t.Fatalf("blank key = %v", err)
-	}
-	if log.count() != 0 {
-		t.Fatalf("calls = %d", log.count())
-	}
-}
-
 func TestNotFoundAndErrors(t *testing.T) {
-	src, rec, _ := newSource(t, map[string]string{"/3/search/tv": "401"})
-	configure(t, src, "v3key")
+	src, rec, _ := newSource(t, "v3key", map[string]string{"/3/search/tv": "401"})
+	configure(t, src)
 	ctx := context.Background()
 	claims, err := src.Lookup(ctx, model.KindMovie, model.NSTMDB, "movie/999")
 	if err != nil || claims != nil {
@@ -465,7 +448,7 @@ func TestNotFoundAndErrors(t *testing.T) {
 	if claims, err := src.Lookup(ctx, model.KindMovie, model.NSTMDB, "tv/1396"); err != nil || claims != nil {
 		t.Fatalf("series id as movie = %v %v", claims, err)
 	}
-	if err := src.Configure(catalog.Keys{APIKey: "k"}, map[string]string{"language": "not a language"}); err == nil {
+	if err := src.Configure(map[string]string{"language": "not a language"}); err == nil {
 		t.Fatal("bad language accepted")
 	}
 }

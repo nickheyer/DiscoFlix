@@ -105,7 +105,7 @@ message Entity {
 // How one source fared while answering a request
 message SourceOutcome {
   string source = 1;
-  // answered, empty, disabled, unconfigured, unreachable, missing, budget, open, skipped
+  // answered, empty, disabled, unreachable, missing, budget, open, skipped
   string state = 2;
   string detail = 3;
   int32 results = 4;
@@ -211,15 +211,11 @@ message RefreshEntityResponse {
 }
 
 message Source {
+  reserved 4 to 6, 16;
   string name = 1;
   string title = 2;
   bool enabled = 3;
-  // A key is stored, or none is needed
-  bool configured = 4;
-  bool needs_key = 5;
-  // Where the administrator obtains the key
-  string key_hint = 6;
-  // ok, failing, open, disabled, unconfigured, idle
+  // ok, failing, open, disabled, idle
   string state = 7;
   string last_error = 8;
   google.protobuf.Timestamp last_ok_at = 9;
@@ -229,7 +225,6 @@ message Source {
   string license = 13;
   repeated string namespaces = 14;
   map<string, string> options = 15;
-  bool has_client_key = 16;
   // The source offers posters, backdrops, or logos
   bool artwork = 17;
 }
@@ -289,14 +284,10 @@ message GetCatalogStatusResponse {
 }
 
 message ConfigureSourceRequest {
+  reserved 3, 4, 6;
   string source = 1 [(buf.validate.field).string = {min_len: 1, max_len: 32}];
   bool enabled = 2;
-  // Empty keeps the stored key
-  string api_key = 3 [(buf.validate.field).string.max_len = 256];
-  // Empty keeps the stored client key
-  string client_key = 4 [(buf.validate.field).string.max_len = 256];
   map<string, string> options = 5;
-  bool clear_keys = 6;
 }
 
 message ConfigureSourceResponse {
@@ -402,7 +393,7 @@ service CatalogService {
       scope: "catalog.admin"
       effect: EFFECT_WRITE
       title: "Configure source"
-      description: "Enable or disable a metadata source and store its keys"
+      description: "Enable or disable a metadata source and set its options"
     };
   }
   rpc ConfigureCatalog(ConfigureCatalogRequest) returns (ConfigureCatalogResponse) {

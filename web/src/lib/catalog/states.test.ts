@@ -19,7 +19,6 @@ describe('state tables', () => {
 	it('labels every outcome a source can report while answering', () => {
 		expect(outcomeState('answered')).toEqual({ label: 'Answered', tone: 'success' });
 		expect(outcomeState('disabled')).toEqual({ label: 'Disabled', tone: 'neutral' });
-		expect(outcomeState('unconfigured')).toEqual({ label: 'Needs a key', tone: 'warning' });
 		expect(outcomeState('unreachable')).toEqual({ label: 'Unreachable', tone: 'danger' });
 		expect(outcomeState('missing')).toEqual({ label: 'No data yet', tone: 'warning' });
 		expect(outcomeState('skipped').tone).toBe('neutral');

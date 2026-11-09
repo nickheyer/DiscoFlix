@@ -29,27 +29,23 @@ const (
 	license = "TheTVDB API terms"
 )
 
-// Fails every call made before a v4 project key is configured
-var ErrNoKey = errors.New("tvdb: no api key configured, create a v4 project key at https://thetvdb.com/dashboard/account/apikey")
-
 var imdbID = regexp.MustCompile(`^tt[0-9]+$`)
 
 // Answers catalog lookups and searches from TheTVDB
 type Source struct {
 	client *outbound.Client
+	key    string
 
 	mu    sync.RWMutex
-	key   string
-	pin   string
 	lang  language.Tag
 	token string
 
 	auth sync.Mutex
 }
 
-// Returns a source that calls TheTVDB through the outbound client
-func New(client *outbound.Client) *Source {
-	return &Source{client: client, lang: language.English}
+// Returns a source that calls TheTVDB through the outbound client with the project's v4 key
+func New(client *outbound.Client, key string) *Source {
+	return &Source{client: client, key: strings.TrimSpace(key), lang: language.English}
 }
 
 func (s *Source) Describe() extension.Descriptor {
@@ -68,19 +64,13 @@ func (s *Source) Kinds() []string {
 	return []string{model.KindMovie, model.KindSeries, model.KindSeason, model.KindEpisode}
 }
 
-func (s *Source) NeedsKey() bool { return true }
-
 // Posters, backdrops, and banners come with every record
 func (s *Source) Artwork() bool { return true }
 
-func (s *Source) KeyHint() string {
-	return "https://thetvdb.com/dashboard/account/apikey (v4 project key, subscriber PIN optional as the client key)"
-}
-
 func (s *Source) License() string { return license }
 
-// Stores the project key, subscriber PIN, and language, dropping the token when credentials change
-func (s *Source) Configure(keys catalog.Keys, options map[string]string) error {
+// Stores the language
+func (s *Source) Configure(options map[string]string) error {
 	lang := language.English
 	if raw := strings.TrimSpace(options["language"]); raw != "" {
 		tag, err := language.Parse(raw)
@@ -89,30 +79,23 @@ func (s *Source) Configure(keys catalog.Keys, options map[string]string) error {
 		}
 		lang = tag
 	}
-	key, pin := strings.TrimSpace(keys.APIKey), strings.TrimSpace(keys.ClientKey)
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if key != s.key || pin != s.pin {
-		s.token = ""
-	}
-	s.key, s.pin, s.lang = key, pin, lang
+	s.lang = lang
 	return nil
 }
 
-// Holds the credentials and language one call runs with
+// Holds the key and language one call runs with
 type settings struct {
-	key, pin, lang3 string
+	key, lang3 string
 }
 
-// Snapshots the configuration, failing when no key is set
-func (s *Source) settings() (settings, error) {
+// Snapshots the configuration one call runs with
+func (s *Source) settings() settings {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	if s.key == "" {
-		return settings{}, ErrNoKey
-	}
 	base, _ := s.lang.Base()
-	return settings{key: s.key, pin: s.pin, lang3: base.ISO3()}, nil
+	return settings{key: s.key, lang3: base.ISO3()}
 }
 
 // Returns the held token or logs in, replacing a token the API just rejected
@@ -125,11 +108,7 @@ func (s *Source) bearer(ctx context.Context, cfg settings, rejected string) (str
 	if token != "" && token != rejected {
 		return token, nil
 	}
-	login := map[string]string{"apikey": cfg.key}
-	if cfg.pin != "" {
-		login["pin"] = cfg.pin
-	}
-	body, err := json.Marshal(login)
+	body, err := json.Marshal(map[string]string{"apikey": cfg.key})
 	if err != nil {
 		return "", err
 	}
@@ -150,9 +129,7 @@ func (s *Source) bearer(ctx context.Context, cfg settings, rejected string) (str
 		return "", errors.New("tvdb: login answered without a token")
 	}
 	s.mu.Lock()
-	if s.key == cfg.key && s.pin == cfg.pin {
-		s.token = out.Data.Token
-	}
+	s.token = out.Data.Token
 	s.mu.Unlock()
 	return out.Data.Token, nil
 }
@@ -201,10 +178,7 @@ var tvdbKinds = map[string]string{"movie": model.KindMovie, "series": model.Kind
 
 // Reads one record by a tvdb id directly or by an imdb or tmdb id through the remote id search
 func (s *Source) Lookup(ctx context.Context, kind, namespace, id string) ([]model.Claim, error) {
-	cfg, err := s.settings()
-	if err != nil {
-		return nil, err
-	}
+	cfg := s.settings()
 	if !model.ValidKind(kind) {
 		return nil, fmt.Errorf("tvdb: unknown kind %q", kind)
 	}
@@ -536,10 +510,7 @@ func (s *Source) episodeInSeason(ctx context.Context, cfg settings, seasonID int
 
 // Finds movies, series, or both by title and optional year
 func (s *Source) Search(ctx context.Context, kind, text string, year int) ([]model.Claim, error) {
-	cfg, err := s.settings()
-	if err != nil {
-		return nil, err
-	}
+	cfg := s.settings()
 	var kinds []string
 	switch kind {
 	case "":

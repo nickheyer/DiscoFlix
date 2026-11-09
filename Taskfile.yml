@@ -1,11 +1,14 @@
 version: "3"
 
+dotenv: [.env]
+
 vars:
   VERSION:
     sh: git describe --tags --always --dirty 2>/dev/null || echo dev
   COMMIT:
     sh: git rev-parse --short HEAD 2>/dev/null || echo none
-  LDFLAGS: -s -w -X main.version={{.VERSION}} -X main.commit={{.COMMIT}}
+  CREDENTIALS: -X github.com/nickheyer/DiscoFlix/internal/credentials.TMDB={{.TMDB_API_KEY}} -X github.com/nickheyer/DiscoFlix/internal/credentials.TVDB={{.TVDB_API_KEY}} -X github.com/nickheyer/DiscoFlix/internal/credentials.Trakt={{.TRAKT_CLIENT_ID}} -X github.com/nickheyer/DiscoFlix/internal/credentials.Fanart={{.FATV_PROJECT_API_KEY}}
+  LDFLAGS: -s -w -X main.version={{.VERSION}} -X main.commit={{.COMMIT}} {{.CREDENTIALS}}
 
 tasks:
   default:
@@ -56,8 +59,10 @@ tasks:
       - bun run dev
 
   build:
-    desc: Build the binary for this platform
+    desc: Build the binary for this platform, linking the provider keys from .env
     deps: [web:build]
+    requires:
+      vars: [TMDB_API_KEY, TVDB_API_KEY, TRAKT_CLIENT_ID, FATV_PROJECT_API_KEY]
     cmds:
       - CGO_ENABLED=0 go build -tags purego,gtk3,production -ldflags "{{.LDFLAGS}}" -o bin/discoflix ./cmd/discoflix
 
@@ -94,11 +99,15 @@ tasks:
   cross:
     desc: Cross-compile all six release targets without packaging
     deps: [web:build]
+    requires:
+      vars: [TMDB_API_KEY, TVDB_API_KEY, TRAKT_CLIENT_ID, FATV_PROJECT_API_KEY]
     cmds:
       - for: [linux/amd64, linux/arm64, windows/amd64, windows/arm64, darwin/amd64, darwin/arm64]
         cmd: CGO_ENABLED=0 GOOS={{splitList "/" .ITEM | first}} GOARCH={{splitList "/" .ITEM | last}} go build -tags purego,gtk3,production -ldflags "{{.LDFLAGS}}" -o bin/cross/{{.ITEM}}/discoflix{{if eq (splitList "/" .ITEM | first) "windows"}}.exe{{end}} ./cmd/discoflix
 
   release:snapshot:
     deps: [web:build]
+    requires:
+      vars: [TMDB_API_KEY, TVDB_API_KEY, TRAKT_CLIENT_ID, FATV_PROJECT_API_KEY]
     cmds:
       - go tool goreleaser release --snapshot --clean

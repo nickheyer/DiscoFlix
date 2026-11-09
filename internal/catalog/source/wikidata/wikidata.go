@@ -73,17 +73,13 @@ func (s *Source) Kinds() []string {
 	return []string{model.KindMovie, model.KindSeries, model.KindSeason, model.KindEpisode}
 }
 
-func (s *Source) NeedsKey() bool { return false }
-
 // Wikidata facts carry no images
 func (s *Source) Artwork() bool { return false }
-
-func (s *Source) KeyHint() string { return "" }
 
 func (s *Source) License() string { return license }
 
 // Stores the language labels, aliases, and genres are read in
-func (s *Source) Configure(_ catalog.Keys, options map[string]string) error {
+func (s *Source) Configure(options map[string]string) error {
 	lang := language.English
 	if raw := strings.TrimSpace(options["language"]); raw != "" {
 		tag, err := language.Parse(raw)

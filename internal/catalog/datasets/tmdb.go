@@ -32,14 +32,12 @@ func (*tmdbSource) Policy() outbound.Policy {
 func (*tmdbSource) Namespaces() []string { return []string{model.NSTMDB} }
 
 func (*tmdbSource) Kinds() []string { return []string{model.KindMovie, model.KindSeries} }
-func (*tmdbSource) NeedsKey() bool  { return false }
 func (*tmdbSource) Artwork() bool   { return false }
-func (*tmdbSource) KeyHint() string { return "" }
 func (*tmdbSource) License() string { return tmdbLicense }
 func (*tmdbSource) Local() bool     { return true }
 
-// Accepts any keys and options since lookups and searches read only the loaded tables
-func (*tmdbSource) Configure(catalog.Keys, map[string]string) error {
+// Accepts any options since lookups and searches read only the loaded tables
+func (*tmdbSource) Configure(map[string]string) error {
 	return nil
 }
 

@@ -17,7 +17,6 @@ import (
 
 	"github.com/nickheyer/DiscoFlix/internal/capability"
 	"github.com/nickheyer/DiscoFlix/internal/catalog/model"
-	"github.com/nickheyer/DiscoFlix/internal/config"
 	"github.com/nickheyer/DiscoFlix/internal/extension"
 	"github.com/nickheyer/DiscoFlix/internal/outbound"
 	"github.com/nickheyer/DiscoFlix/internal/store"
@@ -28,13 +27,11 @@ import (
 	"github.com/nickheyer/DiscoFlix/internal/workflow"
 )
 
-// Setting and secret keys the catalog owns
+// Setting keys the catalog owns
 const (
 	SettingMirror   = "catalog.mirror_url"
 	SettingPeers    = "catalog.peers"
 	SettingLanguage = "catalog.language"
-	secretAPIKey    = "catalog.%s.api_key"    //nolint:gosec // the name of a setting, not a credential
-	secretClientKey = "catalog.%s.client_key" //nolint:gosec // the name of a setting, not a credential
 	channelName     = "catalog"
 )
 
@@ -69,12 +66,6 @@ var (
 	ErrNotLaunched = workflow.ErrNotLaunched
 )
 
-// Keys are the credentials one source needs
-type Keys struct {
-	APIKey    string
-	ClientKey string
-}
-
 // Source is one metadata provider the catalog fans out to, built in or from a plugin
 type Source interface {
 	extension.Extension
@@ -83,12 +74,10 @@ type Source interface {
 	// Namespaces this source can look up directly
 	Namespaces() []string
 	Kinds() []string
-	NeedsKey() bool
-	KeyHint() string
 	License() string
 	// Artwork reports whether lookups return poster, backdrop, or logo images
 	Artwork() bool
-	Configure(keys Keys, options map[string]string) error
+	Configure(options map[string]string) error
 	Lookup(ctx context.Context, kind, namespace, id string) ([]model.Claim, error)
 	Search(ctx context.Context, kind, text string, year int) ([]model.Claim, error)
 }
@@ -185,7 +174,6 @@ type Deps struct {
 	DB         *sql.DB
 	Timeline   *timeline.Service
 	Check      capability.CheckFunc
-	Secrets    *config.Secrets
 	Settings   *store.Settings
 	Workflows  *workflow.Service
 	Outbound   *outbound.Client
@@ -266,7 +254,7 @@ func (s *Service) loadWeights(ctx context.Context) error {
 	return nil
 }
 
-// loadSettings applies stored enablement, keys, mirror, peers, and language
+// loadSettings applies stored enablement, mirror, peers, and language
 func (s *Service) loadSettings(ctx context.Context) error {
 	var err error
 	if s.mirror, err = s.Settings.GetString(ctx, SettingMirror, ""); err != nil {
@@ -284,7 +272,7 @@ func (s *Service) loadSettings(ctx context.Context) error {
 		row, err := s.Ent.SourceState.Get(ctx, name)
 		switch {
 		case ent.IsNotFound(err):
-			e.enabled = e.local || !e.NeedsKey()
+			e.enabled = true
 			e.options = map[string]string{}
 		case err != nil:
 			return err
@@ -295,7 +283,7 @@ func (s *Service) loadSettings(ctx context.Context) error {
 				e.options = map[string]string{}
 			}
 		}
-		if err := e.Configure(s.keysFor(name), s.withLanguage(e.options)); err != nil {
+		if err := e.Configure(s.withLanguage(e.options)); err != nil {
 			return fmt.Errorf("catalog: configure %s: %w", name, err)
 		}
 	}
@@ -309,17 +297,6 @@ func (s *Service) withLanguage(options map[string]string) map[string]string {
 		out["language"] = s.lang
 	}
 	return out
-}
-
-func (s *Service) keysFor(name string) Keys {
-	api, _ := s.Secrets.Get(fmt.Sprintf(secretAPIKey, name))
-	client, _ := s.Secrets.Get(fmt.Sprintf(secretClientKey, name))
-	return Keys{APIKey: api, ClientKey: client}
-}
-
-// configured reports whether a source has what it needs to be called
-func (s *Service) configured(e *sourceEntry) bool {
-	return !e.NeedsKey() || s.keysFor(e.Name()).APIKey != ""
 }
 
 // Start launches the workflow runtime, applies schedules, and fetches the snapshot and default datasets when missing
@@ -380,7 +357,7 @@ func (s *Service) enabledSources(localOnly bool) []*sourceEntry {
 	var out []*sourceEntry
 	for _, name := range s.order {
 		e := s.sources[name]
-		if !e.enabled || !s.configured(e) || (localOnly && !e.local) {
+		if !e.enabled || (localOnly && !e.local) {
 			continue
 		}
 		out = append(out, e)
@@ -399,8 +376,6 @@ func (s *Service) skippedOutcomes(localOnly bool) []Outcome {
 		switch {
 		case !e.enabled:
 			out = append(out, Outcome{Source: name, State: StateDisabled, Artwork: e.Artwork()})
-		case !s.configured(e):
-			out = append(out, Outcome{Source: name, State: StateUnconfigured, Detail: e.KeyHint(), Artwork: e.Artwork()})
 		case localOnly && !e.local:
 			out = append(out, Outcome{Source: name, State: StateSkipped, Artwork: e.Artwork()})
 		}
@@ -408,32 +383,13 @@ func (s *Service) skippedOutcomes(localOnly bool) []Outcome {
 	return out
 }
 
-// ConfigureSource stores enablement, keys, and options for one source and reconfigures it
-func (s *Service) ConfigureSource(ctx context.Context, name string, enabled bool, keys Keys, options map[string]string, clearKeys bool) error {
+// ConfigureSource stores enablement and options for one source and reconfigures it
+func (s *Service) ConfigureSource(ctx context.Context, name string, enabled bool, options map[string]string) error {
 	s.mu.Lock()
 	e, ok := s.sources[name]
 	s.mu.Unlock()
 	if !ok {
 		return fmt.Errorf("%w: %s", ErrUnknownSource, name)
-	}
-	if clearKeys {
-		keys = Keys{}
-		if err := s.Secrets.Set(fmt.Sprintf(secretAPIKey, name), ""); err != nil {
-			return err
-		}
-		if err := s.Secrets.Set(fmt.Sprintf(secretClientKey, name), ""); err != nil {
-			return err
-		}
-	}
-	if keys.APIKey != "" {
-		if err := s.Secrets.Set(fmt.Sprintf(secretAPIKey, name), strings.TrimSpace(keys.APIKey)); err != nil {
-			return err
-		}
-	}
-	if keys.ClientKey != "" {
-		if err := s.Secrets.Set(fmt.Sprintf(secretClientKey, name), strings.TrimSpace(keys.ClientKey)); err != nil {
-			return err
-		}
 	}
 	if options == nil {
 		options = map[string]string{}
@@ -446,7 +402,7 @@ func (s *Service) ConfigureSource(ctx context.Context, name string, enabled bool
 	e.enabled = enabled
 	e.options = options
 	s.mu.Unlock()
-	if err := e.Configure(s.keysFor(name), s.withLanguage(options)); err != nil {
+	if err := e.Configure(s.withLanguage(options)); err != nil {
 		return fmt.Errorf("catalog: configure %s: %w", name, err)
 	}
 	return nil
@@ -483,7 +439,7 @@ func (s *Service) ConfigureCatalog(ctx context.Context, mirror string, peers []s
 	s.mu.Unlock()
 	s.Snapshots.SetMirror(mirror, clean)
 	for _, e := range entries {
-		if err := e.Configure(s.keysFor(e.Name()), s.withLanguage(e.options)); err != nil {
+		if err := e.Configure(s.withLanguage(e.options)); err != nil {
 			return fmt.Errorf("catalog: configure %s: %w", e.Name(), err)
 		}
 	}

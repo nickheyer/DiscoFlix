@@ -29,15 +29,6 @@
           ],
           "default": 0
         },
-        "^(has_client_key)$": {
-          "default": false,
-          "type": "boolean"
-        },
-        "^(key_hint)$": {
-          "default": "",
-          "description": "Where the administrator obtains the key",
-          "type": "string"
-        },
         "^(last_error)$": {
           "default": "",
           "type": "string"
@@ -47,10 +38,6 @@
         },
         "^(last_ok_at)$": {
           "$ref": "#/$defs/google.protobuf.Timestamp.jsonschema.json"
-        },
-        "^(needs_key)$": {
-          "default": false,
-          "type": "boolean"
         }
       },
       "properties": {
@@ -87,23 +74,9 @@
           ],
           "default": 0
         },
-        "configured": {
-          "default": false,
-          "description": "A key is stored, or none is needed",
-          "type": "boolean"
-        },
         "enabled": {
           "default": false,
           "type": "boolean"
-        },
-        "hasClientKey": {
-          "default": false,
-          "type": "boolean"
-        },
-        "keyHint": {
-          "default": "",
-          "description": "Where the administrator obtains the key",
-          "type": "string"
         },
         "lastError": {
           "default": "",
@@ -129,10 +102,6 @@
           },
           "type": "array"
         },
-        "needsKey": {
-          "default": false,
-          "type": "boolean"
-        },
         "options": {
           "additionalProperties": {
             "type": "string"
@@ -144,7 +113,7 @@
         },
         "state": {
           "default": "",
-          "description": "ok, failing, open, disabled, unconfigured, idle",
+          "description": "ok, failing, open, disabled, idle",
           "type": "string"
         },
         "title": {

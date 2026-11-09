@@ -20,7 +20,6 @@ import (
 	"github.com/nickheyer/DiscoFlix/internal/capability"
 	"github.com/nickheyer/DiscoFlix/internal/catalog/match"
 	"github.com/nickheyer/DiscoFlix/internal/catalog/model"
-	"github.com/nickheyer/DiscoFlix/internal/config"
 	"github.com/nickheyer/DiscoFlix/internal/extension"
 	"github.com/nickheyer/DiscoFlix/internal/outbound"
 	"github.com/nickheyer/DiscoFlix/internal/store"
@@ -57,7 +56,7 @@ type fakeSource struct {
 	lookups     map[string][]model.Claim
 	results     []model.Claim
 	calls       []string
-	keys        Keys
+	options     map[string]string
 	fail        error
 }
 
@@ -75,15 +74,13 @@ func (f *fakeSource) Namespaces() []string {
 	return []string{f.name}
 }
 func (f *fakeSource) Kinds() []string { return []string{model.KindMovie, model.KindSeries} }
-func (f *fakeSource) NeedsKey() bool  { return false }
 func (f *fakeSource) Artwork() bool   { return f.artwork }
-func (f *fakeSource) KeyHint() string { return "" }
 func (f *fakeSource) License() string { return "test" }
 func (f *fakeSource) Local() bool     { return f.local }
-func (f *fakeSource) Configure(k Keys, _ map[string]string) error {
+func (f *fakeSource) Configure(options map[string]string) error {
 	f.mu.Lock()
 	defer f.mu.Unlock()
-	f.keys = k
+	f.options = options
 	return nil
 }
 
@@ -256,10 +253,6 @@ func newHarness(t *testing.T) *harness {
 	if err := tl.EnsureSystem(ctx, "Test"); err != nil {
 		t.Fatal(err)
 	}
-	secrets, err := config.OpenSecrets(dir)
-	if err != nil {
-		t.Fatal(err)
-	}
 	wf, err := workflow.Open(ctx, dir, log)
 	if err != nil {
 		t.Fatal(err)
@@ -273,7 +266,6 @@ func newHarness(t *testing.T) *harness {
 		Check: func(ctx context.Context, subject, relation, object string) (bool, error) {
 			return az.Check(ctx, subject, relation, object, nil)
 		},
-		Secrets:    secrets,
 		Settings:   store.NewSettings(st.Ent),
 		Workflows:  wf,
 		Outbound:   outbound.New(NewRecorder(st.Ent), "test", log),
@@ -763,11 +755,11 @@ func TestLookupExternalAndConfigure(t *testing.T) {
 	if _, _, _, err := h.svc.LookupExternal(h.ctx, model.NSTMDB, "movie/1", ""); !errors.Is(err, ErrNotFound) {
 		t.Fatalf("unknown = %v", err)
 	}
-	if err := h.svc.ConfigureSource(h.ctx, SourceTMDB, false, Keys{APIKey: "k1"}, map[string]string{"language": "de"}, false); err != nil {
+	if err := h.svc.ConfigureSource(h.ctx, SourceTMDB, false, map[string]string{"language": "de"}); err != nil {
 		t.Fatal(err)
 	}
-	if h.live.keys.APIKey != "k1" || len(h.svc.enabledSources(false)) != 1 {
-		t.Fatalf("configure = %+v %d", h.live.keys, len(h.svc.enabledSources(false)))
+	if h.live.options["language"] != "de" || len(h.svc.enabledSources(false)) != 1 {
+		t.Fatalf("configure = %+v %d", h.live.options, len(h.svc.enabledSources(false)))
 	}
 	src, err := h.svc.SourceProto(h.ctx, SourceTMDB)
 	if err != nil || src.GetState() != "disabled" || src.GetOptions()["language"] != "de" {
@@ -784,7 +776,7 @@ func TestLookupExternalAndConfigure(t *testing.T) {
 	if err != nil || st.GetEntities() != 1 || len(st.GetSources()) != 2 || len(st.GetDatasets()) != 1 || st.GetSnapshot().GetVersion() != "v1" {
 		t.Fatalf("status = %+v %v", st, err)
 	}
-	if err := h.svc.ConfigureSource(h.ctx, "nope", true, Keys{}, nil, false); !errors.Is(err, ErrUnknownSource) {
+	if err := h.svc.ConfigureSource(h.ctx, "nope", true, nil); !errors.Is(err, ErrUnknownSource) {
 		t.Fatalf("unknown source = %v", err)
 	}
 }

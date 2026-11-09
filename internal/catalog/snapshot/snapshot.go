@@ -167,17 +167,13 @@ func (s *Service) Kinds() []string {
 	return []string{model.KindMovie, model.KindSeries, model.KindSeason, model.KindEpisode}
 }
 
-func (s *Service) NeedsKey() bool { return false }
-
 // The crosswalk holds ids and titles only
 func (s *Service) Artwork() bool { return false }
-
-func (s *Service) KeyHint() string { return "" }
 
 func (s *Service) License() string { return crosswalk.License }
 
 // Stores the language whose label becomes the title claim
-func (s *Service) Configure(_ catalog.Keys, options map[string]string) error {
+func (s *Service) Configure(options map[string]string) error {
 	lang := strings.ToLower(strings.TrimSpace(options["language"]))
 	if lang == "" {
 		lang = "en"

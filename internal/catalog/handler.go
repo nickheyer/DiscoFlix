@@ -211,7 +211,7 @@ func (h *Handler) GetCatalogStatus(ctx context.Context, _ *catalogv1.GetCatalogS
 }
 
 func (h *Handler) ConfigureSource(ctx context.Context, req *catalogv1.ConfigureSourceRequest) (*catalogv1.ConfigureSourceResponse, error) {
-	if err := h.svc.ConfigureSource(ctx, req.GetSource(), req.GetEnabled(), Keys{APIKey: req.GetApiKey(), ClientKey: req.GetClientKey()}, req.GetOptions(), req.GetClearKeys()); err != nil {
+	if err := h.svc.ConfigureSource(ctx, req.GetSource(), req.GetEnabled(), req.GetOptions()); err != nil {
 		return nil, mapErr(err)
 	}
 	src, err := h.svc.SourceProto(ctx, req.GetSource())

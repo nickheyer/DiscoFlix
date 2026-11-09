@@ -102,7 +102,7 @@ func (a *api) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/v4/login" {
 		var body map[string]string
 		raw, _ := io.ReadAll(r.Body)
-		if r.Method != http.MethodPost || json.Unmarshal(raw, &body) != nil || body["apikey"] != "project-key" || body["pin"] != "1234" {
+		if r.Method != http.MethodPost || json.Unmarshal(raw, &body) != nil || body["apikey"] != "project-key" {
 			w.WriteHeader(http.StatusUnauthorized)
 			_, _ = w.Write([]byte(`{"status":"failure","message":"Unauthorized"}`))
 			return
@@ -146,7 +146,7 @@ func (a *api) calls(path string) int {
 	return n
 }
 
-func newSource(t *testing.T, routes map[string]string) (*Source, *memRecorder, *api) {
+func newSource(t *testing.T, key string, routes map[string]string) (*Source, *memRecorder, *api) {
 	t.Helper()
 	fake := &api{t: t, routes: routes, last: map[string]*http.Request{}}
 	srv := httptest.NewServer(fake)
@@ -155,14 +155,14 @@ func newSource(t *testing.T, routes map[string]string) (*Source, *memRecorder, *
 	rec := &memRecorder{}
 	client := outbound.New(rec, "DiscoFlix/test", slog.New(slog.DiscardHandler))
 	client.SetHTTPClient(&http.Client{Transport: rewrite{target: target}})
-	src := New(client)
+	src := New(client, key)
 	client.Register(src.Policy())
 	return src, rec, fake
 }
 
 func configure(t *testing.T, s *Source, lang string) {
 	t.Helper()
-	if err := s.Configure(catalog.Keys{APIKey: "project-key", ClientKey: "1234"}, map[string]string{"language": lang}); err != nil {
+	if err := s.Configure(map[string]string{"language": lang}); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -225,7 +225,7 @@ const movie169 = `{"status":"success","data":{"id":169,"name":"The Matrix","slug
 "translations":{"nameTranslations":[{"language":"eng","name":"The Matrix","isPrimary":true}],"overviewTranslations":[{"language":"eng","overview":"A hacker learns the truth."}]}}}`
 
 func TestLoginAndSearch(t *testing.T) {
-	src, rec, fake := newSource(t, map[string]string{"/v4/search?series": searchSeries, "/v4/search?movie": `{"status":"success","data":[]}`})
+	src, rec, fake := newSource(t, "project-key", map[string]string{"/v4/search?series": searchSeries, "/v4/search?movie": `{"status":"success","data":[]}`})
 	configure(t, src, "en")
 	claims, err := src.Search(context.Background(), "", "Breaking Bad", 2008)
 	if err != nil {
@@ -261,7 +261,7 @@ func TestLoginAndSearch(t *testing.T) {
 }
 
 func TestLookupSeriesEmitsOfficialSeasons(t *testing.T) {
-	src, rec, fake := newSource(t, map[string]string{"/v4/series/81189/extended": series81189})
+	src, rec, fake := newSource(t, "project-key", map[string]string{"/v4/series/81189/extended": series81189})
 	configure(t, src, "en")
 	claims, err := src.Lookup(context.Background(), model.KindSeries, model.NSTVDB, "series/81189")
 	if err != nil {
@@ -331,7 +331,7 @@ func TestLookupSeriesEmitsOfficialSeasons(t *testing.T) {
 }
 
 func TestLookupSeasonTranslatesEpisodes(t *testing.T) {
-	src, rec, fake := newSource(t, map[string]string{
+	src, rec, fake := newSource(t, "project-key", map[string]string{
 		"/v4/seasons/30272/extended":           season30272,
 		"/v4/series/81189":                     `{"status":"success","data":{"id":81189,"name":"Breaking Bad","originalLanguage":"eng"}}`,
 		"/v4/episodes/349232/translations/spa": `{"status":"success","data":{"name":"Piloto","overview":"Walter recibe un diagnóstico.","language":"spa"}}`,
@@ -375,7 +375,7 @@ func TestLookupSeasonTranslatesEpisodes(t *testing.T) {
 }
 
 func TestLookupEpisodeMovieAndRemoteIDs(t *testing.T) {
-	src, rec, _ := newSource(t, map[string]string{
+	src, rec, _ := newSource(t, "project-key", map[string]string{
 		"/v4/episodes/349232/extended":  episode349232,
 		"/v4/movies/169/extended":       movie169,
 		"/v4/series/81189/extended":     series81189,
@@ -460,7 +460,7 @@ func TestLookupEpisodeMovieAndRemoteIDs(t *testing.T) {
 }
 
 func TestReloginOnRejectedToken(t *testing.T) {
-	src, _, fake := newSource(t, map[string]string{"/v4/movies/169/extended": movie169})
+	src, _, fake := newSource(t, "project-key", map[string]string{"/v4/movies/169/extended": movie169})
 	configure(t, src, "en")
 	ctx := context.Background()
 	if _, err := src.Lookup(ctx, model.KindMovie, model.NSTVDB, "movie/169"); err != nil {
@@ -487,21 +487,8 @@ func TestReloginOnRejectedToken(t *testing.T) {
 	}
 }
 
-func TestMissingKeyFailsBeforeCalling(t *testing.T) {
-	src, _, fake := newSource(t, map[string]string{"/v4/movies/169/extended": movie169})
-	if _, err := src.Lookup(context.Background(), model.KindMovie, model.NSTVDB, "movie/169"); !errors.Is(err, ErrNoKey) {
-		t.Fatalf("lookup = %v", err)
-	}
-	if _, err := src.Search(context.Background(), "", "The Matrix", 0); !errors.Is(err, ErrNoKey) {
-		t.Fatalf("search = %v", err)
-	}
-	if len(fake.paths) != 0 {
-		t.Fatalf("calls = %v", fake.paths)
-	}
-}
-
 func TestNotFoundAndErrors(t *testing.T) {
-	src, rec, _ := newSource(t, map[string]string{"/v4/search?series": "400"})
+	src, rec, _ := newSource(t, "project-key", map[string]string{"/v4/search?series": "400"})
 	configure(t, src, "en")
 	ctx := context.Background()
 	claims, err := src.Lookup(ctx, model.KindSeries, model.NSTVDB, "series/1")
@@ -527,10 +514,8 @@ func TestNotFoundAndErrors(t *testing.T) {
 	if _, err := src.Lookup(ctx, model.KindSeries, model.NSTVDB, "show/81189"); err == nil {
 		t.Fatal("malformed tvdb id accepted")
 	}
-	if err := src.Configure(catalog.Keys{APIKey: "wrong", ClientKey: "1234"}, nil); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := src.Lookup(ctx, model.KindSeries, model.NSTVDB, "series/2"); !errors.As(err, &se) || se.Status != http.StatusUnauthorized {
+	wrong, _, _ := newSource(t, "wrong", map[string]string{})
+	if _, err := wrong.Lookup(ctx, model.KindSeries, model.NSTVDB, "series/2"); !errors.As(err, &se) || se.Status != http.StatusUnauthorized {
 		t.Fatalf("bad key = %v", err)
 	}
 }

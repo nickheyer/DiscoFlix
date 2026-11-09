@@ -20,15 +20,14 @@ import (
 
 // States a source can end a request in
 const (
-	StateAnswered     = "answered"
-	StateEmpty        = "empty"
-	StateDisabled     = "disabled"
-	StateUnconfigured = "unconfigured"
-	StateUnreachable  = "unreachable"
-	StateBudget       = "budget"
-	StateOpen         = "open"
-	StateSkipped      = "skipped"
-	StateMissing      = "missing"
+	StateAnswered    = "answered"
+	StateEmpty       = "empty"
+	StateDisabled    = "disabled"
+	StateUnreachable = "unreachable"
+	StateBudget      = "budget"
+	StateOpen        = "open"
+	StateSkipped     = "skipped"
+	StateMissing     = "missing"
 )
 
 // Outcome reports how one source fared during a request

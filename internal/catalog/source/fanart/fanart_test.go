@@ -113,7 +113,7 @@ const tv81189 = `{"name":"Breaking Bad","thetvdb_id":"81189",
 "tvthumb":[{"id":"2006","url":"https://assets.fanart.tv/fanart/tv/81189/tvthumb/breaking-bad-t.jpg","lang":"en","likes":"2"}],
 "seasonposter":[{"id":"2007","url":"https://assets.fanart.tv/fanart/tv/81189/seasonposter/breaking-bad-s1.jpg","lang":"en","likes":"1","season":"1"}]}`
 
-func newSource(t *testing.T) (*Source, *memRecorder, *server) {
+func newSource(t *testing.T, key string) (*Source, *memRecorder, *server) {
 	t.Helper()
 	log := &server{}
 	routes := map[string]string{"/v3/movies/603": movie603, "/v3/movies/tt0133093": movie603, "/v3/tv/81189": tv81189}
@@ -142,14 +142,14 @@ func newSource(t *testing.T) (*Source, *memRecorder, *server) {
 	rec := &memRecorder{}
 	client := outbound.New(rec, "DiscoFlix/test", slog.New(slog.DiscardHandler))
 	client.SetHTTPClient(&http.Client{Transport: rewrite{target: target}})
-	src := New(client)
+	src := New(client, key)
 	client.Register(src.Policy())
 	return src, rec, log
 }
 
-func configure(t *testing.T, s *Source, key, client string) {
+func configure(t *testing.T, s *Source) {
 	t.Helper()
-	if err := s.Configure(catalog.Keys{APIKey: key, ClientKey: client}, map[string]string{"language": "en"}); err != nil {
+	if err := s.Configure(map[string]string{"language": "en"}); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -179,16 +179,16 @@ func urls(images []model.Image) []string {
 }
 
 func TestMovieByTMDB(t *testing.T) {
-	src, rec, log := newSource(t)
-	configure(t, src, "project-key", "personal-key")
+	src, rec, log := newSource(t, "project-key")
+	configure(t, src)
 	claims, err := src.Lookup(context.Background(), model.KindMovie, model.NSTMDB, "movie/603")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if q := log.last().URL.Query(); q.Get("client_key") != "personal-key" || q.Get("api_key") != "project-key" || log.last().URL.Path != "/v3/movies/603" {
+	if q := log.last().URL.Query(); len(q) != 1 || q.Get("api_key") != "project-key" || log.last().URL.Path != "/v3/movies/603" {
 		t.Fatalf("request = %v", log.last().URL)
 	}
-	if stored := rec.byPath(t, "/v3/movies/603").URL; strings.Contains(stored, "project-key") || strings.Contains(stored, "personal-key") {
+	if stored := rec.byPath(t, "/v3/movies/603").URL; strings.Contains(stored, "project-key") {
 		t.Fatalf("stored url keeps a key: %s", stored)
 	}
 	f := fields(t, claims, model.KindMovie, model.NSTMDB, "movie/603")
@@ -217,8 +217,8 @@ func TestMovieByTMDB(t *testing.T) {
 }
 
 func TestMovieByIMDbAndSeriesByTVDB(t *testing.T) {
-	src, rec, log := newSource(t)
-	configure(t, src, "project-key", "")
+	src, rec, log := newSource(t, "project-key")
+	configure(t, src)
 	ctx := context.Background()
 	claims, err := src.Lookup(ctx, model.KindMovie, model.NSIMDb, "tt0133093")
 	if err != nil {
@@ -227,8 +227,8 @@ func TestMovieByIMDbAndSeriesByTVDB(t *testing.T) {
 	if f := fields(t, claims, model.KindMovie, model.NSIMDb, "tt0133093"); f[model.XIDField("tmdb")] != "movie/603" {
 		t.Fatalf("imdb movie = %v", f)
 	}
-	if log.last().URL.Query().Has("client_key") {
-		t.Fatal("sent an empty client key")
+	if q := log.last().URL.Query(); len(q) != 1 || q.Get("api_key") != "project-key" {
+		t.Fatalf("query = %v", q)
 	}
 	claims, err = src.Lookup(ctx, model.KindSeries, model.NSTVDB, "series/81189")
 	if err != nil {
@@ -255,12 +255,12 @@ func TestMovieByIMDbAndSeriesByTVDB(t *testing.T) {
 }
 
 func TestUnsupportedNeverCalls(t *testing.T) {
-	src, _, log := newSource(t)
+	src, _, log := newSource(t, "project-key")
 	ctx := context.Background()
+	configure(t, src)
 	if _, err := src.Search(ctx, "", "The Matrix", 1999); !errors.Is(err, catalog.ErrUnsupported) {
-		t.Fatalf("search without key = %v", err)
+		t.Fatalf("search = %v", err)
 	}
-	configure(t, src, "project-key", "")
 	if _, err := src.Search(ctx, model.KindMovie, "The Matrix", 1999); !errors.Is(err, catalog.ErrUnsupported) {
 		t.Fatalf("search = %v", err)
 	}
@@ -296,16 +296,10 @@ func TestUnsupportedNeverCalls(t *testing.T) {
 	}
 }
 
-func TestMissingKeyAndErrors(t *testing.T) {
-	src, rec, log := newSource(t)
+func TestNotFoundAndRejectedKey(t *testing.T) {
+	src, rec, _ := newSource(t, "project-key")
 	ctx := context.Background()
-	if _, err := src.Lookup(ctx, model.KindMovie, model.NSTMDB, "movie/603"); !errors.Is(err, ErrNoKey) {
-		t.Fatalf("no key = %v", err)
-	}
-	if log.count() != 0 {
-		t.Fatalf("calls = %d", log.count())
-	}
-	configure(t, src, "project-key", "")
+	configure(t, src)
 	claims, err := src.Lookup(ctx, model.KindMovie, model.NSTMDB, "movie/999999")
 	if err != nil || claims != nil {
 		t.Fatalf("404 = %v %v", claims, err)
@@ -313,9 +307,9 @@ func TestMissingKeyAndErrors(t *testing.T) {
 	if r := rec.byPath(t, "/v3/movies/999999"); r.Status != http.StatusNotFound || r.ExtValue != "movie/999999" {
 		t.Fatalf("404 record = %+v", r)
 	}
-	configure(t, src, "revoked", "")
+	rejected, _, _ := newSource(t, "revoked")
 	var se *outbound.StatusError
-	if _, err := src.Lookup(ctx, model.KindSeries, model.NSTVDB, "series/81189"); !errors.As(err, &se) || se.Status != http.StatusUnauthorized {
+	if _, err := rejected.Lookup(ctx, model.KindSeries, model.NSTVDB, "series/81189"); !errors.As(err, &se) || se.Status != http.StatusUnauthorized {
 		t.Fatalf("401 = %v", err)
 	}
 }

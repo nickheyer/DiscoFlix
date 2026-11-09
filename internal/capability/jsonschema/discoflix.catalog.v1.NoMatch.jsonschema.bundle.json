@@ -79,7 +79,7 @@
         },
         "state": {
           "default": "",
-          "description": "answered, empty, disabled, unconfigured, unreachable, missing, budget, open, skipped",
+          "description": "answered, empty, disabled, unreachable, missing, budget, open, skipped",
           "type": "string"
         }
       },

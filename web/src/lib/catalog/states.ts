@@ -13,7 +13,6 @@ const outcomes: StateTable = {
 	answered: { label: 'Answered', tone: 'success' },
 	empty: { label: 'No results', tone: 'neutral' },
 	disabled: { label: 'Disabled', tone: 'neutral' },
-	unconfigured: { label: 'Needs a key', tone: 'warning' },
 	unreachable: { label: 'Unreachable', tone: 'danger' },
 	missing: { label: 'No data yet', tone: 'warning' },
 	budget: { label: 'Over budget', tone: 'warning' },
@@ -26,7 +25,6 @@ const sources: StateTable = {
 	failing: { label: 'Failing', tone: 'danger' },
 	open: { label: 'Paused after failures', tone: 'danger' },
 	disabled: { label: 'Disabled', tone: 'neutral' },
-	unconfigured: { label: 'Needs a key', tone: 'warning' },
 	idle: { label: 'Idle', tone: 'info' }
 };
 

@@ -34,7 +34,7 @@
 		enabled: session.isAdmin && !!entity && !entity.poster && !entity.backdrop
 	}));
 	const artworkHint = $derived(
-		status.data ? artworkNotice(artworkSourcesFromStatus(status.data.sources)) : { message: '', needsKey: false }
+		status.data ? artworkNotice(artworkSourcesFromStatus(status.data.sources)) : { message: '', allDisabled: false }
 	);
 	const claims = $derived(groupClaims(query.data?.claims ?? []));
 	const children = $derived(sortChildren(query.data?.children ?? []));
@@ -174,8 +174,8 @@
 							{#if !entity.poster && artworkHint.message}
 								<p class="text-xs text-interactive">
 									{artworkHint.message}
-									{#if artworkHint.needsKey}
-										<a href="/settings/catalog" class="text-link underline">Add one under Settings &gt; Catalog.</a>
+									{#if artworkHint.allDisabled}
+										<a href="/settings/catalog" class="text-link underline">Enable one under Settings &gt; Catalog.</a>
 									{/if}
 								</p>
 							{/if}

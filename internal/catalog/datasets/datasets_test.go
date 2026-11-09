@@ -258,10 +258,10 @@ func TestList(t *testing.T) {
 		p := src.Policy()
 		if d.ID != w.id || d.Kind != "metadata-source" || d.Origin != "builtin" || src.Name() != w.name ||
 			strings.Join(src.Namespaces(), " ") != w.ns || strings.Join(src.Kinds(), " ") != w.kinds ||
-			src.NeedsKey() || !isLocal || !local.Local() || p.Name != w.policy || p.Rate != 0 || p.Budget != 0 {
+			!isLocal || !local.Local() || p.Name != w.policy || p.Rate != 0 || p.Budget != 0 {
 			t.Fatalf("source %d described as %+v policy %+v", i, d, p)
 		}
-		if err := src.Configure(catalog.Keys{}, map[string]string{"language": "de"}); err != nil {
+		if err := src.Configure(map[string]string{"language": "de"}); err != nil {
 			t.Fatalf("configure %s: %v", w.name, err)
 		}
 	}

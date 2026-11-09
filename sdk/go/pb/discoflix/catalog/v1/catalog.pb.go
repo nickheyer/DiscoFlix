@@ -731,7 +731,7 @@ func (x *Entity) GetParentTitle() string {
 type SourceOutcome struct {
 	state  protoimpl.MessageState `protogen:"open.v1"`
 	Source string                 `protobuf:"bytes,1,opt,name=source" json:"source,omitempty"`
-	// answered, empty, disabled, unconfigured, unreachable, missing, budget, open, skipped
+	// answered, empty, disabled, unreachable, missing, budget, open, skipped
 	State      string `protobuf:"bytes,2,opt,name=state" json:"state,omitempty"`
 	Detail     string `protobuf:"bytes,3,opt,name=detail" json:"detail,omitempty"`
 	Results    int32  `protobuf:"varint,4,opt,name=results" json:"results,omitempty"`
@@ -1751,22 +1751,16 @@ type Source struct {
 	Name    string                 `protobuf:"bytes,1,opt,name=name" json:"name,omitempty"`
 	Title   string                 `protobuf:"bytes,2,opt,name=title" json:"title,omitempty"`
 	Enabled bool                   `protobuf:"varint,3,opt,name=enabled" json:"enabled,omitempty"`
-	// A key is stored, or none is needed
-	Configured bool `protobuf:"varint,4,opt,name=configured" json:"configured,omitempty"`
-	NeedsKey   bool `protobuf:"varint,5,opt,name=needs_key,json=needsKey" json:"needs_key,omitempty"`
-	// Where the administrator obtains the key
-	KeyHint string `protobuf:"bytes,6,opt,name=key_hint,json=keyHint" json:"key_hint,omitempty"`
-	// ok, failing, open, disabled, unconfigured, idle
-	State        string                 `protobuf:"bytes,7,opt,name=state" json:"state,omitempty"`
-	LastError    string                 `protobuf:"bytes,8,opt,name=last_error,json=lastError" json:"last_error,omitempty"`
-	LastOkAt     *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=last_ok_at,json=lastOkAt" json:"last_ok_at,omitempty"`
-	LastErrorAt  *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=last_error_at,json=lastErrorAt" json:"last_error_at,omitempty"`
-	CallsToday   int32                  `protobuf:"varint,11,opt,name=calls_today,json=callsToday" json:"calls_today,omitempty"`
-	Budget       int32                  `protobuf:"varint,12,opt,name=budget" json:"budget,omitempty"`
-	License      string                 `protobuf:"bytes,13,opt,name=license" json:"license,omitempty"`
-	Namespaces   []string               `protobuf:"bytes,14,rep,name=namespaces" json:"namespaces,omitempty"`
-	Options      map[string]string      `protobuf:"bytes,15,rep,name=options" json:"options,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	HasClientKey bool                   `protobuf:"varint,16,opt,name=has_client_key,json=hasClientKey" json:"has_client_key,omitempty"`
+	// ok, failing, open, disabled, idle
+	State       string                 `protobuf:"bytes,7,opt,name=state" json:"state,omitempty"`
+	LastError   string                 `protobuf:"bytes,8,opt,name=last_error,json=lastError" json:"last_error,omitempty"`
+	LastOkAt    *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=last_ok_at,json=lastOkAt" json:"last_ok_at,omitempty"`
+	LastErrorAt *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=last_error_at,json=lastErrorAt" json:"last_error_at,omitempty"`
+	CallsToday  int32                  `protobuf:"varint,11,opt,name=calls_today,json=callsToday" json:"calls_today,omitempty"`
+	Budget      int32                  `protobuf:"varint,12,opt,name=budget" json:"budget,omitempty"`
+	License     string                 `protobuf:"bytes,13,opt,name=license" json:"license,omitempty"`
+	Namespaces  []string               `protobuf:"bytes,14,rep,name=namespaces" json:"namespaces,omitempty"`
+	Options     map[string]string      `protobuf:"bytes,15,rep,name=options" json:"options,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	// The source offers posters, backdrops, or logos
 	Artwork       bool `protobuf:"varint,17,opt,name=artwork" json:"artwork,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -1822,27 +1816,6 @@ func (x *Source) GetEnabled() bool {
 		return x.Enabled
 	}
 	return false
-}
-
-func (x *Source) GetConfigured() bool {
-	if x != nil {
-		return x.Configured
-	}
-	return false
-}
-
-func (x *Source) GetNeedsKey() bool {
-	if x != nil {
-		return x.NeedsKey
-	}
-	return false
-}
-
-func (x *Source) GetKeyHint() string {
-	if x != nil {
-		return x.KeyHint
-	}
-	return ""
 }
 
 func (x *Source) GetState() string {
@@ -1906,13 +1879,6 @@ func (x *Source) GetOptions() map[string]string {
 		return x.Options
 	}
 	return nil
-}
-
-func (x *Source) GetHasClientKey() bool {
-	if x != nil {
-		return x.HasClientKey
-	}
-	return false
 }
 
 func (x *Source) GetArtwork() bool {
@@ -2402,15 +2368,10 @@ func (x *GetCatalogStatusResponse) GetLanguage() string {
 }
 
 type ConfigureSourceRequest struct {
-	state   protoimpl.MessageState `protogen:"open.v1"`
-	Source  string                 `protobuf:"bytes,1,opt,name=source" json:"source,omitempty"`
-	Enabled bool                   `protobuf:"varint,2,opt,name=enabled" json:"enabled,omitempty"`
-	// Empty keeps the stored key
-	ApiKey string `protobuf:"bytes,3,opt,name=api_key,json=apiKey" json:"api_key,omitempty"`
-	// Empty keeps the stored client key
-	ClientKey     string            `protobuf:"bytes,4,opt,name=client_key,json=clientKey" json:"client_key,omitempty"`
-	Options       map[string]string `protobuf:"bytes,5,rep,name=options" json:"options,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	ClearKeys     bool              `protobuf:"varint,6,opt,name=clear_keys,json=clearKeys" json:"clear_keys,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Source        string                 `protobuf:"bytes,1,opt,name=source" json:"source,omitempty"`
+	Enabled       bool                   `protobuf:"varint,2,opt,name=enabled" json:"enabled,omitempty"`
+	Options       map[string]string      `protobuf:"bytes,5,rep,name=options" json:"options,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2459,32 +2420,11 @@ func (x *ConfigureSourceRequest) GetEnabled() bool {
 	return false
 }
 
-func (x *ConfigureSourceRequest) GetApiKey() string {
-	if x != nil {
-		return x.ApiKey
-	}
-	return ""
-}
-
-func (x *ConfigureSourceRequest) GetClientKey() string {
-	if x != nil {
-		return x.ClientKey
-	}
-	return ""
-}
-
 func (x *ConfigureSourceRequest) GetOptions() map[string]string {
 	if x != nil {
 		return x.Options
 	}
 	return nil
-}
-
-func (x *ConfigureSourceRequest) GetClearKeys() bool {
-	if x != nil {
-		return x.ClearKeys
-	}
-	return false
 }
 
 type ConfigureSourceResponse struct {
@@ -2989,16 +2929,11 @@ const file_discoflix_catalog_v1_catalog_proto_rawDesc = "" +
 	"\tentity_id\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\bentityId\"8\n" +
 	"\x15RefreshEntityResponse\x12\x1f\n" +
 	"\vworkflow_id\x18\x01 \x01(\tR\n" +
-	"workflowId\"\x87\x05\n" +
+	"workflowId\"\x95\x04\n" +
 	"\x06Source\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12\x18\n" +
-	"\aenabled\x18\x03 \x01(\bR\aenabled\x12\x1e\n" +
-	"\n" +
-	"configured\x18\x04 \x01(\bR\n" +
-	"configured\x12\x1b\n" +
-	"\tneeds_key\x18\x05 \x01(\bR\bneedsKey\x12\x19\n" +
-	"\bkey_hint\x18\x06 \x01(\tR\akeyHint\x12\x14\n" +
+	"\aenabled\x18\x03 \x01(\bR\aenabled\x12\x14\n" +
 	"\x05state\x18\a \x01(\tR\x05state\x12\x1d\n" +
 	"\n" +
 	"last_error\x18\b \x01(\tR\tlastError\x128\n" +
@@ -3013,12 +2948,11 @@ const file_discoflix_catalog_v1_catalog_proto_rawDesc = "" +
 	"\n" +
 	"namespaces\x18\x0e \x03(\tR\n" +
 	"namespaces\x12C\n" +
-	"\aoptions\x18\x0f \x03(\v2).discoflix.catalog.v1.Source.OptionsEntryR\aoptions\x12$\n" +
-	"\x0ehas_client_key\x18\x10 \x01(\bR\fhasClientKey\x12\x18\n" +
+	"\aoptions\x18\x0f \x03(\v2).discoflix.catalog.v1.Source.OptionsEntryR\aoptions\x12\x18\n" +
 	"\aartwork\x18\x11 \x01(\bR\aartwork\x1a:\n" +
 	"\fOptionsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xff\x02\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01J\x04\b\x04\x10\aJ\x04\b\x10\x10\x11\"\xff\x02\n" +
 	"\bSnapshot\x12\x18\n" +
 	"\aversion\x18\x01 \x01(\tR\aversion\x125\n" +
 	"\bbuilt_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\abuiltAt\x12\x14\n" +
@@ -3069,19 +3003,14 @@ const file_discoflix_catalog_v1_catalog_proto_rawDesc = "" +
 	"\x06claims\x18\x06 \x01(\x03R\x06claims\x12\x1a\n" +
 	"\bartworks\x18\a \x01(\x03R\bartworks\x12\x14\n" +
 	"\x05peers\x18\b \x03(\tR\x05peers\x12\x1a\n" +
-	"\blanguage\x18\t \x01(\tR\blanguage\"\xd1\x02\n" +
+	"\blanguage\x18\t \x01(\tR\blanguage\"\xf8\x01\n" +
 	"\x16ConfigureSourceRequest\x12!\n" +
 	"\x06source\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18 R\x06source\x12\x18\n" +
-	"\aenabled\x18\x02 \x01(\bR\aenabled\x12!\n" +
-	"\aapi_key\x18\x03 \x01(\tB\b\xbaH\x05r\x03\x18\x80\x02R\x06apiKey\x12'\n" +
-	"\n" +
-	"client_key\x18\x04 \x01(\tB\b\xbaH\x05r\x03\x18\x80\x02R\tclientKey\x12S\n" +
-	"\aoptions\x18\x05 \x03(\v29.discoflix.catalog.v1.ConfigureSourceRequest.OptionsEntryR\aoptions\x12\x1d\n" +
-	"\n" +
-	"clear_keys\x18\x06 \x01(\bR\tclearKeys\x1a:\n" +
+	"\aenabled\x18\x02 \x01(\bR\aenabled\x12S\n" +
+	"\aoptions\x18\x05 \x03(\v29.discoflix.catalog.v1.ConfigureSourceRequest.OptionsEntryR\aoptions\x1a:\n" +
 	"\fOptionsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"O\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01J\x04\b\x03\x10\x04J\x04\b\x04\x10\x05J\x04\b\x06\x10\a\"O\n" +
 	"\x17ConfigureSourceResponse\x124\n" +
 	"\x06source\x18\x01 \x01(\v2\x1c.discoflix.catalog.v1.SourceR\x06source\"\x8e\x01\n" +
 	"\x17ConfigureCatalogRequest\x12'\n" +
@@ -3110,7 +3039,7 @@ const file_discoflix_catalog_v1_catalog_proto_rawDesc = "" +
 	"\x11ENTITY_KIND_MOVIE\x10\x01\x12\x16\n" +
 	"\x12ENTITY_KIND_SERIES\x10\x02\x12\x16\n" +
 	"\x12ENTITY_KIND_SEASON\x10\x03\x12\x17\n" +
-	"\x13ENTITY_KIND_EPISODE\x10\x042\x83\x14\n" +
+	"\x13ENTITY_KIND_EPISODE\x10\x042\x84\x14\n" +
 	"\x0eCatalogService\x12\xf5\x01\n" +
 	"\x0eSearchEntities\x12+.discoflix.catalog.v1.SearchEntitiesRequest\x1a,.discoflix.catalog.v1.SearchEntitiesResponse\"\x87\x01\xa2\xbb\x18\x82\x01\n" +
 	"\fcatalog.read\x10\x012\x12Search the catalog:\\Rank movies and series matching a title from the local graph, the snapshot, and live sources\x12\xd4\x01\n" +
@@ -3129,9 +3058,9 @@ const file_discoflix_catalog_v1_catalog_proto_rawDesc = "" +
 	"\rRefreshEntity\x12*.discoflix.catalog.v1.RefreshEntityRequest\x1a+.discoflix.catalog.v1.RefreshEntityResponse\"l\xa2\xbb\x18h\n" +
 	"\fcatalog.edit\x10\x022\x0eRefresh entity:FFetch the entity again from every enabled source as a durable workflow\x12\xcf\x01\n" +
 	"\x10GetCatalogStatus\x12-.discoflix.catalog.v1.GetCatalogStatusRequest\x1a..discoflix.catalog.v1.GetCatalogStatusResponse\"\\\xa2\xbb\x18X\n" +
-	"\rcatalog.admin\x10\x012\x0eCatalog status:5Snapshot, sources, dataset imports, and matcher state\x12\xcf\x01\n" +
-	"\x0fConfigureSource\x12,.discoflix.catalog.v1.ConfigureSourceRequest\x1a-.discoflix.catalog.v1.ConfigureSourceResponse\"_\xa2\xbb\x18[\n" +
-	"\rcatalog.admin\x10\x022\x10Configure source:6Enable or disable a metadata source and store its keys\x12\xd3\x01\n" +
+	"\rcatalog.admin\x10\x012\x0eCatalog status:5Snapshot, sources, dataset imports, and matcher state\x12\xd0\x01\n" +
+	"\x0fConfigureSource\x12,.discoflix.catalog.v1.ConfigureSourceRequest\x1a-.discoflix.catalog.v1.ConfigureSourceResponse\"`\xa2\xbb\x18\\\n" +
+	"\rcatalog.admin\x10\x022\x10Configure source:7Enable or disable a metadata source and set its options\x12\xd3\x01\n" +
 	"\x10ConfigureCatalog\x12-.discoflix.catalog.v1.ConfigureCatalogRequest\x1a..discoflix.catalog.v1.ConfigureCatalogResponse\"`\xa2\xbb\x18\\\n" +
 	"\rcatalog.admin\x10\x022\x11Configure catalog:6Set the snapshot mirror, peers, and preferred language\x12\xd2\x01\n" +
 	"\x0eUpdateSnapshot\x12+.discoflix.catalog.v1.UpdateSnapshotRequest\x1a,.discoflix.catalog.v1.UpdateSnapshotResponse\"e\xa2\xbb\x18a\n" +

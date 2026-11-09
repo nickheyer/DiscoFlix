@@ -35,6 +35,7 @@ import (
 	"github.com/nickheyer/DiscoFlix/internal/catalog/source/tvdb"
 	"github.com/nickheyer/DiscoFlix/internal/catalog/source/wikidata"
 	"github.com/nickheyer/DiscoFlix/internal/config"
+	"github.com/nickheyer/DiscoFlix/internal/credentials"
 	"github.com/nickheyer/DiscoFlix/internal/discord"
 	"github.com/nickheyer/DiscoFlix/internal/extension"
 	"github.com/nickheyer/DiscoFlix/internal/gateway"
@@ -96,6 +97,9 @@ type App struct {
 
 // New opens the stores, migrates, seeds the system space, and assembles the HTTP handler
 func New(ctx context.Context, opts Options) (*App, error) {
+	if missing := credentials.Missing(); len(missing) > 0 {
+		return nil, fmt.Errorf("app: this binary was linked without %s, build with task or make so .env fills the linker flags", strings.Join(missing, ", "))
+	}
 	log := opts.Log
 	cfg := opts.Config
 	secrets, err := config.OpenSecrets(cfg.DataDir)
@@ -190,14 +194,13 @@ func New(ctx context.Context, opts Options) (*App, error) {
 	}
 	bulk := datasets.New(st.DB, st.Ent, client, cfg.DataDir, log.With("component", "datasets"))
 	matcher := match.New()
-	sources := append([]catalog.Source{snapshots, tmdb.New(client), tvdb.New(client), trakt.New(client), fanart.New(client), wikidata.New(client)}, bulk.Sources()...)
+	sources := append([]catalog.Source{snapshots, tmdb.New(client, credentials.TMDB), tvdb.New(client, credentials.TVDB), trakt.New(client, credentials.Trakt), fanart.New(client, credentials.Fanart), wikidata.New(client)}, bulk.Sources()...)
 	art := artwork.New(cfg.DataDir, client, st.Ent, log.With("component", "artwork"))
 	if a.catalog, err = catalog.New(ctx, catalog.Deps{
 		Ent:        st.Ent,
 		DB:         st.DB,
 		Timeline:   a.tl,
 		Check:      check,
-		Secrets:    secrets,
 		Settings:   store.NewSettings(st.Ent),
 		Workflows:  a.workflows,
 		Outbound:   client,

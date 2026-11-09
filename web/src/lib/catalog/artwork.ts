@@ -41,7 +41,8 @@ export interface ArtworkSource {
 
 export interface ArtworkNotice {
 	message: string;
-	needsKey: boolean;
+	// Every artwork source is switched off, so an administrator can fix it in settings
+	allDisabled: boolean;
 }
 
 const WORKING = new Set(['answered', 'empty']);
@@ -56,7 +57,6 @@ export function artworkSourcesFromStatus(sources: Source[]): ArtworkSource[] {
 	return sources.map((s) => {
 		let state = 'answered';
 		if (!s.enabled) state = 'disabled';
-		else if (!s.configured) state = 'unconfigured';
 		else if (s.state === 'open') state = 'open';
 		else if (s.state === 'failing') state = 'unreachable';
 		return { source: s.name, artwork: s.artwork, state };
@@ -73,18 +73,22 @@ function joinNames(names: string[]): string {
 export function artworkNotice(sources: ArtworkSource[]): ArtworkNotice {
 	const capable = sources.filter((s) => s.artwork);
 	if (capable.length === 0) {
-		return { message: 'No installed source offers posters or backdrops.', needsKey: false };
+		return { message: 'No installed source offers posters or backdrops.', allDisabled: false };
 	}
-	if (capable.some((s) => WORKING.has(s.state))) return { message: '', needsKey: false };
+	if (capable.some((s) => WORKING.has(s.state))) return { message: '', allDisabled: false };
+	const names = joinNames(capable.map((s) => sourceLabel(s.source)));
 	const down = capable.filter((s) => DOWN.has(s.state));
 	if (down.length > 0) {
 		return {
 			message: `${joinNames(down.map((s) => sourceLabel(s.source)))} could not be reached, so no artwork arrived.`,
-			needsKey: false
+			allDisabled: false
 		};
 	}
-	return {
-		message: `Posters and backdrops come from ${joinNames(capable.map((s) => sourceLabel(s.source)))}, none of which is enabled with a key.`,
-		needsKey: true
-	};
+	if (capable.every((s) => s.state === 'skipped')) {
+		return {
+			message: `Posters and backdrops come from ${names}, which a local-only search skips.`,
+			allDisabled: false
+		};
+	}
+	return { message: `Posters and backdrops come from ${names}, all of which are disabled.`, allDisabled: true };
 }

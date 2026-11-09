@@ -54,14 +54,12 @@ func (*imdbSource) Kinds() []string {
 	return []string{model.KindMovie, model.KindSeries, model.KindSeason, model.KindEpisode}
 }
 
-func (*imdbSource) NeedsKey() bool  { return false }
 func (*imdbSource) Artwork() bool   { return false }
-func (*imdbSource) KeyHint() string { return "" }
 func (*imdbSource) License() string { return imdbLicense }
 func (*imdbSource) Local() bool     { return true }
 
-// Accepts any keys and options since lookups and searches read only the loaded tables
-func (*imdbSource) Configure(catalog.Keys, map[string]string) error {
+// Accepts any options since lookups and searches read only the loaded tables
+func (*imdbSource) Configure(map[string]string) error {
 	return nil
 }
 

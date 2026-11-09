@@ -99,7 +99,7 @@ func (s *server) count() int {
 	return len(s.requests)
 }
 
-func newSource(t *testing.T, routes map[string]string) (*Source, *memRecorder, *server) {
+func newSource(t *testing.T, key string, routes map[string]string) (*Source, *memRecorder, *server) {
 	t.Helper()
 	log := &server{}
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -129,14 +129,14 @@ func newSource(t *testing.T, routes map[string]string) (*Source, *memRecorder, *
 	rec := &memRecorder{}
 	client := outbound.New(rec, "DiscoFlix/test", slog.New(slog.DiscardHandler))
 	client.SetHTTPClient(&http.Client{Transport: rewrite{target: target}})
-	src := New(client)
+	src := New(client, key)
 	client.Register(src.Policy())
 	return src, rec, log
 }
 
 func configure(t *testing.T, s *Source, lang string) {
 	t.Helper()
-	if err := s.Configure(catalog.Keys{APIKey: "client-id"}, map[string]string{"language": lang}); err != nil {
+	if err := s.Configure(map[string]string{"language": lang}); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -179,7 +179,7 @@ func routes() map[string]string {
 }
 
 func TestSearch(t *testing.T) {
-	src, rec, log := newSource(t, routes())
+	src, rec, log := newSource(t, "client-id", routes())
 	configure(t, src, "en")
 	claims, err := src.Search(context.Background(), "", "matrix", 1999)
 	if err != nil {
@@ -216,7 +216,7 @@ func TestSearch(t *testing.T) {
 }
 
 func TestLookupShowEmitsSeasonsAndEpisodes(t *testing.T) {
-	src, rec, log := newSource(t, routes())
+	src, rec, log := newSource(t, "client-id", routes())
 	configure(t, src, "en")
 	claims, err := src.Lookup(context.Background(), model.KindSeries, model.NSTrakt, "show/breaking-bad")
 	if err != nil {
@@ -256,7 +256,7 @@ func TestLookupShowEmitsSeasonsAndEpisodes(t *testing.T) {
 }
 
 func TestLookupForeignIDs(t *testing.T) {
-	src, rec, log := newSource(t, routes())
+	src, rec, log := newSource(t, "client-id", routes())
 	configure(t, src, "en")
 	ctx := context.Background()
 	claims, err := src.Lookup(ctx, model.KindMovie, model.NSIMDb, "tt0133093")
@@ -320,7 +320,7 @@ func TestLookupForeignIDs(t *testing.T) {
 }
 
 func TestTranslations(t *testing.T) {
-	src, rec, log := newSource(t, routes())
+	src, rec, log := newSource(t, "client-id", routes())
 	configure(t, src, "es-MX")
 	ctx := context.Background()
 	claims, err := src.Lookup(ctx, model.KindMovie, model.NSTrakt, "movie/the-matrix-1999")
@@ -353,21 +353,8 @@ func TestTranslations(t *testing.T) {
 	}
 }
 
-func TestMissingKeyFailsBeforeCalling(t *testing.T) {
-	src, _, log := newSource(t, routes())
-	if _, err := src.Lookup(context.Background(), model.KindMovie, model.NSTrakt, "movie/the-matrix-1999"); !errors.Is(err, ErrNoKey) {
-		t.Fatalf("lookup = %v", err)
-	}
-	if _, err := src.Search(context.Background(), "", "matrix", 0); !errors.Is(err, ErrNoKey) {
-		t.Fatalf("search = %v", err)
-	}
-	if log.count() != 0 {
-		t.Fatalf("calls = %d", log.count())
-	}
-}
-
 func TestNotFoundAndErrors(t *testing.T) {
-	src, rec, _ := newSource(t, routes())
+	src, rec, _ := newSource(t, "client-id", routes())
 	configure(t, src, "en")
 	ctx := context.Background()
 	if claims, err := src.Lookup(ctx, model.KindMovie, model.NSTrakt, "movie/no-such-movie"); err != nil || claims != nil {
@@ -376,11 +363,9 @@ func TestNotFoundAndErrors(t *testing.T) {
 	if r := rec.byPath(t, "/movies/no-such-movie"); r.Status != http.StatusNotFound {
 		t.Fatalf("404 record = %+v", r)
 	}
-	if err := src.Configure(catalog.Keys{APIKey: "revoked"}, nil); err != nil {
-		t.Fatal(err)
-	}
+	revoked, _, _ := newSource(t, "revoked", routes())
 	var se *outbound.StatusError
-	if _, err := src.Lookup(ctx, model.KindMovie, model.NSTrakt, "movie/the-matrix-1999"); !errors.As(err, &se) || se.Status != http.StatusForbidden {
+	if _, err := revoked.Lookup(ctx, model.KindMovie, model.NSTrakt, "movie/the-matrix-1999"); !errors.As(err, &se) || se.Status != http.StatusForbidden {
 		t.Fatalf("revoked key = %v", err)
 	}
 	if _, err := src.Lookup(ctx, model.KindMovie, model.NSTrakt, "film/481"); err == nil {

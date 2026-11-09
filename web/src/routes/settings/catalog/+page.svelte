@@ -212,7 +212,7 @@
 			</form>
 		</SettingsSection>
 
-		<SettingsSection title="Sources" description="Every live metadata source is optional, enable and key them here">
+		<SettingsSection title="Sources" description="Live metadata sources, each one can be switched off">
 			{#if st.sources.length === 0}
 				<p class="text-sm text-faint">No metadata source is registered on this server</p>
 			{:else}

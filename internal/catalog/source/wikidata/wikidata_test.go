@@ -234,7 +234,7 @@ var matrixWDQS = tsv(itemHeader,
 func TestLookupFallsBackToQueryService(t *testing.T) {
 	e := &endpoints{qlever: http.StatusServiceUnavailable, wdqs: http.StatusOK, resolve: tsv("?item", []string{q("Q83495")}), facts: matrixWDQS}
 	src, rec := newSource(t, e)
-	if err := src.Configure(catalog.Keys{}, map[string]string{"language": "es"}); err != nil {
+	if err := src.Configure(map[string]string{"language": "es"}); err != nil {
 		t.Fatal(err)
 	}
 	claims, err := src.Lookup(context.Background(), model.KindMovie, model.NSIMDb, "tt0133093")
@@ -490,7 +490,7 @@ func TestParseTerms(t *testing.T) {
 		}
 	}
 	src := New(nil)
-	if err := src.Configure(catalog.Keys{}, map[string]string{"language": "pt-BR"}); err != nil {
+	if err := src.Configure(map[string]string{"language": "pt-BR"}); err != nil {
 		t.Fatal(err)
 	}
 	if langs, base := src.languages(); !slices.Equal(langs, []string{"pt-br", "pt", "en", "mul"}) || base != "pt" {

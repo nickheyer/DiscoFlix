@@ -92,7 +92,7 @@ func TestSourceDescriptor(t *testing.T) {
 	if d.ID != "discoflix.source.snapshot" || d.Name != "Wikidata snapshot" || d.Version != "1" || d.Kind != extension.KindMetadataSource || d.Origin != "builtin" {
 		t.Fatalf("descriptor = %+v", d)
 	}
-	if s.Name() != catalog.SourceSnapshot || !s.Local() || s.NeedsKey() || s.KeyHint() != "" || s.License() != "CC0-1.0" {
+	if s.Name() != catalog.SourceSnapshot || !s.Local() || s.License() != "CC0-1.0" {
 		t.Fatal("source identity is wrong")
 	}
 	if !slices.Equal(s.Kinds(), model.Kinds) || !slices.Contains(s.Namespaces(), model.NSKinopoisk) || !slices.Contains(s.Namespaces(), model.NSWikidata) {
@@ -315,10 +315,10 @@ func lookups(ctx context.Context, t *testing.T, s *Service) {
 		!slices.Equal(amelie[model.FieldAliases][0].([]string), []string{"Amelie", "Amélie Poulain"}) || !slices.Equal(amelie[model.FieldCountries][0].([]string), []string{"DE", "FR"}) {
 		t.Fatalf("amelie = %v", amelie)
 	}
-	if err := s.Configure(catalog.Keys{}, map[string]string{"language": "FR"}); err != nil {
+	if err := s.Configure(map[string]string{"language": "FR"}); err != nil {
 		t.Fatal(err)
 	}
-	defer func() { _ = s.Configure(catalog.Keys{}, map[string]string{"language": "en"}) }()
+	defer func() { _ = s.Configure(map[string]string{"language": "en"}) }()
 	french := fields(t, must(s.Lookup(ctx, model.KindMovie, model.NSTMDB, "movie/194")), model.NSTMDB, "movie/194")
 	if french[model.FieldTitle][0] != "Le Fabuleux Destin d'Amélie Poulain" || !slices.Contains(french[model.FieldAliases][0].([]string), "Amélie") {
 		t.Fatalf("amelie in french = %v", french)

@@ -63,20 +63,15 @@ func (s *Service) SourceProto(ctx context.Context, name string) (*catalogv1.Sour
 	if !ok {
 		return nil, ErrUnknownSource
 	}
-	keys := s.keysFor(name)
 	out := &catalogv1.Source{
-		Name:         name,
-		Title:        e.Describe().Name,
-		Enabled:      e.enabled,
-		Configured:   s.configured(e),
-		NeedsKey:     e.NeedsKey(),
-		KeyHint:      e.KeyHint(),
-		License:      e.License(),
-		Namespaces:   e.Namespaces(),
-		Options:      e.options,
-		HasClientKey: keys.ClientKey != "",
-		Budget:       int32(e.Policy().Budget),
-		Artwork:      e.Artwork(),
+		Name:       name,
+		Title:      e.Describe().Name,
+		Enabled:    e.enabled,
+		License:    e.License(),
+		Namespaces: e.Namespaces(),
+		Options:    e.options,
+		Budget:     int32(e.Policy().Budget),
+		Artwork:    e.Artwork(),
 	}
 	row, err := s.Ent.SourceState.Get(ctx, name)
 	if err != nil && !ent.IsNotFound(err) {
@@ -95,8 +90,6 @@ func (s *Service) SourceProto(ctx context.Context, name string) (*catalogv1.Sour
 	switch {
 	case !e.enabled:
 		out.State = "disabled"
-	case !out.Configured:
-		out.State = "unconfigured"
 	case live && health.Breaker == "open":
 		out.State = "open"
 	case row != nil && row.LastErrorAt != nil && (row.LastOkAt == nil || row.LastErrorAt.After(*row.LastOkAt)):

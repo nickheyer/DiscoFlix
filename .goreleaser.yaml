@@ -19,6 +19,10 @@ builds:
       - production
     ldflags:
       - -s -w -X main.version={{.Version}} -X main.commit={{.ShortCommit}}
+      - -X github.com/nickheyer/DiscoFlix/internal/credentials.TMDB={{ .Env.TMDB_API_KEY }}
+      - -X github.com/nickheyer/DiscoFlix/internal/credentials.TVDB={{ .Env.TVDB_API_KEY }}
+      - -X github.com/nickheyer/DiscoFlix/internal/credentials.Trakt={{ .Env.TRAKT_CLIENT_ID }}
+      - -X github.com/nickheyer/DiscoFlix/internal/credentials.Fanart={{ .Env.FATV_PROJECT_API_KEY }}
     goos: [linux, windows, darwin]
     goarch: [amd64, arm64]
 
@@ -68,16 +72,6 @@ dockers_v2:
     labels:
       org.opencontainers.image.source: https://github.com/nickheyer/DiscoFlix
       org.opencontainers.image.licenses: AGPL-3.0
-
-homebrew_casks:
-  - name: discoflix
-    ids: [discoflix]
-    repository:
-      owner: nickheyer
-      name: homebrew-tap
-    homepage: https://github.com/nickheyer/DiscoFlix
-    description: One binary that searches, downloads, catalogs, transcodes, and takes requests for a home media collection
-    license: AGPL-3.0
 
 scoops:
   - name: discoflix

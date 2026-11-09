@@ -27,9 +27,6 @@ const (
 	license = "fanart.tv API terms"
 )
 
-// Fails every lookup made before a project key is configured
-var ErrNoKey = errors.New("fanart: no api key configured, get a project key at https://fanart.tv/get-an-api-key/")
-
 // Explains that fanart.tv indexes artwork by id and has no title search
 var errSearch = fmt.Errorf("%w: fanart.tv finds artwork by id only", catalog.ErrUnsupported)
 
@@ -38,16 +35,15 @@ var imdbID = regexp.MustCompile(`^tt[0-9]+$`)
 // Answers catalog artwork lookups from fanart.tv
 type Source struct {
 	client *outbound.Client
+	key    string
 
-	mu        sync.RWMutex
-	key       string
-	clientKey string
-	lang      string
+	mu   sync.RWMutex
+	lang string
 }
 
-// Returns a source that calls fanart.tv through the outbound client
-func New(client *outbound.Client) *Source {
-	return &Source{client: client, lang: "en"}
+// Returns a source that calls fanart.tv through the outbound client with the project's api key
+func New(client *outbound.Client, key string) *Source {
+	return &Source{client: client, key: strings.TrimSpace(key), lang: "en"}
 }
 
 func (s *Source) Describe() extension.Descriptor {
@@ -64,19 +60,13 @@ func (s *Source) Namespaces() []string { return []string{model.NSTMDB, model.NSI
 
 func (s *Source) Kinds() []string { return []string{model.KindMovie, model.KindSeries} }
 
-func (s *Source) NeedsKey() bool { return true }
-
 // Every record is artwork
 func (s *Source) Artwork() bool { return true }
 
-func (s *Source) KeyHint() string {
-	return "https://fanart.tv/get-an-api-key/ (project key, personal key optional as the client key)"
-}
-
 func (s *Source) License() string { return license }
 
-// Stores the project and personal keys and the language artwork is chosen in
-func (s *Source) Configure(keys catalog.Keys, options map[string]string) error {
+// Stores the language artwork is chosen in
+func (s *Source) Configure(options map[string]string) error {
 	lang := "en"
 	if raw := strings.TrimSpace(options["language"]); raw != "" {
 		tag, err := language.Parse(raw)
@@ -88,41 +78,32 @@ func (s *Source) Configure(keys catalog.Keys, options map[string]string) error {
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.key, s.clientKey, s.lang = strings.TrimSpace(keys.APIKey), strings.TrimSpace(keys.ClientKey), lang
+	s.lang = lang
 	return nil
 }
 
-// Holds the keys and language one call runs with
+// Holds the key and language one call runs with
 type settings struct {
-	key, clientKey, lang string
+	key, lang string
 }
 
-// Snapshots the configuration, failing when no project key is set
-func (s *Source) settings() (settings, error) {
+// Snapshots the configuration one call runs with
+func (s *Source) settings() settings {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	if s.key == "" {
-		return settings{}, ErrNoKey
-	}
-	return settings{key: s.key, clientKey: s.clientKey, lang: s.lang}, nil
+	return settings{key: s.key, lang: s.lang}
 }
 
 // Reads the artwork of a movie by tmdb or imdb id, or of a series by tvdb id
 func (s *Source) Lookup(ctx context.Context, kind, namespace, id string) ([]model.Claim, error) {
-	cfg, err := s.settings()
-	if err != nil {
-		return nil, err
-	}
+	cfg := s.settings()
 	path, err := endpoint(kind, namespace, id)
 	if err != nil || path == "" {
 		return nil, err
 	}
 	query := url.Values{"api_key": {cfg.key}}
-	if cfg.clientKey != "" {
-		query.Set("client_key", cfg.clientKey)
-	}
 	var art response
-	res, err := s.client.GetJSON(ctx, catalog.SourceFanart, outbound.Request{URL: apiBase + path + "?" + query.Encode(), Header: http.Header{"Accept": {"application/json"}}, Namespace: namespace, ExtValue: id, Kind: kind, Redact: []string{"api_key", "client_key"}}, &art)
+	res, err := s.client.GetJSON(ctx, catalog.SourceFanart, outbound.Request{URL: apiBase + path + "?" + query.Encode(), Header: http.Header{"Accept": {"application/json"}}, Namespace: namespace, ExtValue: id, Kind: kind, Redact: []string{"api_key"}}, &art)
 	if se, ok := errors.AsType[*outbound.StatusError](err); ok && se.Status == http.StatusNotFound {
 		return nil, nil
 	}

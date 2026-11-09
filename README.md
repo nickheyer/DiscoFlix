@@ -98,7 +98,7 @@ A person who arrives through Discord, later signs into the portal with Google, t
 
 ### Operate
 - One binary per platform and architecture. `--display` picks auto, all, desktop, or web: a server for browsers, a desktop window, or both. Service install for systemd, launchd, and Windows services from the binary itself.
-- Self-update with signature verification. Docker image. Homebrew, Scoop, winget, AUR.
+- Self-update with signature verification. Docker image. Scoop, winget, AUR.
 - Observability: the timeline first, then slog JSON, OpenTelemetry traces and metrics, a Prometheus endpoint, pprof, and an in-app log viewer.
 - Backups: online SQLite snapshot and restore, config export, encrypted secrets.
 - Setup: first-run wizard, import from existing Radarr, Sonarr, Lidarr, Prowlarr, SABnzbd, qBittorrent, and Overseerr databases.
@@ -238,7 +238,7 @@ Every version below was verified against the upstream release page on 2026-11-08
 | Tool | Choice | Version |
 |---|---|---|
 | Tasks | go-task via `go tool task` | v3.54.0 |
-| Release | goreleaser (dockers_v2, homebrew_casks, scoop, winget, nfpm, AUR, nix, Syft SBOM, cosign bundles) | v2.20.0 |
+| Release | goreleaser (dockers_v2, scoop, winget, nfpm, AUR, nix, Syft SBOM, cosign bundles) | v2.20.0 |
 | Lint | golangci-lint v2 config with gofumpt, gci, modernize | v2.15.0, v0.12.0 |
 | Security | govulncheck, gremlins nightly | v1.9.0, v0.6.0 |
 | Updates | Renovate for gomod, npm, actions, Docker; scheduled `buf dep update` | 44.x |
@@ -328,7 +328,7 @@ reconciler  low-probability clusters -> structured model call with the evidence 
 review      user accept or reject writes source=user pinned claims and retrains the EM weights
 ```
 
-Candidate pairs for the matcher come from FTS5 trigram search and vec0 nearest neighbours over title embeddings. TMDB, IMDb, and TVDB content stays inside each install under each source's terms; only CC0 and ODbL data enters the published snapshot. TVDB is treated as a source that may disappear, Trakt and Spotify are optional enrichers behind user-supplied keys.
+Candidate pairs for the matcher come from FTS5 trigram search and vec0 nearest neighbours over title embeddings. TMDB, IMDb, and TVDB content stays inside each install under each source's terms; only CC0 and ODbL data enters the published snapshot. TVDB is treated as a source that may disappear, Trakt and Spotify are optional enrichers.
 
 ### Plugins
 
@@ -435,6 +435,7 @@ discoflix/
 ## Build
 
 ```
+cp .env.example .env        # the provider keys every build links into the binary
 make                        # web client plus the static binary in bin/discoflix
 make dev                    # build, copy bin/crosswalk.sqlite into ./data when newer, serve with debug logging
 make crosswalk              # build the Wikidata crosswalk from QLever into bin/crosswalk.sqlite
@@ -456,7 +457,7 @@ bin/discoflix display desktop              # save the mode that --display auto s
 bin/discoflix update --check
 ```
 
-Release builds are produced by GoReleaser from a `v*` tag, signed with cosign through GitHub Actions, and published as archives, a distroless image, Homebrew, Scoop, and nfpm packages.
+Release builds are produced by GoReleaser from a `v*` tag, signed with cosign through GitHub Actions, and published as archives, a distroless image, Scoop, and nfpm packages.
 
 ## Absolute requirements
 

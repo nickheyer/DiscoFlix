@@ -27,23 +27,20 @@ const (
 	license = "Trakt API terms"
 )
 
-// Fails every call made before a client id is configured
-var ErrNoKey = errors.New("trakt: no client id configured, create an application at https://trakt.tv/oauth/applications")
-
 var imdbID = regexp.MustCompile(`^tt[0-9]+$`)
 
 // Answers catalog lookups and searches from Trakt
 type Source struct {
-	client *outbound.Client
-
-	mu       sync.RWMutex
+	client   *outbound.Client
 	clientID string
-	lang     language.Tag
+
+	mu   sync.RWMutex
+	lang language.Tag
 }
 
-// Returns a source that calls Trakt through the outbound client
-func New(client *outbound.Client) *Source {
-	return &Source{client: client, lang: language.English}
+// Returns a source that calls Trakt through the outbound client with the project's client id
+func New(client *outbound.Client, clientID string) *Source {
+	return &Source{client: client, clientID: strings.TrimSpace(clientID), lang: language.English}
 }
 
 func (s *Source) Describe() extension.Descriptor {
@@ -64,17 +61,13 @@ func (s *Source) Kinds() []string {
 	return []string{model.KindMovie, model.KindSeries, model.KindSeason, model.KindEpisode}
 }
 
-func (s *Source) NeedsKey() bool { return true }
-
 // Trakt carries ids, titles, and air dates but no images
 func (s *Source) Artwork() bool { return false }
 
-func (s *Source) KeyHint() string { return "https://trakt.tv/oauth/applications (client id)" }
-
 func (s *Source) License() string { return license }
 
-// Stores the client id and the language titles and overviews are translated into
-func (s *Source) Configure(keys catalog.Keys, options map[string]string) error {
+// Stores the language titles and overviews are translated into
+func (s *Source) Configure(options map[string]string) error {
 	lang := language.English
 	if raw := strings.TrimSpace(options["language"]); raw != "" {
 		tag, err := language.Parse(raw)
@@ -85,7 +78,6 @@ func (s *Source) Configure(keys catalog.Keys, options map[string]string) error {
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.clientID = strings.TrimSpace(keys.APIKey)
 	s.lang = lang
 	return nil
 }
@@ -95,19 +87,16 @@ type settings struct {
 	clientID, lang, country string
 }
 
-// Snapshots the configuration, failing when no client id is set
-func (s *Source) settings() (settings, error) {
+// Snapshots the configuration one call runs with
+func (s *Source) settings() settings {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	if s.clientID == "" {
-		return settings{}, ErrNoKey
-	}
 	base, _ := s.lang.Base()
 	cfg := settings{clientID: s.clientID, lang: base.String()}
 	if region, conf := s.lang.Region(); conf == language.Exact {
 		cfg.country = strings.ToLower(region.String())
 	}
-	return cfg, nil
+	return cfg
 }
 
 // Reports whether titles need a translation the record says it has
@@ -142,10 +131,7 @@ func missing(err error) bool {
 
 // Reads one record by trakt id or slug, or by imdb, tmdb, or tvdb id through the id search
 func (s *Source) Lookup(ctx context.Context, kind, namespace, id string) ([]model.Claim, error) {
-	cfg, err := s.settings()
-	if err != nil {
-		return nil, err
-	}
+	cfg := s.settings()
 	if !model.ValidKind(kind) {
 		return nil, fmt.Errorf("trakt: unknown kind %q", kind)
 	}
@@ -417,10 +403,7 @@ func (s *Source) showClaims(ctx context.Context, cfg settings, sh *show, rec str
 
 // Finds movies, shows, or both by title and optional year, translating titles the results offer
 func (s *Source) Search(ctx context.Context, kind, text string, year int) ([]model.Claim, error) {
-	cfg, err := s.settings()
-	if err != nil {
-		return nil, err
-	}
+	cfg := s.settings()
 	var types string
 	switch kind {
 	case "":
