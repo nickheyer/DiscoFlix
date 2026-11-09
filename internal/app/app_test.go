@@ -18,7 +18,6 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	"github.com/nickheyer/DiscoFlix/internal/config"
-	"github.com/nickheyer/DiscoFlix/internal/credentials"
 	cardv1 "github.com/nickheyer/DiscoFlix/sdk/go/pb/discoflix/card/v1"
 	identityv1 "github.com/nickheyer/DiscoFlix/sdk/go/pb/discoflix/identity/v1"
 	"github.com/nickheyer/DiscoFlix/sdk/go/pb/discoflix/identity/v1/identityv1connect"
@@ -26,32 +25,7 @@ import (
 	"github.com/nickheyer/DiscoFlix/sdk/go/pb/discoflix/timeline/v1/timelinev1connect"
 )
 
-// linkCredentials stands in for the linker so the app boots in tests, restoring the empty build values afterwards
-func linkCredentials(t *testing.T) {
-	t.Helper()
-	saved := []string{credentials.TMDB, credentials.TVDB, credentials.Trakt, credentials.Fanart}
-	t.Cleanup(func() {
-		credentials.TMDB, credentials.TVDB, credentials.Trakt, credentials.Fanart = saved[0], saved[1], saved[2], saved[3]
-	})
-	credentials.TMDB, credentials.TVDB, credentials.Trakt, credentials.Fanart = "tmdb-test", "tvdb-test", "trakt-test", "fanart-test"
-}
-
-func TestNewRefusesABinaryLinkedWithoutCredentials(t *testing.T) {
-	linkCredentials(t)
-	credentials.TVDB, credentials.Fanart = "", ""
-	log := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelWarn}))
-	dir := t.TempDir()
-	_, err := New(context.Background(), Options{Config: config.Config{DataDir: dir, Addr: "127.0.0.1:0"}, Version: "0.0.0-test", Commit: "abc", Web: fstest.MapFS{}, Log: log})
-	if err == nil || !strings.Contains(err.Error(), "TVDB_API_KEY, FATV_PROJECT_API_KEY") {
-		t.Fatalf("err = %v", err)
-	}
-	if entries, _ := os.ReadDir(dir); len(entries) != 0 {
-		t.Fatalf("refused boot still wrote %v", entries)
-	}
-}
-
 func TestBootAndShellLogin(t *testing.T) {
-	linkCredentials(t)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	log := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelWarn}))

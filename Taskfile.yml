@@ -61,8 +61,6 @@ tasks:
   build:
     desc: Build the binary for this platform, linking the provider keys from .env
     deps: [web:build]
-    requires:
-      vars: [TMDB_API_KEY, TVDB_API_KEY, TRAKT_CLIENT_ID, FATV_PROJECT_API_KEY]
     cmds:
       - CGO_ENABLED=0 go build -tags purego,gtk3,production -ldflags "{{.LDFLAGS}}" -o bin/discoflix ./cmd/discoflix
 
@@ -99,15 +97,11 @@ tasks:
   cross:
     desc: Cross-compile all six release targets without packaging
     deps: [web:build]
-    requires:
-      vars: [TMDB_API_KEY, TVDB_API_KEY, TRAKT_CLIENT_ID, FATV_PROJECT_API_KEY]
     cmds:
       - for: [linux/amd64, linux/arm64, windows/amd64, windows/arm64, darwin/amd64, darwin/arm64]
         cmd: CGO_ENABLED=0 GOOS={{splitList "/" .ITEM | first}} GOARCH={{splitList "/" .ITEM | last}} go build -tags purego,gtk3,production -ldflags "{{.LDFLAGS}}" -o bin/cross/{{.ITEM}}/discoflix{{if eq (splitList "/" .ITEM | first) "windows"}}.exe{{end}} ./cmd/discoflix
 
   release:snapshot:
     deps: [web:build]
-    requires:
-      vars: [TMDB_API_KEY, TVDB_API_KEY, TRAKT_CLIENT_ID, FATV_PROJECT_API_KEY]
     cmds:
       - go tool goreleaser release --snapshot --clean

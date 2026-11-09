@@ -3,7 +3,6 @@ export
 
 VERSION := $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
 COMMIT  := $(shell git rev-parse --short HEAD 2>/dev/null || echo none)
-KEYS    := TMDB_API_KEY TVDB_API_KEY TRAKT_CLIENT_ID FATV_PROJECT_API_KEY
 CREDS   := -X github.com/nickheyer/DiscoFlix/internal/credentials.TMDB=$(TMDB_API_KEY) -X github.com/nickheyer/DiscoFlix/internal/credentials.TVDB=$(TVDB_API_KEY) -X github.com/nickheyer/DiscoFlix/internal/credentials.Trakt=$(TRAKT_CLIENT_ID) -X github.com/nickheyer/DiscoFlix/internal/credentials.Fanart=$(FATV_PROJECT_API_KEY)
 LDFLAGS := -s -w -X main.version=$(VERSION) -X main.commit=$(COMMIT) $(CREDS)
 TAGS    := purego,gtk3,production
@@ -12,7 +11,7 @@ WEB_SRC := $(shell find web/src web/static -type f) web/package.json web/vite.co
 export CGO_ENABLED = 0
 
 .DEFAULT_GOAL := build
-.PHONY: build dev test fmt gen clean crosswalk credentials
+.PHONY: build dev test fmt gen clean crosswalk
 
 web/node_modules/.stamp: web/package.json web/bun.lock
 	cd web && bun install --frozen-lockfile && touch node_modules/.stamp
@@ -20,12 +19,8 @@ web/node_modules/.stamp: web/package.json web/bun.lock
 web/build/200.html: web/node_modules/.stamp $(WEB_SRC)
 	cd web && bun run build
 
-# Fails when .env leaves one of the provider keys the binary links in empty
-credentials:
-	@for k in $(KEYS); do [ -n "$${!k}" ] || { echo "$$k is empty, add it to .env"; exit 1; }; done
-
 # Builds the web client and the binary into bin/discoflix with the provider keys from .env
-build: credentials web/build/200.html
+build: web/build/200.html
 	go build -tags $(TAGS) -ldflags "$(LDFLAGS)" -o bin/discoflix ./cmd/discoflix
 
 # Builds, copies a locally built crosswalk into ./data when it is newer, then serves with debug logging

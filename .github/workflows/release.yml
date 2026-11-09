@@ -13,25 +13,12 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - name: require the provider keys the binary links in
-        env:
-          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
-          TVDB_API_KEY: ${{ secrets.TVDB_API_KEY }}
-          TRAKT_CLIENT_ID: ${{ secrets.TRAKT_CLIENT_ID }}
-          FATV_PROJECT_API_KEY: ${{ secrets.FATV_PROJECT_API_KEY }}
-        run: |
-          for k in TMDB_API_KEY TVDB_API_KEY TRAKT_CLIENT_ID FATV_PROJECT_API_KEY; do
-            if [ -z "${!k}" ]; then
-              echo "::error::the $k repository secret is empty or missing, the release binary cannot be linked"
-              exit 1
-            fi
-          done
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - uses: actions/setup-go@v6
         with:
-          go-version-file: go.mod
+          go-version-file: go.work
           cache: true
       - uses: oven-sh/setup-bun@v2
         with:

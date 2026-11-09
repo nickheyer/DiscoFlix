@@ -23,20 +23,11 @@ jobs:
       run:
         shell: bash
     steps:
-      - name: require the online signing key
-        env:
-          TUF_ONLINE_KEY: ${{ secrets.TUF_ONLINE_KEY }}
-        run: |
-          if [ -z "$TUF_ONLINE_KEY" ]; then
-            echo "::error::the TUF_ONLINE_KEY repository secret is empty or missing, the crosswalk cannot be signed"
-            exit 1
-          fi
-
       - uses: actions/checkout@v5
 
       - uses: actions/setup-go@v6
         with:
-          go-version-file: go.mod
+          go-version-file: go.work
           cache: true
 
       - name: download the current repository metadata

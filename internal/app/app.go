@@ -97,9 +97,6 @@ type App struct {
 
 // New opens the stores, migrates, seeds the system space, and assembles the HTTP handler
 func New(ctx context.Context, opts Options) (*App, error) {
-	if missing := credentials.Missing(); len(missing) > 0 {
-		return nil, fmt.Errorf("app: this binary was linked without %s, build with task or make so .env fills the linker flags", strings.Join(missing, ", "))
-	}
 	log := opts.Log
 	cfg := opts.Config
 	secrets, err := config.OpenSecrets(cfg.DataDir)
