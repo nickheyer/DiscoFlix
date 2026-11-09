@@ -92,13 +92,14 @@ func Run[P, R any](s *Service, fn dbos.Workflow[P, R], id string, in P, opts ...
 	return dbos.RunWorkflow(s.ctx, fn, in, opts...)
 }
 
-// Step runs one non-deterministic operation durably with exponential retries
+// Step runs one non-deterministic operation durably with exponential retries, never retrying a cancelled step
 func Step[R any](ctx dbos.Context, name string, retries int, fn func(context.Context) (R, error)) (R, error) {
 	return dbos.RunAsStep(ctx, fn,
 		dbos.WithStepName(name),
 		dbos.WithStepMaxRetries(retries),
 		dbos.WithStepBaseInterval(time.Second),
 		dbos.WithStepMaxInterval(time.Minute),
+		dbos.WithStepRetryPredicate(func(err error) bool { return !errors.Is(err, context.Canceled) }),
 	)
 }
 

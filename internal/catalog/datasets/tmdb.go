@@ -33,6 +33,7 @@ func (*tmdbSource) Namespaces() []string { return []string{model.NSTMDB} }
 
 func (*tmdbSource) Kinds() []string { return []string{model.KindMovie, model.KindSeries} }
 func (*tmdbSource) NeedsKey() bool  { return false }
+func (*tmdbSource) Artwork() bool   { return false }
 func (*tmdbSource) KeyHint() string { return "" }
 func (*tmdbSource) License() string { return tmdbLicense }
 func (*tmdbSource) Local() bool     { return true }

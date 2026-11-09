@@ -12,6 +12,8 @@
 		{ label: 'Platform', value: card.os && card.arch ? `${card.os}/${card.arch}` : card.os || card.arch },
 		{ label: 'Mode', value: card.mode },
 		{ label: 'Migrations applied', value: String(card.migrationsApplied) },
+		{ label: 'Listening on', value: card.address, mono: true },
+		{ label: 'Open at', value: card.url, mono: true, href: card.url, wide: true },
 		{ label: 'Data directory', value: card.dataDir, mono: true, wide: true }
 	]}
 />

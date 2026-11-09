@@ -66,6 +66,9 @@ func (s *Source) Kinds() []string {
 
 func (s *Source) NeedsKey() bool { return true }
 
+// Trakt carries ids, titles, and air dates but no images
+func (s *Source) Artwork() bool { return false }
+
 func (s *Source) KeyHint() string { return "https://trakt.tv/oauth/applications (client id)" }
 
 func (s *Source) License() string { return license }

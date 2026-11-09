@@ -51,7 +51,8 @@ export function noticeAccent(card: SystemNotice): Accent {
 
 export function bootSummary(card: BootReport): string {
 	const version = card.version ? `DiscoFlix ${card.version}` : 'DiscoFlix';
-	return card.mode ? `${version} started in ${card.mode} mode` : `${version} started`;
+	const started = card.mode ? `${version} started in ${card.mode} mode` : `${version} started`;
+	return card.url ? `${started} at ${card.url}` : started;
 }
 
 export function securitySummary(card: SecurityEvent): string {

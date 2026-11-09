@@ -190,7 +190,7 @@ func (s *Service) hitProto(ctx context.Context, h Hit) (*catalogv1.Candidate, er
 func outcomesProto(outcomes []Outcome) []*catalogv1.SourceOutcome {
 	out := make([]*catalogv1.SourceOutcome, 0, len(outcomes))
 	for _, o := range outcomes {
-		out = append(out, &catalogv1.SourceOutcome{Source: o.Source, State: o.State, Detail: o.Detail, Results: int32(o.Results), DurationMs: o.Duration.Milliseconds()})
+		out = append(out, &catalogv1.SourceOutcome{Source: o.Source, State: o.State, Detail: o.Detail, Results: int32(o.Results), DurationMs: o.Duration.Milliseconds(), Artwork: o.Artwork})
 	}
 	return out
 }

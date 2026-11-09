@@ -76,6 +76,7 @@ func (s *Service) SourceProto(ctx context.Context, name string) (*catalogv1.Sour
 		Options:      e.options,
 		HasClientKey: keys.ClientKey != "",
 		Budget:       int32(e.Policy().Budget),
+		Artwork:      e.Artwork(),
 	}
 	row, err := s.Ent.SourceState.Get(ctx, name)
 	if err != nil && !ent.IsNotFound(err) {

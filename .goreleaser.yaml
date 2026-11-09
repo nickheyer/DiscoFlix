@@ -8,38 +8,23 @@ before:
     - sh -c "cd web && bun install --frozen-lockfile && bun run build"
 
 builds:
-  - id: desktop
+  - id: discoflix
     main: ./cmd/discoflix
     binary: discoflix
     env:
       - CGO_ENABLED=0
     tags:
       - purego
+      - gtk3
       - production
     ldflags:
       - -s -w -X main.version={{.Version}} -X main.commit={{.ShortCommit}}
     goos: [linux, windows, darwin]
     goarch: [amd64, arm64]
-    ignore:
-      - goos: windows
-        goarch: arm64
-  - id: headless
-    main: ./cmd/discoflix
-    binary: discoflix
-    env:
-      - CGO_ENABLED=0
-    tags:
-      - headless
-      - production
-      - nodynamic
-    ldflags:
-      - -s -w -X main.version={{.Version}} -X main.commit={{.ShortCommit}}
-    goos: [linux]
-    goarch: [amd64, arm64]
 
 archives:
-  - id: desktop
-    ids: [desktop]
+  - id: discoflix
+    ids: [discoflix]
     name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     formats: [tar.gz]
     format_overrides:
@@ -48,12 +33,6 @@ archives:
     files:
       - LICENSE
       - README.md
-  - id: headless
-    ids: [headless]
-    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}_headless"
-    formats: [tar.gz]
-    files:
-      - LICENSE
 
 checksum:
   name_template: checksums.txt
@@ -75,8 +54,8 @@ sboms:
   - artifacts: archive
 
 dockers_v2:
-  - id: headless
-    ids: [headless]
+  - id: discoflix
+    ids: [discoflix]
     images:
       - ghcr.io/nickheyer/discoflix
     dockerfile: deploy/Dockerfile
@@ -92,7 +71,7 @@ dockers_v2:
 
 homebrew_casks:
   - name: discoflix
-    ids: [desktop]
+    ids: [discoflix]
     repository:
       owner: nickheyer
       name: homebrew-tap
@@ -102,7 +81,7 @@ homebrew_casks:
 
 scoops:
   - name: discoflix
-    ids: [desktop]
+    ids: [discoflix]
     repository:
       owner: nickheyer
       name: scoop-bucket
@@ -111,7 +90,7 @@ scoops:
     license: AGPL-3.0
 
 nfpms:
-  - ids: [desktop]
+  - ids: [discoflix]
     package_name: discoflix
     vendor: Nicholas Heyer
     homepage: https://github.com/nickheyer/DiscoFlix

@@ -25,7 +25,7 @@ func TestTaskXMLEscapesAndQuotes(t *testing.T) {
 	if task.Command != `C:\Program Files\Disco & Flix\discoflix.exe` {
 		t.Errorf("command %q", task.Command)
 	}
-	if task.Args != `serve --headless --data "D:\media data"` {
+	if task.Args != `serve --display web --data "D:\media data"` {
 		t.Errorf("arguments %q", task.Args)
 	}
 	if task.Logon != "S-1-5-21-1-2-3-1001" || len(task.Users) != 1 || task.Users[0] != task.Logon {

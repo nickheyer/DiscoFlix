@@ -369,10 +369,35 @@ func (s *Service) snapshotWorkflow(ctx dbos.Context, in snapshotInput) (snapshot
 		})
 		return snapshotOutcome{}, stepErr
 	}
-	check, err := workflow.Step(ctx, "check", 2, func(c context.Context) (SnapshotCheck, error) { return s.Snapshots.Check(c) })
+	type checked struct {
+		Check     SnapshotCheck `json:"check"`
+		NoRelease bool          `json:"no_release,omitempty"`
+		Reason    string        `json:"reason,omitempty"`
+	}
+	looked, err := workflow.Step(ctx, "check", 2, func(c context.Context) (checked, error) {
+		res, err := s.Snapshots.Check(c)
+		if errors.Is(err, ErrNoRelease) {
+			return checked{NoRelease: true, Reason: err.Error()}, nil
+		}
+		return checked{Check: res}, err
+	})
 	if err != nil {
 		return fail(err)
 	}
+	if looked.NoRelease {
+		cur := s.Snapshots.Current()
+		if cur.Present {
+			s.setSnapshotState("ready", "")
+		} else {
+			s.setSnapshotState("missing", looked.Reason)
+		}
+		s.Log.Info("crosswalk mirror has nothing to offer yet", "detail", looked.Reason, "local", cur.Version)
+		_, err := workflow.Step(ctx, "no-release", 1, func(c context.Context) (bool, error) {
+			return true, s.updateReport(c, seq, &cardv1.CatalogReport{Kind: "snapshot", Name: "crosswalk", State: "skipped", Version: cur.Version, Detail: looked.Reason})
+		})
+		return snapshotOutcome{Version: cur.Version, Skipped: true}, err
+	}
+	check := looked.Check
 	if !check.Newer && !in.Force {
 		s.setSnapshotState("ready", "")
 		_, err := workflow.Step(ctx, "skip", 1, func(c context.Context) (bool, error) {
@@ -480,11 +505,17 @@ func (s *Service) datasetsWorkflow(ctx dbos.Context, _ struct{}) ([]string, erro
 		return nil, err
 	}
 	for _, name := range names {
+		if err := ctx.Err(); err != nil {
+			return names, err
+		}
 		h, err := dbos.RunWorkflow(ctx, s.datasetWorkflow, datasetInput{Name: name})
 		if err != nil {
 			return names, err
 		}
 		if _, err := h.GetResult(); err != nil {
+			if ctx.Err() != nil || errors.Is(err, dbos.ErrWorkflowCancelled) || errors.Is(err, dbos.ErrAwaitedWorkflowCancelled) {
+				return names, err
+			}
 			s.Log.Warn("dataset import failed", "dataset", name, "error", err)
 		}
 	}

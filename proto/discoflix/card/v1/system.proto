@@ -30,6 +30,10 @@ message BootReport {
   string mode = 6;
   int32 migrations_applied = 7;
   string data_dir = 8;
+  // Bound listener, such as [::]:5001
+  string address = 9;
+  // Address people open in a browser, the public URL when configured or the host and port guessed at boot
+  string url = 10;
 }
 
 // Posted to #audit when a user signs in, links an identity, or changes credentials

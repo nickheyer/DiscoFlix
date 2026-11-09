@@ -11,7 +11,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file discoflix/card/v1/system.proto.
  */
 export const file_discoflix_card_v1_system: GenFile = /*@__PURE__*/
-  fileDesc("Ch5kaXNjb2ZsaXgvY2FyZC92MS9zeXN0ZW0ucHJvdG8SEWRpc2NvZmxpeC5jYXJkLnYxIloKDFN5c3RlbU5vdGljZRINCgV0aXRsZRgBIAEoCRIMCgRib2R5GAIgASgJEi0KCHNldmVyaXR5GAMgASgOMhsuZGlzY29mbGl4LmNhcmQudjEuU2V2ZXJpdHkilwEKCkJvb3RSZXBvcnQSDwoHdmVyc2lvbhgBIAEoCRIOCgZjb21taXQYAiABKAkSEgoKZ29fdmVyc2lvbhgDIAEoCRIKCgJvcxgEIAEoCRIMCgRhcmNoGAUgASgJEgwKBG1vZGUYBiABKAkSGgoSbWlncmF0aW9uc19hcHBsaWVkGAcgASgFEhAKCGRhdGFfZGlyGAggASgJImYKDVNlY3VyaXR5RXZlbnQSDwoHdXNlcl9pZBgBIAEoCRIOCgZhY3Rpb24YAiABKAkSCwoDdmlhGAMgASgJEhMKC3JlbW90ZV9hZGRyGAQgASgJEhIKCnVzZXJfYWdlbnQYBSABKAkiYAoLVXBkYXRlRXZlbnQSFwoPY3VycmVudF92ZXJzaW9uGAEgASgJEhkKEWF2YWlsYWJsZV92ZXJzaW9uGAIgASgJEg0KBXN0YWdlGAMgASgJEg4KBmRldGFpbBgEIAEoCSp3CghTZXZlcml0eRIYChRTRVZFUklUWV9VTlNQRUNJRklFRBAAEhEKDVNFVkVSSVRZX0lORk8QARIUChBTRVZFUklUWV9TVUNDRVNTEAISFAoQU0VWRVJJVFlfV0FSTklORxADEhIKDlNFVkVSSVRZX0VSUk9SEARC0gEKFWNvbS5kaXNjb2ZsaXguY2FyZC52MUILU3lzdGVtUHJvdG9QAVpBZ2l0aHViLmNvbS9uaWNraGV5ZXIvRGlzY29GbGl4L3Nkay9nby9wYi9kaXNjb2ZsaXgvY2FyZC92MTtjYXJkdjGiAgNEQ1iqAhFEaXNjb2ZsaXguQ2FyZC5WMcoCEURpc2NvZmxpeFxDYXJkXFYx4gIdRGlzY29mbGl4XENhcmRcVjFcR1BCTWV0YWRhdGHqAhNEaXNjb2ZsaXg6OkNhcmQ6OlYxkgMCCAJiCGVkaXRpb25zcOgH");
+  fileDesc("Ch5kaXNjb2ZsaXgvY2FyZC92MS9zeXN0ZW0ucHJvdG8SEWRpc2NvZmxpeC5jYXJkLnYxIloKDFN5c3RlbU5vdGljZRINCgV0aXRsZRgBIAEoCRIMCgRib2R5GAIgASgJEi0KCHNldmVyaXR5GAMgASgOMhsuZGlzY29mbGl4LmNhcmQudjEuU2V2ZXJpdHkitQEKCkJvb3RSZXBvcnQSDwoHdmVyc2lvbhgBIAEoCRIOCgZjb21taXQYAiABKAkSEgoKZ29fdmVyc2lvbhgDIAEoCRIKCgJvcxgEIAEoCRIMCgRhcmNoGAUgASgJEgwKBG1vZGUYBiABKAkSGgoSbWlncmF0aW9uc19hcHBsaWVkGAcgASgFEhAKCGRhdGFfZGlyGAggASgJEg8KB2FkZHJlc3MYCSABKAkSCwoDdXJsGAogASgJImYKDVNlY3VyaXR5RXZlbnQSDwoHdXNlcl9pZBgBIAEoCRIOCgZhY3Rpb24YAiABKAkSCwoDdmlhGAMgASgJEhMKC3JlbW90ZV9hZGRyGAQgASgJEhIKCnVzZXJfYWdlbnQYBSABKAkiYAoLVXBkYXRlRXZlbnQSFwoPY3VycmVudF92ZXJzaW9uGAEgASgJEhkKEWF2YWlsYWJsZV92ZXJzaW9uGAIgASgJEg0KBXN0YWdlGAMgASgJEg4KBmRldGFpbBgEIAEoCSp3CghTZXZlcml0eRIYChRTRVZFUklUWV9VTlNQRUNJRklFRBAAEhEKDVNFVkVSSVRZX0lORk8QARIUChBTRVZFUklUWV9TVUNDRVNTEAISFAoQU0VWRVJJVFlfV0FSTklORxADEhIKDlNFVkVSSVRZX0VSUk9SEARC0gEKFWNvbS5kaXNjb2ZsaXguY2FyZC52MUILU3lzdGVtUHJvdG9QAVpBZ2l0aHViLmNvbS9uaWNraGV5ZXIvRGlzY29GbGl4L3Nkay9nby9wYi9kaXNjb2ZsaXgvY2FyZC92MTtjYXJkdjGiAgNEQ1iqAhFEaXNjb2ZsaXguQ2FyZC5WMcoCEURpc2NvZmxpeFxDYXJkXFYx4gIdRGlzY29mbGl4XENhcmRcVjFcR1BCTWV0YWRhdGHqAhNEaXNjb2ZsaXg6OkNhcmQ6OlYxkgMCCAJiCGVkaXRpb25zcOgH");
 
 /**
  * Short operator-facing notice posted by the system
@@ -111,6 +111,20 @@ export type BootReport = Message<"discoflix.card.v1.BootReport"> & {
    * @generated from field: string data_dir = 8;
    */
   dataDir: string;
+
+  /**
+   * Bound listener, such as [::]:5001
+   *
+   * @generated from field: string address = 9;
+   */
+  address: string;
+
+  /**
+   * Address people open in a browser, the public URL when configured or the host and port guessed at boot
+   *
+   * @generated from field: string url = 10;
+   */
+  url: string;
 };
 
 /**
@@ -160,6 +174,20 @@ export type BootReportJson = {
    * @generated from field: string data_dir = 8;
    */
   dataDir?: string;
+
+  /**
+   * Bound listener, such as [::]:5001
+   *
+   * @generated from field: string address = 9;
+   */
+  address?: string;
+
+  /**
+   * Address people open in a browser, the public URL when configured or the host and port guessed at boot
+   *
+   * @generated from field: string url = 10;
+   */
+  url?: string;
 };
 
 /**

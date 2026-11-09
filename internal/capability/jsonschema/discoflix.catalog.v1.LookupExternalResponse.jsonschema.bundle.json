@@ -458,6 +458,11 @@
         }
       },
       "properties": {
+        "artwork": {
+          "default": false,
+          "description": "The source offers posters, backdrops, or logos",
+          "type": "boolean"
+        },
         "detail": {
           "default": "",
           "type": "string"

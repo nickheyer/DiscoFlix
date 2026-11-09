@@ -22,6 +22,12 @@ const (
 	entityBase      = "http://www.wikidata.org/entity/"
 )
 
+// Classes a film or a series item is an instance of, used to narrow full text search
+var (
+	movieClasses  = []string{classFilm, "Q24862", "Q202866", "Q506240", "Q93204"}
+	seriesClasses = []string{classSeries, "Q15416", classMiniseries, "Q581714"}
+)
+
 // Maps one external id property to a catalog namespace and the prefix its values take
 type property struct {
 	id, namespace, prefix string

@@ -72,7 +72,7 @@ func TestUserSystemdLifecycle(t *testing.T) {
 		t.Fatalf("unit file: %v", err)
 	}
 	for _, want := range []string{
-		"ExecStart=" + exe + ` "serve" "--headless" "--data-dir" "` + data + `"`,
+		"ExecStart=" + exe + ` "serve" "--display" "web" "--data-dir" "` + data + `"`,
 		"WorkingDirectory=" + data + "\n",
 		"Restart=on-failure",
 		"WantedBy=default.target",

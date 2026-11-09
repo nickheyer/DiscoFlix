@@ -110,6 +110,8 @@ message SourceOutcome {
   string detail = 3;
   int32 results = 4;
   int64 duration_ms = 5;
+  // The source offers posters, backdrops, or logos
+  bool artwork = 6;
 }
 
 message Candidate {
@@ -228,6 +230,8 @@ message Source {
   repeated string namespaces = 14;
   map<string, string> options = 15;
   bool has_client_key = 16;
+  // The source offers posters, backdrops, or logos
+  bool artwork = 17;
 }
 
 message Snapshot {

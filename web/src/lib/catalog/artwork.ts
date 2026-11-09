@@ -1,4 +1,5 @@
-import type { ArtworkVariant } from '#lib/gen/discoflix/catalog/v1/catalog_pb';
+import type { ArtworkVariant, Source, SourceOutcome } from '#lib/gen/discoflix/catalog/v1/catalog_pb';
+import { sourceLabel } from './entity';
 
 const FORMAT_ORDER = ['avif', 'webp'];
 
@@ -30,4 +31,60 @@ export function sortVariants(variants: ArtworkVariant[]): ArtworkVariant[] {
 		return i < 0 ? FORMAT_ORDER.length : i;
 	};
 	return [...variants].sort((a, b) => rank(a.format) - rank(b.format) || a.width - b.width);
+}
+
+export interface ArtworkSource {
+	source: string;
+	artwork: boolean;
+	state: string;
+}
+
+export interface ArtworkNotice {
+	message: string;
+	needsKey: boolean;
+}
+
+const WORKING = new Set(['answered', 'empty']);
+const DOWN = new Set(['unreachable', 'open', 'budget']);
+
+export function artworkSourcesFromOutcomes(outcomes: SourceOutcome[]): ArtworkSource[] {
+	return outcomes.map((o) => ({ source: o.source, artwork: o.artwork, state: o.state }));
+}
+
+// Reads the configured sources the way a request would see them
+export function artworkSourcesFromStatus(sources: Source[]): ArtworkSource[] {
+	return sources.map((s) => {
+		let state = 'answered';
+		if (!s.enabled) state = 'disabled';
+		else if (!s.configured) state = 'unconfigured';
+		else if (s.state === 'open') state = 'open';
+		else if (s.state === 'failing') state = 'unreachable';
+		return { source: s.name, artwork: s.artwork, state };
+	});
+}
+
+// Joins names as prose with commas and a final and
+function joinNames(names: string[]): string {
+	if (names.length <= 1) return names.join('');
+	return `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
+}
+
+// Explains why no posters can appear, empty when a source that offers artwork is working
+export function artworkNotice(sources: ArtworkSource[]): ArtworkNotice {
+	const capable = sources.filter((s) => s.artwork);
+	if (capable.length === 0) {
+		return { message: 'No installed source offers posters or backdrops.', needsKey: false };
+	}
+	if (capable.some((s) => WORKING.has(s.state))) return { message: '', needsKey: false };
+	const down = capable.filter((s) => DOWN.has(s.state));
+	if (down.length > 0) {
+		return {
+			message: `${joinNames(down.map((s) => sourceLabel(s.source)))} could not be reached, so no artwork arrived.`,
+			needsKey: false
+		};
+	}
+	return {
+		message: `Posters and backdrops come from ${joinNames(capable.map((s) => sourceLabel(s.source)))}, none of which is enabled with a key.`,
+		needsKey: true
+	};
 }

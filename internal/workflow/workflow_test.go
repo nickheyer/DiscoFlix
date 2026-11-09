@@ -3,6 +3,7 @@ package workflow
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -70,3 +71,52 @@ func TestRunAndIdempotentID(t *testing.T) {
 }
 
 func isNotLaunched(err error) bool { return errors.Is(err, ErrNotLaunched) }
+
+var cancelCalls, flakyCalls atomic.Int32
+
+func cancelledWorkflow(ctx dbos.Context, _ int) (int, error) {
+	return Step(ctx, "cancelled", 3, func(context.Context) (int, error) {
+		cancelCalls.Add(1)
+		return 0, fmt.Errorf("copy staged rows: %w", context.Canceled)
+	})
+}
+
+func flakyWorkflow(ctx dbos.Context, _ int) (int, error) {
+	return Step(ctx, "flaky", 1, func(context.Context) (int, error) {
+		flakyCalls.Add(1)
+		return 0, errors.New("boom")
+	})
+}
+
+func TestStepRetriesFailuresButNeverCancellation(t *testing.T) {
+	s, err := Open(context.Background(), t.TempDir(), slog.New(slog.DiscardHandler))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = s.Close() }()
+	Register(s, "test.cancelled", cancelledWorkflow)
+	Register(s, "test.flaky", flakyWorkflow)
+	if err := s.Launch(); err != nil {
+		t.Fatal(err)
+	}
+	h, err := Run[int, int](s, cancelledWorkflow, "wf-cancelled", 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := h.GetResult(); err == nil || !errors.Is(err, context.Canceled) {
+		t.Fatalf("cancelled step error = %v", err)
+	}
+	if n := cancelCalls.Load(); n != 1 {
+		t.Fatalf("cancelled step ran %d times, want 1", n)
+	}
+	f, err := Run[int, int](s, flakyWorkflow, "wf-flaky", 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := f.GetResult(); err == nil || !errors.Is(err, dbos.ErrMaxStepRetriesExceeded) {
+		t.Fatalf("flaky step error = %v", err)
+	}
+	if n := flakyCalls.Load(); n != 2 {
+		t.Fatalf("flaky step ran %d times, want 2", n)
+	}
+}

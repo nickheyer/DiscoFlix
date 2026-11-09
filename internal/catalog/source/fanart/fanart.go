@@ -66,6 +66,9 @@ func (s *Source) Kinds() []string { return []string{model.KindMovie, model.KindS
 
 func (s *Source) NeedsKey() bool { return true }
 
+// Every record is artwork
+func (s *Source) Artwork() bool { return true }
+
 func (s *Source) KeyHint() string {
 	return "https://fanart.tv/get-an-api-key/ (project key, personal key optional as the client key)"
 }

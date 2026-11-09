@@ -11,20 +11,13 @@
 	import { formatAgo, formatBytes, formatFull, formatTime, humanize, toDate } from '#lib/theme/format';
 	import { Button } from '#lib/ui/button';
 	import CopyButton from '#lib/ui/CopyButton.svelte';
-	import { aspectRatio, sortVariants } from './artwork';
+	import { artworkNotice, artworkSourcesFromStatus, aspectRatio, sortVariants } from './artwork';
 	import CatalogHeader from './CatalogHeader.svelte';
-	import {
-		childrenHeading,
-		childTitle,
-		groupClaims,
-		kindLabel,
-		sortChildren,
-		sourceLabel
-	} from './entity';
+	import { childrenHeading, childTitle, groupClaims, kindLabel, sortChildren, sourceLabel } from './entity';
 	import ExternalLinks from './ExternalLinks.svelte';
 	import FieldRow from './FieldRow.svelte';
 	import Poster from './Poster.svelte';
-	import { entityKey, entityQuery } from './queries';
+	import { catalogStatusQuery, entityKey, entityQuery } from './queries';
 	import { entityPath } from './routes';
 	import StateBadge from './StateBadge.svelte';
 
@@ -36,6 +29,13 @@
 	const client = useQueryClient();
 	const query = createQuery(() => entityQuery(id));
 	const entity = $derived(query.data?.entity);
+	const status = createQuery(() => ({
+		...catalogStatusQuery(),
+		enabled: session.isAdmin && !!entity && !entity.poster && !entity.backdrop
+	}));
+	const artworkHint = $derived(
+		status.data ? artworkNotice(artworkSourcesFromStatus(status.data.sources)) : { message: '', needsKey: false }
+	);
 	const claims = $derived(groupClaims(query.data?.claims ?? []));
 	const children = $derived(sortChildren(query.data?.children ?? []));
 	const artwork = $derived(query.data?.artwork ?? []);
@@ -170,6 +170,14 @@
 							<h2 class="text-xl font-bold break-words text-header sm:text-3xl">{entity.title || 'Untitled'}</h2>
 							{#if entity.originalTitle && entity.originalTitle !== entity.title}
 								<p class="text-sm break-words text-interactive italic">{entity.originalTitle}</p>
+							{/if}
+							{#if !entity.poster && artworkHint.message}
+								<p class="text-xs text-interactive">
+									{artworkHint.message}
+									{#if artworkHint.needsKey}
+										<a href="/settings/catalog" class="text-link underline">Add one under Settings &gt; Catalog.</a>
+									{/if}
+								</p>
 							{/if}
 							<div class="flex flex-wrap items-center gap-2 text-sm text-interactive">
 								{#if entity.year > 0}

@@ -26,7 +26,7 @@ type Config struct {
 	PublicURL string
 	LogLevel  string
 	LogFormat string
-	Headless  bool
+	Display   string
 	// Credentials that fill the encrypted secrets store at boot when it holds none
 	DiscordBotToken     string
 	DiscordClientSecret string
@@ -64,7 +64,7 @@ func Flags(fs *pflag.FlagSet) {
 	fs.String("public-url", "", "origin users reach the server at, needed behind a proxy")
 	fs.String("log-level", "info", "debug, info, warn, or error")
 	fs.String("log-format", "", "text or json, detected from the terminal when empty")
-	fs.Bool("headless", false, "never start the desktop shell")
+	fs.String("display", "auto", "auto, all, desktop, or web")
 }
 
 // Load layers defaults, the config file, DISCOFLIX_ environment variables, and flags
@@ -74,6 +74,7 @@ func Load(fs *pflag.FlagSet) (Config, error) {
 		"data_dir":    DefaultDataDir(),
 		"server.addr": ":5001",
 		"log.level":   "info",
+		"display":     "auto",
 	}, "."), nil); err != nil {
 		return Config{}, err
 	}
@@ -97,7 +98,7 @@ func Load(fs *pflag.FlagSet) (Config, error) {
 		TransformFunc: func(key, value string) (string, any) {
 			key = strings.ToLower(strings.TrimPrefix(key, "DISCOFLIX_"))
 			switch key {
-			case "data_dir", "headless":
+			case "data_dir", "display":
 				return key, value
 			}
 			return strings.Replace(key, "_", ".", 1), value
@@ -125,13 +126,18 @@ func Load(fs *pflag.FlagSet) (Config, error) {
 		PublicURL: k.String("server.public_url"),
 		LogLevel:  k.String("log.level"),
 		LogFormat: k.String("log.format"),
-		Headless:  k.Bool("headless"),
+		Display:   k.String("display"),
 
 		DiscordBotToken:     k.String("discord.bot_token"),
 		DiscordClientSecret: k.String("discord.client_secret"),
 	}
 	if c.DataDir == "" {
 		c.DataDir = dataDir
+	}
+	switch c.Display {
+	case "auto", "all", "desktop", "web":
+	default:
+		return Config{}, fmt.Errorf("config: display %q is not auto, all, desktop, or web", c.Display)
 	}
 	return c, nil
 }

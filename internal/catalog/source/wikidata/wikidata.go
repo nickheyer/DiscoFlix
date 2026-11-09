@@ -75,6 +75,9 @@ func (s *Source) Kinds() []string {
 
 func (s *Source) NeedsKey() bool { return false }
 
+// Wikidata facts carry no images
+func (s *Source) Artwork() bool { return false }
+
 func (s *Source) KeyHint() string { return "" }
 
 func (s *Source) License() string { return license }
@@ -292,6 +295,22 @@ func tmdbBinding(kind, id string) (string, error) {
 }
 
 // Finds items by label or alias, keeping films and series of the requested kind and year
+// classFilter keeps full text search on items whose class is a film or a series, or both for any kind
+func classFilter(kind string) string {
+	var classes []string
+	if kind != model.KindSeries {
+		classes = append(classes, movieClasses...)
+	}
+	if kind != model.KindMovie {
+		classes = append(classes, seriesClasses...)
+	}
+	terms := make([]string, len(classes))
+	for i, c := range classes {
+		terms[i] = "P31=" + c
+	}
+	return "haswbstatement:" + strings.Join(terms, "|")
+}
+
 func (s *Source) Search(ctx context.Context, kind, text string, year int) ([]model.Claim, error) {
 	switch kind {
 	case "", model.KindMovie, model.KindSeries:
@@ -302,21 +321,23 @@ func (s *Source) Search(ctx context.Context, kind, text string, year int) ([]mod
 	if text == "" {
 		return nil, nil
 	}
-	langs, base := s.languages()
-	params := url.Values{"action": {"wbsearchentities"}, "search": {text}, "language": {base}, "type": {"item"}, "limit": {"10"}, "format": {"json"}}
+	langs, _ := s.languages()
+	params := url.Values{"action": {"query"}, "list": {"search"}, "srsearch": {text + " " + classFilter(kind)}, "srnamespace": {"0"}, "srlimit": {"10"}, "format": {"json"}}
 	var found struct {
-		Search []struct {
-			ID string `json:"id"`
-		} `json:"search"`
+		Query struct {
+			Search []struct {
+				Title string `json:"title"`
+			} `json:"search"`
+		} `json:"query"`
 	}
 	p := provenance{namespace: model.NSWikidata, kind: kind}
 	if _, err := s.client.GetJSON(ctx, catalog.SourceWikidata, outbound.Request{URL: apiURL + "?" + params.Encode(), Header: http.Header{"Accept": {"application/json"}}, Namespace: p.namespace, Kind: p.kind}, &found); err != nil {
 		return nil, err
 	}
 	var ids []string
-	for _, f := range found.Search {
-		if qid.MatchString(f.ID) && !slices.Contains(ids, f.ID) {
-			ids = append(ids, f.ID)
+	for _, f := range found.Query.Search {
+		if qid.MatchString(f.Title) && !slices.Contains(ids, f.Title) {
+			ids = append(ids, f.Title)
 		}
 	}
 	if len(ids) == 0 {

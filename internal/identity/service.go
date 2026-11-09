@@ -360,7 +360,23 @@ func (s *Service) Bootstrap(ctx context.Context, in BootstrapInput, meta Meta) (
 		return nil, err
 	}
 	s.audit(ctx, u, "bootstrap", "password", meta, u.DisplayName+" created this server and became its first administrator")
+	s.welcome(ctx, name)
 	return u, nil
+}
+
+// welcome posts one notice to #general telling the first administrator where the server is and what to set up next
+func (s *Service) welcome(ctx context.Context, name string) {
+	var b strings.Builder
+	if base := s.LinkBase(); base != "" {
+		fmt.Fprintf(&b, "This server is listening at %s. Open that address in any browser on your network to sign in. The desktop window shows the same site.\n\n", base)
+	}
+	b.WriteString("Next steps\n")
+	b.WriteString("1. Settings > Discord connects your bot so this space mirrors your guild.\n")
+	b.WriteString("2. Settings > Catalog holds the metadata snapshot, bulk datasets, and provider keys.\n")
+	b.WriteString("3. #audit records every boot, sign-in, and update.")
+	if _, err := s.tl.PostSystem(ctx, "general", "Welcome to "+name, &cardv1.SystemNotice{Title: "Welcome to " + name, Body: b.String(), Severity: cardv1.Severity_SEVERITY_SUCCESS}); err != nil {
+		s.log.Error("welcome post failed", "error", err)
+	}
 }
 
 // LoginWithPassword verifies a local identity and starts a session

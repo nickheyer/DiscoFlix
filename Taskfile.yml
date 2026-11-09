@@ -56,16 +56,10 @@ tasks:
       - bun run dev
 
   build:
-    desc: Build the desktop-capable binary for this platform
+    desc: Build the binary for this platform
     deps: [web:build]
     cmds:
-      - CGO_ENABLED=0 go build -tags purego,production -ldflags "{{.LDFLAGS}}" -o bin/discoflix ./cmd/discoflix
-
-  build:headless:
-    desc: Build the fully static headless binary
-    deps: [web:build]
-    cmds:
-      - CGO_ENABLED=0 go build -tags headless,production,nodynamic -ldflags "{{.LDFLAGS}}" -o bin/discoflix-headless ./cmd/discoflix
+      - CGO_ENABLED=0 go build -tags purego,gtk3,production -ldflags "{{.LDFLAGS}}" -o bin/discoflix ./cmd/discoflix
 
   run:
     deps: [build]
@@ -87,22 +81,22 @@ tasks:
   test:
     deps: [web:build]
     cmds:
-      - go test ./...
+      - go test -tags purego,gtk3,production ./...
       - cd web && bun run test
 
   lint:
     cmds:
-      - go vet ./...
+      - go vet -tags purego,gtk3,production ./...
       - go tool buf lint
       - golangci-lint run
       - cd web && bun run check
 
   cross:
-    desc: Cross-compile every release target without packaging
+    desc: Cross-compile all six release targets without packaging
     deps: [web:build]
     cmds:
-      - for: [linux/amd64, linux/arm64, windows/amd64, darwin/arm64, darwin/amd64]
-        cmd: CGO_ENABLED=0 GOOS={{splitList "/" .ITEM | first}} GOARCH={{splitList "/" .ITEM | last}} go build -tags purego,production -ldflags "{{.LDFLAGS}}" -o bin/cross/{{.ITEM}}/discoflix{{if eq (splitList "/" .ITEM | first) "windows"}}.exe{{end}} ./cmd/discoflix
+      - for: [linux/amd64, linux/arm64, windows/amd64, windows/arm64, darwin/amd64, darwin/arm64]
+        cmd: CGO_ENABLED=0 GOOS={{splitList "/" .ITEM | first}} GOARCH={{splitList "/" .ITEM | last}} go build -tags purego,gtk3,production -ldflags "{{.LDFLAGS}}" -o bin/cross/{{.ITEM}}/discoflix{{if eq (splitList "/" .ITEM | first) "windows"}}.exe{{end}} ./cmd/discoflix
 
   release:snapshot:
     deps: [web:build]

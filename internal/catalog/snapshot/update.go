@@ -9,6 +9,7 @@ import (
 	"io"
 	"io/fs"
 	"net"
+	"net/http"
 	"os"
 	"path/filepath"
 	"time"
@@ -118,6 +119,9 @@ func (s *Service) target(ctx context.Context) (*updater.Updater, *metadata.Targe
 		return nil, nil, crosswalk.Custom{}, fmt.Errorf("snapshot: start updater: %w", err)
 	}
 	if err := up.Refresh(); err != nil {
+		if de, ok := errors.AsType[*metadata.ErrDownloadHTTP](err); ok && de.StatusCode == http.StatusNotFound {
+			return nil, nil, crosswalk.Custom{}, fmt.Errorf("%w, %s answered 404", catalog.ErrNoRelease, de.URL)
+		}
 		return nil, nil, crosswalk.Custom{}, fmt.Errorf("snapshot: refresh signed metadata from %s: %w", mirror, err)
 	}
 	info, err := up.GetTargetInfo(crosswalk.TargetName)

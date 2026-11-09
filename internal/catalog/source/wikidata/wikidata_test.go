@@ -94,7 +94,7 @@ func (e *endpoints) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	e.requests = append(e.requests, r)
 	e.mu.Unlock()
 	if r.Host == "www.wikidata.org" {
-		if r.URL.Path != "/w/api.php" || r.URL.Query().Get("action") != "wbsearchentities" {
+		if r.URL.Path != "/w/api.php" || r.URL.Query().Get("action") != "query" || r.URL.Query().Get("list") != "search" {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
@@ -384,7 +384,7 @@ func TestSearchKeepsFilmsAndSeries(t *testing.T) {
 		[]string{q("Q83495"), `"date"`, `1999-03-31T00:00:00Z`, ""},
 		[]string{q("Q5"), `"label"`, `"human"@en`, ""},
 	)
-	e := &endpoints{qlever: http.StatusOK, facts: facts, search: `{"searchinfo":{"search":"breaking"},"search":[{"id":"Q1079","label":"Breaking Bad"},{"id":"Q83495","label":"The Matrix"},{"id":"Q5","label":"human"},{"id":"P31","label":"instance of"}],"success":1}`}
+	e := &endpoints{qlever: http.StatusOK, facts: facts, search: `{"batchcomplete":"","query":{"searchinfo":{"totalhits":4},"search":[{"ns":0,"title":"Q1079"},{"ns":0,"title":"Q83495"},{"ns":0,"title":"Q5"},{"ns":120,"title":"Property:P31"}]}}`}
 	src, rec := newSource(t, e)
 	ctx := context.Background()
 	claims, err := src.Search(ctx, "", "breaking", 2008)
@@ -405,7 +405,7 @@ func TestSearchKeepsFilmsAndSeries(t *testing.T) {
 			search = r
 		}
 	}
-	if p := search.URL.Query(); p.Get("search") != "breaking" || p.Get("language") != "en" || p.Get("type") != "item" || p.Get("limit") != "10" || p.Get("format") != "json" {
+	if p := search.URL.Query(); p.Get("srsearch") != "breaking haswbstatement:P31=Q11424|P31=Q24862|P31=Q202866|P31=Q506240|P31=Q93204|P31=Q5398426|P31=Q15416|P31=Q1259759|P31=Q581714" || p.Get("srnamespace") != "0" || p.Get("srlimit") != "10" || p.Get("format") != "json" {
 		t.Fatalf("search params = %v", p)
 	}
 	if facts := e.queries()[0]; !strings.Contains(facts, "VALUES ?item { wd:Q1079 wd:Q83495 wd:Q5 }") {
@@ -420,6 +420,15 @@ func TestSearchKeepsFilmsAndSeries(t *testing.T) {
 	}
 	if g := groups(claims); len(g) != 1 || g["movie Q83495"] == nil {
 		t.Fatalf("movie search = %v", g)
+	}
+	var movieSearch *http.Request
+	for _, r := range e.requests {
+		if r.Host == "www.wikidata.org" {
+			movieSearch = r
+		}
+	}
+	if q := movieSearch.URL.Query().Get("srsearch"); !strings.HasPrefix(q, "breaking haswbstatement:P31=Q11424|") || strings.Contains(q, "Q5398426") {
+		t.Fatalf("movie search filter = %s", q)
 	}
 	if _, err := src.Search(ctx, model.KindEpisode, "pilot", 0); !errors.Is(err, catalog.ErrUnsupported) {
 		t.Fatalf("episode search = %v", err)

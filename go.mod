@@ -18,7 +18,6 @@ require (
 	connectrpc.com/validate v0.9.0
 	entgo.io/ent v0.14.6
 	filippo.io/age v1.3.2
-	fyne.io/systray v1.12.2
 	github.com/Masterminds/semver/v3 v3.5.0
 	github.com/alexedwards/scs/v2 v2.9.0
 	github.com/caasmo/go-sqlite-rsync v0.8.0
@@ -32,7 +31,6 @@ require (
 	github.com/gen2brain/avif v0.6.0
 	github.com/gen2brain/webp v0.6.4
 	github.com/go-webauthn/webauthn v0.18.2
-	github.com/godbus/dbus/v5 v5.2.2
 	github.com/kardianos/service v1.3.0
 	github.com/klauspost/compress v1.20.3
 	github.com/knadh/koanf/parsers/yaml v1.1.1
@@ -162,6 +160,7 @@ require (
 	github.com/go-sql-driver/mysql v1.10.1 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/go-webauthn/x v0.3.1 // indirect
+	github.com/godbus/dbus/v5 v5.2.2 // indirect
 	github.com/gofrs/flock v0.13.1 // indirect
 	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
 	github.com/google/cel-go v0.31.0 // indirect

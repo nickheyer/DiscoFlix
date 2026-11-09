@@ -370,3 +370,24 @@ func searches(ctx context.Context, t *testing.T, s *Service) {
 		t.Fatalf("search group = %v", m)
 	}
 }
+
+func TestCheckAgainstMirrorWithoutRelease(t *testing.T) {
+	ctx := context.Background()
+	repo, err := snapshottest.NewRepo(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	empty := httptest.NewServer(http.FileServer(http.Dir(t.TempDir())))
+	defer empty.Close()
+	svc := newService(t, repo.Root, empty.URL)
+	_, err = svc.Check(ctx)
+	if !errors.Is(err, catalog.ErrNoRelease) || !strings.Contains(err.Error(), "timestamp.json answered 404") {
+		t.Fatalf("check against an empty mirror = %v", err)
+	}
+	if _, err := svc.Update(ctx, nil); !errors.Is(err, catalog.ErrNoRelease) {
+		t.Fatalf("update against an empty mirror = %v", err)
+	}
+	if cur := svc.Current(); cur.Present {
+		t.Fatalf("nothing should have been installed, current = %+v", cur)
+	}
+}

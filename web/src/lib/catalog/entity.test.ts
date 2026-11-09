@@ -65,7 +65,6 @@ describe('labels', () => {
 	});
 });
 
-
 describe('describeValue', () => {
 	it('classifies scalars', () => {
 		expect(describeValue(null)).toEqual({ type: 'empty' });

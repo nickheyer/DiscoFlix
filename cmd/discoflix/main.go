@@ -1,4 +1,4 @@
-// Command discoflix runs the server, the desktop shell, service management, and self-update
+// Command discoflix runs the server, the desktop window, service management, and self-update
 package main
 
 import (
@@ -6,9 +6,10 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
-	"os/exec"
 	"os/signal"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"syscall"
@@ -18,9 +19,10 @@ import (
 
 	"github.com/nickheyer/DiscoFlix/internal/app"
 	"github.com/nickheyer/DiscoFlix/internal/config"
-	"github.com/nickheyer/DiscoFlix/internal/shell"
+	"github.com/nickheyer/DiscoFlix/internal/display"
 	"github.com/nickheyer/DiscoFlix/internal/shell/svc"
 	"github.com/nickheyer/DiscoFlix/internal/shell/update"
+	"github.com/nickheyer/DiscoFlix/internal/store"
 	"github.com/nickheyer/DiscoFlix/internal/telemetry"
 	"github.com/nickheyer/DiscoFlix/web"
 )
@@ -45,8 +47,8 @@ func run(args []string) int {
 	switch cmd {
 	case "serve":
 		return serve(args)
-	case "tray":
-		return tray(args)
+	case "display":
+		return displayCmd(args)
 	case "service":
 		return service(args)
 	case "update":
@@ -66,21 +68,21 @@ func run(args []string) int {
 func usage() {
 	fmt.Print(`discoflix [command] [flags]
 
-  serve      run the server, with the desktop shell when a display is present (default)
-  tray       open the desktop shell against a running server (--url, --hidden), or tray install|uninstall for a login entry
+  serve      run the server and the desktop window as --display says (default)
+  display    show or save the mode that --display auto starts with: all, desktop, or web
   service    install, uninstall, start, stop, or status of the system service
   update     check for and apply a signed release (--check to only check)
   version    print the version
 
 Flags for serve and service install:
-  --data-dir, --addr, --public-url, --log-level, --log-format, --headless
-Environment: DISCOFLIX_DATA_DIR, DISCOFLIX_SERVER_ADDR, DISCOFLIX_SERVER_PUBLIC_URL, DISCOFLIX_LOG_LEVEL, DISCOFLIX_LOG_FORMAT, DISCOFLIX_HEADLESS
+  --data-dir, --addr, --public-url, --log-level, --log-format, --display
+  --display auto     the mode saved in the app, else all, falling back to desktop or web on error (default)
+  --display all      server on --addr plus the desktop window
+  --display desktop  server on loopback only plus the desktop window
+  --display web      server on --addr, no window
+Environment: DISCOFLIX_DATA_DIR, DISCOFLIX_SERVER_ADDR, DISCOFLIX_SERVER_PUBLIC_URL, DISCOFLIX_LOG_LEVEL, DISCOFLIX_LOG_FORMAT, DISCOFLIX_DISPLAY
             DISCOFLIX_DISCORD_BOT_TOKEN and DISCOFLIX_DISCORD_CLIENT_SECRET fill the encrypted secrets store at boot when it holds none
 `)
-}
-
-func signalContext() (context.Context, context.CancelFunc) {
-	return signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 }
 
 func serve(args []string) int {
@@ -97,144 +99,188 @@ func serve(args []string) int {
 	log := telemetry.NewLogger(cfg.LogLevel, cfg.LogFormat, os.Stderr)
 	update.SetDataDir(cfg.DataDir)
 	err = svc.RunAsService(func(ctx context.Context) error {
-		ctx, cancel := signalContextFrom(ctx)
+		ctx, cancel := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
 		defer cancel()
-		det := shell.Detect(cfg.Headless)
-		log.Info("starting", "version", version, "mode", modeName(det.Mode), "reason", det.Reason, "data_dir", cfg.DataDir)
-		a, err := app.New(ctx, app.Options{Config: cfg, Version: version, Commit: commit, Mode: modeName(det.Mode), Web: web.Build, Log: log})
-		if err != nil {
-			return err
-		}
-		defer a.Close()
-		if det.Mode == shell.ModeHeadless {
-			return a.Run(ctx)
-		}
-		done := make(chan struct{})
-		var runErr error
-		go func() {
-			runErr = a.Run(ctx)
-			close(done)
-		}()
-		select {
-		case <-a.Ready():
-		case <-done:
-			return runErr
-		case <-ctx.Done():
-			<-done
-			return runErr
-		}
-		shellErr := shell.Run(ctx, det, shell.Options{
-			AppName:       "DiscoFlix",
-			URL:           a.ShellURL(),
-			IconPNG:       iconPNG,
-			Version:       version,
-			OnOpenWeb:     func() { openBrowser(a.ShellURL(), log) },
-			OnCheckUpdate: func() { checkAndApply(ctx, cfg.DataDir, log, true) },
-			OnQuit: func() {
-				cancel()
-				<-done
-			},
-			Logger: log,
-		})
-		if shellErr != nil {
-			log.Error("desktop shell stopped, serving headless", "error", shellErr)
-			<-ctx.Done()
-		}
-		cancel()
-		<-done
-		return runErr
+		return runServe(ctx, cfg, log)
 	})
 	if err != nil && !errors.Is(err, context.Canceled) {
 		log.Error("exited", "error", err)
+		_, _ = fmt.Fprintln(os.Stdout, "discoflix:", err)
+		appendLog(cfg.DataDir, err)
 		return 1
 	}
 	return 0
 }
 
-// signalContextFrom cancels ctx on interrupt or termination signals
-func signalContextFrom(parent context.Context) (context.Context, context.CancelFunc) {
-	return signal.NotifyContext(parent, os.Interrupt, syscall.SIGTERM)
+// runServe boots the app, settles the display mode with its fallbacks, serves, and runs the window
+func runServe(ctx context.Context, cfg config.Config, log *slog.Logger) error {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	requested, err := display.Parse(cfg.Display)
+	if err != nil {
+		return err
+	}
+	a, err := app.New(ctx, app.Options{Config: cfg, Version: version, Commit: commit, Web: web.Build, Log: log})
+	if err != nil {
+		return err
+	}
+	defer a.Close()
+	auto := requested == display.Auto
+	mode := requested
+	if auto {
+		mode, err = savedDisplay(ctx, a)
+		if err != nil {
+			return err
+		}
+	}
+	windowErr := display.Available()
+	if auto && mode.Window() && windowErr != nil {
+		log.Warn("desktop window unavailable, using web", "error", windowErr)
+		mode = display.Web
+	}
+	log.Info("display", "requested", requested, "mode", mode)
+	if _, err := a.Listen(ctx, listenAddr(cfg, mode)); err != nil {
+		alt, ok := listenFallback(mode, windowErr)
+		if !auto || !ok {
+			return errors.Join(err, windowErr)
+		}
+		log.Warn("listen failed, falling back", "mode", mode, "fallback", alt, "error", err)
+		if _, err2 := a.Listen(ctx, listenAddr(cfg, alt)); err2 != nil {
+			return errors.Join(err, err2)
+		}
+		mode = alt
+	}
+	done := make(chan struct{})
+	var runErr error
+	go func() {
+		runErr = a.Run(ctx, string(mode))
+		close(done)
+		cancel()
+	}()
+	select {
+	case <-a.Ready():
+	case <-done:
+		return runErr
+	}
+	stop := func() {
+		cancel()
+		<-done
+	}
+	if !mode.Window() {
+		<-done
+		return runErr
+	}
+	werr := display.Run(ctx, display.Options{URL: a.ShellURL(), Title: "DiscoFlix", Icon: iconPNG, Logger: log, OnQuit: stop})
+	if werr == nil {
+		stop()
+		return runErr
+	}
+	if !auto {
+		stop()
+		return werr
+	}
+	if mode == display.Desktop {
+		if _, lerr := a.Listen(ctx, cfg.Addr); lerr != nil {
+			stop()
+			return errors.Join(werr, lerr)
+		}
+	}
+	log.Warn("desktop window failed, serving web", "error", werr)
+	<-done
+	return runErr
 }
 
-func modeName(m shell.Mode) string {
-	switch m {
-	case shell.ModeWindow:
-		return "window"
-	case shell.ModeTray:
-		return "tray"
+// savedDisplay returns the mode saved in the app, or all when none is saved
+func savedDisplay(ctx context.Context, a *app.App) (display.Mode, error) {
+	var saved string
+	ok, err := a.Setting(ctx, display.SettingKey, &saved)
+	if err != nil || !ok {
+		return display.All, err
 	}
-	return "headless"
+	mode, err := display.Parse(saved)
+	if err != nil {
+		return "", fmt.Errorf("saved setting %s: %w", display.SettingKey, err)
+	}
+	if mode == display.Auto {
+		return display.All, nil
+	}
+	return mode, nil
 }
 
-func tray(args []string) int {
-	action := ""
-	if len(args) > 0 && !strings.HasPrefix(args[0], "-") {
-		action, args = args[0], args[1:]
+// listenAddr keeps desktop mode on an ephemeral loopback port and every other mode on the configured address
+func listenAddr(cfg config.Config, mode display.Mode) string {
+	if mode.Loopback() {
+		return "127.0.0.1:0"
 	}
-	fs := pflag.NewFlagSet("tray", pflag.ContinueOnError)
-	url := fs.String("url", "http://127.0.0.1:5001/", "address of the running server")
-	dataDir := fs.String("data-dir", config.DefaultDataDir(), "directory used for the update trust cache")
-	hidden := fs.Bool("hidden", false, "start with the window hidden in the tray")
+	return cfg.Addr
+}
+
+// listenFallback names the mode to try when the address for mode cannot be bound
+func listenFallback(mode display.Mode, windowErr error) (display.Mode, bool) {
+	if mode.Loopback() {
+		return display.Web, true
+	}
+	return display.Desktop, windowErr == nil
+}
+
+// displayCmd shows or saves the display mode that auto starts with
+func displayCmd(args []string) int {
+	fs := pflag.NewFlagSet("display", pflag.ContinueOnError)
+	dataDir := fs.String("data-dir", config.DefaultDataDir(), "directory holding the settings database")
 	if err := fs.Parse(args); err != nil {
 		return 2
 	}
-	switch action {
-	case "install":
-		if err := svc.InstallTrayAutostart(svc.TrayConfig{URL: *url, DataDir: *dataDir}); err != nil {
+	var mode display.Mode
+	if rest := fs.Args(); len(rest) > 0 {
+		m, err := display.Parse(rest[0])
+		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
-			return 1
+			return 2
 		}
-		fmt.Println("tray will start at login")
-		return 0
-	case "uninstall":
-		if err := svc.UninstallTrayAutostart(); err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			return 1
-		}
-		fmt.Println("tray login entry removed")
-		return 0
-	case "status":
-		ok, err := svc.TrayAutostartInstalled()
+		mode = m
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+	st, err := store.Open(ctx, *dataDir, telemetry.NewLogger("warn", "", os.Stderr))
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return 1
+	}
+	defer func() { _ = st.Close() }()
+	if _, err := st.Migrate(ctx, version); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return 1
+	}
+	settings := store.NewSettings(st.Ent)
+	if mode == "" {
+		saved, err := settings.GetString(ctx, display.SettingKey, string(display.Auto))
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			return 1
 		}
-		if ok {
-			fmt.Println("installed")
-		} else {
-			fmt.Println("not installed")
-		}
+		mode = display.Mode(saved)
+	} else if err := settings.Set(ctx, display.SettingKey, string(mode)); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return 1
+	}
+	if mode == display.Auto {
+		fmt.Println("auto starts in all mode, nothing saved")
 		return 0
-	case "":
-	default:
-		fmt.Fprintf(os.Stderr, "unknown tray action %q\n", action)
-		return 2
 	}
-	log := telemetry.NewLogger("info", "", os.Stderr)
-	update.SetDataDir(*dataDir)
-	ctx, cancel := signalContext()
-	defer cancel()
-	det := shell.Detect(false)
-	if det.Mode == shell.ModeHeadless {
-		fmt.Fprintln(os.Stderr, "no display available:", det.Reason)
-		return 1
-	}
-	err := shell.Run(ctx, det, shell.Options{
-		AppName:       "DiscoFlix",
-		URL:           *url,
-		IconPNG:       iconPNG,
-		Version:       version,
-		OnOpenWeb:     func() { openBrowser(*url, log) },
-		OnCheckUpdate: func() { checkAndApply(ctx, *dataDir, log, true) },
-		OnQuit:        cancel,
-		Logger:        log,
-		StartHidden:   *hidden,
-	})
-	if err != nil {
-		log.Error("shell exited", "error", err)
-		return 1
-	}
+	fmt.Println("auto starts in", mode, "mode")
 	return 0
+}
+
+// appendLog records a fatal exit in discoflix.log beside the databases
+func appendLog(dataDir string, err error) {
+	path := filepath.Join(dataDir, "discoflix.log")
+	f, ferr := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o600) //nolint:gosec // the path is inside the data directory
+	if ferr != nil {
+		fmt.Fprintln(os.Stderr, "discoflix: cannot write", path+":", ferr)
+		return
+	}
+	defer func() { _ = f.Close() }()
+	_, _ = fmt.Fprintf(f, "%s discoflix %s exited: %v\n", time.Now().Format(time.RFC3339), version, err)
 }
 
 func service(args []string) int {
@@ -309,11 +355,7 @@ func updateCmd(args []string) int {
 }
 
 // checkAndApply reports the newest release and applies it when asked, restarting outside a service manager
-func checkAndApply(ctx context.Context, dataDir string, log interface {
-	Info(string, ...any)
-	Error(string, ...any)
-}, apply bool,
-) bool {
+func checkAndApply(ctx context.Context, dataDir string, log *slog.Logger, apply bool) bool {
 	update.SetDataDir(dataDir)
 	rel, err := update.Check(ctx, version)
 	if err != nil {
@@ -343,20 +385,4 @@ func checkAndApply(ctx context.Context, dataDir string, log interface {
 		return false
 	}
 	return true
-}
-
-// openBrowser hands a loopback or operator-supplied URL to the platform opener
-func openBrowser(url string, log interface{ Error(string, ...any) }) {
-	var cmd *exec.Cmd
-	switch runtime.GOOS {
-	case "windows":
-		cmd = exec.CommandContext(context.Background(), "rundll32", "url.dll,FileProtocolHandler", url) //nolint:gosec // fixed opener, url is ours or a flag
-	case "darwin":
-		cmd = exec.CommandContext(context.Background(), "open", url) //nolint:gosec // fixed opener, url is ours or a flag
-	default:
-		cmd = exec.CommandContext(context.Background(), "xdg-open", url) //nolint:gosec // fixed opener, url is ours or a flag
-	}
-	if err := cmd.Start(); err != nil {
-		log.Error("open browser failed", "error", err)
-	}
 }

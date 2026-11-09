@@ -169,6 +169,9 @@ func (s *Service) Kinds() []string {
 
 func (s *Service) NeedsKey() bool { return false }
 
+// The crosswalk holds ids and titles only
+func (s *Service) Artwork() bool { return false }
+
 func (s *Service) KeyHint() string { return "" }
 
 func (s *Service) License() string { return crosswalk.License }

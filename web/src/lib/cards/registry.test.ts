@@ -57,6 +57,10 @@ describe('card registry', () => {
 			anyPack(UpdateEventSchema, create(UpdateEventSchema, { stage: 'failed', availableVersion: '4.1.0' }))
 		);
 		expect(cardSummary(boot)).toBe('DiscoFlix 4.0.0 started in headless mode');
+		const served = resolveCard(
+			anyPack(BootReportSchema, create(BootReportSchema, { version: '4.0.0', mode: 'window', url: 'http://box:5001' }))
+		);
+		expect(cardSummary(served)).toBe('DiscoFlix 4.0.0 started in window mode at http://box:5001');
 		expect(cardSummary(security)).toBe('API key revoked');
 		expect(cardAccent(security)).toBe('warning');
 		expect(cardSummary(update)).toBe('Update to 4.1.0 failed');

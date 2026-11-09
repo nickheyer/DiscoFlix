@@ -12,6 +12,7 @@ import (
 	"os"
 	"runtime"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -62,10 +63,8 @@ type Options struct {
 	Config  config.Config
 	Version string
 	Commit  string
-	// headless, tray, or window
-	Mode string
-	Web  fs.FS
-	Log  *slog.Logger
+	Web     fs.FS
+	Log     *slog.Logger
 }
 
 // App holds every subsystem for the lifetime of the process
@@ -89,6 +88,9 @@ type App struct {
 	ready     chan struct{}
 	mu        sync.Mutex
 	addr      net.Addr
+	server    *gateway.Server
+	pending   []net.Listener
+	mode      string
 	closeOnce sync.Once
 }
 
@@ -287,8 +289,39 @@ func secureCookies(publicURL string) bool {
 	return len(publicURL) > 8 && publicURL[:8] == "https://"
 }
 
-// Run serves until ctx ends, posting the boot report once the listener is up
-func (a *App) Run(ctx context.Context) error {
+// Listen binds addr for requests, serving it at once when Run is already serving
+func (a *App) Listen(ctx context.Context, addr string) (net.Addr, error) {
+	ln, err := gateway.Listen(ctx, addr)
+	if err != nil {
+		return nil, err
+	}
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	if a.addr == nil {
+		a.addr = ln.Addr()
+	}
+	if a.server != nil {
+		a.server.Serve(ln)
+	} else {
+		a.pending = append(a.pending, ln)
+	}
+	a.opts.Log.Info("http listening", "addr", ln.Addr().String())
+	return ln.Addr(), nil
+}
+
+// Setting decodes the value saved in the app under key, reporting false when unset
+func (a *App) Setting(ctx context.Context, key string, out any) (bool, error) {
+	return store.NewSettings(a.store.Ent).Get(ctx, key, out)
+}
+
+// Run starts every subsystem, serves the bound listeners, posts the boot report, and waits until ctx ends
+func (a *App) Run(ctx context.Context, mode string) error {
+	a.mu.Lock()
+	bound := len(a.pending)
+	a.mu.Unlock()
+	if bound == 0 {
+		return errors.New("app: Listen must bind an address before Run")
+	}
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	if err := a.node.Run(); err != nil {
@@ -299,21 +332,26 @@ func (a *App) Run(ctx context.Context) error {
 	go func() { defer wg.Done(); _ = a.authz.Run(ctx) }()
 	go func() { defer wg.Done(); _ = a.ids.Run(ctx) }()
 	go func() { defer wg.Done(); _ = a.discord.Run(ctx) }()
-	err := gateway.Serve(ctx, a.opts.Config.Addr, a.handler, a.opts.Log, func(addr net.Addr) {
-		a.mu.Lock()
-		a.addr = addr
-		a.mu.Unlock()
-		if a.opts.Config.PublicURL == "" {
-			a.ids.SetLinkBase(defaultBase(addr))
-		}
-		close(a.ready)
-		a.postBootReport(ctx)
-		a.discord.Start(ctx)
-		if err := a.catalog.Start(ctx); err != nil {
-			a.opts.Log.Error("catalog start failed", "error", err)
-			a.postCatalogFailure(ctx, err)
-		}
-	})
+	a.mu.Lock()
+	a.mode = mode
+	a.server = gateway.NewServer(a.handler, a.opts.Log)
+	for _, ln := range a.pending {
+		a.server.Serve(ln)
+	}
+	a.pending = nil
+	a.mu.Unlock()
+	if a.opts.Config.PublicURL == "" {
+		a.ids.SetLinkBase(defaultBase(a.Addr()))
+	}
+	a.opts.Log.Info("serving", "url", a.baseURL(), "addr", a.Addr().String(), "mode", mode)
+	close(a.ready)
+	a.postBootReport(ctx)
+	a.discord.Start(ctx)
+	if err := a.catalog.Start(ctx); err != nil {
+		a.opts.Log.Error("catalog start failed", "error", err)
+		a.postCatalogFailure(ctx, err)
+	}
+	err := a.server.Wait(ctx)
 	cancel()
 	wg.Wait()
 	shutdown, stop := context.WithTimeout(context.Background(), 5*time.Second)
@@ -338,6 +376,14 @@ func defaultBase(addr net.Addr) string {
 	return "http://" + net.JoinHostPort(host, port)
 }
 
+// baseURL is the address people open in a browser, the configured public URL or the host and port bound at boot
+func (a *App) baseURL() string {
+	if a.opts.Config.PublicURL != "" {
+		return strings.TrimRight(a.opts.Config.PublicURL, "/")
+	}
+	return defaultBase(a.Addr())
+}
+
 func (a *App) postBootReport(ctx context.Context) {
 	report := &cardv1.BootReport{
 		Version:           a.opts.Version,
@@ -345,11 +391,13 @@ func (a *App) postBootReport(ctx context.Context) {
 		GoVersion:         runtime.Version(),
 		Os:                runtime.GOOS,
 		Arch:              runtime.GOARCH,
-		Mode:              a.opts.Mode,
+		Mode:              a.mode,
 		MigrationsApplied: int32(a.migrated.Applied),
 		DataDir:           a.opts.Config.DataDir,
+		Address:           a.Addr().String(),
+		Url:               a.baseURL(),
 	}
-	content := fmt.Sprintf("DiscoFlix %s started in %s mode on %s/%s", a.opts.Version, a.opts.Mode, runtime.GOOS, runtime.GOARCH)
+	content := fmt.Sprintf("DiscoFlix %s started in %s mode on %s/%s, serving %s", a.opts.Version, a.mode, runtime.GOOS, runtime.GOARCH, report.Url)
 	if a.migrated.Applied > 0 {
 		content += fmt.Sprintf(", applied %d migrations", a.migrated.Applied)
 	}
@@ -375,19 +423,24 @@ func (a *App) Addr() net.Addr {
 	return a.addr
 }
 
-// ShellURL is the loopback URL the desktop window opens, carrying a fresh single-use token
+// ShellURL is the URL the desktop window opens, on loopback unless the server is bound to one other address, carrying a fresh single-use token
 func (a *App) ShellURL() string {
-	addr := a.Addr()
-	port := ""
-	if tcp, ok := addr.(*net.TCPAddr); ok {
-		port = fmt.Sprint(tcp.Port)
+	host, port := "127.0.0.1", ""
+	if tcp, ok := a.Addr().(*net.TCPAddr); ok {
+		port = strconv.Itoa(tcp.Port)
+		if tcp.IP != nil && !tcp.IP.IsUnspecified() && !tcp.IP.IsLoopback() {
+			host = tcp.IP.String()
+		}
 	}
-	return fmt.Sprintf("http://127.0.0.1:%s/shell/session?token=%s", port, a.token.Rotate())
+	return "http://" + net.JoinHostPort(host, port) + "/shell/session?token=" + a.token.Rotate()
 }
 
 // Close releases every subsystem
 func (a *App) Close() {
 	a.closeOnce.Do(func() {
+		for _, ln := range a.pending {
+			_ = ln.Close()
+		}
 		if a.workflows != nil {
 			_ = a.workflows.Close()
 		}

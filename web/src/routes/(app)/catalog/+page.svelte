@@ -6,6 +6,7 @@
 	import { page } from '$app/state';
 	import { ConnectError } from '@connectrpc/connect';
 	import { errorText } from '#lib/api/errors';
+	import { artworkNotice, artworkSourcesFromOutcomes } from '#lib/catalog/artwork';
 	import CandidateCard from '#lib/catalog/CandidateCard.svelte';
 	import CatalogHeader from '#lib/catalog/CatalogHeader.svelte';
 	import { kindOptions, scoreScale } from '#lib/catalog/entity';
@@ -13,7 +14,8 @@
 	import { MAX_YEAR, parseYear, readSearch, searchHref, type SearchMode } from '#lib/catalog/routes';
 	import SourceOutcomes from '#lib/catalog/SourceOutcomes.svelte';
 	import EntityCardView from '#lib/cards/EntityCard.svelte';
-	import { EntityKind, NoMatchSchema } from '#lib/gen/discoflix/catalog/v1/catalog_pb';
+	import { EntityKind, NoMatchSchema, type SourceOutcome } from '#lib/gen/discoflix/catalog/v1/catalog_pb';
+	import { session } from '#lib/identity/session.svelte';
 	import { Button } from '#lib/ui/button';
 	import { Input } from '#lib/ui/input';
 	import { Switch } from '#lib/ui/switch';
@@ -81,6 +83,18 @@
 	<title>{params.query ? `${params.query} in the catalog` : 'Catalog'}</title>
 </svelte:head>
 
+{#snippet artworkHint(sources: SourceOutcome[])}
+	{@const notice = artworkNotice(artworkSourcesFromOutcomes(sources))}
+	{#if notice.message}
+		<p class="rounded-lg bg-sidebar px-4 py-2.5 text-xs text-interactive">
+			{notice.message}
+			{#if notice.needsKey && session.isAdmin}
+				<a href="/settings/catalog" class="text-link underline">Add one under Settings &gt; Catalog.</a>
+			{/if}
+		</p>
+	{/if}
+{/snippet}
+
 {#snippet skeleton()}
 	<div class="grid gap-3 sm:grid-cols-[repeat(auto-fill,minmax(11rem,1fr))]" role="status" aria-label="Loading">
 		{#each [0, 1, 2, 3] as i (i)}
@@ -139,7 +153,9 @@
 						Local only
 					</label>
 					<span class="hidden text-xs text-faint sm:inline">
-						{localOnly ? 'Search and Find answer from the graph and snapshot alone' : 'Search and Find also ask live sources'}
+						{localOnly
+							? 'Search and Find answer from the graph and snapshot alone'
+							: 'Search and Find also ask live sources'}
 					</span>
 					<span class="flex-1"></span>
 					<Button type="submit" value="search" disabled={query.trim() === '' || yearInvalid}>Search</Button>
@@ -171,6 +187,7 @@
 					<p class="rounded bg-dnd/15 p-3 text-sm text-dnd" role="alert">{errorText(search.error)}</p>
 				{:else}
 					<SourceOutcomes sources={search.data.sources} />
+					{@render artworkHint(search.data.sources)}
 					{#if candidates.length === 0}
 						<p class="py-6 text-center text-sm text-interactive">Nothing matched {params.query}</p>
 					{:else}
@@ -198,6 +215,7 @@
 					</section>
 				{/if}
 				<SourceOutcomes sources={find.data.sources} />
+				{@render artworkHint(find.data.sources)}
 				{#if alternatives.length > 0}
 					<section aria-labelledby="alternatives-heading" class="space-y-2">
 						<h2 id="alternatives-heading" class="text-xs font-bold tracking-wide text-interactive uppercase">

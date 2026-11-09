@@ -5,7 +5,7 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/discoflix serve --headless
+ExecStart=/usr/bin/discoflix serve --display web
 Restart=on-failure
 RestartSec=5
 DynamicUser=yes

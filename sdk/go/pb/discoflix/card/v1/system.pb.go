@@ -149,8 +149,12 @@ type BootReport struct {
 	Mode              string `protobuf:"bytes,6,opt,name=mode" json:"mode,omitempty"`
 	MigrationsApplied int32  `protobuf:"varint,7,opt,name=migrations_applied,json=migrationsApplied" json:"migrations_applied,omitempty"`
 	DataDir           string `protobuf:"bytes,8,opt,name=data_dir,json=dataDir" json:"data_dir,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	// Bound listener, such as [::]:5001
+	Address string `protobuf:"bytes,9,opt,name=address" json:"address,omitempty"`
+	// Address people open in a browser, the public URL when configured or the host and port guessed at boot
+	Url           string `protobuf:"bytes,10,opt,name=url" json:"url,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *BootReport) Reset() {
@@ -235,6 +239,20 @@ func (x *BootReport) GetMigrationsApplied() int32 {
 func (x *BootReport) GetDataDir() string {
 	if x != nil {
 		return x.DataDir
+	}
+	return ""
+}
+
+func (x *BootReport) GetAddress() string {
+	if x != nil {
+		return x.Address
+	}
+	return ""
+}
+
+func (x *BootReport) GetUrl() string {
+	if x != nil {
+		return x.Url
 	}
 	return ""
 }
@@ -395,7 +413,7 @@ const file_discoflix_card_v1_system_proto_rawDesc = "" +
 	"\fSystemNotice\x12\x14\n" +
 	"\x05title\x18\x01 \x01(\tR\x05title\x12\x12\n" +
 	"\x04body\x18\x02 \x01(\tR\x04body\x127\n" +
-	"\bseverity\x18\x03 \x01(\x0e2\x1b.discoflix.card.v1.SeverityR\bseverity\"\xdf\x01\n" +
+	"\bseverity\x18\x03 \x01(\x0e2\x1b.discoflix.card.v1.SeverityR\bseverity\"\x8b\x02\n" +
 	"\n" +
 	"BootReport\x12\x18\n" +
 	"\aversion\x18\x01 \x01(\tR\aversion\x12\x16\n" +
@@ -406,7 +424,10 @@ const file_discoflix_card_v1_system_proto_rawDesc = "" +
 	"\x04arch\x18\x05 \x01(\tR\x04arch\x12\x12\n" +
 	"\x04mode\x18\x06 \x01(\tR\x04mode\x12-\n" +
 	"\x12migrations_applied\x18\a \x01(\x05R\x11migrationsApplied\x12\x19\n" +
-	"\bdata_dir\x18\b \x01(\tR\adataDir\"\x92\x01\n" +
+	"\bdata_dir\x18\b \x01(\tR\adataDir\x12\x18\n" +
+	"\aaddress\x18\t \x01(\tR\aaddress\x12\x10\n" +
+	"\x03url\x18\n" +
+	" \x01(\tR\x03url\"\x92\x01\n" +
 	"\rSecurityEvent\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x16\n" +
 	"\x06action\x18\x02 \x01(\tR\x06action\x12\x10\n" +

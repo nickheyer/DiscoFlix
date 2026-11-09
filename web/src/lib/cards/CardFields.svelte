@@ -4,6 +4,7 @@
 		value: string;
 		mono?: boolean;
 		wide?: boolean;
+		href?: string;
 	}
 </script>
 
@@ -17,7 +18,13 @@
 	{#each shown as field (field.label)}
 		<div class={field.wide ? 'col-span-full' : ''}>
 			<dt class="text-xs font-semibold text-interactive">{field.label}</dt>
-			<dd class="break-all {field.mono ? 'font-mono text-xs' : 'text-sm'}">{field.value}</dd>
+			<dd class="break-all {field.mono ? 'font-mono text-xs' : 'text-sm'}">
+				{#if field.href}
+					<a href={field.href} target="_blank" rel="noreferrer" class="text-link underline">{field.value}</a>
+				{:else}
+					{field.value}
+				{/if}
+			</dd>
 		</div>
 	{/each}
 </dl>

@@ -97,7 +97,7 @@ A person who arrives through Discord, later signs into the portal with Google, t
 - Install by dropping a file into the plugins folder or from a signed community registry. Hot reload. Each plugin owns a Space in the timeline.
 
 ### Operate
-- One binary: headless on servers, desktop shell with tray and window when a display is present, `--headless` to force. Service install for systemd, launchd, and Windows services from the binary itself.
+- One binary per platform and architecture. `--display` picks auto, all, desktop, or web: a server for browsers, a desktop window, or both. Service install for systemd, launchd, and Windows services from the binary itself.
 - Self-update with signature verification. Docker image. Homebrew, Scoop, winget, AUR.
 - Observability: the timeline first, then slog JSON, OpenTelemetry traces and metrics, a Prometheus endpoint, pprof, and an in-app log viewer.
 - Backups: online SQLite snapshot and restore, config export, encrypted secrets.
@@ -229,7 +229,7 @@ Every version below was verified against the upstream release page on 2026-11-08
 | Data | connect-es, protobuf-es, connect-query-core with @tanstack/svelte-query | 2.3.0, 2.17.0, 6.4.1 | Typed calls and cache from the protos |
 | Build | Vite on Rolldown, Bun | 8.3.6, 1.4.4 | Fast builds, one package manager |
 | PWA | @vite-pwa/sveltekit, VAPID push | 2.0.1 | Installable with push on iOS 16.4+, declarative push on 18.4+ |
-| Desktop | Wails v3 with the `purego` tag, fyne.io/systray | v3.1.0, v1.12.2 | Tray, hide to tray, windowless lifetime, WebView2 and WebKitGTK; tray plus browser when a webview runtime is missing |
+| Desktop | Wails v3 with the `purego` and `gtk3` tags | v3.1.0 | One window over WebView2, WKWebView, or WebKit2GTK 4.1 loaded at runtime, no cgo, every target cross-compiled from one machine |
 | Service | kardianos/service | v1.3.0 | systemd, launchd, Windows services, per-user services |
 | Self-update | creativeprojects/go-selfupdate plus a sigstore-go validator | v1.7.0, v1.4.0 | GoReleaser checksums plus cosign bundle pinned to the release workflow identity |
 
@@ -347,19 +347,20 @@ ui runtime         sandboxed iframe per plugin origin, JSON-RPC over postMessage
 
 `exec` grants wrap the managed ffmpeg and ffprobe, so plugins that process media stay in the sandbox. Plugin tables live in the plugin's own SQLite file and are applied from the plugin's schema with the Atlas library at load. Hot reload re-instantiates a component and replays its subscriptions from the cursor it last acknowledged.
 
-### Shell
+### Display
 
-`--headless` always wins. Otherwise detection runs before any UI library initializes:
+`--display`, `DISCOFLIX_DISPLAY`, or `display:` in `config.yaml` picks how the UI is reached:
 
-| OS | Headless when | Window when | Tray plus browser when |
-|---|---|---|---|
-| Windows | running as a service or in session 0 | WebView2 runtime present | WebView2 runtime missing |
-| Linux | no reachable Wayland or X11 socket, or an SSH-forwarded display | GTK4 and WebKitGTK 6.0 load via dlopen | session bus present but WebKitGTK missing |
-| macOS | session lacks graphic access (LaunchDaemon) | always | never |
+| Mode | Server | Window |
+|---|---|---|
+| `all` | the configured address, open to browsers | yes |
+| `desktop` | loopback only, on an ephemeral port | yes |
+| `web` | the configured address, open to browsers | no |
+| `auto` (default) | the mode saved in the app or with `discoflix display <mode>`, else `all` | as that mode |
 
-Started interactively, server and shell share one process and the window loads `http://127.0.0.1:<port>/shell/session` with a single-use token that signs the first administrator in from loopback. Installed as a system service, the service runs headless and a per-user `discoflix tray` process, registered at login by `discoflix tray install` (XDG autostart, HKCU Run, LaunchAgent), opens the window against the service's loopback URL, polls `/healthz` for status, and runs the updater itself.
+`auto` falls back when a step fails. A window that cannot open leaves the server running as `web`. A configured address that cannot bind moves the server to loopback and opens the window as `desktop`. When both fail the error goes to stdout and to `discoflix.log` in the data directory and the process exits. Explicit modes do not fall back. A window can open with a Wayland or X11 display and WebKit2GTK 4.1 on Linux, an interactive session and the WebView2 runtime on Windows, and a session with graphic access on macOS. Closing the window stops the process. The window loads `http://127.0.0.1:<port>/shell/session` with a single-use token that signs the first administrator in from loopback. System services run with `--display web`.
 
-Artifacts: one `-tags purego,production` binary per OS and architecture that serves both desktop and headless, plus one fully static `-tags headless` Linux binary for containers.
+Artifacts: one `-tags purego,gtk3,production` binary for each of linux, windows, and darwin on amd64 and arm64, and a multi-arch image on ghcr.io built from the Linux binaries.
 
 ### Smart transcode policy
 
@@ -383,7 +384,7 @@ SvelteKit builds a static SPA with pre-compressed `.br` and `.gz` assets embedde
 ```
 discoflix/
   go.mod  go.work  Taskfile.yml  .goreleaser.yaml  .golangci.yml  renovate.json  buf.yaml  buf.gen.yaml
-  cmd/discoflix/                  main, subcommands: serve, tray, service, update, import, plugin
+  cmd/discoflix/                  main, subcommands: serve, display, service, update, import, plugin
   internal/
     app/                          supervisor, lifecycle, dependency order
     capability/                   registry, interceptor, derivations (connect, rest, mcp, discord, agent, wit)
@@ -406,7 +407,8 @@ discoflix/
     ai/                           providers, router, doors, directives, agent loop, reconciler, embeddings, mcp server and client
     plugin/                       wacogo host, wrpc host, manifest, capabilities, registry client, ui bridge
     notify/                       shoutrrr, push, email, routing
-    shell/                        wails app, tray, detection, service install, self-update
+    display/                      display modes, the Wails window
+    shell/                        service install, self-update
     telemetry/                    slog, otel, metrics, pprof
     config/                       koanf layers, secrets
   proto/discoflix/                buf module, Apache-2.0
@@ -433,24 +435,24 @@ discoflix/
 ## Build
 
 ```
-make                        # web client plus the desktop-capable binary in bin/discoflix
-make dev                    # build, then serve from ./data with debug logging
+make                        # web client plus the static binary in bin/discoflix
+make dev                    # build, copy bin/crosswalk.sqlite into ./data when newer, serve with debug logging
+make crosswalk              # build the Wikidata crosswalk from QLever into bin/crosswalk.sqlite
 make test fmt gen clean
 
 go tool task gen            # protos, Ent code, JSON schemas
-go tool task build          # web client plus the desktop-capable binary in bin/discoflix
-go tool task build:headless # fully static Linux binary for containers
+go tool task build          # web client plus the static binary in bin/discoflix
 go tool task test           # Go and web tests
 go tool task lint           # vet, buf lint, golangci-lint, svelte-check
-go tool task cross          # all five targets into bin/cross
+go tool task cross          # all six targets into bin/cross
 go tool task migrate:diff NAME=add_thing
 go tool task crosswalk:build    # Wikidata crosswalk snapshot from QLever into bin/crosswalk.sqlite
 go tool task crosswalk:publish ONLINE_KEY=online.key  # TUF-signed mirror layout in bin/crosswalk-repo
 
-bin/discoflix serve --data-dir ./data      # desktop shell when a display is present
-bin/discoflix serve --headless --addr :5001
+bin/discoflix serve --data-dir ./data      # auto display, window plus server when a display is present
+bin/discoflix serve --display web --addr :5001
 bin/discoflix service install [--user]     # systemd, launchd, or Windows service
-bin/discoflix tray install                 # per-user login entry for the tray
+bin/discoflix display desktop              # save the mode that --display auto starts with
 bin/discoflix update --check
 ```
 
@@ -458,7 +460,7 @@ Release builds are produced by GoReleaser from a `v*` tag, signed with cosign th
 
 ## Absolute requirements
 
-1. One statically linked binary per target: linux/amd64, linux/arm64, windows/amd64, darwin/arm64, darwin/amd64, plus multi-arch Docker images. The headless build is CGO-free. The desktop build may dlopen native UI.
+1. One binary per target: linux, windows, and darwin on amd64 and arm64, six in all, plus a multi-arch Docker image on ghcr.io.
 2. Go 1.27 minimum. The latest stable toolchain is adopted the week it ships.
 3. One User model. No transport, plugin, or integration may create a second representation of a person.
 4. One capability registry. Anything reachable from the web UI is reachable from RPC, MCP, Discord where it fits, and plugins, from the same definition and through the same authorization check.
@@ -484,7 +486,7 @@ Each phase ends with a binary that does everything listed, with nothing stubbed.
 
 | Phase | Delivers | Done when |
 |---|---|---|
-| 0 Foundation | Repo, toolchain, protos, RPC server, SQLite with embedded Atlas migrations, capability registry, extension interfaces, timeline (Space, Channel, Message, Card), User and Identity, local and passkey login, web shell in the Discord layout, desktop and headless shell, service install, self-update, CI and release | A signed binary boots on all five targets, migrates, serves the UI, logs a user in, shows the system space timeline, and updates itself |
+| 0 Foundation | Repo, toolchain, protos, RPC server, SQLite with embedded Atlas migrations, capability registry, extension interfaces, timeline (Space, Channel, Message, Card), User and Identity, local and passkey login, web shell in the Discord layout, desktop window and web display, service install, self-update, CI and release | A signed binary boots on all six targets, migrates, serves the UI, logs a user in, shows the system space timeline, and updates itself |
 | 1 Mirror | Discord gateway, bidirectional guild, channel, member, message, reaction, and thread sync, Components V2 cards, slash commands, Discord login and identity linking | The v3 console experience is reproduced with live presence and unread counts, and a card interaction in Discord and the web is one state change |
 | 2 Catalog | Metadata graph, external-ID crosswalk, offline snapshot pipeline, movie and series providers, artwork pipeline, entity search | A title typed in Discord or the web resolves to one canonical entity with field provenance while every provider is unreachable |
 | 3 Acquire | Indexer layer with Cardigann engine, release parsing, quality profiles and custom formats, usenet engine, torrent engine, request pipeline workflows, approvals, quotas, notifications | A request in Discord becomes a file on disk through DiscoFlix alone, survives a restart mid-download, and reports every step as a Card |
@@ -526,7 +528,7 @@ Each phase ends with a binary that does everything listed, with nothing stubbed.
 | LLM framework | official SDKs behind one interface | eino, genkit, langchaingo, fantasy | Frameworks lag the SDKs by months and hide cache control, thinking budgets, strict tools, and batch |
 | Vector store | sqlite-vec through modernc | chromem-go, usearch, external DB | Same file as the rows and the same driver; vec1 is the upgrade path once modernc compiles it |
 | Local inference | yzma via purego | embedding Ollama | Ollama cannot run in-process; yzma loads llama.cpp without cgo |
-| Desktop shell | Wails v3 `purego` | glaze, energy, Fyne, Gio | Tray, multi-window, hide to tray, and a CGO-free tag; glaze has no Linux tray; Fyne and Gio cannot host a web UI |
+| Desktop shell | Wails v3 `purego` | glaze, energy, Fyne, Gio | One cgo-free window on every target from one build command; glaze is pre-1.0; Fyne and Gio cannot host a web UI |
 | Frontend | Svelte 5 and SvelteKit 3 | React 19 with TanStack, Solid 2, Vue 3.5 | Smallest runtime for a phone-first timeline that updates every second; React is the alternative if connect-query hooks ever matter more |
 | Package manager | Bun | pnpm, npm | One fast tool for install, scripts, and tests |
 | Config | koanf v2 | viper | viper has had no release since 2025-09 |

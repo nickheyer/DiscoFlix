@@ -2,6 +2,7 @@ version: "2"
 run:
   build-tags:
     - purego
+    - gtk3
     - production
 linters:
   default: standard

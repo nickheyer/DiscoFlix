@@ -29,6 +29,11 @@
         }
       },
       "properties": {
+        "address": {
+          "default": "",
+          "description": "Bound listener, such as [::]:5001",
+          "type": "string"
+        },
         "arch": {
           "default": "",
           "type": "string"
@@ -66,6 +71,11 @@
         },
         "os": {
           "default": "",
+          "type": "string"
+        },
+        "url": {
+          "default": "",
+          "description": "Address people open in a browser, the public URL when configured or the host and port guessed at boot",
           "type": "string"
         },
         "version": {

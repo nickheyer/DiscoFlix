@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/fs"
 	"log/slog"
 	"net"
@@ -68,37 +69,61 @@ func adminOnly(isAdmin func(*http.Request) bool, next http.Handler) http.Handler
 	})
 }
 
-// Serve runs the handler with HTTP/1.1 and cleartext HTTP/2 until ctx ends, reporting the bound address
-func Serve(ctx context.Context, addr string, handler http.Handler, log *slog.Logger, onListen func(net.Addr)) error {
+// Listen binds a TCP address without serving it yet
+func Listen(ctx context.Context, addr string) (net.Listener, error) {
+	return (&net.ListenConfig{}).Listen(ctx, "tcp", addr)
+}
+
+// Server serves one handler on every listener handed to it with HTTP/1.1 and cleartext HTTP/2
+type Server struct {
+	srv  *http.Server
+	log  *slog.Logger
+	errc chan error
+}
+
+// NewServer prepares a server for handler
+func NewServer(handler http.Handler, log *slog.Logger) *Server {
 	protocols := new(http.Protocols)
 	protocols.SetHTTP1(true)
 	protocols.SetUnencryptedHTTP2(true)
-	server := &http.Server{
-		Addr:              addr,
-		Handler:           handler,
-		Protocols:         protocols,
-		ReadHeaderTimeout: 15 * time.Second,
-		IdleTimeout:       2 * time.Minute,
+	return &Server{
+		srv: &http.Server{
+			Handler:           handler,
+			Protocols:         protocols,
+			ReadHeaderTimeout: 15 * time.Second,
+			IdleTimeout:       2 * time.Minute,
+		},
+		log:  log,
+		errc: make(chan error, 1),
 	}
-	ln, err := (&net.ListenConfig{}).Listen(ctx, "tcp", addr)
-	if err != nil {
-		return err
-	}
-	log.Info("http listening", "addr", ln.Addr().String())
-	if onListen != nil {
-		onListen(ln.Addr())
-	}
-	errc := make(chan error, 1)
-	go func() { errc <- server.Serve(ln) }()
+}
+
+// Serve accepts connections on ln in the background, reporting the first failure to Wait
+func (s *Server) Serve(ln net.Listener) {
+	go func() {
+		err := s.srv.Serve(ln)
+		if err == nil || errors.Is(err, http.ErrServerClosed) {
+			return
+		}
+		select {
+		case s.errc <- fmt.Errorf("%s: %w", ln.Addr(), err):
+		default:
+		}
+	}()
+}
+
+// Wait blocks until ctx ends or a listener fails, then shuts the server down
+func (s *Server) Wait(ctx context.Context) error {
+	var err error
 	select {
 	case <-ctx.Done():
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-		return server.Shutdown(shutdownCtx)
-	case err := <-errc:
-		if errors.Is(err, http.ErrServerClosed) {
-			return nil
-		}
-		return err
+	case err = <-s.errc:
+		s.log.Error("http serve failed", "error", err)
 	}
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if serr := s.srv.Shutdown(shutdownCtx); err == nil {
+		err = serr
+	}
+	return err
 }

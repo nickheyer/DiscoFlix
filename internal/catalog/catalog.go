@@ -62,6 +62,8 @@ var (
 	ErrUnsupported = errors.New("catalog: operation not supported by this source")
 	// ErrNoData is wrapped by a local source whose dataset or snapshot has not been loaded yet
 	ErrNoData = errors.New("catalog: local data not loaded")
+	// ErrNoRelease is wrapped when the snapshot mirror answers but has never published a release
+	ErrNoRelease = errors.New("catalog: the mirror has not published a crosswalk snapshot yet")
 	// ErrTooFewPairs is returned by a trainer that keeps its previous weights because the sample is too small
 	ErrTooFewPairs = model.ErrTooFewPairs
 	ErrNotLaunched = workflow.ErrNotLaunched
@@ -84,6 +86,8 @@ type Source interface {
 	NeedsKey() bool
 	KeyHint() string
 	License() string
+	// Artwork reports whether lookups return poster, backdrop, or logo images
+	Artwork() bool
 	Configure(keys Keys, options map[string]string) error
 	Lookup(ctx context.Context, kind, namespace, id string) ([]model.Claim, error)
 	Search(ctx context.Context, kind, text string, year int) ([]model.Claim, error)
@@ -394,11 +398,11 @@ func (s *Service) skippedOutcomes(localOnly bool) []Outcome {
 		e := s.sources[name]
 		switch {
 		case !e.enabled:
-			out = append(out, Outcome{Source: name, State: StateDisabled})
+			out = append(out, Outcome{Source: name, State: StateDisabled, Artwork: e.Artwork()})
 		case !s.configured(e):
-			out = append(out, Outcome{Source: name, State: StateUnconfigured, Detail: e.KeyHint()})
+			out = append(out, Outcome{Source: name, State: StateUnconfigured, Detail: e.KeyHint(), Artwork: e.Artwork()})
 		case localOnly && !e.local:
-			out = append(out, Outcome{Source: name, State: StateSkipped})
+			out = append(out, Outcome{Source: name, State: StateSkipped, Artwork: e.Artwork()})
 		}
 	}
 	return out

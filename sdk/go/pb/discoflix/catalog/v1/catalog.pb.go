@@ -732,10 +732,12 @@ type SourceOutcome struct {
 	state  protoimpl.MessageState `protogen:"open.v1"`
 	Source string                 `protobuf:"bytes,1,opt,name=source" json:"source,omitempty"`
 	// answered, empty, disabled, unconfigured, unreachable, missing, budget, open, skipped
-	State         string `protobuf:"bytes,2,opt,name=state" json:"state,omitempty"`
-	Detail        string `protobuf:"bytes,3,opt,name=detail" json:"detail,omitempty"`
-	Results       int32  `protobuf:"varint,4,opt,name=results" json:"results,omitempty"`
-	DurationMs    int64  `protobuf:"varint,5,opt,name=duration_ms,json=durationMs" json:"duration_ms,omitempty"`
+	State      string `protobuf:"bytes,2,opt,name=state" json:"state,omitempty"`
+	Detail     string `protobuf:"bytes,3,opt,name=detail" json:"detail,omitempty"`
+	Results    int32  `protobuf:"varint,4,opt,name=results" json:"results,omitempty"`
+	DurationMs int64  `protobuf:"varint,5,opt,name=duration_ms,json=durationMs" json:"duration_ms,omitempty"`
+	// The source offers posters, backdrops, or logos
+	Artwork       bool `protobuf:"varint,6,opt,name=artwork" json:"artwork,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -803,6 +805,13 @@ func (x *SourceOutcome) GetDurationMs() int64 {
 		return x.DurationMs
 	}
 	return 0
+}
+
+func (x *SourceOutcome) GetArtwork() bool {
+	if x != nil {
+		return x.Artwork
+	}
+	return false
 }
 
 type Candidate struct {
@@ -1748,16 +1757,18 @@ type Source struct {
 	// Where the administrator obtains the key
 	KeyHint string `protobuf:"bytes,6,opt,name=key_hint,json=keyHint" json:"key_hint,omitempty"`
 	// ok, failing, open, disabled, unconfigured, idle
-	State         string                 `protobuf:"bytes,7,opt,name=state" json:"state,omitempty"`
-	LastError     string                 `protobuf:"bytes,8,opt,name=last_error,json=lastError" json:"last_error,omitempty"`
-	LastOkAt      *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=last_ok_at,json=lastOkAt" json:"last_ok_at,omitempty"`
-	LastErrorAt   *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=last_error_at,json=lastErrorAt" json:"last_error_at,omitempty"`
-	CallsToday    int32                  `protobuf:"varint,11,opt,name=calls_today,json=callsToday" json:"calls_today,omitempty"`
-	Budget        int32                  `protobuf:"varint,12,opt,name=budget" json:"budget,omitempty"`
-	License       string                 `protobuf:"bytes,13,opt,name=license" json:"license,omitempty"`
-	Namespaces    []string               `protobuf:"bytes,14,rep,name=namespaces" json:"namespaces,omitempty"`
-	Options       map[string]string      `protobuf:"bytes,15,rep,name=options" json:"options,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	HasClientKey  bool                   `protobuf:"varint,16,opt,name=has_client_key,json=hasClientKey" json:"has_client_key,omitempty"`
+	State        string                 `protobuf:"bytes,7,opt,name=state" json:"state,omitempty"`
+	LastError    string                 `protobuf:"bytes,8,opt,name=last_error,json=lastError" json:"last_error,omitempty"`
+	LastOkAt     *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=last_ok_at,json=lastOkAt" json:"last_ok_at,omitempty"`
+	LastErrorAt  *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=last_error_at,json=lastErrorAt" json:"last_error_at,omitempty"`
+	CallsToday   int32                  `protobuf:"varint,11,opt,name=calls_today,json=callsToday" json:"calls_today,omitempty"`
+	Budget       int32                  `protobuf:"varint,12,opt,name=budget" json:"budget,omitempty"`
+	License      string                 `protobuf:"bytes,13,opt,name=license" json:"license,omitempty"`
+	Namespaces   []string               `protobuf:"bytes,14,rep,name=namespaces" json:"namespaces,omitempty"`
+	Options      map[string]string      `protobuf:"bytes,15,rep,name=options" json:"options,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	HasClientKey bool                   `protobuf:"varint,16,opt,name=has_client_key,json=hasClientKey" json:"has_client_key,omitempty"`
+	// The source offers posters, backdrops, or logos
+	Artwork       bool `protobuf:"varint,17,opt,name=artwork" json:"artwork,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1900,6 +1911,13 @@ func (x *Source) GetOptions() map[string]string {
 func (x *Source) GetHasClientKey() bool {
 	if x != nil {
 		return x.HasClientKey
+	}
+	return false
+}
+
+func (x *Source) GetArtwork() bool {
+	if x != nil {
+		return x.Artwork
 	}
 	return false
 }
@@ -2890,14 +2908,15 @@ const file_discoflix_catalog_v1_catalog_proto_rawDesc = "" +
 	"\n" +
 	"updated_at\x18\x0e \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12$\n" +
 	"\x0emerged_into_id\x18\x0f \x01(\tR\fmergedIntoId\x12!\n" +
-	"\fparent_title\x18\x10 \x01(\tR\vparentTitle\"\x90\x01\n" +
+	"\fparent_title\x18\x10 \x01(\tR\vparentTitle\"\xaa\x01\n" +
 	"\rSourceOutcome\x12\x16\n" +
 	"\x06source\x18\x01 \x01(\tR\x06source\x12\x14\n" +
 	"\x05state\x18\x02 \x01(\tR\x05state\x12\x16\n" +
 	"\x06detail\x18\x03 \x01(\tR\x06detail\x12\x18\n" +
 	"\aresults\x18\x04 \x01(\x05R\aresults\x12\x1f\n" +
 	"\vduration_ms\x18\x05 \x01(\x03R\n" +
-	"durationMs\"\xae\x01\n" +
+	"durationMs\x12\x18\n" +
+	"\aartwork\x18\x06 \x01(\bR\aartwork\"\xae\x01\n" +
 	"\tCandidate\x124\n" +
 	"\x06entity\x18\x01 \x01(\v2\x1c.discoflix.catalog.v1.EntityR\x06entity\x12\x14\n" +
 	"\x05score\x18\x02 \x01(\x02R\x05score\x12 \n" +
@@ -2970,7 +2989,7 @@ const file_discoflix_catalog_v1_catalog_proto_rawDesc = "" +
 	"\tentity_id\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\bentityId\"8\n" +
 	"\x15RefreshEntityResponse\x12\x1f\n" +
 	"\vworkflow_id\x18\x01 \x01(\tR\n" +
-	"workflowId\"\xed\x04\n" +
+	"workflowId\"\x87\x05\n" +
 	"\x06Source\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12\x18\n" +
@@ -2995,7 +3014,8 @@ const file_discoflix_catalog_v1_catalog_proto_rawDesc = "" +
 	"namespaces\x18\x0e \x03(\tR\n" +
 	"namespaces\x12C\n" +
 	"\aoptions\x18\x0f \x03(\v2).discoflix.catalog.v1.Source.OptionsEntryR\aoptions\x12$\n" +
-	"\x0ehas_client_key\x18\x10 \x01(\bR\fhasClientKey\x1a:\n" +
+	"\x0ehas_client_key\x18\x10 \x01(\bR\fhasClientKey\x12\x18\n" +
+	"\aartwork\x18\x11 \x01(\bR\aartwork\x1a:\n" +
 	"\fOptionsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xff\x02\n" +

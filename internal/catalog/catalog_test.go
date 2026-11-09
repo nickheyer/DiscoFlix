@@ -3,6 +3,7 @@ package catalog
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"os"
 	"slices"
@@ -52,6 +53,7 @@ type fakeSource struct {
 	mu          sync.Mutex
 	namespaces  []string
 	unsupported []string
+	artwork     bool
 	lookups     map[string][]model.Claim
 	results     []model.Claim
 	calls       []string
@@ -74,6 +76,7 @@ func (f *fakeSource) Namespaces() []string {
 }
 func (f *fakeSource) Kinds() []string { return []string{model.KindMovie, model.KindSeries} }
 func (f *fakeSource) NeedsKey() bool  { return false }
+func (f *fakeSource) Artwork() bool   { return f.artwork }
 func (f *fakeSource) KeyHint() string { return "" }
 func (f *fakeSource) License() string { return "test" }
 func (f *fakeSource) Local() bool     { return f.local }
@@ -174,12 +177,19 @@ func (a *fakeArt) URL(row *ent.Artwork, width int32, format string) string {
 }
 
 type fakeSnap struct {
-	mu     sync.Mutex
-	mirror string
-	peers  []string
+	mu       sync.Mutex
+	mirror   string
+	peers    []string
+	checkErr error
+	absent   bool
 }
 
 func (s *fakeSnap) Check(context.Context) (SnapshotCheck, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.checkErr != nil {
+		return SnapshotCheck{}, s.checkErr
+	}
 	return SnapshotCheck{Remote: "v2", Local: "v1", Newer: true}, nil
 }
 
@@ -188,6 +198,11 @@ func (s *fakeSnap) Update(context.Context, func(string)) (SnapshotResult, error)
 }
 
 func (s *fakeSnap) Current() SnapshotInfo {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.absent {
+		return SnapshotInfo{}
+	}
 	return SnapshotInfo{Version: "v1", Present: true, Items: 5}
 }
 
@@ -663,13 +678,68 @@ func TestResolvePrefersWellReferencedTitle(t *testing.T) {
 	}
 }
 
+func TestSnapshotWorkflowWithoutRelease(t *testing.T) {
+	h := newHarness(t)
+	h.snap.mu.Lock()
+	h.snap.checkErr = fmt.Errorf("%w, https://mirror.test/timestamp.json answered 404", ErrNoRelease)
+	h.snap.absent = true
+	h.snap.mu.Unlock()
+	if err := h.svc.Start(h.ctx); err != nil {
+		t.Fatal(err)
+	}
+	wid, err := h.svc.UpdateSnapshot(true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for deadline := time.Now().Add(30 * time.Second); ; {
+		st, err := h.svc.Workflows.Status(wid)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if st.Status == dbos.WorkflowStatusSuccess {
+			break
+		}
+		if st.Status == dbos.WorkflowStatusError || time.Now().After(deadline) {
+			t.Fatalf("snapshot workflow %s %v", st.Status, st.Error)
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+	snap := h.svc.SnapshotProto()
+	if snap.GetState() != "missing" || !strings.Contains(snap.GetLastError(), "has not published") {
+		t.Fatalf("snapshot state = %+v", snap)
+	}
+	msgs, _, err := h.tl.ListMessages(h.ctx, h.tl.SystemBotID(), h.tl.SystemChannelID("catalog"), 0, 20)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var skipped int
+	for _, m := range msgs {
+		var report cardv1.CatalogReport
+		if m.GetCard().GetTypeUrl() == extension.TypeURLOf(report.ProtoReflect().Descriptor()) {
+			if err := proto.Unmarshal(m.GetCard().GetValue(), &report); err != nil {
+				t.Fatal(err)
+			}
+			if report.GetKind() == "snapshot" && report.GetState() == "skipped" && strings.Contains(report.GetDetail(), "answered 404") {
+				skipped++
+			}
+		}
+	}
+	if skipped != 1 {
+		t.Fatalf("skipped snapshot reports = %d of %d messages", skipped, len(msgs))
+	}
+}
+
 func TestLookupExternalThroughAnotherNamespace(t *testing.T) {
 	h := newHarness(t)
 	h.live.namespaces = []string{model.NSTMDB, model.NSIMDb}
+	h.live.artwork = true
 	h.live.lookups["imdb:tt0133093"] = matrixTMDB()
 	e, created, outcomes, err := h.svc.LookupExternal(h.ctx, model.NSIMDb, "tt0133093", model.KindMovie)
 	if err != nil || !created || e.Title != "The Matrix" || len(outcomes) != 2 || outcomes[1].Source != SourceTMDB || outcomes[1].State != StateAnswered {
 		t.Fatalf("lookup by imdb through tmdb = %v %v %v %v", e, created, outcomes, err)
+	}
+	if outcomes[0].Artwork || !outcomes[1].Artwork {
+		t.Fatalf("artwork flags = %v %v", outcomes[0].Artwork, outcomes[1].Artwork)
 	}
 	if byTMDB, err := h.svc.EntityByXID(h.ctx, model.NSTMDB, "movie/603"); err != nil || byTMDB.ID != e.ID {
 		t.Fatalf("tmdb id not linked = %v %v", byTMDB, err)

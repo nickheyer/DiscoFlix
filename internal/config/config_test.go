@@ -19,14 +19,14 @@ func TestLoadLayers(t *testing.T) {
 	t.Setenv("DISCOFLIX_DISCORD_CLIENT_SECRET", "client-secret")
 	fs := pflag.NewFlagSet("test", pflag.ContinueOnError)
 	Flags(fs)
-	if err := fs.Parse([]string{"--log-level", "warn", "--headless"}); err != nil {
+	if err := fs.Parse([]string{"--log-level", "warn", "--display", "web"}); err != nil {
 		t.Fatal(err)
 	}
 	c, err := Load(fs)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if c.DataDir != dir || c.Addr != ":7000" || c.PublicURL != "https://flix.example" || c.LogLevel != "warn" || !c.Headless {
+	if c.DataDir != dir || c.Addr != ":7000" || c.PublicURL != "https://flix.example" || c.LogLevel != "warn" || c.Display != "web" {
 		t.Fatalf("config = %+v", c)
 	}
 	if c.DiscordBotToken != "bot-token" || c.DiscordClientSecret != "client-secret" {

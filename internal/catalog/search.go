@@ -38,6 +38,7 @@ type Outcome struct {
 	Detail   string
 	Results  int
 	Duration time.Duration
+	Artwork  bool
 }
 
 // Hit is one ranked search result
@@ -111,7 +112,9 @@ func (s *Service) fanOut(ctx context.Context, kind, query string, year int, loca
 			start := time.Now()
 			claims, err := e.Search(cctx, kind, query, year)
 			groups := groupClaims(e.Name(), claims)
-			results[i] = sourceResult{name: e.Name(), local: e.local, groups: groups, outcome: outcomeFor(e.Name(), err, len(groups), time.Since(start))}
+			outcome := outcomeFor(e.Name(), err, len(groups), time.Since(start))
+			outcome.Artwork = e.Artwork()
+			results[i] = sourceResult{name: e.Name(), local: e.local, groups: groups, outcome: outcome}
 		}(i, src)
 	}
 	wg.Wait()
@@ -405,7 +408,9 @@ func (s *Service) LookupExternal(ctx context.Context, namespace, value, kind str
 				claims, err := e.Lookup(cctx, k, namespace, value)
 				cancel()
 				groups := groupClaims(e.Name(), claims)
-				outcomes = append(outcomes, outcomeFor(e.Name(), err, len(groups), time.Since(start)))
+				outcome := outcomeFor(e.Name(), err, len(groups), time.Since(start))
+				outcome.Artwork = e.Artwork()
+				outcomes = append(outcomes, outcome)
 				fresh := map[string]bool{}
 				for _, g := range groups {
 					ent, c, err := s.Observe(ctx, g)

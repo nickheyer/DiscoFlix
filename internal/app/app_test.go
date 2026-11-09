@@ -3,9 +3,11 @@ package app
 import (
 	"context"
 	"log/slog"
+	"net"
 	"net/http"
 	"net/http/cookiejar"
 	"os"
+	"strconv"
 	"strings"
 	"testing"
 	"testing/fstest"
@@ -13,8 +15,10 @@ import (
 
 	connect "connectrpc.com/connect/v2"
 	"connectrpc.com/connect/v2/connecthttp"
+	"google.golang.org/protobuf/proto"
 
 	"github.com/nickheyer/DiscoFlix/internal/config"
+	cardv1 "github.com/nickheyer/DiscoFlix/sdk/go/pb/discoflix/card/v1"
 	identityv1 "github.com/nickheyer/DiscoFlix/sdk/go/pb/discoflix/identity/v1"
 	"github.com/nickheyer/DiscoFlix/sdk/go/pb/discoflix/identity/v1/identityv1connect"
 	timelinev1 "github.com/nickheyer/DiscoFlix/sdk/go/pb/discoflix/timeline/v1"
@@ -30,7 +34,6 @@ func TestBootAndShellLogin(t *testing.T) {
 		Config:  config.Config{DataDir: dir, Addr: "127.0.0.1:0"},
 		Version: "0.0.0-test",
 		Commit:  "abc",
-		Mode:    "window",
 		Web:     fstest.MapFS{"200.html": {Data: []byte("<html>app</html>")}},
 		Log:     log,
 	})
@@ -39,7 +42,10 @@ func TestBootAndShellLogin(t *testing.T) {
 	}
 	defer a.Close()
 	errc := make(chan error, 1)
-	go func() { errc <- a.Run(ctx) }()
+	if _, err := a.Listen(ctx, "127.0.0.1:0"); err != nil {
+		t.Fatal(err)
+	}
+	go func() { errc <- a.Run(ctx, "web") }()
 	select {
 	case <-a.Ready():
 	case err := <-errc:
@@ -94,10 +100,13 @@ func TestBootAndShellLogin(t *testing.T) {
 		t.Fatal(spaces, err)
 	}
 	chans, _ := tl.ListChannels(ctx, &timelinev1.ListChannelsRequest{SpaceId: spaces.GetSpaces()[0].GetId()})
-	var auditID string
+	var auditID, generalID string
 	for _, c := range chans.GetChannels() {
-		if c.GetName() == "audit" {
+		switch c.GetName() {
+		case "audit":
 			auditID = c.GetId()
+		case "general":
+			generalID = c.GetId()
 		}
 	}
 	msgs, err := tl.ListMessages(ctx, &timelinev1.ListMessagesRequest{ChannelId: auditID})
@@ -106,12 +115,39 @@ func TestBootAndShellLogin(t *testing.T) {
 	}
 	var sawBoot bool
 	for _, m := range msgs.GetMessages() {
-		if m.GetCard().GetTypeUrl() == "type.googleapis.com/discoflix.card.v1.BootReport" && strings.Contains(m.GetContent(), "0.0.0-test") && strings.Contains(m.GetContent(), "window mode") {
+		if m.GetCard().GetTypeUrl() == "type.googleapis.com/discoflix.card.v1.BootReport" && strings.Contains(m.GetContent(), "0.0.0-test") && strings.Contains(m.GetContent(), "web mode") {
 			sawBoot = true
+			var report cardv1.BootReport
+			if err := proto.Unmarshal(m.GetCard().GetValue(), &report); err != nil {
+				t.Fatal(err)
+			}
+			if report.GetAddress() != a.Addr().String() || report.GetUrl() == "" || !strings.HasSuffix(report.GetUrl(), ":"+strconv.Itoa(a.Addr().(*net.TCPAddr).Port)) || !strings.Contains(m.GetContent(), "serving "+report.GetUrl()) {
+				t.Fatalf("boot report address = %q url = %q content = %q", report.GetAddress(), report.GetUrl(), m.GetContent())
+			}
 		}
 	}
 	if !sawBoot {
 		t.Fatalf("boot report missing in %v", msgs.GetMessages())
+	}
+	general, err := tl.ListMessages(ctx, &timelinev1.ListMessagesRequest{ChannelId: generalID})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var welcomed bool
+	for _, m := range general.GetMessages() {
+		if m.GetCard().GetTypeUrl() != "type.googleapis.com/discoflix.card.v1.SystemNotice" {
+			continue
+		}
+		var notice cardv1.SystemNotice
+		if err := proto.Unmarshal(m.GetCard().GetValue(), &notice); err != nil {
+			t.Fatal(err)
+		}
+		if notice.GetTitle() == "Welcome to DiscoFlix" && strings.Contains(notice.GetBody(), "listening at http://") && strings.Contains(notice.GetBody(), "Settings > Discord") {
+			welcomed = true
+		}
+	}
+	if !welcomed {
+		t.Fatalf("welcome notice missing in %v", general.GetMessages())
 	}
 	cancel()
 	select {

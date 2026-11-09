@@ -65,6 +65,9 @@ func (s *Source) Kinds() []string {
 
 func (s *Source) NeedsKey() bool { return true }
 
+// Posters, backdrops, and logos come with every record
+func (s *Source) Artwork() bool { return true }
+
 func (s *Source) KeyHint() string { return "https://www.themoviedb.org/settings/api" }
 
 func (s *Source) License() string { return license }

@@ -174,7 +174,7 @@ func resolve(cfg Config) (string, string, error) {
 
 // Arguments the installed service passes to the binary
 func serveArgs(data string) []string {
-	return []string{"serve", "--headless", "--data-dir", data}
+	return []string{"serve", "--display", "web", "--data-dir", data}
 }
 
 // Wraps a kardianos service as a manager

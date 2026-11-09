@@ -70,6 +70,9 @@ func (s *Source) Kinds() []string {
 
 func (s *Source) NeedsKey() bool { return true }
 
+// Posters, backdrops, and banners come with every record
+func (s *Source) Artwork() bool { return true }
+
 func (s *Source) KeyHint() string {
 	return "https://thetvdb.com/dashboard/account/apikey (v4 project key, subscriber PIN optional as the client key)"
 }

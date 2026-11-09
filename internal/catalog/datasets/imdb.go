@@ -55,6 +55,7 @@ func (*imdbSource) Kinds() []string {
 }
 
 func (*imdbSource) NeedsKey() bool  { return false }
+func (*imdbSource) Artwork() bool   { return false }
 func (*imdbSource) KeyHint() string { return "" }
 func (*imdbSource) License() string { return imdbLicense }
 func (*imdbSource) Local() bool     { return true }
